@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15
-    container_name: weave_dev
+    container_name: DEV_weave_db_postgres
     env_file:
       - .env.dev
     environment:
@@ -21,7 +21,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: weave_redis_dev
+    container_name: DEV_weave_redis
     ports:
       - "6379:6379"
     restart: unless-stopped
@@ -31,7 +31,7 @@ services:
           - redis
 
   web:
-    container_name: weave_web_dev
+    container_name: DEV_weave_web
     build:
       context: .
     command: python manage.py runserver 0.0.0.0:8000
