@@ -1,0 +1,104 @@
+services:
+  web:
+    container_name: mahimate_web_prod
+    build:
+      context: .
+    command:
+      - gunicorn
+      - mahimate.wsgi:application
+      - --bind
+      - 0.0.0.0:8000
+      - --workers
+      - "3"
+      - --timeout
+      - "60"
+      - --access-logfile
+      - "-"
+      - --error-logfile
+      - "-"
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - /var/www/mahimate/static:/app/staticfiles
+      - /var/www/mahimate/media:/app/media
+    env_file:
+      - .env.prod
+    environment:
+      DJANGO_ENV: prod
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    container_name: mahimate_db_prod
+    env_file:
+      - .env.prod
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - prod-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: mahimate_redis_prod
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  celery:
+    container_name: mahimate_celery_prod
+    build:
+      context: .
+    command: celery -A mahimate worker -l info --concurrency=2
+    env_file:
+      - .env.prod
+    volumes:
+      - /var/www/mahimate/media:/app/media
+    environment:
+      DJANGO_ENV: prod
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_started
+    restart: unless-stopped
+
+  celery_beat:
+    container_name: mahimate_celery_beat_prod
+    build:
+      context: .
+    command: celery -A mahimate beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    env_file:
+      - .env.prod
+    volumes:
+      - /var/www/mahimate/media:/app/media
+    environment:
+      DJANGO_ENV: prod
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  prod-db-data:

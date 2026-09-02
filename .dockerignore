@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtualenv
+env/
+venv/
+
+# Node
+node_modules/
+dist/
+
+# Django files not needed inside Docker
+media/
+static/
+staticfiles/
+
+# Git
+.git/
+.gitignore
+
+# Github
+.github/
+
+# Docker
+docker-compose.yml
+docker-compose.override.yml
+
+# Editor
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.env
+*.key
+*.pem
+
+# Documentation
+*.ipynb
+
+# Claude Code
+tmpclaude-*
+CLAUDE.md

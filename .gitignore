@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+env/
+venv/
+*.env
+.env.dev
+.env.prod
+*.sqlite3
+
+# Django
+*.log
+*.pot
+*.pyc
+local_settings.py
+media/
+staticfiles/
+
+# Node / SCSS
+node_modules/
+dist/
+*.map
+
+# VS Code
+.vscode/
+
+# Github
+.github/
+
+# Docker
+*.pid
+*.sock
+*.log
+docker-compose.override.yml
+*.tar
+
+# OS
+.DS_Store
+Thumbs.db
+
+# DB Seed Data
+*.geojson
+
+# Jupyter / Docs
+*.ipynb
+
+# Claude Code
+tmpclaude-*
