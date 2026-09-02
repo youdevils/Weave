@@ -1,0 +1,228 @@
+{% extends "authenticated_base.html" %}
+
+{% block title %}Workspace — Weave{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-4 py-4">
+
+    <!-- =========================================================
+         Page Header
+         ========================================================= -->
+
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4">
+
+        <div>
+            <h1 class="h3 mb-1">Your workspace</h1>
+
+            <p class="text-muted mb-0">
+                Select a model to continue working or create a new one here.
+            </p>
+        </div>
+
+        <div class="mt-3 mt-md-0">
+
+            <a
+                href="#"
+                class="btn btn-primary"
+            >
+                <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
+                Create model
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         Models
+         ========================================================= -->
+
+    <section>
+
+        <div class="d-flex align-items-center justify-content-between mb-3">
+
+            <h2 class="h5 mb-0">
+                Models
+            </h2>
+
+        </div>
+
+
+        {% if memberships %}
+
+            <div class="row g-4">
+
+                {% for membership in memberships %}
+
+                    {% for model in membership.workspace.models.all %}
+
+                        <div class="col-12 col-md-6 col-xl-4">
+
+                            <div class="card h-100 shadow-sm">
+
+                                <div class="card-body d-flex flex-column">
+
+                                    <!-- Model name -->
+
+                                    <h3 class="h5 card-title mb-2">
+
+                                        <a
+                                            href="#"
+                                            class="text-decoration-none text-dark"
+                                        >
+                                            {{ model.name }}
+                                        </a>
+
+                                    </h3>
+
+
+                                    <!-- Description -->
+
+                                    {% if model.description %}
+
+                                        <p class="card-text text-muted mb-3">
+                                            {{ model.description }}
+                                        </p>
+
+                                    {% else %}
+
+                                        <p class="card-text text-muted mb-3">
+                                            No description provided.
+                                        </p>
+
+                                    {% endif %}
+
+
+                                    <!-- Model metadata -->
+
+                                    <div class="mt-auto pt-3 border-top">
+
+                                        <div class="d-flex align-items-center justify-content-between">
+
+                                            <span class="small text-muted">
+                                                <i
+                                                    class="bi bi-diagram-3 me-1"
+                                                    aria-hidden="true"
+                                                ></i>
+                                                Semantic model
+                                            </span>
+
+                                            <span class="small text-muted">
+                                                {{ membership.role|title }}
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    {% empty %}
+
+                        <!-- =================================================
+                             Empty State
+                             ================================================= -->
+
+                        <div class="col-12">
+
+                            <div class="card shadow-sm">
+
+                                <div class="card-body text-center py-5">
+
+                                    <div
+                                        class="mb-3 text-muted"
+                                        style="font-size: 2.5rem;"
+                                    >
+                                        <i
+                                            class="bi bi-diagram-3"
+                                            aria-hidden="true"
+                                        ></i>
+                                    </div>
+
+                                    <h3 class="h5">
+                                        No models yet
+                                    </h3>
+
+                                    <p class="text-muted mb-4">
+                                        Create your first model to start building a governed semantic model.
+                                    </p>
+
+                                    <a
+                                        href="#"
+                                        class="btn btn-primary"
+                                    >
+                                        <i
+                                            class="bi bi-plus-lg me-1"
+                                            aria-hidden="true"
+                                        ></i>
+                                        Create model
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <!-- =====================================================
+                 No Workspace
+                 ===================================================== -->
+
+            <div class="card shadow-sm">
+
+                <div class="card-body text-center py-5">
+
+                    <div
+                        class="mb-3 text-muted"
+                        style="font-size: 2.5rem;"
+                    >
+                        <i
+                            class="bi bi-diagram-3"
+                            aria-hidden="true"
+                        ></i>
+                    </div>
+
+                    <h2 class="h5">
+                        No workspace available
+                    </h2>
+
+                    <p class="text-muted mb-4">
+                        Create a workspace to start building your first model.
+                    </p>
+
+                    <a
+                        href="#"
+                        class="btn btn-primary"
+                    >
+                        <i
+                            class="bi bi-plus-lg me-1"
+                            aria-hidden="true"
+                        ></i>
+                        Create workspace
+                    </a>
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

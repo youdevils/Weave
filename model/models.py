@@ -5,10 +5,10 @@ from django.db import models
 
 class Model(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.OneToOneField(
+    workspace = models.ForeignKey(
         "workspace.Workspace",
         on_delete=models.CASCADE,
-        related_name="model",
+        related_name="models",
     )
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
