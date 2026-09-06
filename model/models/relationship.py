@@ -13,7 +13,7 @@ class Relationship(models.Model):
     model = models.ForeignKey(
         "model.Model",
         on_delete=models.CASCADE,
-        related_name="relationships",
+        related_name="model_relationships",
     )
 
     relationship_type = models.ForeignKey(

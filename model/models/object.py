@@ -13,13 +13,13 @@ class Object(models.Model):
     model = models.ForeignKey(
         "model.Model",
         on_delete=models.CASCADE,
-        related_name="objects",
+        related_name="model_objects",
     )
 
     object_type = models.ForeignKey(
         "model.ObjectType",
         on_delete=models.PROTECT,
-        related_name="objects",
+        related_name="typed_objects",
     )
 
     name = models.CharField(
