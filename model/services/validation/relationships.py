@@ -1,0 +1,98 @@
+from model.models.relationship import Relationship
+from model.services.validation.attributes import validate_attributes
+from model.services.validation.result import (
+    ValidationIssue,
+    ValidationResult,
+)
+
+
+def validate_relationship(
+    relationship: Relationship,
+) -> ValidationResult:
+    issues: list[ValidationIssue] = []
+
+    # ---------------------------------------------------------
+    # Model consistency
+    # ---------------------------------------------------------
+
+    if relationship.relationship_type.model_id != relationship.model_id:
+        issues.append(
+            ValidationIssue(
+                code="relationship_type_model_mismatch",
+                field="relationship_type",
+                message=(
+                    f"RelationshipType "
+                    f"'{relationship.relationship_type.name}' does not "
+                    "belong to the same Model as the Relationship."
+                ),
+            )
+        )
+
+    if relationship.subject.model_id != relationship.model_id:
+        issues.append(
+            ValidationIssue(
+                code="subject_model_mismatch",
+                field="subject",
+                message=(
+                    f"Subject Object '{relationship.subject.name}' does not "
+                    "belong to the same Model as the Relationship."
+                ),
+            )
+        )
+
+    if relationship.object.model_id != relationship.model_id:
+        issues.append(
+            ValidationIssue(
+                code="object_model_mismatch",
+                field="object",
+                message=(
+                    f"Object '{relationship.object.name}' does not belong "
+                    "to the same Model as the Relationship."
+                ),
+            )
+        )
+
+    # ---------------------------------------------------------
+    # Relationship type model consistency
+    # ---------------------------------------------------------
+
+    # Only check relationship rules when the relationship type belongs
+    # to the same model. Otherwise this can produce misleading errors
+    # about a rule that belongs to another model.
+    if relationship.relationship_type.model_id == relationship.model_id:
+
+        matching_rule = relationship.relationship_type.rules.filter(
+            subject_type_id=relationship.subject.object_type_id,
+            object_type_id=relationship.object.object_type_id,
+        ).exists()
+
+        if not matching_rule:
+            issues.append(
+                ValidationIssue(
+                    code="invalid_relationship_types",
+                    field="relationship_type",
+                    message=(
+                        f"RelationshipType "
+                        f"'{relationship.relationship_type.name}' does not "
+                        f"permit '{relationship.subject.object_type.name}' "
+                        f"as the subject and "
+                        f"'{relationship.object.object_type.name}' "
+                        "as the object."
+                    ),
+                )
+            )
+
+    # ---------------------------------------------------------
+    # Relationship attributes
+    # ---------------------------------------------------------
+
+    definitions = relationship.relationship_type.relationship_definitions.all()
+
+    attribute_result = validate_attributes(
+        attributes=relationship.attributes or {},
+        definitions=definitions,
+    )
+
+    issues.extend(attribute_result.issues)
+
+    return ValidationResult(issues=issues)

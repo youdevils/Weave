@@ -4,7 +4,7 @@ from model.models.attribute_definition import AttributeDefinition
 from model.models.model import Model
 from model.models.object import Object
 from model.models.object_type import ObjectType
-from model.services.validation.object import validate_object
+from model.services.validation.objects import validate_object
 from workspace.models import Workspace
 
 
