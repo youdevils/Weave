@@ -22,6 +22,10 @@ class Relationship(models.Model):
         related_name="relationships",
     )
 
+    is_active = models.BooleanField(
+        default=True,
+    )
+
     subject = models.ForeignKey(
         "model.Object",
         on_delete=models.CASCADE,

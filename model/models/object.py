@@ -22,6 +22,10 @@ class Object(models.Model):
         related_name="typed_objects",
     )
 
+    is_active = models.BooleanField(
+        default=True,
+    )
+
     name = models.CharField(
         max_length=255,
     )
