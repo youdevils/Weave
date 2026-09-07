@@ -1,0 +1,360 @@
+{% extends "authenticated_base.html" %}
+
+{% load static %}
+
+{% block title %}Create Model — Weave{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'workspace/css/create_model.css' %}"
+>
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-4 py-4">
+
+    <div class="create-model-page">
+
+        <!-- =====================================================
+             Back
+             ===================================================== -->
+
+        <div class="mb-4">
+
+            <a
+                href="{% url 'workspace:index' %}"
+                class="create-model-back"
+            >
+                <i
+                    class="bi bi-arrow-left"
+                    aria-hidden="true"
+                ></i>
+
+                Back to workspace
+            </a>
+
+        </div>
+
+
+        <!-- =====================================================
+             Header
+             ===================================================== -->
+
+        <header class="create-model-header">
+
+            <h1 class="h3 create-model-title">
+                Create your model
+            </h1>
+
+            <p class="create-model-intro">
+                Choose how you want to establish the initial structure
+                for <strong>{{ model.name }}</strong>.
+            </p>
+
+        </header>
+
+
+        <!-- =====================================================
+             Progress
+             ===================================================== -->
+
+        <nav
+            class="create-model-progress"
+            aria-label="Model creation progress"
+        >
+
+            <div class="create-model-step">
+
+                <span class="create-model-step-number">
+                    <i
+                        class="bi bi-check-lg"
+                        aria-hidden="true"
+                    ></i>
+                </span>
+
+                Details
+
+            </div>
+
+
+            <div
+                class="create-model-step-line"
+                aria-hidden="true"
+            ></div>
+
+
+            <div class="create-model-step active">
+
+                <span class="create-model-step-number">
+                    2
+                </span>
+
+                Starting point
+
+            </div>
+
+
+            <div
+                class="create-model-step-line"
+                aria-hidden="true"
+            ></div>
+
+
+            <div class="create-model-step">
+
+                <span class="create-model-step-number">
+                    3
+                </span>
+
+                Review
+
+            </div>
+
+        </nav>
+
+
+        <!-- =====================================================
+             Main layout
+             ===================================================== -->
+
+        <div class="create-model-layout">
+
+
+            <!-- =================================================
+                 Context
+                 ================================================= -->
+
+            <aside class="create-model-aside">
+
+                <div class="create-model-aside-label">
+                    Step 2
+                </div>
+
+                <h2>
+                    Choose a starting point
+                </h2>
+
+                <p>
+                    Start with a predefined structure or build your
+                    own ontology from scratch.
+                </p>
+
+                <p>
+                    Templates give you a useful foundation that you
+                    can adapt as your model develops.
+                </p>
+
+                <div class="create-model-aside-note">
+
+                    <strong>Tip</strong>
+
+                    <br>
+
+                    Choose the starting point that is closest to what
+                    you are trying to understand. You can change and
+                    extend the ontology later.
+
+                </div>
+
+            </aside>
+
+
+            <!-- =================================================
+                 Starting point selection
+                 ================================================= -->
+
+            <main>
+
+                <div class="create-model-form-panel">
+
+
+                    <!-- Panel header -->
+
+                    <div class="create-model-form-header">
+
+                        <h2>
+                            Choose a starting point
+                        </h2>
+
+                        <p>
+                            Select the foundation for your model.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Panel body -->
+
+                    <div class="create-model-form-body">
+
+                        <div class="starting-point-grid">
+
+
+                            <!-- =====================================
+                                 Start from scratch
+                                 ===================================== -->
+
+                            <div class="starting-point-card unavailable">
+
+                                <div class="starting-point-card-icon">
+                                    <i
+                                        class="bi bi-plus-circle"
+                                        aria-hidden="true"
+                                    ></i>
+                                </div>
+
+                                <div class="starting-point-card-body">
+
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+
+                                        <h3 class="h5 mb-0">
+                                            Start from scratch
+                                        </h3>
+
+                                        <span class="badge text-bg-light">
+                                            Coming soon
+                                        </span>
+
+                                    </div>
+
+                                    <p class="text-muted small mb-0">
+                                        Build your own ontology from an
+                                        empty model.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- =====================================
+                                 Business Process
+                                 ===================================== -->
+
+                            <a
+                                href="#"
+                                class="starting-point-card"
+                            >
+
+                                <div class="starting-point-card-icon">
+                                    <i
+                                        class="bi bi-diagram-3"
+                                        aria-hidden="true"
+                                    ></i>
+                                </div>
+
+                                <div class="starting-point-card-body">
+
+                                    <h3 class="h5 mb-2">
+                                        Business Process
+                                    </h3>
+
+                                    <p class="text-muted small mb-0">
+                                        Model processes, systems and teams
+                                        to understand how work flows through
+                                        the organisation.
+                                    </p>
+
+                                </div>
+
+                                <div class="starting-point-card-footer">
+
+                                    <span>
+                                        Choose template
+                                    </span>
+
+                                    <i
+                                        class="bi bi-arrow-right"
+                                        aria-hidden="true"
+                                    ></i>
+
+                                </div>
+
+                            </a>
+
+
+                            <!-- =====================================
+                                 Application Landscape
+                                 ===================================== -->
+
+                            <div class="starting-point-card unavailable">
+
+                                <div class="starting-point-card-icon">
+                                    <i
+                                        class="bi bi-grid-3x3-gap"
+                                        aria-hidden="true"
+                                    ></i>
+                                </div>
+
+                                <div class="starting-point-card-body">
+
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+
+                                        <h3 class="h5 mb-0">
+                                            Application Landscape
+                                        </h3>
+
+                                        <span class="badge text-bg-light">
+                                            Coming soon
+                                        </span>
+
+                                    </div>
+
+                                    <p class="text-muted small mb-0">
+                                        Map applications, capabilities and
+                                        technology across your organisation.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+
+                        <!-- Informational note -->
+
+                        <div class="starting-point-note mt-4">
+
+                            <i
+                                class="bi bi-info-circle"
+                                aria-hidden="true"
+                            ></i>
+
+                            <span>
+                                Templates provide a starting structure only.
+                                You can modify and extend the ontology later.
+                            </span>
+
+                        </div>
+
+
+                        <!-- Actions -->
+
+                        <div class="create-model-actions">
+
+                            <a
+                                href="{% url 'workspace:index' %}"
+                                class="btn btn-outline-secondary"
+                            >
+                                Cancel
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

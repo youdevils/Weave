@@ -1,0 +1,409 @@
+{% extends "authenticated_base.html" %}
+
+{% load static %}
+
+{% block title %}Create Model — Weave{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'workspace/css/create_model.css' %}"
+>
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-4 py-4">
+
+    <div class="create-model-page">
+
+        <!-- =====================================================
+             Back
+             ===================================================== -->
+
+        <div class="mb-4">
+
+            <a
+                href="#"
+                class="create-model-back"
+            >
+                <i
+                    class="bi bi-arrow-left"
+                    aria-hidden="true"
+                ></i>
+
+                Back to workspace
+            </a>
+
+        </div>
+
+
+        <!-- =====================================================
+             Header
+             ===================================================== -->
+
+        <header class="create-model-header">
+
+            <h1 class="h3 create-model-title">
+                Create a new model
+            </h1>
+
+            <p class="create-model-intro">
+                Define what your model represents and the boundaries
+                it should cover. You'll choose a starting ontology next.
+            </p>
+
+        </header>
+
+
+        <!-- =====================================================
+             Progress
+             ===================================================== -->
+
+        <nav
+            class="create-model-progress"
+            aria-label="Model creation progress"
+        >
+
+            <div class="create-model-step active">
+
+                <span class="create-model-step-number">
+                    1
+                </span>
+
+                Details
+
+            </div>
+
+            <div
+                class="create-model-step-line"
+                aria-hidden="true"
+            ></div>
+
+            <div class="create-model-step">
+
+                <span class="create-model-step-number">
+                    2
+                </span>
+
+                Starting point
+
+            </div>
+
+            <div
+                class="create-model-step-line"
+                aria-hidden="true"
+            ></div>
+
+            <div class="create-model-step">
+
+                <span class="create-model-step-number">
+                    3
+                </span>
+
+                Review
+
+            </div>
+
+        </nav>
+
+
+        <!-- =====================================================
+             Main layout
+             ===================================================== -->
+
+        <div class="create-model-layout">
+
+
+            <!-- =================================================
+                 Context
+                 ================================================= -->
+
+            <aside class="create-model-aside">
+
+                <div class="create-model-aside-label">
+                    Step 1
+                </div>
+
+                <h2>
+                    Define your model
+                </h2>
+
+                <p>
+                    Start by describing what this model is about.
+                    This information provides context for the ontology
+                    you build later.
+                </p>
+
+                <p>
+                    Don't worry about defining objects or relationships
+                    yet. We'll do that in the next step.
+                </p>
+
+                <div class="create-model-aside-note">
+
+                    <strong>Tip</strong>
+
+                    <br>
+
+                    Keep the scope specific enough that the model has
+                    a clear purpose and useful boundaries.
+
+                </div>
+
+            </aside>
+
+
+            <!-- =================================================
+                 Form
+                 ================================================= -->
+
+            <main>
+
+                <div class="create-model-form-panel">
+
+
+                    <!-- Form header -->
+
+                    <div class="create-model-form-header">
+
+                        <h2>
+                            Model details
+                        </h2>
+
+                        <p>
+                            You can change these details later.
+                        </p>
+
+                    </div>
+
+
+                    <div class="create-model-form-body">
+
+                        <form method="post">
+
+                            {% csrf_token %}
+
+
+                            <!-- =================================
+                                 Identity
+                                 ================================= -->
+
+                            <section class="create-model-section">
+
+                                <h3 class="create-model-section-title">
+                                    Identity
+                                </h3>
+
+                                <div class="create-model-field">
+
+                                    <label
+                                        for="id_name"
+                                        class="form-label"
+                                    >
+                                        Model name
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        id="id_name"
+                                        name="name"
+                                        maxlength="200"
+                                        required
+                                        autofocus
+                                    >
+
+                                    <div class="create-model-help">
+                                        A clear name for the domain,
+                                        programme, or area this model represents.
+                                    </div>
+
+                                </div>
+
+
+                                <div class="create-model-field">
+
+                                    <label
+                                        for="id_description"
+                                        class="form-label"
+                                    >
+                                        Description
+                                    </label>
+
+                                    <textarea
+                                        class="form-control"
+                                        id="id_description"
+                                        name="description"
+                                        rows="3"
+                                    ></textarea>
+
+                                    <div class="create-model-help">
+                                        A short description of what this model
+                                        represents.
+                                    </div>
+
+                                </div>
+
+                            </section>
+
+
+                            <!-- =================================
+                                 Purpose
+                                 ================================= -->
+
+                            <section class="create-model-section">
+
+                                <h3 class="create-model-section-title">
+                                    Purpose
+                                </h3>
+
+                                <p class="create-model-section-description">
+                                    What are you trying to understand,
+                                    document, or manage with this model?
+                                </p>
+
+                                <div class="create-model-field">
+
+                                    <label
+                                        for="id_purpose"
+                                        class="form-label"
+                                    >
+                                        Model purpose
+                                    </label>
+
+                                    <textarea
+                                        class="form-control"
+                                        id="id_purpose"
+                                        name="purpose"
+                                        rows="3"
+                                    ></textarea>
+
+                                    <div class="create-model-help">
+                                        For example, documenting a
+                                        transformation, understanding an
+                                        application landscape, or mapping
+                                        business processes.
+                                    </div>
+
+                                </div>
+
+                            </section>
+
+
+                            <!-- =================================
+                                 Boundaries
+                                 ================================= -->
+
+                            <section class="create-model-section">
+
+                                <h3 class="create-model-section-title">
+                                    Boundaries
+                                </h3>
+
+                                <p class="create-model-section-description">
+                                    Define what belongs in the model and
+                                    what deliberately does not.
+                                </p>
+
+
+                                <div class="create-model-boundaries">
+
+
+                                    <!-- Scope -->
+
+                                    <div class="create-model-field">
+
+                                        <label
+                                            for="id_scope"
+                                            class="form-label"
+                                        >
+                                            Scope
+                                        </label>
+
+                                        <textarea
+                                            class="form-control"
+                                            id="id_scope"
+                                            name="scope"
+                                            rows="5"
+                                        ></textarea>
+
+                                        <div class="create-model-help">
+                                            What should this model represent?
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- Exclusions -->
+
+                                    <div class="create-model-field">
+
+                                        <label
+                                            for="id_exclusions"
+                                            class="form-label"
+                                        >
+                                            Exclusions
+                                        </label>
+
+                                        <textarea
+                                            class="form-control"
+                                            id="id_exclusions"
+                                            name="exclusions"
+                                            rows="5"
+                                        ></textarea>
+
+                                        <div class="create-model-help">
+                                            What is explicitly outside
+                                            the model's scope?
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </section>
+
+
+                            <!-- =================================
+                                 Actions
+                                 ================================= -->
+
+                            <div class="create-model-actions">
+
+                                <a
+                                    href="#"
+                                    class="btn btn-outline-secondary"
+                                >
+                                    Cancel
+                                </a>
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+                                    Continue
+                                    <i
+                                        class="bi bi-arrow-right ms-1"
+                                        aria-hidden="true"
+                                    ></i>
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
