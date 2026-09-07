@@ -11,4 +11,9 @@ urlpatterns = [
         views.model_starting_point,
         name="model_starting_point",
     ),
+    path(
+        "create-model/<uuid:model_id>/review/<str:template_key>",
+        views.model_template_review,
+        name="model_template_review",
+    ),
 ]
