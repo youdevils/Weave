@@ -1,0 +1,35 @@
+{% extends "model/model_base.html" %}
+
+{% block model_content %}
+
+<div class="model-overview">
+
+<h1>{{ model.name }}</h1>
+
+{% if model.description %}
+    <p>{{ model.description }}</p>
+{% endif %}
+
+<hr>
+
+<h2>About this model</h2>
+
+{% if model.purpose %}
+    <h3>Purpose</h3>
+    <p>{{ model.purpose }}</p>
+{% endif %}
+
+{% if model.scope %}
+    <h3>Scope</h3>
+    <p>{{ model.scope }}</p>
+{% endif %}
+
+{% if model.exclusions %}
+    <h3>Exclusions</h3>
+    <p>{{ model.exclusions }}</p>
+{% endif %}
+
+
+</div>
+
+{% endblock %}

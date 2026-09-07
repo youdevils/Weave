@@ -1,0 +1,30 @@
+{% extends "authenticated_base.html" %}
+
+{% load static %}
+
+{% block extra_css %} <link
+     rel="stylesheet"
+     href="{% static 'model/css/model.css' %}"
+ >
+{% endblock %}
+
+{% block content %}
+
+<div class="model-shell">
+
+
+{% include "model/_sidebar.html" %}
+
+<main class="model-content">
+    {% block model_content %}
+    {% endblock %}
+</main>
+
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'model/js/model.js' %}"></script>
+{% endblock %}

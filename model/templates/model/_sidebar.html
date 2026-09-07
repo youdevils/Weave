@@ -1,0 +1,161 @@
+<aside class="model-sidebar">
+
+    <div class="model-sidebar-header">
+        <div class="model-sidebar-title">
+            {{ model.name }}
+        </div>
+    </div>
+
+
+    <nav class="model-navigation">
+
+        <!-- MODEL -->
+
+        <div class="model-nav-section">
+
+            <div class="model-nav-section-label">
+                Model
+            </div>
+
+            <a
+                href="{% url 'model:overview' model.id %}"
+                class="model-nav-item active"
+            >
+                <span>Overview</span>
+            </a>
+
+        </div>
+
+
+        <!-- ONTOLOGY -->
+
+        <div class="model-nav-section">
+
+            <div class="model-nav-section-label">
+                Ontology
+            </div>
+
+            <div class="model-nav-group">
+
+                <div class="model-nav-parent-row">
+
+                    <a
+                        href="#"
+                        class="model-nav-item model-nav-parent"
+                    >
+                        <span>Object types</span>
+
+                        <span class="model-nav-count">
+                            {{ object_types|length }}
+                        </span>
+                    </a>
+
+                    <button
+                        type="button"
+                        class="model-nav-toggle"
+                        aria-expanded="true"
+                        aria-label="Collapse object types"
+                    >
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+
+                </div>
+
+                <div class="model-nav-children">
+
+                    {% for object_type in object_types|slice:":10" %}
+                        <a
+                            href="#"
+                            class="model-nav-child"
+                        >
+                            <span>{{ object_type.name }}</span>
+                        </a>
+                    {% endfor %}
+
+                    {% if object_types|length > 10 %}
+                        <a
+                            href="#"
+                            class="model-nav-more"
+                        >
+                            View all {{ object_types|length }} →
+                        </a>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <div class="model-nav-group">
+
+                <div class="model-nav-parent-row">
+
+                    <a
+                        href="#"
+                        class="model-nav-item model-nav-parent"
+                    >
+                        <span>Relationships</span>
+
+                        <span class="model-nav-count">
+                            {{ relationship_types|length }}
+                        </span>
+                    </a>
+
+                    <button
+                        type="button"
+                        class="model-nav-toggle"
+                        aria-expanded="true"
+                        aria-label="Collapse relationships"
+                    >
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+
+                </div>
+
+                <div class="model-nav-children">
+
+                    {% for relationship_type in relationship_types|slice:":10" %}
+                        <a
+                            href="#"
+                            class="model-nav-child"
+                        >
+                            <span>{{ relationship_type.name }}</span>
+                        </a>
+                    {% endfor %}
+
+                    {% if relationship_types|length > 10 %}
+                        <a
+                            href="#"
+                            class="model-nav-more"
+                        >
+                            View all {{ relationship_types|length }} →
+                        </a>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- DATA -->
+
+        <div class="model-nav-section">
+
+            <div class="model-nav-section-label">
+                Data
+            </div>
+
+            <a
+                href="#"
+                class="model-nav-item"
+            >
+                <span>Data</span>
+            </a>
+
+        </div>
+
+    </nav>
+
+</aside>

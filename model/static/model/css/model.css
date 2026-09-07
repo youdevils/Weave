@@ -1,0 +1,163 @@
+#main-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.model-shell {
+    display: flex;
+    flex: 1 1 auto;
+    width: 100%;
+}
+
+.model-sidebar {
+    flex: 0 0 260px;
+    width: 260px;
+    background: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+}
+
+.model-sidebar-header {
+    padding: 1.25rem 1.25rem 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.model-sidebar-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #212529;
+}
+
+.model-navigation {
+    padding: 1rem 0.75rem;
+}
+
+.model-nav-section {
+    margin-bottom: 1.5rem;
+}
+
+.model-nav-section-label {
+    padding: 0 0.75rem 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6c757d;
+}
+
+.model-nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 36px;
+    padding: 0.45rem 0.75rem;
+    border-radius: 0.375rem;
+    color: #343a40;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.model-nav-item:hover {
+    background: #e9ecef;
+    color: #212529;
+}
+
+.model-nav-item.active {
+    background: #e2e3e5;
+    color: #212529;
+    font-weight: 600;
+}
+
+.model-nav-parent {
+    margin-top: 0.15rem;
+}
+
+.model-nav-count {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.model-nav-child {
+    display: block;
+    padding: 0.35rem 0.75rem 0.35rem 1.5rem;
+    color: #495057;
+    text-decoration: none;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    border-left: 1px solid #dee2e6;
+    margin-left: 0.9rem;
+}
+
+.model-nav-child:hover {
+    color: #212529;
+    background: #f1f3f5;
+}
+
+.model-nav-more {
+    display: block;
+    padding: 0.35rem 0.75rem 0.35rem 1.5rem;
+    margin-left: 0.9rem;
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 0.8rem;
+}
+
+.model-nav-more:hover {
+    color: #212529;
+}
+
+.model-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 2rem;
+}
+
+.model-nav-group {
+    margin-bottom: 0.15rem;
+}
+
+.model-nav-parent-row {
+    display: flex;
+    align-items: center;
+}
+
+.model-nav-parent-row .model-nav-parent {
+    flex: 1 1 auto;
+}
+
+.model-nav-toggle {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    margin-right: 0.2rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #6c757d;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.model-nav-toggle:hover {
+    background: #e9ecef;
+    color: #212529;
+}
+
+.model-nav-toggle i {
+    font-size: 0.7rem;
+    transition: transform 0.15s ease;
+}
+
+.model-nav-toggle[aria-expanded="false"] i {
+    transform: rotate(-90deg);
+}
+
+.model-nav-children {
+    overflow: hidden;
+}
+
+.model-nav-children.collapsed {
+    display: none;
+}

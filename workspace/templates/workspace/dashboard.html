@@ -68,15 +68,14 @@
 
                                     <h3 class="h5 card-title mb-2">
 
-                                        <a
-                                            href="#"
-                                            class="text-decoration-none text-dark"
-                                        >
-                                            {{ model.name }}
-                                        </a>
+                                    <a
+                                        href="{% url 'model:overview' model.id %}"
+                                        class="text-decoration-none text-dark"
+                                    >
+                                        {{ model.name }}
+                                    </a>
 
                                     </h3>
-
 
                                     <!-- Description -->
 
