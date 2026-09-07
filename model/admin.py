@@ -51,6 +51,7 @@ class AttributeDefinitionAdmin(admin.ModelAdmin):
         "key",
         "data_type",
         "required",
+        "nullable",
         "object_type",
         "relationship_type",
     )
@@ -58,6 +59,7 @@ class AttributeDefinitionAdmin(admin.ModelAdmin):
     list_filter = (
         "data_type",
         "required",
+        "nullable",
     )
 
     search_fields = (
@@ -92,10 +94,17 @@ class RelationshipTypeRuleAdmin(admin.ModelAdmin):
         "relationship_type",
         "subject_type",
         "object_type",
-        "subject_min",
-        "subject_max",
-        "object_min",
-        "object_max",
+        "subject_minimum",
+        "subject_maximum",
+        "subject_required",
+        "object_minimum",
+        "object_maximum",
+        "object_required",
+    )
+
+    list_filter = (
+        "subject_required",
+        "object_required",
     )
 
     search_fields = (
