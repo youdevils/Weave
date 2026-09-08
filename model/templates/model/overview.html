@@ -4,30 +4,365 @@
 
 <div class="model-overview">
 
-<h1>{{ model.name }}</h1>
 
-{% if model.description %}
-    <p>{{ model.description }}</p>
-{% endif %}
+<div class="model-overview-header">
+    <div>
+        <div class="model-overview-eyebrow">Model overview</div>
+        <h1>{{ model.name }}</h1>
+    </div>
+</div>
 
-<hr>
 
-<h2>About this model</h2>
+<section class="model-overview-section model-overview-description">
 
-{% if model.purpose %}
-    <h3>Purpose</h3>
-    <p>{{ model.purpose }}</p>
-{% endif %}
+    <div class="model-overview-field">
 
-{% if model.scope %}
-    <h3>Scope</h3>
-    <p>{{ model.scope }}</p>
-{% endif %}
+        <div class="model-overview-field-header">
+            <h2>Description</h2>
+            <button
+                type="button"
+                class="model-edit-button"
+                data-edit-field="description"
+            >
+                Edit
+            </button>
+        </div>
 
-{% if model.exclusions %}
-    <h3>Exclusions</h3>
-    <p>{{ model.exclusions }}</p>
-{% endif %}
+        <div
+            class="model-field-display"
+            data-field="description"
+        >
+            {% if model.description %}
+                <p>{{ model.description }}</p>
+            {% else %}
+                <p class="model-field-empty">Not defined</p>
+            {% endif %}
+        </div>
+
+        <div
+            class="model-field-editor"
+            data-editor="description"
+            hidden
+        >
+            <textarea
+                class="form-control"
+                rows="4"
+            >{{ model.description }}</textarea>
+
+            <div class="model-editor-actions">
+                <button
+                    type="button"
+                    class="btn btn-primary btn-sm model-save-button"
+                    data-save-field="description"
+                >
+                    Save
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm model-cancel-button"
+                    data-cancel-field="description"
+                >
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <div
+            class="model-proposed-indicator"
+            data-proposed-indicator="description"
+            hidden
+        >
+            <i class="bi bi-pencil-square"></i>
+            Proposed change
+        </div>
+
+        <button
+            type="button"
+            class="model-discard-button"
+            data-discard-field="description"
+            hidden
+        >
+            Discard
+        </button>
+
+    </div>
+
+</section>
+
+
+<section class="model-overview-section">
+
+    <div class="model-overview-section-heading">
+        <div>
+            <div class="model-overview-eyebrow">About this model</div>
+            <h2>Purpose, scope and boundaries</h2>
+        </div>
+    </div>
+
+
+    <div class="model-overview-fields">
+
+        <div class="model-overview-field">
+
+            <div class="model-overview-field-header">
+                <h3>Purpose</h3>
+                <button
+                    type="button"
+                    class="model-edit-button"
+                    data-edit-field="purpose"
+                >
+                    Edit
+                </button>
+            </div>
+
+            <div
+                class="model-field-display"
+                data-field="purpose"
+            >
+                {% if model.purpose %}
+                    <p>{{ model.purpose }}</p>
+                {% else %}
+                    <p class="model-field-empty">Not defined</p>
+                {% endif %}
+            </div>
+
+            <div
+                class="model-field-editor"
+                data-editor="purpose"
+                hidden
+            >
+                <textarea
+                    class="form-control"
+                    rows="4"
+                >{{ model.purpose }}</textarea>
+
+                <div class="model-editor-actions">
+                    <button
+                        type="button"
+                        class="btn btn-primary btn-sm model-save-button"
+                        data-save-field="purpose"
+                    >
+                        Save
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm model-cancel-button"
+                        data-cancel-field="purpose"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+
+            <div
+                class="model-proposed-indicator"
+                data-proposed-indicator="purpose"
+                hidden
+            >
+                <i class="bi bi-pencil-square"></i>
+                Proposed change
+            </div>
+
+            <button
+                type="button"
+                class="model-discard-button"
+                data-discard-field="purpose"
+                hidden
+            >
+                Discard
+            </button>
+
+        </div>
+
+
+        <div class="model-overview-field">
+
+            <div class="model-overview-field-header">
+                <h3>Scope</h3>
+                <button
+                    type="button"
+                    class="model-edit-button"
+                    data-edit-field="scope"
+                >
+                    Edit
+                </button>
+            </div>
+
+            <div
+                class="model-field-display"
+                data-field="scope"
+            >
+                {% if model.scope %}
+                    <p>{{ model.scope }}</p>
+                {% else %}
+                    <p class="model-field-empty">Not defined</p>
+                {% endif %}
+            </div>
+
+            <div
+                class="model-field-editor"
+                data-editor="scope"
+                hidden
+            >
+                <textarea
+                    class="form-control"
+                    rows="4"
+                >{{ model.scope }}</textarea>
+
+                <div class="model-editor-actions">
+                    <button
+                        type="button"
+                        class="btn btn-primary btn-sm model-save-button"
+                        data-save-field="scope"
+                    >
+                        Save
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm model-cancel-button"
+                        data-cancel-field="scope"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+
+            <div
+                class="model-proposed-indicator"
+                data-proposed-indicator="scope"
+                hidden
+            >
+                <i class="bi bi-pencil-square"></i>
+                Proposed change
+            </div>
+
+            <button
+                type="button"
+                class="model-discard-button"
+                data-discard-field="scope"
+                hidden
+            >
+                Discard
+            </button>
+
+        </div>
+
+
+        <div class="model-overview-field">
+
+            <div class="model-overview-field-header">
+                <h3>Exclusions</h3>
+                <button
+                    type="button"
+                    class="model-edit-button"
+                    data-edit-field="exclusions"
+                >
+                    Edit
+                </button>
+            </div>
+
+            <div
+                class="model-field-display"
+                data-field="exclusions"
+            >
+                {% if model.exclusions %}
+                    <p>{{ model.exclusions }}</p>
+                {% else %}
+                    <p class="model-field-empty">Not defined</p>
+                {% endif %}
+            </div>
+
+            <div
+                class="model-field-editor"
+                data-editor="exclusions"
+                hidden
+            >
+                <textarea
+                    class="form-control"
+                    rows="4"
+                >{{ model.exclusions }}</textarea>
+
+                <div class="model-editor-actions">
+                    <button
+                        type="button"
+                        class="btn btn-primary btn-sm model-save-button"
+                        data-save-field="exclusions"
+                    >
+                        Save
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm model-cancel-button"
+                        data-cancel-field="exclusions"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+
+            <div
+                class="model-proposed-indicator"
+                data-proposed-indicator="exclusions"
+                hidden
+            >
+                <i class="bi bi-pencil-square"></i>
+                Proposed change
+            </div>
+
+            <button
+                type="button"
+                class="model-discard-button"
+                data-discard-field="exclusions"
+                hidden
+            >
+                Discard
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="model-overview-section model-overview-structure">
+
+    <div class="model-overview-section-heading">
+        <div>
+            <div class="model-overview-eyebrow">Model structure</div>
+            <h2>Ontology</h2>
+        </div>
+    </div>
+
+    <div class="model-structure-summary">
+
+        <a href="#" class="model-structure-card">
+            <div class="model-structure-card-icon">
+                <i class="bi bi-boxes"></i>
+            </div>
+            <div>
+                <strong>{{ object_types|length }}</strong>
+                <span>Object types</span>
+            </div>
+        </a>
+
+        <a href="#" class="model-structure-card">
+            <div class="model-structure-card-icon">
+                <i class="bi bi-arrow-left-right"></i>
+            </div>
+            <div>
+                <strong>{{ relationship_types|length }}</strong>
+                <span>Relationships</span>
+            </div>
+        </a>
+
+    </div>
+
+</section>
 
 
 </div>

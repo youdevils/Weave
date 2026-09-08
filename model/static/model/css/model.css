@@ -1,3 +1,7 @@
+/* =========================================================
+   Model Layout
+   ========================================================= */
+
 #main-content {
     display: flex;
     flex-direction: column;
@@ -22,15 +26,20 @@
 }
 
 .model-sidebar-title {
+    color: #212529;
     font-size: 0.95rem;
     font-weight: 600;
     line-height: 1.3;
-    color: #212529;
 }
 
 .model-navigation {
     padding: 1rem 0.75rem;
 }
+
+
+/* =========================================================
+   Model Navigation
+   ========================================================= */
 
 .model-nav-section {
     margin-bottom: 1.5rem;
@@ -38,11 +47,11 @@
 
 .model-nav-section-label {
     padding: 0 0.75rem 0.4rem;
+    color: #6c757d;
     font-size: 0.7rem;
     font-weight: 700;
-    text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #6c757d;
+    text-transform: uppercase;
 }
 
 .model-nav-item {
@@ -53,8 +62,8 @@
     padding: 0.45rem 0.75rem;
     border-radius: 0.375rem;
     color: #343a40;
-    text-decoration: none;
     font-size: 0.9rem;
+    text-decoration: none;
 }
 
 .model-nav-item:hover {
@@ -68,49 +77,10 @@
     font-weight: 600;
 }
 
-.model-nav-parent {
-    margin-top: 0.15rem;
-}
 
-.model-nav-count {
-    font-size: 0.75rem;
-    color: #6c757d;
-}
-
-.model-nav-child {
-    display: block;
-    padding: 0.35rem 0.75rem 0.35rem 1.5rem;
-    color: #495057;
-    text-decoration: none;
-    font-size: 0.85rem;
-    line-height: 1.4;
-    border-left: 1px solid #dee2e6;
-    margin-left: 0.9rem;
-}
-
-.model-nav-child:hover {
-    color: #212529;
-    background: #f1f3f5;
-}
-
-.model-nav-more {
-    display: block;
-    padding: 0.35rem 0.75rem 0.35rem 1.5rem;
-    margin-left: 0.9rem;
-    color: #6c757d;
-    text-decoration: none;
-    font-size: 0.8rem;
-}
-
-.model-nav-more:hover {
-    color: #212529;
-}
-
-.model-content {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 2rem;
-}
+/* =========================================================
+   Navigation Groups
+   ========================================================= */
 
 .model-nav-group {
     margin-bottom: 0.15rem;
@@ -125,19 +95,33 @@
     flex: 1 1 auto;
 }
 
+.model-nav-parent {
+    margin-top: 0.15rem;
+}
+
+.model-nav-count {
+    color: #6c757d;
+    font-size: 0.75rem;
+}
+
+
+/* =========================================================
+   Navigation Toggle
+   ========================================================= */
+
 .model-nav-toggle {
+    display: flex;
     flex: 0 0 32px;
+    align-items: center;
+    justify-content: center;
     width: 32px;
     height: 32px;
     margin-right: 0.2rem;
     padding: 0;
     border: 0;
+    border-radius: 0.375rem;
     background: transparent;
     color: #6c757d;
-    border-radius: 0.375rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .model-nav-toggle:hover {
@@ -154,10 +138,304 @@
     transform: rotate(-90deg);
 }
 
+
+/* =========================================================
+   Navigation Children
+   ========================================================= */
+
 .model-nav-children {
     overflow: hidden;
 }
 
 .model-nav-children.collapsed {
     display: none;
+}
+
+.model-nav-child {
+    display: block;
+    margin-left: 0.9rem;
+    padding: 0.35rem 0.75rem 0.35rem 1.5rem;
+    border-left: 1px solid #dee2e6;
+    color: #495057;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    text-decoration: none;
+}
+
+.model-nav-child:hover {
+    background: #f1f3f5;
+    color: #212529;
+}
+
+.model-nav-more {
+    display: block;
+    margin-left: 0.9rem;
+    padding: 0.35rem 0.75rem 0.35rem 1.5rem;
+    color: #6c757d;
+    font-size: 0.8rem;
+    text-decoration: none;
+}
+
+.model-nav-more:hover {
+    color: #212529;
+}
+
+
+/* =========================================================
+   Model Content
+   ========================================================= */
+
+.model-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 2rem;
+}
+
+
+/* =========================================================
+   Model Overview
+   ========================================================= */
+
+.model-overview {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2.5rem 2.5rem 4rem;
+}
+
+.model-overview-header {
+    margin-bottom: 2.5rem;
+}
+
+.model-overview-eyebrow {
+    margin-bottom: 0.35rem;
+    color: #6c757d;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.model-overview h1 {
+    margin: 0;
+    color: #212529;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.model-overview-section {
+    margin-bottom: 2.75rem;
+}
+
+.model-overview-section-heading {
+    margin-bottom: 1.25rem;
+}
+
+.model-overview-section-heading h2 {
+    margin: 0;
+    color: #212529;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.model-overview-description {
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+
+/* =========================================================
+   Overview Fields
+   ========================================================= */
+
+.model-overview-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.model-overview-field {
+    position: relative;
+    padding: 1.35rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.model-overview-field:first-child {
+    padding-top: 0;
+}
+
+.model-overview-field-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.55rem;
+}
+
+.model-overview-field-header h2,
+.model-overview-field-header h3 {
+    margin: 0;
+    color: #343a40;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.model-field-display {
+    color: #495057;
+    line-height: 1.65;
+}
+
+.model-field-display p {
+    margin: 0;
+    white-space: pre-line;
+}
+
+.model-field-empty {
+    color: #adb5bd;
+    font-style: italic;
+}
+
+
+/* =========================================================
+   Overview Editing
+   ========================================================= */
+
+.model-edit-button {
+    padding: 0.15rem 0.35rem;
+    border: 0;
+    border-radius: 0.3rem;
+    background: transparent;
+    color: #6c757d;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.model-edit-button:hover {
+    background: #f1f3f5;
+    color: #212529;
+}
+
+.model-field-editor {
+    margin-top: 0.65rem;
+}
+
+.model-field-editor textarea {
+    max-width: 800px;
+    resize: vertical;
+}
+
+.model-editor-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+}
+
+.model-proposed-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.7rem;
+    color: #6c757d;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.model-proposed-indicator i {
+    font-size: 0.8rem;
+}
+
+.model-discard-button {
+    margin-left: 0.75rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #6c757d;
+    font-size: 0.75rem;
+}
+
+.model-discard-button:hover {
+    color: #212529;
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   Model Structure Summary
+   ========================================================= */
+
+.model-structure-summary {
+    display: flex;
+    gap: 1rem;
+}
+
+.model-structure-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    min-width: 190px;
+    padding: 1rem 1.15rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.55rem;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+}
+
+.model-structure-card:hover {
+    border-color: #adb5bd;
+    background: #f8f9fa;
+    color: inherit;
+}
+
+.model-structure-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 0.45rem;
+    background: #f1f3f5;
+    color: #495057;
+}
+
+.model-structure-card strong {
+    display: block;
+    color: #212529;
+    font-size: 1.15rem;
+    line-height: 1.1;
+}
+
+.model-structure-card span {
+    display: block;
+    margin-top: 0.2rem;
+    color: #6c757d;
+    font-size: 0.78rem;
+}
+
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .model-overview {
+        padding: 2rem 1.25rem 3rem;
+    }
+
+    .model-overview-header {
+        margin-bottom: 2rem;
+    }
+
+    .model-overview h1 {
+        font-size: 1.6rem;
+    }
+
+    .model-structure-summary {
+        flex-direction: column;
+    }
+
+    .model-structure-card {
+        width: 100%;
+    }
+
 }

@@ -1,16 +1,39 @@
+
 document.addEventListener("DOMContentLoaded", function () {
+
+    /*
+     * ---------------------------------------------------------
+     * Model navigation
+     * ---------------------------------------------------------
+     *
+     * This file owns model sidebar navigation only.
+     * It must not contain model overview editing behaviour.
+     * ---------------------------------------------------------
+     */
 
     document.querySelectorAll(".model-nav-toggle").forEach(function (toggle) {
 
         toggle.addEventListener("click", function () {
 
             const group = toggle.closest(".model-nav-group");
+
+            if (!group) {
+                return;
+            }
+
             const children = group.querySelector(".model-nav-children");
 
-            const sectionName = group
-                .querySelector(".model-nav-parent span")
-                .textContent
-                .trim();
+            if (!children) {
+                return;
+            }
+
+            const parentLabel = group.querySelector(
+                ".model-nav-parent span"
+            );
+
+            const sectionName = parentLabel
+                ? parentLabel.textContent.trim()
+                : "section";
 
             const expanded =
                 toggle.getAttribute("aria-expanded") === "true";
