@@ -1,15 +1,19 @@
 from django.contrib import admin
 
-from .models import model
-from .models import object_type
-from .models import attribute_definition
-from .models import relationship_type
-from .models import relationship_type_rule
-from .models import object
-from .models import relationship
+from .models import (
+    AttributeDefinition,
+    Model,
+    Object,
+    ObjectType,
+    Proposal,
+    ProposalChange,
+    Relationship,
+    RelationshipType,
+    RelationshipTypeRule,
+)
 
 
-@admin.register(model.Model)
+@admin.register(Model)
 class ModelAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -25,7 +29,7 @@ class ModelAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(object_type.ObjectType)
+@admin.register(ObjectType)
 class ObjectTypeAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -44,7 +48,7 @@ class ObjectTypeAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(attribute_definition.AttributeDefinition)
+@admin.register(AttributeDefinition)
 class AttributeDefinitionAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -69,7 +73,7 @@ class AttributeDefinitionAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(relationship_type.RelationshipType)
+@admin.register(RelationshipType)
 class RelationshipTypeAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -88,7 +92,7 @@ class RelationshipTypeAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(relationship_type_rule.RelationshipTypeRule)
+@admin.register(RelationshipTypeRule)
 class RelationshipTypeRuleAdmin(admin.ModelAdmin):
     list_display = (
         "relationship_type",
@@ -114,7 +118,7 @@ class RelationshipTypeRuleAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(object.Object)
+@admin.register(Object)
 class ObjectAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -132,7 +136,7 @@ class ObjectAdmin(admin.ModelAdmin):
     list_filter = ("object_type",)
 
 
-@admin.register(relationship.Relationship)
+@admin.register(Relationship)
 class RelationshipAdmin(admin.ModelAdmin):
     list_display = (
         "subject",
@@ -150,3 +154,66 @@ class RelationshipAdmin(admin.ModelAdmin):
     )
 
     list_filter = ("relationship_type",)
+
+
+@admin.register(Proposal)
+class ProposalAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "model",
+        "created_by",
+        "status",
+        "base_revision",
+        "created_at",
+        "updated_at",
+    )
+
+    list_filter = (
+        "status",
+        "created_at",
+    )
+
+    search_fields = (
+        "title",
+        "summary",
+        "model__name",
+        "created_by__email",
+    )
+
+    readonly_fields = (
+        "id",
+        "created_at",
+        "updated_at",
+        "submitted_at",
+        "approved_at",
+    )
+
+
+@admin.register(ProposalChange)
+class ProposalChangeAdmin(admin.ModelAdmin):
+    list_display = (
+        "proposal",
+        "operation",
+        "target_type",
+        "target_id",
+        "created_at",
+        "updated_at",
+    )
+
+    list_filter = (
+        "operation",
+        "target_type",
+        "created_at",
+    )
+
+    search_fields = (
+        "proposal__title",
+        "target_type",
+        "target_id",
+    )
+
+    readonly_fields = (
+        "id",
+        "created_at",
+        "updated_at",
+    )

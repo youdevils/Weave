@@ -44,5 +44,9 @@ class Model(models.Model):
         auto_now=True,
     )
 
+    revision = models.PositiveIntegerField(
+        default=1,
+    )
+
     def __str__(self):
         return self.name

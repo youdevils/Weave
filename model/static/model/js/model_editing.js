@@ -5,18 +5,24 @@ document.addEventListener("DOMContentLoaded", function () {
      * Model overview editing
      * ---------------------------------------------------------
      *
-     * Temporary client-side proposal stub.
+     * Working proposal state is persisted by Django.
      *
-     * This deliberately does not persist anything to Django.
-     * The proposedValues object represents the future working
-     * proposal state until the Proposal model/service exists.
+     * Save:
+     *   POST field + value
      *
-     * This file owns model overview editing only.
-     * Sidebar navigation is handled by sidebar.js.
+     * Discard:
+     *   POST field + discard action
+     *
+     * The canonical Model is never modified by this UI.
      * ---------------------------------------------------------
      */
 
-    const proposedValues = {};
+
+    const overview = document.querySelector(".model-overview");
+
+    if (!overview) {
+        return;
+    }
 
 
     /*
@@ -54,18 +60,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            /*
-             * If this field already has a proposed value,
-             * edit that value rather than reverting to the
-             * canonical value.
-             */
-            if (Object.prototype.hasOwnProperty.call(
-                proposedValues,
-                fieldName
-            )) {
-                textarea.value = proposedValues[fieldName];
-            }
-
             display.hidden = true;
             editor.hidden = false;
             button.hidden = true;
@@ -84,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.querySelectorAll(".model-save-button").forEach(function (button) {
 
-        button.addEventListener("click", function () {
+        button.addEventListener("click", async function () {
 
             const fieldName = button.dataset.saveField;
             const field = button.closest(".model-overview-field");
@@ -126,29 +120,82 @@ document.addEventListener("DOMContentLoaded", function () {
             const value = textarea.value;
 
             /*
-             * Store the proposed value in the temporary
-             * proposal state.
-             *
-             * This will later become a ProposalChange.
+             * Prevent duplicate submissions while the request
+             * is in progress.
              */
-            proposedValues[fieldName] = value;
+            button.disabled = true;
 
-            renderFieldValue(display, value);
+            const updateUrl = overview.dataset.updateUrl;
+            const csrfToken = overview.querySelector(
+                "[name=csrfmiddlewaretoken]"
+            );
 
-            display.hidden = false;
-            editor.hidden = true;
-
-            if (editButton) {
-                editButton.hidden = false;
+            if (!updateUrl || !csrfToken) {
+                button.disabled = false;
+                alert("Unable to save: update URL or CSRF token is missing.");
+                return;
             }
 
-            if (proposedIndicator) {
-                proposedIndicator.hidden = false;
+            try {
+
+                const response = await fetch(updateUrl, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken.value,
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        field: fieldName,
+                        value: value,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.error || "Unable to save proposed change."
+                    );
+                }
+
+                /*
+                 * Django returns the persisted proposed value.
+                 */
+                renderFieldValue(display, data.value);
+
+                display.hidden = false;
+                editor.hidden = true;
+
+                if (editButton) {
+                    editButton.hidden = false;
+                }
+
+                if (proposedIndicator) {
+                    proposedIndicator.hidden = false;
+                }
+
+                if (discardButton) {
+                    discardButton.hidden = false;
+                }
+
+                /*
+                 * Keep the textarea aligned with the persisted
+                 * proposal value.
+                 */
+                textarea.value = data.value;
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(error.message);
+
+            } finally {
+
+                button.disabled = false;
+
             }
 
-            if (discardButton) {
-                discardButton.hidden = false;
-            }
         });
 
     });
@@ -157,6 +204,14 @@ document.addEventListener("DOMContentLoaded", function () {
     /*
      * ---------------------------------------------------------
      * Cancel
+     * ---------------------------------------------------------
+     *
+     * Cancel does not modify the proposal.
+     * It simply closes the editor.
+     *
+     * The textarea already contains the current effective
+     * value because the page loads the proposed value when
+     * one exists.
      * ---------------------------------------------------------
      */
 
@@ -193,6 +248,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (editButton) {
                 editButton.hidden = false;
             }
+
         });
 
     });
@@ -206,7 +262,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.querySelectorAll(".model-discard-button").forEach(function (button) {
 
-        button.addEventListener("click", function () {
+        button.addEventListener("click", async function () {
 
             const fieldName = button.dataset.discardField;
             const field = button.closest(".model-overview-field");
@@ -231,44 +287,82 @@ document.addEventListener("DOMContentLoaded", function () {
                 `[data-proposed-indicator="${fieldName}"]`
             );
 
-            const textarea = editor
-                ? editor.querySelector("textarea")
-                : null;
-
-            if (!display || !editor || !textarea) {
+            if (!display || !editor) {
                 return;
             }
 
-            /*
-             * Remove the temporary proposed value.
-             */
-            delete proposedValues[fieldName];
+            button.disabled = true;
 
-            /*
-             * Restore the canonical value.
-             *
-             * Until proposals are persisted, the initial
-             * textarea value represents the canonical model
-             * value.
-             */
-            const canonicalValue = textarea.defaultValue;
+            const updateUrl = overview.dataset.updateUrl;
+            const csrfToken = overview.querySelector(
+                "[name=csrfmiddlewaretoken]"
+            );
 
-            textarea.value = canonicalValue;
-
-            renderFieldValue(display, canonicalValue);
-
-            display.hidden = false;
-            editor.hidden = true;
-
-            if (editButton) {
-                editButton.hidden = false;
+            if (!updateUrl || !csrfToken) {
+                button.disabled = false;
+                alert("Unable to discard: update URL or CSRF token is missing.");
+                return;
             }
 
-            if (proposedIndicator) {
-                proposedIndicator.hidden = true;
+            try {
+
+                const response = await fetch(updateUrl, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken.value,
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        field: fieldName,
+                        action: "discard",
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.error || "Unable to discard proposed change."
+                    );
+                }
+
+                /*
+                 * Django returns the canonical value after the
+                 * proposal change has been discarded.
+                 */
+                renderFieldValue(display, data.value);
+
+                const textarea = editor.querySelector("textarea");
+
+                if (textarea) {
+                    textarea.value = data.value;
+                }
+
+                display.hidden = false;
+                editor.hidden = true;
+
+                if (editButton) {
+                    editButton.hidden = false;
+                }
+
+                if (proposedIndicator) {
+                    proposedIndicator.hidden = true;
+                }
+
+                button.hidden = true;
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(error.message);
+
+            } finally {
+
+                button.disabled = false;
+
             }
 
-            button.hidden = true;
         });
 
     });
