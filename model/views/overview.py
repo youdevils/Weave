@@ -1,28 +1,32 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render
 
-from model.models.model import Model
 from model.models.proposal import Proposal, ProposalChange
 from model.services.proposal.proposal import ProposalService
+from model.views.common_context import get_model_context
 
 
 @login_required
 def overview(request, model_id):
-    membership = request.user.workspace_memberships.select_related(
-        "workspace",
-    ).first()
 
-    if not membership:
-        return get_object_or_404(Model, id=model_id)
+    # -------------------------------------------------------------
+    # Common model context
+    # -------------------------------------------------------------
 
-    model = get_object_or_404(
-        Model,
-        id=model_id,
-        workspace=membership.workspace,
+    context = get_model_context(
+        request,
+        model_id,
     )
 
+    model = context["model"]
+
+    # -------------------------------------------------------------
+    # POST — edit / discard
+    # -------------------------------------------------------------
+
     if request.method == "POST":
+
         field_name = request.POST.get("field")
         action = request.POST.get("action", "save")
         value = request.POST.get("value", "")
@@ -110,23 +114,17 @@ def overview(request, model_id):
             }
         )
 
-    object_types = model.object_types.all()
-    relationship_types = model.relationship_types.all()
+    # -------------------------------------------------------------
+    # GET — resolve effective values
+    # -------------------------------------------------------------
 
-    working_proposal = (
-        Proposal.objects.filter(
-            model=model,
-            created_by=request.user,
-            status=Proposal.Status.WORKING,
-        )
-        .prefetch_related("changes")
-        .first()
-    )
+    working_proposal = context["working_proposal"]
 
     proposed_values = {}
 
     if working_proposal:
         for change in working_proposal.changes.all():
+
             if (
                 change.target_type == "Model"
                 and change.target_id == model.id
@@ -141,18 +139,18 @@ def overview(request, model_id):
                     )
 
     def effective_value(field_name):
+
         if field_name in proposed_values:
             return proposed_values[field_name]
 
         return getattr(model, field_name)
 
-    return render(
-        request,
-        "model/overview.html",
+    # -------------------------------------------------------------
+    # Overview-specific context
+    # -------------------------------------------------------------
+
+    context.update(
         {
-            "model": model,
-            "object_types": object_types,
-            "relationship_types": relationship_types,
             "description_value": effective_value("description"),
             "description_proposed": "description" in proposed_values,
             "purpose_value": effective_value("purpose"),
@@ -161,5 +159,11 @@ def overview(request, model_id):
             "scope_proposed": "scope" in proposed_values,
             "exclusions_value": effective_value("exclusions"),
             "exclusions_proposed": "exclusions" in proposed_values,
-        },
+        }
+    )
+
+    return render(
+        request,
+        "model/overview.html",
+        context,
     )

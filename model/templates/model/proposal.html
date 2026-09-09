@@ -1,0 +1,296 @@
+{% extends "model/model_base.html" %}
+
+{% block model_content %}
+
+<div class="model-proposal">
+
+    <!-- =========================================================
+         Header
+         ========================================================= -->
+
+    <div class="model-page-header">
+
+        <div>
+
+            <div class="model-page-eyebrow">
+                Proposal
+            </div>
+
+            <h1 class="model-page-title">
+                {% if proposal %}
+                    {{ proposal.title|default:"Model changes" }}
+                {% else %}
+                    No open proposal
+                {% endif %}
+            </h1>
+
+            <p class="model-page-description">
+                Review changes to the model before they are submitted
+                for validation.
+            </p>
+
+        </div>
+
+        {% if proposal %}
+            <div class="model-proposal-status">
+                <span class="model-proposal-status-dot"></span>
+                Working
+            </div>
+        {% endif %}
+
+    </div>
+
+
+    {% if proposal %}
+
+        <!-- =====================================================
+             Summary
+             ===================================================== -->
+
+        <div class="model-proposal-summary">
+
+            <div class="model-proposal-summary-item">
+
+                <div class="model-proposal-summary-value">
+                    {{ changes|length }}
+                </div>
+
+                <div class="model-proposal-summary-label">
+                    {% if changes|length == 1 %}
+                        Change
+                    {% else %}
+                        Changes
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <div class="model-proposal-summary-divider"></div>
+
+            <div class="model-proposal-summary-item">
+
+                <div class="model-proposal-summary-value">
+                    {{ proposal.created_at|date:"j M Y" }}
+                </div>
+
+                <div class="model-proposal-summary-label">
+                    Created
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             Changes
+             ===================================================== -->
+
+        <section class="model-proposal-section">
+
+            <div class="model-section-header">
+
+                <div>
+                    <h2 class="model-section-title">
+                        Changes
+                    </h2>
+
+                    <p class="model-section-description">
+                        These changes are proposed but have not yet
+                        been applied to the model.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="model-proposal-changes">
+
+                {% for change in changes %}
+
+                    <div
+                        class="model-proposal-change"
+                        data-change-id="{{ change.id }}"
+                    >
+
+                        <div class="model-proposal-change-header">
+
+                            <div class="model-proposal-change-target">
+
+                                <span class="model-proposal-change-operation">
+                                    {{ change.get_operation_display }}
+                                </span>
+
+                                <span class="model-proposal-change-type">
+                                    {{ change.target_type }}
+                                </span>
+
+                            </div>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary model-proposal-discard"
+                                data-change-id="{{ change.id }}"
+                            >
+                                Discard
+                            </button>
+
+                        </div>
+
+
+                        <div class="model-proposal-change-body">
+
+                            {% if change.after.field %}
+
+                                <div class="model-proposal-field-name">
+                                    {{ change.after.field|title }}
+                                </div>
+
+                                <div class="model-proposal-value-row">
+
+                                    <div class="model-proposal-value model-proposal-value-before">
+
+                                        <div class="model-proposal-value-label">
+                                            Current
+                                        </div>
+
+                                        <div class="model-proposal-value-content">
+                                            {% if change.before.value %}
+                                                {{ change.before.value }}
+                                            {% else %}
+                                                <span class="model-proposal-empty">
+                                                    Not defined
+                                                </span>
+                                            {% endif %}
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="model-proposal-arrow">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </div>
+
+
+                                    <div class="model-proposal-value model-proposal-value-after">
+
+                                        <div class="model-proposal-value-label">
+                                            Proposed
+                                        </div>
+
+                                        <div class="model-proposal-value-content">
+
+                                            {% if change.after.value %}
+                                                {{ change.after.value }}
+                                            {% else %}
+                                                <span class="model-proposal-empty">
+                                                    Not defined
+                                                </span>
+                                            {% endif %}
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            {% else %}
+
+                                <div class="model-proposal-value-content">
+                                    {{ change.after }}
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                {% empty %}
+
+                    <div class="model-empty-state">
+
+                        <div class="model-empty-state-title">
+                            No changes
+                        </div>
+
+                        <div class="model-empty-state-description">
+                            This proposal currently contains no changes.
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             Actions
+             ===================================================== -->
+
+        {% if changes %}
+
+            <div class="model-proposal-actions">
+
+                <div>
+                    <div class="model-proposal-actions-title">
+                        Ready to submit?
+                    </div>
+
+                    <div class="model-proposal-actions-description">
+                        Once submitted, the proposal will be locked
+                        while it is validated.
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    disabled
+                >
+                    Submit proposal
+                </button>
+
+            </div>
+
+        {% endif %}
+
+    {% else %}
+
+        <!-- =====================================================
+             Empty state
+             ===================================================== -->
+
+        <div class="model-empty-state model-proposal-empty-state">
+
+            <div class="model-empty-state-icon">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+
+            <div class="model-empty-state-title">
+                No open proposal
+            </div>
+
+            <div class="model-empty-state-description">
+                Changes you make to the model will appear here for
+                review before they are submitted.
+            </div>
+
+            <a
+                href="{% url 'model:overview' model.id %}"
+                class="btn btn-outline-secondary"
+            >
+                Back to overview
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+

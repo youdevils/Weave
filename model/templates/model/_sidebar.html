@@ -156,6 +156,39 @@
 
         </div>
 
+
+        <!-- PROPOSAL -->
+
+        <div class="model-nav-section">
+
+            <div class="model-nav-section-label">
+                Proposal
+            </div>
+
+            {% if working_proposal and proposal_change_count > 0 %}
+
+                <a
+                    href="{% url 'model:proposal' model.id %}"
+                    class="model-nav-item"
+                >
+                    <span>Proposal</span>
+
+                    <span class="model-nav-count">
+                        {{ proposal_change_count }}
+                    </span>
+                </a>
+
+            {% else %}
+
+                <div class="model-nav-item">
+                    <span>No open proposal</span>
+                </div>
+
+            {% endif %}
+
+        </div>
+
     </nav>
 
 </aside>
+
