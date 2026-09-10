@@ -1,41 +1,51 @@
+
 {% extends "model/model_base.html" %}
 
 {% block model_content %}
 
 <div class="model-proposal">
 
-    <!-- =========================================================
-         Header
-         ========================================================= -->
-
     <div class="model-page-header">
 
         <div>
 
             <div class="model-page-eyebrow">
-                Proposal
+                Changes
             </div>
 
             <h1 class="model-page-title">
                 {% if proposal %}
                     {{ proposal.title|default:"Model changes" }}
                 {% else %}
-                    No open proposal
+                    No open changes
                 {% endif %}
             </h1>
 
-            <p class="model-page-description">
-                Review changes to the model before they are submitted
-                for validation.
-            </p>
+            {% if proposal %}
+
+                <p class="model-page-description">
+                    Review proposed changes before they are submitted
+                    for validation.
+                </p>
+
+            {% else %}
+
+                <p class="model-page-description">
+                    Changes you make to the model will appear here for
+                    review before they are submitted.
+                </p>
+
+            {% endif %}
 
         </div>
 
         {% if proposal %}
+
             <div class="model-proposal-status">
                 <span class="model-proposal-status-dot"></span>
                 Working
             </div>
+
         {% endif %}
 
     </div>
@@ -43,20 +53,16 @@
 
     {% if proposal %}
 
-        <!-- =====================================================
-             Summary
-             ===================================================== -->
-
         <div class="model-proposal-summary">
 
             <div class="model-proposal-summary-item">
 
                 <div class="model-proposal-summary-value">
-                    {{ changes|length }}
+                    {{ total_count }}
                 </div>
 
                 <div class="model-proposal-summary-label">
-                    {% if changes|length == 1 %}
+                    {% if total_count == 1 %}
                         Change
                     {% else %}
                         Changes
@@ -65,7 +71,41 @@
 
             </div>
 
+
             <div class="model-proposal-summary-divider"></div>
+
+
+            <div class="model-proposal-summary-item">
+
+                <div class="model-proposal-summary-value">
+                    {{ reviewed_count }}
+                </div>
+
+                <div class="model-proposal-summary-label">
+                    Reviewed
+                </div>
+
+            </div>
+
+
+            <div class="model-proposal-summary-divider"></div>
+
+
+            <div class="model-proposal-summary-item">
+
+                <div class="model-proposal-summary-value">
+                    {{ unreviewed_count }}
+                </div>
+
+                <div class="model-proposal-summary-label">
+                    Remaining
+                </div>
+
+            </div>
+
+
+            <div class="model-proposal-summary-divider"></div>
+
 
             <div class="model-proposal-summary-item">
 
@@ -82,125 +122,576 @@
         </div>
 
 
-        <!-- =====================================================
-             Changes
-             ===================================================== -->
+        <section class="model-proposal-review-toolbar">
 
-        <section class="model-proposal-section">
+            <form method="get">
 
-            <div class="model-section-header">
+                <div class="model-proposal-toolbar-row">
 
-                <div>
-                    <h2 class="model-section-title">
-                        Changes
-                    </h2>
+                    <div class="model-proposal-search">
 
-                    <p class="model-section-description">
-                        These changes are proposed but have not yet
-                        been applied to the model.
-                    </p>
+                        <i class="bi bi-search"></i>
+
+                        <input
+                            type="search"
+                            name="q"
+                            value="{{ search }}"
+                            placeholder="Search changes..."
+                            aria-label="Search changes"
+                        >
+
+                    </div>
+
+
+                    <select
+                        name="review"
+                        class="form-select form-select-sm"
+                        aria-label="Review status"
+                    >
+
+                        <option
+                            value="all"
+                            {% if review_filter == "all" %}selected{% endif %}
+                        >
+                            All changes
+                        </option>
+
+                        <option
+                            value="unreviewed"
+                            {% if review_filter == "unreviewed" %}selected{% endif %}
+                        >
+                            Unreviewed
+                        </option>
+
+                        <option
+                            value="reviewed"
+                            {% if review_filter == "reviewed" %}selected{% endif %}
+                        >
+                            Reviewed
+                        </option>
+
+                    </select>
+
+
+                    <select
+                        name="operation"
+                        class="form-select form-select-sm"
+                        aria-label="Operation"
+                    >
+
+                        <option
+                            value="all"
+                            {% if operation_filter == "all" %}selected{% endif %}
+                        >
+                            All operations
+                        </option>
+
+                        <option
+                            value="create"
+                            {% if operation_filter == "create" %}selected{% endif %}
+                        >
+                            Create
+                        </option>
+
+                        <option
+                            value="update"
+                            {% if operation_filter == "update" %}selected{% endif %}
+                        >
+                            Update
+                        </option>
+
+                        <option
+                            value="delete"
+                            {% if operation_filter == "delete" %}selected{% endif %}
+                        >
+                            Delete
+                        </option>
+
+                    </select>
+
+
+                    <select
+                        name="source"
+                        class="form-select form-select-sm"
+                        aria-label="Source"
+                    >
+
+                        <option
+                            value="all"
+                            {% if source_filter == "all" %}selected{% endif %}
+                        >
+                            All sources
+                        </option>
+
+                        <option
+                            value="user"
+                            {% if source_filter == "user" %}selected{% endif %}
+                        >
+                            User
+                        </option>
+
+                        <option
+                            value="ai"
+                            {% if source_filter == "ai" %}selected{% endif %}
+                        >
+                            AI
+                        </option>
+
+                    </select>
+
+
+                    <select
+                        name="target"
+                        class="form-select form-select-sm"
+                        aria-label="Target type"
+                    >
+
+                        <option
+                            value="all"
+                            {% if target_filter == "all" %}selected{% endif %}
+                        >
+                            All types
+                        </option>
+
+                        {% for target_type in target_types %}
+
+                            <option
+                                value="{{ target_type }}"
+                                {% if target_filter == target_type %}selected{% endif %}
+                            >
+                                {{ target_type }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+
+                    <select
+                        name="group"
+                        class="form-select form-select-sm"
+                        aria-label="Group changes"
+                    >
+
+                        <option
+                            value="target"
+                            {% if group_by == "target" %}selected{% endif %}
+                        >
+                            Group: Object type
+                        </option>
+
+                        <option
+                            value="parent"
+                            {% if group_by == "parent" %}selected{% endif %}
+                        >
+                            Group: Parent
+                        </option>
+
+                        <option
+                            value="operation"
+                            {% if group_by == "operation" %}selected{% endif %}
+                        >
+                            Group: Operation
+                        </option>
+
+                        <option
+                            value="source"
+                            {% if group_by == "source" %}selected{% endif %}
+                        >
+                            Group: Source
+                        </option>
+
+                        <option
+                            value="none"
+                            {% if group_by == "none" %}selected{% endif %}
+                        >
+                            No grouping
+                        </option>
+
+                    </select>
+
+
+                    <select
+                        name="sort"
+                        class="form-select form-select-sm"
+                        aria-label="Sort changes"
+                    >
+
+                        <option
+                            value="created"
+                            {% if sort == "created" %}selected{% endif %}
+                        >
+                            Sort: Newest
+                        </option>
+
+                        <option
+                            value="created_desc"
+                            {% if sort == "created_desc" %}selected{% endif %}
+                        >
+                            Sort: Oldest
+                        </option>
+
+                        <option
+                            value="operation"
+                            {% if sort == "operation" %}selected{% endif %}
+                        >
+                            Sort: Operation
+                        </option>
+
+                        <option
+                            value="target"
+                            {% if sort == "target" %}selected{% endif %}
+                        >
+                            Sort: Type
+                        </option>
+
+                        <option
+                            value="review"
+                            {% if sort == "review" %}selected{% endif %}
+                        >
+                            Sort: Review status
+                        </option>
+
+                    </select>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-sm btn-outline-secondary"
+                    >
+                        Apply
+                    </button>
+
+                </div>
+
+            </form>
+
+
+            <div class="model-proposal-toolbar-footer">
+
+                <div class="model-proposal-filter-summary">
+
+                    {% if filtered_count == total_count %}
+
+                        {{ total_count }}
+                        {% if total_count == 1 %}change{% else %}changes{% endif %}
+
+                    {% else %}
+
+                        Showing
+                        <strong>{{ filtered_count }}</strong>
+                        of
+                        <strong>{{ total_count }}</strong>
+                        changes
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="model-proposal-review-actions">
+
+                    {% if unreviewed_count %}
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary model-proposal-review-all"
+                        >
+                            Mark all reviewed
+                        </button>
+
+                    {% elif reviewed_count %}
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary model-proposal-unreview-all"
+                        >
+                            Mark all unreviewed
+                        </button>
+
+                    {% endif %}
+
                 </div>
 
             </div>
 
+        </section>
+
+
+        <section class="model-proposal-section">
 
             <div class="model-proposal-changes">
 
-                {% for change in changes %}
+                {% for group in change_groups %}
 
-                    <div
-                        class="model-proposal-change"
-                        data-change-id="{{ change.id }}"
-                    >
+                    <div class="model-proposal-change-group">
 
-                        <div class="model-proposal-change-header">
+                        <div class="model-proposal-change-group-header">
 
-                            <div class="model-proposal-change-target">
-
-                                <span class="model-proposal-change-operation">
-                                    {{ change.get_operation_display }}
-                                </span>
-
-                                <span class="model-proposal-change-type">
-                                    {{ change.target_type }}
-                                </span>
-
+                            <div class="model-proposal-change-group-title">
+                                {{ group.label }}
                             </div>
 
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-outline-secondary model-proposal-discard"
-                                data-change-id="{{ change.id }}"
-                            >
-                                Discard
-                            </button>
+                            <div class="model-proposal-change-group-count">
+                                {{ group.count }}
+                            </div>
 
                         </div>
 
 
-                        <div class="model-proposal-change-body">
+                        <div class="model-proposal-change-list">
 
-                            {% if change.after.field %}
+                            {% for change in group.changes %}
 
-                                <div class="model-proposal-field-name">
-                                    {{ change.after.field|title }}
-                                </div>
+                                <article
+                                    class="
+                                        model-proposal-change
+                                        {% if change.review_status == 'reviewed' %}
+                                            model-proposal-change-reviewed
+                                        {% endif %}
+                                    "
+                                    data-change-id="{{ change.id }}"
+                                >
 
-                                <div class="model-proposal-value-row">
+                                    <div class="model-proposal-change-main">
 
-                                    <div class="model-proposal-value model-proposal-value-before">
+                                        <div class="model-proposal-change-operation">
 
-                                        <div class="model-proposal-value-label">
-                                            Current
+                                            <span
+                                                class="
+                                                    model-proposal-operation
+                                                    model-proposal-operation-{{ change.operation }}
+                                                "
+                                            >
+                                                {{ change.get_operation_display }}
+                                            </span>
+
                                         </div>
 
-                                        <div class="model-proposal-value-content">
-                                            {% if change.before.value %}
-                                                {{ change.before.value }}
-                                            {% else %}
-                                                <span class="model-proposal-empty">
-                                                    Not defined
-                                                </span>
+
+                                        <div class="model-proposal-change-content">
+
+                                            <div class="model-proposal-change-title">
+                                                {{ change.review_label }}
+                                            </div>
+
+
+                                            {% if change.after.field %}
+
+                                                <div class="model-proposal-change-comparison">
+
+                                                    <div class="model-proposal-change-value">
+
+                                                        <span class="model-proposal-change-value-label">
+                                                            Current
+                                                        </span>
+
+                                                        <span class="model-proposal-change-value-text">
+
+                                                            {% if change.before.value %}
+
+                                                                {{ change.before.value }}
+
+                                                            {% else %}
+
+                                                                <span class="model-proposal-empty">
+                                                                    Not defined
+                                                                </span>
+
+                                                            {% endif %}
+
+                                                        </span>
+
+                                                    </div>
+
+
+                                                    <div class="model-proposal-change-arrow">
+                                                        <i class="bi bi-arrow-right"></i>
+                                                    </div>
+
+
+                                                    <div class="model-proposal-change-value">
+
+                                                        <span class="model-proposal-change-value-label">
+                                                            Proposed
+                                                        </span>
+
+                                                        <span class="model-proposal-change-value-text">
+
+                                                            {% if change.after.value %}
+
+                                                                {{ change.after.value }}
+
+                                                            {% else %}
+
+                                                                <span class="model-proposal-empty">
+                                                                    Not defined
+                                                                </span>
+
+                                                            {% endif %}
+
+                                                        </span>
+
+                                                    </div>
+
+                                                </div>
+
+                                            {% elif change.operation == "create" %}
+
+                                                <div class="model-proposal-change-detail">
+
+                                                    {% if change.after.name %}
+
+                                                        {{ change.after.name }}
+
+                                                    {% elif change.after.key %}
+
+                                                        {{ change.after.key }}
+
+                                                    {% else %}
+
+                                                        New {{ change.target_type }}
+
+                                                    {% endif %}
+
+                                                </div>
+
+                                            {% elif change.operation == "delete" %}
+
+                                                <div class="model-proposal-change-detail">
+
+                                                    {% if change.before.name %}
+
+                                                        {{ change.before.name }}
+
+                                                    {% elif change.before.key %}
+
+                                                        {{ change.before.key }}
+
+                                                    {% else %}
+
+                                                        {{ change.target_type }}
+
+                                                    {% endif %}
+
+                                                </div>
+
                                             {% endif %}
+
                                         </div>
 
-                                    </div>
+
+                                        <div class="model-proposal-change-meta">
+
+                                            <span
+                                                class="
+                                                    model-proposal-review-status
+                                                    {% if change.review_status == 'reviewed' %}
+                                                        model-proposal-review-status-reviewed
+                                                    {% endif %}
+                                                "
+                                            >
+
+                                                {% if change.review_status == "reviewed" %}
+
+                                                    <i class="bi bi-check2"></i>
+                                                    Reviewed
+
+                                                {% else %}
+
+                                                    <span class="model-proposal-review-dot"></span>
+                                                    Unreviewed
+
+                                                {% endif %}
+
+                                            </span>
 
 
-                                    <div class="model-proposal-arrow">
-                                        <i class="bi bi-arrow-right"></i>
-                                    </div>
+                                            <span class="model-proposal-source">
 
+                                                {% if change.source == "ai" %}
 
-                                    <div class="model-proposal-value model-proposal-value-after">
+                                                    <i class="bi bi-stars"></i>
+                                                    AI
 
-                                        <div class="model-proposal-value-label">
-                                            Proposed
+                                                {% else %}
+
+                                                    User
+
+                                                {% endif %}
+
+                                            </span>
+
                                         </div>
 
-                                        <div class="model-proposal-value-content">
 
-                                            {% if change.after.value %}
-                                                {{ change.after.value }}
+                                        <div class="model-proposal-change-actions">
+
+                                            {% if change.review_status == "reviewed" %}
+
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-secondary model-proposal-unreview"
+                                                    data-change-id="{{ change.id }}"
+                                                >
+                                                    Unreview
+                                                </button>
+
                                             {% else %}
-                                                <span class="model-proposal-empty">
-                                                    Not defined
+
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-secondary model-proposal-review"
+                                                    data-change-id="{{ change.id }}"
+                                                >
+                                                    Review
+                                                </button>
+
+                                            {% endif %}
+
+
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-secondary model-proposal-discard"
+                                                data-change-id="{{ change.id }}"
+                                            >
+                                                Discard
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    {% if change.review_parent %}
+
+                                        <div class="model-proposal-change-parent">
+
+                                            <i class="bi bi-arrow-return-right"></i>
+
+                                            <span>
+                                                {{ change.review_parent.type }}
+                                            </span>
+
+                                            {% if change.review_parent.label %}
+
+                                                <span class="model-proposal-change-parent-separator">
+                                                    /
                                                 </span>
+
+                                                <strong>
+                                                    {{ change.review_parent.label }}
+                                                </strong>
+
                                             {% endif %}
 
                                         </div>
 
-                                    </div>
+                                    {% endif %}
 
-                                </div>
+                                </article>
 
-                            {% else %}
-
-                                <div class="model-proposal-value-content">
-                                    {{ change.after }}
-                                </div>
-
-                            {% endif %}
+                            {% endfor %}
 
                         </div>
 
@@ -210,13 +701,25 @@
 
                     <div class="model-empty-state">
 
+                        <div class="model-empty-state-icon">
+                            <i class="bi bi-funnel"></i>
+                        </div>
+
                         <div class="model-empty-state-title">
-                            No changes
+                            No matching changes
                         </div>
 
                         <div class="model-empty-state-description">
-                            This proposal currently contains no changes.
+                            No changes match the current search and
+                            filters.
                         </div>
+
+                        <a
+                            href="{% url 'model:proposal' model.id %}"
+                            class="btn btn-outline-secondary"
+                        >
+                            Clear filters
+                        </a>
 
                     </div>
 
@@ -227,29 +730,40 @@
         </section>
 
 
-        <!-- =====================================================
-             Actions
-             ===================================================== -->
-
-        {% if changes %}
+        {% if total_count %}
 
             <div class="model-proposal-actions">
 
                 <div>
+
                     <div class="model-proposal-actions-title">
                         Ready to submit?
                     </div>
 
                     <div class="model-proposal-actions-description">
-                        Once submitted, the proposal will be locked
-                        while it is validated.
+
+                        {% if unreviewed_count %}
+
+                            Review all
+                            {{ unreviewed_count }}
+                            remaining changes before submitting.
+
+                        {% else %}
+
+                            All changes have been reviewed.
+                            The proposal is ready for validation.
+
+                        {% endif %}
+
                     </div>
+
                 </div>
+
 
                 <button
                     type="button"
                     class="btn btn-primary"
-                    disabled
+                    {% if unreviewed_count %}disabled{% endif %}
                 >
                     Submit proposal
                 </button>
@@ -260,10 +774,6 @@
 
     {% else %}
 
-        <!-- =====================================================
-             Empty state
-             ===================================================== -->
-
         <div class="model-empty-state model-proposal-empty-state">
 
             <div class="model-empty-state-icon">
@@ -271,7 +781,7 @@
             </div>
 
             <div class="model-empty-state-title">
-                No open proposal
+                No open changes
             </div>
 
             <div class="model-empty-state-description">

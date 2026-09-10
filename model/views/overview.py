@@ -10,20 +10,12 @@ from model.views.common_context import get_model_context
 @login_required
 def overview(request, model_id):
 
-    # -------------------------------------------------------------
-    # Common model context
-    # -------------------------------------------------------------
-
     context = get_model_context(
         request,
         model_id,
     )
 
     model = context["model"]
-
-    # -------------------------------------------------------------
-    # POST — edit / discard
-    # -------------------------------------------------------------
 
     if request.method == "POST":
 
@@ -44,15 +36,12 @@ def overview(request, model_id):
                 status=400,
             )
 
-        # ---------------------------------------------------------
-        # Discard
-        # ---------------------------------------------------------
-
         if action == "discard":
 
             proposal = Proposal.objects.filter(
                 model=model,
                 created_by=request.user,
+                source=Proposal.Source.USER,
                 status=Proposal.Status.WORKING,
             ).first()
 
@@ -77,10 +66,6 @@ def overview(request, model_id):
                 }
             )
 
-        # ---------------------------------------------------------
-        # Save
-        # ---------------------------------------------------------
-
         canonical_value = getattr(model, field_name)
 
         proposal = ProposalService.get_or_create_working(
@@ -93,6 +78,8 @@ def overview(request, model_id):
             operation=ProposalChange.Operation.UPDATE,
             target_type="Model",
             target_id=model.id,
+            parent_type="",
+            parent_id=None,
             field=field_name,
             before={
                 "field": field_name,
@@ -114,11 +101,7 @@ def overview(request, model_id):
             }
         )
 
-    # -------------------------------------------------------------
-    # GET — resolve effective values
-    # -------------------------------------------------------------
-
-    working_proposal = context["working_proposal"]
+    working_proposal = context["my_working_proposal"]
 
     proposed_values = {}
 
@@ -144,10 +127,6 @@ def overview(request, model_id):
             return proposed_values[field_name]
 
         return getattr(model, field_name)
-
-    # -------------------------------------------------------------
-    # Overview-specific context
-    # -------------------------------------------------------------
 
     context.update(
         {

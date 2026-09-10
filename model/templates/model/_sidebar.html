@@ -1,3 +1,4 @@
+
 <aside class="model-sidebar">
 
     <div class="model-sidebar-header">
@@ -9,8 +10,6 @@
 
     <nav class="model-navigation">
 
-        <!-- MODEL -->
-
         <div class="model-nav-section">
 
             <div class="model-nav-section-label">
@@ -19,15 +18,18 @@
 
             <a
                 href="{% url 'model:overview' model.id %}"
-                class="model-nav-item active"
+                class="
+                    model-nav-item
+                    {% if request.resolver_match.url_name == 'overview' %}
+                        active
+                    {% endif %}
+                "
             >
                 <span>Overview</span>
             </a>
 
         </div>
 
-
-        <!-- ONTOLOGY -->
 
         <div class="model-nav-section">
 
@@ -64,21 +66,25 @@
                 <div class="model-nav-children">
 
                     {% for object_type in object_types|slice:":10" %}
+
                         <a
                             href="#"
                             class="model-nav-child"
                         >
                             <span>{{ object_type.name }}</span>
                         </a>
+
                     {% endfor %}
 
                     {% if object_types|length > 10 %}
+
                         <a
                             href="#"
                             class="model-nav-more"
                         >
                             View all {{ object_types|length }} →
                         </a>
+
                     {% endif %}
 
                 </div>
@@ -115,21 +121,25 @@
                 <div class="model-nav-children">
 
                     {% for relationship_type in relationship_types|slice:":10" %}
+
                         <a
                             href="#"
                             class="model-nav-child"
                         >
                             <span>{{ relationship_type.name }}</span>
                         </a>
+
                     {% endfor %}
 
                     {% if relationship_types|length > 10 %}
+
                         <a
                             href="#"
                             class="model-nav-more"
                         >
                             View all {{ relationship_types|length }} →
                         </a>
+
                     {% endif %}
 
                 </div>
@@ -138,8 +148,6 @@
 
         </div>
 
-
-        <!-- DATA -->
 
         <div class="model-nav-section">
 
@@ -157,38 +165,51 @@
         </div>
 
 
-        <!-- PROPOSAL -->
-
         <div class="model-nav-section">
 
             <div class="model-nav-section-label">
-                Proposal
+                Changes
             </div>
 
-            {% if working_proposal and proposal_change_count > 0 %}
+            <a
+                href="{% url 'model:proposal' model.id %}"
+                class="
+                    model-nav-item
+                    {% if request.resolver_match.url_name == 'proposal' and request.GET.proposal_source != 'ai' %}
+                        active
+                    {% endif %}
+                "
+            >
+                <span>My changes</span>
 
-                <a
-                    href="{% url 'model:proposal' model.id %}"
-                    class="model-nav-item"
-                >
-                    <span>Proposal</span>
-
+                {% if my_change_count > 0 %}
                     <span class="model-nav-count">
-                        {{ proposal_change_count }}
+                        {{ my_change_count }}
                     </span>
-                </a>
+                {% endif %}
+            </a>
 
-            {% else %}
 
-                <div class="model-nav-item">
-                    <span>No open proposal</span>
-                </div>
+            <a
+                href="{% url 'model:proposal' model.id %}?proposal_source=ai"
+                class="
+                    model-nav-item
+                    {% if request.resolver_match.url_name == 'proposal' and request.GET.proposal_source == 'ai' %}
+                        active
+                    {% endif %}
+                "
+            >
+                <span>AI suggestions</span>
 
-            {% endif %}
+                {% if ai_change_count > 0 %}
+                    <span class="model-nav-count">
+                        {{ ai_change_count }}
+                    </span>
+                {% endif %}
+            </a>
 
         </div>
 
     </nav>
 
 </aside>
-

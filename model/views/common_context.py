@@ -19,22 +19,38 @@ def get_model_context(request, model_id):
         workspace=membership.workspace,
     )
 
-    working_proposal = (
+    my_working_proposal = (
         Proposal.objects.filter(
             model=model,
             created_by=request.user,
+            source=Proposal.Source.USER,
             status=Proposal.Status.WORKING,
         )
         .prefetch_related("changes")
         .first()
     )
 
+    ai_working_proposal = (
+        Proposal.objects.filter(
+            model=model,
+            created_by=request.user,
+            source=Proposal.Source.AI,
+            status=Proposal.Status.WORKING,
+        )
+        .prefetch_related("changes")
+        .first()
+    )
+
+    my_change_count = my_working_proposal.changes.count() if my_working_proposal else 0
+
+    ai_change_count = ai_working_proposal.changes.count() if ai_working_proposal else 0
+
     return {
         "model": model,
         "object_types": model.object_types.all(),
         "relationship_types": model.relationship_types.all(),
-        "working_proposal": working_proposal,
-        "proposal_change_count": (
-            working_proposal.changes.count() if working_proposal else 0
-        ),
+        "my_working_proposal": my_working_proposal,
+        "my_change_count": my_change_count,
+        "ai_working_proposal": ai_working_proposal,
+        "ai_change_count": ai_change_count,
     }

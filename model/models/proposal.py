@@ -6,11 +6,19 @@ from django.db import models
 
 class Proposal(models.Model):
 
+    class Source(models.TextChoices):
+        USER = "user", "User"
+        AI = "ai", "AI"
+
     class Status(models.TextChoices):
         WORKING = "working", "Working"
         PROPOSED = "proposed", "Proposed"
         APPROVED = "approved", "Approved"
-        WITHDRAWN = "withdrawn", "Withdrawn"
+
+    class ValidationStatus(models.TextChoices):
+        NOT_VALIDATED = "not_validated", "Not validated"
+        VALID = "valid", "Valid"
+        INVALID = "invalid", "Invalid"
 
     id = models.UUIDField(
         primary_key=True,
@@ -30,10 +38,22 @@ class Proposal(models.Model):
         related_name="created_proposals",
     )
 
+    source = models.CharField(
+        max_length=20,
+        choices=Source.choices,
+        default=Source.USER,
+    )
+
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.WORKING,
+    )
+
+    validation_status = models.CharField(
+        max_length=20,
+        choices=ValidationStatus.choices,
+        default=ValidationStatus.NOT_VALIDATED,
     )
 
     base_revision = models.PositiveIntegerField(
@@ -76,10 +96,18 @@ class Proposal(models.Model):
 
 class ProposalChange(models.Model):
 
+    class Source(models.TextChoices):
+        USER = "user", "User"
+        AI = "ai", "AI"
+
     class Operation(models.TextChoices):
         CREATE = "create", "Create"
         UPDATE = "update", "Update"
         DELETE = "delete", "Delete"
+
+    class ReviewStatus(models.TextChoices):
+        UNREVIEWED = "unreviewed", "Unreviewed"
+        REVIEWED = "reviewed", "Reviewed"
 
     id = models.UUIDField(
         primary_key=True,
@@ -91,6 +119,11 @@ class ProposalChange(models.Model):
         "model.Proposal",
         on_delete=models.CASCADE,
         related_name="changes",
+    )
+
+    source = models.CharField(
+        max_length=20,
+        choices=Source.choices,
     )
 
     operation = models.CharField(
@@ -107,6 +140,16 @@ class ProposalChange(models.Model):
         blank=True,
     )
 
+    parent_type = models.CharField(
+        max_length=50,
+        blank=True,
+    )
+
+    parent_id = models.UUIDField(
+        null=True,
+        blank=True,
+    )
+
     before = models.JSONField(
         null=True,
         blank=True,
@@ -115,6 +158,12 @@ class ProposalChange(models.Model):
     after = models.JSONField(
         null=True,
         blank=True,
+    )
+
+    review_status = models.CharField(
+        max_length=20,
+        choices=ReviewStatus.choices,
+        default=ReviewStatus.UNREVIEWED,
     )
 
     created_at = models.DateTimeField(
@@ -129,4 +178,4 @@ class ProposalChange(models.Model):
         ordering = ["created_at"]
 
     def __str__(self):
-        return f"{self.operation} " f"{self.target_type} " f"{self.target_id}"
+        return f"{self.operation} {self.target_type} {self.target_id}"
