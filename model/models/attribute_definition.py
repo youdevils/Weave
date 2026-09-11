@@ -19,6 +19,10 @@ class AttributeDefinition(models.Model):
         editable=False,
     )
 
+    is_active = models.BooleanField(
+        default=True,
+    )
+
     object_type = models.ForeignKey(
         "model.ObjectType",
         on_delete=models.CASCADE,
