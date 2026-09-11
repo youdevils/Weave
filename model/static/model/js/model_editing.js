@@ -17,6 +17,25 @@ document.addEventListener("DOMContentLoaded", function () {
      * ============================================================
      */
 
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const button =
+                event.target.closest(
+                    "[data-discard-object-type]"
+                );
+
+            if (!button) {
+                return;
+            }
+
+            discardObjectTypeProposal(
+                button
+            );
+
+        }
+    );
 
     document.querySelectorAll(
         ".proposal-editor"
@@ -622,6 +641,87 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
+    async function discardObjectTypeProposal(
+        button
+    ) {
+
+        const objectTypeId =
+            button.dataset.objectTypeId;
+
+        if (!objectTypeId) {
+            console.error(
+                "ObjectType ID is missing."
+            );
+            return;
+        }
+
+
+        const csrfToken =
+            document.querySelector(
+                "[name=csrfmiddlewaretoken]"
+            );
+
+        if (!csrfToken) {
+            console.error(
+                "CSRF token is missing."
+            );
+            return;
+        }
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const data =
+                await postForm(
+                    window.location.href,
+                    csrfToken.value,
+                    {
+                        action:
+                            "discard_object_type_proposal",
+
+                        object_type_id:
+                            objectTypeId
+                    }
+                );
+
+
+            if (!data.success) {
+
+                throw new Error(
+                    data.error
+                    || "Unable to discard object type proposal."
+                );
+
+            }
+
+
+            /*
+             * The server has already removed the CREATE proposal
+             * and any proposed child AttributeDefinitions.
+             *
+             * Reload the index so it becomes the authoritative
+             * representation of the working proposal.
+             */
+
+            window.location.reload();
+
+        } catch (error) {
+
+            console.error(
+                "ObjectType proposal discard failed:",
+                error
+            );
+
+            button.disabled =
+                false;
+
+        }
+
+    }
 
     async function saveField(
         root,

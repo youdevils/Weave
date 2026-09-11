@@ -5,10 +5,17 @@
 
 <div class="model-object-types">
 
+    <!-- ============================================================
+         Header
+         ============================================================ -->
+
     <div class="model-page-header">
 
         <div>
-            <div class="model-page-eyebrow">Ontology</div>
+
+            <div class="model-page-eyebrow">
+                Ontology
+            </div>
 
             <h1 class="model-page-title">
                 Object types
@@ -17,12 +24,16 @@
             <p class="model-page-description">
                 Define the types of things that exist in this model.
             </p>
+
         </div>
+
 
         <div class="model-page-header-actions">
 
-            <a href="{% url 'model:object_type_create' model.id %}"
-               class="btn btn-primary">
+            <a
+                href="{% url 'model:object_type_create' model.id %}"
+                class="btn btn-primary"
+            >
                 <i class="bi bi-plus-lg"></i>
                 New object type
             </a>
@@ -32,90 +43,198 @@
     </div>
 
 
+    <!-- ============================================================
+         Object type list
+         ============================================================ -->
+
     <div class="model-object-type-list">
 
         {% for object_type in object_types %}
 
-            <a href="{% url 'model:object_type_edit' model.id object_type.id %}"
-               class="model-object-type-card">
+            <div
+                class="model-object-type-card
+                       {% if object_type.is_created %}
+                           model-object-type-card-proposed
+                       {% elif object_type.is_proposed %}
+                           model-object-type-card-proposed
+                       {% endif %}"
+            >
 
-                <div class="model-object-type-card-main">
+                <!-- =================================================
+                     Main card link
+                     ================================================= -->
 
-                    <div class="model-object-type-card-heading">
+                <a
+                    href="{% url 'model:object_type_edit' model.id object_type.id %}"
+                    class="model-object-type-card-link"
+                >
 
-                        <h2 class="model-object-type-card-title">
-                            {{ object_type.name }}
-                        </h2>
+                    <div class="model-object-type-card-main">
 
-                        {% if not object_type.is_active %}
+                        <div class="model-object-type-card-heading">
 
-                            <span class="model-object-type-card-status">
-                                Inactive
-                            </span>
+                            <h2 class="model-object-type-card-title">
+
+                                {{ object_type.name }}
+
+                            </h2>
+
+
+                            {% if not object_type.is_active %}
+
+                                <span class="model-object-type-card-status">
+                                    Retired
+                                </span>
+
+                            {% endif %}
+
+
+                            {% if object_type.is_created %}
+
+                                <span class="model-object-type-card-proposed">
+                                    Proposed
+                                </span>
+
+                            {% elif object_type.is_proposed %}
+
+                                <span class="model-object-type-card-proposed">
+                                    Proposed change
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- =================================================
+                             Description
+                             ================================================= -->
+
+                        {% if object_type.description %}
+
+                            <p class="model-object-type-card-description">
+                                {{ object_type.description }}
+                            </p>
+
+                        {% else %}
+
+                            <p class="model-object-type-card-description
+                                      model-object-type-card-description-empty">
+                                No description
+                            </p>
 
                         {% endif %}
 
-                    </div>
+
+                        <!-- =================================================
+                             Meta
+                             ================================================= -->
+
+                        <div class="model-object-type-card-meta">
+
+                            <span>
+
+                                <i class="bi bi-tag"></i>
+
+                                {{ object_type.key }}
+
+                            </span>
 
 
-                    {% if object_type.description %}
+                            <span>
 
-                        <p class="model-object-type-card-description">
-                            {{ object_type.description }}
-                        </p>
+                                <i class="bi bi-list-ul"></i>
 
-                    {% else %}
+                                {{ object_type.attribute_count }}
 
-                        <p class="model-object-type-card-description model-object-type-card-description-empty">
-                            No description
-                        </p>
+                                attribute{{ object_type.attribute_count|pluralize }}
 
-                    {% endif %}
+                            </span>
 
-
-                    <div class="model-object-type-card-meta">
-
-                        <span>
-                            <i class="bi bi-tag"></i>
-                            {{ object_type.key }}
-                        </span>
-
-                        <span>
-                            <i class="bi bi-list-ul"></i>
-                            {{ object_type.attributes.count }}
-                            attribute{{ object_type.attributes.count|pluralize }}
-                        </span>
+                        </div>
 
                     </div>
 
-                </div>
+
+                    <div class="model-object-type-card-action">
+
+                        <i class="bi bi-chevron-right"></i>
+
+                    </div>
+
+                </a>
 
 
-                <div class="model-object-type-card-action">
+                <!-- =================================================
+                     Proposal actions
+                     ================================================= -->
 
-                    <i class="bi bi-chevron-right"></i>
+                {% if object_type.is_proposed %}
 
-                </div>
+                    <div class="model-object-type-card-proposal">
 
-            </a>
+                        <div class="model-proposed-indicator">
+
+                            <i class="bi bi-pencil-square"></i>
+
+                            {% if object_type.is_created %}
+                                Proposed change
+                            {% else %}
+                                Proposed change
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="model-object-type-card-discard-form">
+
+                            <button
+                                type="button"
+                                class="model-discard-button"
+                                data-discard-object-type
+                                data-object-type-id="{{ object_type.id }}"
+                            >
+                                Discard
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
 
         {% empty %}
+
+            <!-- ========================================================
+                 Empty state
+                 ======================================================== -->
 
             <div class="model-empty-state">
 
                 <div class="model-empty-state-icon">
+
                     <i class="bi bi-box"></i>
+
                 </div>
 
-                <h2>No object types yet</h2>
+
+                <h2>
+                    No object types yet
+                </h2>
+
 
                 <p>
                     Object types define the kinds of things that can exist
                     in this model.
                 </p>
 
-                <a href="{% url 'model:object_type_create' model.id %}"
-                   class="btn btn-primary">
+
+                <a
+                    href="{% url 'model:object_type_create' model.id %}"
+                    class="btn btn-primary"
+                >
                     <i class="bi bi-plus-lg"></i>
                     Create your first object type
                 </a>
