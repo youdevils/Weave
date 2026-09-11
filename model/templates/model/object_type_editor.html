@@ -6,7 +6,7 @@
 <div class="model-object-type-editor">
 
     <!-- ============================================================
-         Header
+         PAGE HEADER
          ============================================================ -->
 
     <div class="model-page-header">
@@ -21,9 +21,11 @@
                 Object types
             </a>
 
+
             <div class="model-page-eyebrow">
                 Ontology
             </div>
+
 
             <h1 class="model-page-title">
 
@@ -34,6 +36,7 @@
                 {% endif %}
 
             </h1>
+
 
             <p class="model-page-description">
                 Define the type of thing that exists in this model,
@@ -67,20 +70,22 @@
             {% csrf_token %}
 
 
-            <!-- ====================================================
-                 Details
-                 ==================================================== -->
+            <!-- ========================================================
+                 DETAILS
+                 ======================================================== -->
 
             <section class="model-editor-section">
 
                 <div class="model-editor-section-header">
 
                     <div>
+
                         <h2>Details</h2>
 
                         <p>
                             Define the identity and purpose of this object type.
                         </p>
+
                     </div>
 
                 </div>
@@ -89,7 +94,9 @@
                 <div class="model-editor-fields">
 
 
-                    <!-- Name -->
+                    <!-- =================================================
+                         NAME
+                         ================================================= -->
 
                     <div
                         class="model-editor-field proposal-editor-field"
@@ -117,13 +124,19 @@
                             class="model-editor-field-display"
                             data-field-display="name"
                         >
+
                             {% if proposed_values.name %}
+
                                 {{ proposed_values.name }}
+
                             {% else %}
+
                                 <span class="model-field-empty">
                                     Not defined
                                 </span>
+
                             {% endif %}
+
                         </div>
 
 
@@ -142,9 +155,11 @@
                                 maxlength="100"
                             >
 
+
                             <div class="model-editor-field-help">
                                 The name users will see when working with this type.
                             </div>
+
 
                             <div
                                 class="model-editor-field-error"
@@ -162,6 +177,7 @@
                                 >
                                     Cancel
                                 </button>
+
 
                                 <button
                                     type="button"
@@ -202,7 +218,9 @@
                     </div>
 
 
-                    <!-- Key -->
+                    <!-- =================================================
+                         KEY
+                         ================================================= -->
 
                     <div
                         class="model-editor-field proposal-editor-field"
@@ -230,13 +248,19 @@
                             class="model-editor-field-display"
                             data-field-display="key"
                         >
+
                             {% if proposed_values.key %}
+
                                 {{ proposed_values.key }}
+
                             {% else %}
+
                                 <span class="model-field-empty">
                                     Not defined
                                 </span>
+
                             {% endif %}
+
                         </div>
 
 
@@ -255,9 +279,11 @@
                                 maxlength="100"
                             >
 
+
                             <div class="model-editor-field-help">
                                 A unique identifier for this type within the model.
                             </div>
+
 
                             <div
                                 class="model-editor-field-error"
@@ -275,6 +301,7 @@
                                 >
                                     Cancel
                                 </button>
+
 
                                 <button
                                     type="button"
@@ -315,7 +342,9 @@
                     </div>
 
 
-                    <!-- Description -->
+                    <!-- =================================================
+                         DESCRIPTION
+                         ================================================= -->
 
                     <div
                         class="model-editor-field proposal-editor-field"
@@ -343,15 +372,19 @@
                             class="model-editor-field-display"
                             data-field-display="description"
                         >
+
                             {% if proposed_values.description %}
-                                <span class="model-editor-field-value">
-                                    {{ proposed_values.description }}
-                                </span>
+
+                                {{ proposed_values.description }}
+
                             {% else %}
+
                                 <span class="model-field-empty">
                                     Not defined
                                 </span>
+
                             {% endif %}
+
                         </div>
 
 
@@ -376,6 +409,7 @@
                                 should be used in the model.
                             </div>
 
+
                             <div
                                 class="model-editor-field-error"
                                 data-proposal-error
@@ -392,6 +426,7 @@
                                 >
                                     Cancel
                                 </button>
+
 
                                 <button
                                     type="button"
@@ -432,132 +467,9 @@
                     </div>
 
 
-                    <!-- Status -->
-
-                    <div
-                        class="model-editor-field proposal-editor-field"
-                        data-field="is_active"
-                    >
-
-                        <div class="model-editor-field-header">
-
-                            <label for="id_is_active">
-                                Status
-                            </label>
-
-                            <button
-                                type="button"
-                                class="model-inline-edit-button"
-                                data-proposal-action="edit"
-                            >
-                                Edit
-                            </button>
-
-                        </div>
-
-
-                        <div
-                            class="model-editor-field-display"
-                            data-field-display="is_active"
-                        >
-                            {% if proposed_values.is_active %}
-                                Active
-                            {% else %}
-                                Inactive
-                            {% endif %}
-                        </div>
-
-
-                        <div
-                            class="model-editor-field-editor"
-                            data-field-editor="is_active"
-                            hidden
-                        >
-
-                            <div class="form-check">
-
-                                <input
-                                    type="checkbox"
-                                    id="id_is_active"
-                                    name="is_active"
-                                    class="form-check-input"
-                                    {% if proposed_values.is_active %}
-                                        checked
-                                    {% endif %}
-                                >
-
-                                <label
-                                    for="id_is_active"
-                                    class="form-check-label"
-                                >
-                                    Active
-                                </label>
-
-                            </div>
-
-
-                            <div class="model-editor-field-help">
-                                Inactive types remain part of the ontology
-                                but are no longer available for new modelling.
-                            </div>
-
-                            <div
-                                class="model-editor-field-error"
-                                data-proposal-error
-                                hidden
-                            ></div>
-
-
-                            <div class="model-editor-actions">
-
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-secondary"
-                                    data-proposal-action="cancel"
-                                >
-                                    Cancel
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-primary"
-                                    data-proposal-action="save"
-                                >
-                                    Save
-                                </button>
-
-                            </div>
-
-                        </div>
-
-
-                        <div
-                            class="model-proposed-indicator"
-                            data-proposal-indicator
-                            {% if not proposed_fields.is_active %}
-                                hidden
-                            {% endif %}
-                        >
-                            <i class="bi bi-pencil-square"></i>
-                            Proposed change
-                        </div>
-
-
-                        <button
-                            type="button"
-                            class="model-discard-button"
-                            data-proposal-action="discard"
-                            {% if not proposed_fields.is_active %}
-                                hidden
-                            {% endif %}
-                        >
-                            Discard
-                        </button>
-
-                    </div>
-
-
-                    <!-- Sort order -->
+                    <!-- =================================================
+                         SORT ORDER
+                         ================================================= -->
 
                     <div
                         class="model-editor-field proposal-editor-field"
@@ -604,9 +516,11 @@
                                 min="0"
                             >
 
+
                             <div class="model-editor-field-help">
                                 Controls the order in which this type is presented.
                             </div>
+
 
                             <div
                                 class="model-editor-field-error"
@@ -624,6 +538,7 @@
                                 >
                                     Cancel
                                 </button>
+
 
                                 <button
                                     type="button"
@@ -663,13 +578,107 @@
 
                     </div>
 
+
                 </div>
+
+
+                <!-- ====================================================
+                     LIFECYCLE
+                     ==================================================== -->
+
+                <div class="model-object-type-lifecycle">
+
+                    <div class="model-object-type-lifecycle-main">
+
+                        <div class="model-object-type-lifecycle-label">
+                            Status
+                        </div>
+
+                        <div class="model-object-type-lifecycle-description">
+                            Controls whether this type is available for
+                            new modelling. Retiring a type does not remove
+                            it or its existing data from the model.
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="model-object-type-lifecycle-control"
+                        data-object-type-lifecycle
+                        data-active="{% if proposed_values.is_active %}true{% else %}false{% endif %}"
+                        data-proposed="{% if proposed_fields.is_active %}true{% else %}false{% endif %}"
+                    >
+
+                        <div
+                            class="model-status-pill
+                            {% if proposed_values.is_active %}
+                                model-status-active
+                            {% else %}
+                                model-status-retired
+                            {% endif %}"
+                            data-status-display
+                        >
+
+                            {% if proposed_values.is_active %}
+                                <i class="bi bi-check-circle"></i>
+                                Active
+                            {% else %}
+                                <i class="bi bi-archive"></i>
+                                Retired
+                            {% endif %}
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            data-status-toggle
+                        >
+
+                            {% if proposed_values.is_active %}
+                                Retire
+                            {% else %}
+                                Activate
+                            {% endif %}
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="model-proposed-indicator model-object-type-lifecycle-proposal"
+                    data-lifecycle-proposal-indicator
+                    {% if not proposed_fields.is_active %}
+                        hidden
+                    {% endif %}
+                >
+                    <i class="bi bi-pencil-square"></i>
+                    Proposed change
+
+                    <button
+                        type="button"
+                        class="model-discard-button"
+                        data-lifecycle-discard
+                        {% if not proposed_fields.is_active %}
+                            hidden
+                        {% endif %}
+                    >
+                        Discard
+                    </button>
+
+                </div>
+
 
             </section>
 
 
             <!-- ========================================================
-                 Attributes
+                 ATTRIBUTES
                  ======================================================== -->
 
             <section class="model-editor-section">
@@ -718,6 +727,10 @@
                             data-attribute-proposed="{% if attribute.attribute_proposed %}true{% else %}false{% endif %}"
                         >
 
+                            <!-- =================================================
+                                 ATTRIBUTE DISPLAY
+                                 ================================================= -->
+
                             <div
                                 class="model-object-type-attribute-display"
                                 data-attribute-display
@@ -726,61 +739,67 @@
                                 <div class="model-object-type-attribute-main">
 
                                     <h3 class="model-object-type-attribute-name">
+
                                         {{ attribute.proposed_values.name }}
+
                                     </h3>
 
 
                                     <div class="model-object-type-attribute-meta">
 
-                                        <span
-                                            data-attribute-key
-                                        >
+                                        <span data-attribute-key>
                                             {{ attribute.proposed_values.key }}
                                         </span>
 
 
-                                        <span
-                                            data-attribute-data-type
-                                        >
+                                        <span data-attribute-data-type>
+
                                             {% for value, label in attribute.data_type_choices %}
+
                                                 {% if attribute.proposed_values.data_type == value %}
                                                     {{ label }}
                                                 {% endif %}
+
                                             {% endfor %}
+
                                         </span>
 
 
-                                        <span
-                                            data-attribute-required
-                                        >
+                                        <span data-attribute-required>
+
                                             {% if attribute.proposed_values.required %}
                                                 Required
                                             {% else %}
                                                 Optional
                                             {% endif %}
+
+                                        </span>
+
+
+                                        <span data-attribute-nullable>
+
+                                            {% if attribute.proposed_values.nullable %}
+                                                Nullable
+                                            {% else %}
+                                                Not nullable
+                                            {% endif %}
+
                                         </span>
 
                                     </div>
 
 
-                                    {% if attribute.proposed_values.description %}
-
-                                        <div
-                                            class="model-object-type-attribute-description"
-                                            data-attribute-description
-                                        >
-                                            {{ attribute.proposed_values.description }}
-                                        </div>
-
-                                    {% else %}
-
-                                        <div
-                                            class="model-object-type-attribute-description"
-                                            data-attribute-description
+                                    <div
+                                        class="model-object-type-attribute-description"
+                                        data-attribute-description
+                                        {% if not attribute.proposed_values.description %}
                                             hidden
-                                        ></div>
+                                        {% endif %}
+                                    >
 
-                                    {% endif %}
+                                        {{ attribute.proposed_values.description }}
+
+                                    </div>
 
                                 </div>
 
@@ -796,46 +815,59 @@
                                     </button>
 
 
-                                    {% if attribute.attribute_proposed %}
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        data-attribute-status-toggle
+                                    >
 
-                                        <button
-                                            type="button"
-                                            class="btn btn-sm btn-outline-secondary"
-                                            data-discard-attribute
-                                        >
-                                            Discard
-                                        </button>
+                                        {% if attribute.proposed_values.is_active %}
+                                            Retire
+                                        {% else %}
+                                            Activate
+                                        {% endif %}
 
-                                    {% endif %}
+                                    </button>
 
                                 </div>
 
                             </div>
 
 
-                            {% if attribute.attribute_proposed %}
+                            <!-- =================================================
+                                 ATTRIBUTE PROPOSAL STATE
+                                 ================================================= -->
 
-                                <div
-                                    class="model-proposed-indicator"
-                                    data-attribute-proposal-indicator
-                                >
-                                    <i class="bi bi-pencil-square"></i>
-                                    Proposed change
-                                </div>
-
-                            {% else %}
-
-                                <div
-                                    class="model-proposed-indicator"
-                                    data-attribute-proposal-indicator
+                            <div
+                                class="model-proposed-indicator"
+                                data-attribute-proposal-indicator
+                                {% if not attribute.attribute_proposed %}
                                     hidden
+                                {% endif %}
+                            >
+
+                                <i class="bi bi-pencil-square"></i>
+
+                                Proposed change
+
+
+                                <button
+                                    type="button"
+                                    class="model-discard-button"
+                                    data-discard-attribute
+                                    {% if not attribute.attribute_proposed %}
+                                        hidden
+                                    {% endif %}
                                 >
-                                    <i class="bi bi-pencil-square"></i>
-                                    Proposed change
-                                </div>
+                                    Discard
+                                </button>
 
-                            {% endif %}
+                            </div>
 
+
+                            <!-- =================================================
+                                 ATTRIBUTE EDITOR
+                                 ================================================= -->
 
                             <div
                                 class="model-object-type-attribute-editor"
@@ -845,6 +877,8 @@
 
                                 <div class="model-editor-fields">
 
+
+                                    <!-- NAME -->
 
                                     <div class="model-editor-field">
 
@@ -867,6 +901,8 @@
                                     </div>
 
 
+                                    <!-- KEY -->
+
                                     <div class="model-editor-field">
 
                                         <label
@@ -888,6 +924,8 @@
                                     </div>
 
 
+                                    <!-- DATA TYPE -->
+
                                     <div class="model-editor-field">
 
                                         <label
@@ -900,6 +938,7 @@
                                             id="attribute-data-type-{{ attribute.id }}"
                                             name="attribute_data_type"
                                             class="form-select"
+                                            data-attribute-data-type-input
                                         >
 
                                             {% for value, label in attribute.data_type_choices %}
@@ -920,6 +959,8 @@
                                     </div>
 
 
+                                    <!-- DESCRIPTION -->
+
                                     <div class="model-editor-field">
 
                                         <label
@@ -938,6 +979,8 @@
                                     </div>
 
 
+                                    <!-- DEFAULT VALUE -->
+
                                     <div class="model-editor-field">
 
                                         <label
@@ -954,8 +997,16 @@
                                             class="form-control"
                                         >
 
+
+                                        <div class="model-editor-field-help">
+                                            The default value used when a new
+                                            object does not provide one.
+                                        </div>
+
                                     </div>
 
+
+                                    <!-- SORT ORDER -->
 
                                     <div class="model-editor-field">
 
@@ -977,7 +1028,10 @@
                                     </div>
 
 
+                                    <!-- REQUIRED / NULLABLE -->
+
                                     <div class="model-editor-checkboxes">
+
 
                                         <label class="form-check">
 
@@ -995,6 +1049,63 @@
                                             </span>
 
                                         </label>
+
+
+                                        <label class="form-check">
+
+                                            <input
+                                                type="checkbox"
+                                                name="attribute_nullable"
+                                                class="form-check-input"
+                                                {% if attribute.proposed_values.nullable %}
+                                                    checked
+                                                {% endif %}
+                                            >
+
+                                            <span class="form-check-label">
+                                                Nullable
+                                            </span>
+
+                                        </label>
+
+                                    </div>
+
+
+                                    <!-- LIFECYCLE -->
+
+                                    <div class="model-editor-field">
+
+                                        <div class="model-editor-field-header">
+
+                                            <label>
+                                                Status
+                                            </label>
+
+                                        </div>
+
+
+                                        <div
+                                            class="model-attribute-editor-status"
+                                            data-attribute-editor-status
+                                        >
+
+                                            {% if attribute.proposed_values.is_active %}
+
+                                                <span class="model-status-pill model-status-active">
+                                                    <i class="bi bi-check-circle"></i>
+                                                    Active
+                                                </span>
+
+                                            {% else %}
+
+                                                <span class="model-status-pill model-status-retired">
+                                                    <i class="bi bi-archive"></i>
+                                                    Retired
+                                                </span>
+
+                                            {% endif %}
+
+                                        </div>
 
                                     </div>
 
@@ -1017,6 +1128,7 @@
                                     >
                                         Cancel
                                     </button>
+
 
                                     <button
                                         type="button"
@@ -1060,7 +1172,7 @@
 
 
                     <!-- =================================================
-                         New attribute editor
+                         NEW ATTRIBUTE
                          ================================================= -->
 
                     <article
@@ -1151,6 +1263,7 @@
                                         name="attribute_description"
                                         class="form-control"
                                         rows="3"
+                                        placeholder="Describe the information this attribute stores."
                                     ></textarea>
 
                                 </div>
@@ -1192,6 +1305,7 @@
 
                                 <div class="model-editor-checkboxes">
 
+
                                     <label class="form-check">
 
                                         <input
@@ -1205,6 +1319,39 @@
                                         </span>
 
                                     </label>
+
+
+                                    <label class="form-check">
+
+                                        <input
+                                            type="checkbox"
+                                            name="attribute_nullable"
+                                            class="form-check-input"
+                                        >
+
+                                        <span class="form-check-label">
+                                            Nullable
+                                        </span>
+
+                                    </label>
+
+                                </div>
+
+
+                                <div class="model-editor-field">
+
+                                    <div class="model-editor-field-header">
+
+                                        <label>
+                                            Status
+                                        </label>
+
+                                    </div>
+
+                                    <span class="model-status-pill model-status-active">
+                                        <i class="bi bi-check-circle"></i>
+                                        Active
+                                    </span>
 
                                 </div>
 
@@ -1228,6 +1375,7 @@
                                     Cancel
                                 </button>
 
+
                                 <button
                                     type="button"
                                     class="btn btn-sm btn-primary"
@@ -1242,13 +1390,14 @@
 
                     </article>
 
+
                 </div>
 
             </section>
 
 
             <!-- ========================================================
-                 Footer
+                 FOOTER
                  ======================================================== -->
 
             <div class="model-editor-footer">
@@ -1269,7 +1418,7 @@
 
 
         <!-- ============================================================
-             Create ObjectType
+             CREATE OBJECT TYPE
              ============================================================ -->
 
         <form
@@ -1325,6 +1474,7 @@
                             The name users will see when working with this type.
                         </div>
 
+
                         {% if form.name.errors %}
 
                             <div class="model-editor-field-error">
@@ -1361,6 +1511,7 @@
                             A unique identifier for this type.
                         </div>
 
+
                         {% if form.key.errors %}
 
                             <div class="model-editor-field-error">
@@ -1390,10 +1541,12 @@
                             placeholder="Describe what this type represents."
                         >{{ form.description.value|default:'' }}</textarea>
 
+
                         <div class="model-editor-field-help">
                             Explain what this type represents and how it
                             should be used in the model.
                         </div>
+
 
                         {% if form.description.errors %}
 
@@ -1404,6 +1557,7 @@
                         {% endif %}
 
                     </div>
+
 
                 </div>
 
@@ -1418,6 +1572,7 @@
                 >
                     Cancel
                 </a>
+
 
                 <button
                     type="submit"

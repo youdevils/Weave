@@ -3,447 +3,511 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /*
      * ============================================================
-     * Generic proposal editor
+     * Weave proposal-aware editing
      * ============================================================
      *
-     * Shared by:
+     * Generic ObjectType / Model field editing
+     * AttributeDefinition compound editing
+     * Retire / Activate lifecycle proposals
+     * Proposal discard
      *
-     *   Model
-     *   ObjectType
-     *   Object
-     *   Relationship
-     *   etc.
-     *
-     * Server contract:
-     *
-     *   Save:
-     *       POST field + value
-     *
-     *   Discard:
-     *       POST field + action=discard
-     *
-     * Canonical state is never modified by this client code.
+     * Canonical model state is never modified by this JavaScript.
+     * All persistence goes through the proposal endpoint supplied
+     * by the page.
      * ============================================================
      */
 
-    const proposalEditors =
-        document.querySelectorAll(
-            ".proposal-editor"
-        );
 
-    proposalEditors.forEach(
-        function (editorRoot) {
+    document.querySelectorAll(
+        ".proposal-editor"
+    ).forEach(function (root) {
 
-            const updateUrl =
-                editorRoot.dataset.updateUrl;
+        const updateUrl =
+            root.dataset.updateUrl;
 
-            if (!updateUrl) {
-                console.error(
-                    "Proposal editor: update URL is missing."
-                );
-                return;
-            }
-
-            const csrfToken =
-                editorRoot.querySelector(
-                    "[name=csrfmiddlewaretoken]"
-                )
-                || document.querySelector(
-                    "[name=csrfmiddlewaretoken]"
-                );
-
-            if (!csrfToken) {
-                console.error(
-                    "Proposal editor: CSRF token is missing."
-                );
-                return;
-            }
-
-            /*
-             * --------------------------------------------------------
-             * ObjectType field actions
-             * --------------------------------------------------------
-             */
-
-            editorRoot.addEventListener(
-                "click",
-                function (event) {
-
-                    const editButton =
-                        event.target.closest(
-                            '[data-proposal-action="edit"]'
-                        );
-
-                    if (editButton) {
-
-                        const field =
-                            getFieldContainer(
-                                editButton
-                            );
-
-                        if (field) {
-                            openField(field);
-                        }
-
-                        return;
-                    }
+        if (!updateUrl) {
+            console.error(
+                "Proposal editor: update URL is missing."
+            );
+            return;
+        }
 
 
-                    const cancelButton =
-                        event.target.closest(
-                            '[data-proposal-action="cancel"]'
-                        );
-
-                    if (cancelButton) {
-
-                        const field =
-                            getFieldContainer(
-                                cancelButton
-                            );
-
-                        if (field) {
-                            cancelField(field);
-                        }
-
-                        return;
-                    }
-
-
-                    const saveButton =
-                        event.target.closest(
-                            '[data-proposal-action="save"]'
-                        );
-
-                    if (saveButton) {
-
-                        const field =
-                            getFieldContainer(
-                                saveButton
-                            );
-
-                        if (field) {
-
-                            saveField(
-                                editorRoot,
-                                csrfToken,
-                                field,
-                                saveButton
-                            );
-                        }
-
-                        return;
-                    }
-
-
-                    const discardButton =
-                        event.target.closest(
-                            '[data-proposal-action="discard"]'
-                        );
-
-                    if (discardButton) {
-
-                        const field =
-                            getFieldContainer(
-                                discardButton
-                            );
-
-                        if (field) {
-
-                            discardField(
-                                editorRoot,
-                                csrfToken,
-                                field,
-                                discardButton
-                            );
-                        }
-                    }
-
-                }
+        const csrfToken =
+            root.querySelector(
+                "[name=csrfmiddlewaretoken]"
+            )
+            || document.querySelector(
+                "[name=csrfmiddlewaretoken]"
             );
 
+        if (!csrfToken) {
+            console.error(
+                "Proposal editor: CSRF token is missing."
+            );
+            return;
+        }
 
-            /*
-             * --------------------------------------------------------
-             * Escape closes an ObjectType field editor.
-             * --------------------------------------------------------
-             */
 
-            editorRoot.addEventListener(
-                "keydown",
-                function (event) {
+        /*
+         * ========================================================
+         * Click delegation
+         * ========================================================
+         */
 
-                    if (event.key !== "Escape") {
-                        return;
-                    }
+        root.addEventListener(
+            "click",
+            function (event) {
 
-                    const editor =
-                        event.target.closest(
-                            "[data-field-editor]"
-                        );
 
-                    if (!editor) {
-                        return;
-                    }
+                /*
+                 * ------------------------------------------------
+                 * ObjectType field edit
+                 * ------------------------------------------------
+                 */
+
+                const editButton =
+                    event.target.closest(
+                        '[data-proposal-action="edit"]'
+                    );
+
+                if (editButton) {
 
                     const field =
-                        editor.closest(
+                        editButton.closest(
                             ".proposal-editor-field"
                         );
 
-                    if (!field) {
-                        return;
+                    if (field) {
+                        openField(field);
                     }
 
-                    cancelField(field);
-
+                    return;
                 }
-            );
 
 
-            /*
-             * --------------------------------------------------------
-             * Attribute actions
-             * --------------------------------------------------------
-             *
-             * Delegated from proposal-editor so dynamically-added
-             * proposed attributes work automatically.
-             */
+                /*
+                 * ------------------------------------------------
+                 * ObjectType field cancel
+                 * ------------------------------------------------
+                 */
 
-            editorRoot.addEventListener(
-                "click",
-                function (event) {
+                const cancelButton =
+                    event.target.closest(
+                        '[data-proposal-action="cancel"]'
+                    );
 
-                    const editButton =
-                        event.target.closest(
-                            "[data-edit-attribute]"
+                if (cancelButton) {
+
+                    const field =
+                        cancelButton.closest(
+                            ".proposal-editor-field"
                         );
 
-                    if (editButton) {
-
-                        openAttribute(
-                            editButton.closest(
-                                ".model-object-type-attribute"
-                            )
-                        );
-
-                        return;
+                    if (field) {
+                        cancelField(field);
                     }
 
+                    return;
+                }
 
-                    const cancelButton =
-                        event.target.closest(
-                            "[data-cancel-attribute]"
+
+                /*
+                 * ------------------------------------------------
+                 * ObjectType field save
+                 * ------------------------------------------------
+                 */
+
+                const saveButton =
+                    event.target.closest(
+                        '[data-proposal-action="save"]'
+                    );
+
+                if (saveButton) {
+
+                    const field =
+                        saveButton.closest(
+                            ".proposal-editor-field"
                         );
 
-                    if (cancelButton) {
-
-                        closeAttribute(
-                            cancelButton.closest(
-                                ".model-object-type-attribute"
-                            )
-                        );
-
-                        return;
-                    }
-
-
-                    const saveButton =
-                        event.target.closest(
-                            "[data-save-attribute]"
-                        );
-
-                    if (saveButton) {
-
-                        saveAttribute(
-                            editorRoot,
+                    if (field) {
+                        saveField(
+                            root,
                             csrfToken,
+                            field,
                             saveButton
                         );
-
-                        return;
                     }
 
+                    return;
+                }
 
-                    const discardButton =
-                        event.target.closest(
-                            "[data-discard-attribute]"
+
+                /*
+                 * ------------------------------------------------
+                 * ObjectType field discard
+                 * ------------------------------------------------
+                 */
+
+                const discardFieldButton =
+                    event.target.closest(
+                        '[data-proposal-action="discard"]'
+                    );
+
+                if (discardFieldButton) {
+
+                    const field =
+                        discardFieldButton.closest(
+                            ".proposal-editor-field"
                         );
 
-                    if (discardButton) {
-
-                        discardAttribute(
-                            editorRoot,
+                    if (field) {
+                        discardField(
+                            root,
                             csrfToken,
-                            discardButton
+                            field,
+                            discardFieldButton
                         );
-
-                        return;
                     }
 
+                    return;
+                }
 
-                    const addButton =
-                        event.target.closest(
-                            "[data-add-attribute]"
+
+                /*
+                 * ------------------------------------------------
+                 * ObjectType Retire / Activate
+                 * ------------------------------------------------
+                 */
+
+                const statusToggle =
+                    event.target.closest(
+                        "[data-status-toggle]"
+                    );
+
+                if (statusToggle) {
+
+                    setObjectTypeStatus(
+                        root,
+                        csrfToken,
+                        statusToggle
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * ------------------------------------------------
+                 * ObjectType lifecycle discard
+                 * ------------------------------------------------
+                 */
+
+                const lifecycleDiscard =
+                    event.target.closest(
+                        "[data-lifecycle-discard]"
+                    );
+
+                if (lifecycleDiscard) {
+
+                    discardObjectTypeStatus(
+                        root,
+                        csrfToken,
+                        lifecycleDiscard
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * ------------------------------------------------
+                 * Attribute edit
+                 * ------------------------------------------------
+                 */
+
+                const attributeEdit =
+                    event.target.closest(
+                        "[data-edit-attribute]"
+                    );
+
+                if (attributeEdit) {
+
+                    const attribute =
+                        attributeEdit.closest(
+                            ".model-object-type-attribute"
                         );
 
-                    if (addButton) {
-
-                        openNewAttribute(
-                            editorRoot
-                        );
-
-                        return;
+                    if (attribute) {
+                        openAttribute(attribute);
                     }
 
+                    return;
+                }
 
-                    const cancelNewButton =
-                        event.target.closest(
-                            "[data-cancel-new-attribute]"
+
+                /*
+                 * ------------------------------------------------
+                 * Attribute cancel
+                 * ------------------------------------------------
+                 */
+
+                const attributeCancel =
+                    event.target.closest(
+                        "[data-cancel-attribute]"
+                    );
+
+                if (attributeCancel) {
+
+                    const attribute =
+                        attributeCancel.closest(
+                            ".model-object-type-attribute"
                         );
 
-                    if (cancelNewButton) {
-
-                        closeNewAttribute(
-                            editorRoot
-                        );
-
-                        return;
+                    if (attribute) {
+                        closeAttribute(attribute);
                     }
 
+                    return;
+                }
 
-                    const saveNewButton =
-                        event.target.closest(
-                            "[data-save-new-attribute]"
+
+                /*
+                 * ------------------------------------------------
+                 * Attribute save
+                 * ------------------------------------------------
+                 */
+
+                const attributeSave =
+                    event.target.closest(
+                        "[data-save-attribute]"
+                    );
+
+                if (attributeSave) {
+
+                    saveAttribute(
+                        root,
+                        csrfToken,
+                        attributeSave
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * ------------------------------------------------
+                 * Attribute proposal discard
+                 * ------------------------------------------------
+                 */
+
+                const attributeDiscard =
+                    event.target.closest(
+                        "[data-discard-attribute]"
+                    );
+
+                if (attributeDiscard) {
+
+                    discardAttribute(
+                        root,
+                        csrfToken,
+                        attributeDiscard
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * ------------------------------------------------
+                 * Attribute Retire / Activate
+                 * ------------------------------------------------
+                 */
+
+                const attributeStatus =
+                    event.target.closest(
+                        "[data-attribute-status-toggle]"
+                    );
+
+                if (attributeStatus) {
+
+                    setAttributeStatus(
+                        root,
+                        csrfToken,
+                        attributeStatus
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * ------------------------------------------------
+                 * Add attribute
+                 * ------------------------------------------------
+                 */
+
+                const addAttribute =
+                    event.target.closest(
+                        "[data-add-attribute]"
+                    );
+
+                if (addAttribute) {
+
+                    openNewAttribute(
+                        root
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * ------------------------------------------------
+                 * Cancel new attribute
+                 * ------------------------------------------------
+                 */
+
+                const cancelNewAttribute =
+                    event.target.closest(
+                        "[data-cancel-new-attribute]"
+                    );
+
+                if (cancelNewAttribute) {
+
+                    closeNewAttribute(
+                        root
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * ------------------------------------------------
+                 * Save new attribute
+                 * ------------------------------------------------
+                 */
+
+                const saveNewAttributeButton =
+                    event.target.closest(
+                        "[data-save-new-attribute]"
+                    );
+
+                if (saveNewAttributeButton) {
+
+                    saveNewAttribute(
+                        root,
+                        csrfToken,
+                        saveNewAttributeButton
+                    );
+
+                }
+
+            }
+        );
+
+
+        /*
+         * ========================================================
+         * Escape
+         * ========================================================
+         */
+
+        root.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (event.key !== "Escape") {
+                    return;
+                }
+
+
+                const fieldEditor =
+                    event.target.closest(
+                        "[data-field-editor]"
+                    );
+
+                if (fieldEditor) {
+
+                    const field =
+                        fieldEditor.closest(
+                            ".proposal-editor-field"
                         );
 
-                    if (saveNewButton) {
+                    if (field) {
+                        cancelField(field);
+                    }
 
-                        saveNewAttribute(
-                            editorRoot,
-                            csrfToken,
-                            saveNewButton
+                    return;
+                }
+
+
+                const attributeEditor =
+                    event.target.closest(
+                        "[data-attribute-editor]"
+                    );
+
+                if (attributeEditor) {
+
+                    const attribute =
+                        attributeEditor.closest(
+                            ".model-object-type-attribute"
                         );
 
+                    if (attribute) {
+                        closeAttribute(attribute);
                     }
 
                 }
-            );
 
-        }
-    );
+            }
+        );
+
+    });
 
 
     /*
      * ============================================================
-     * ObjectType field helpers
+     * Generic ObjectType fields
      * ============================================================
      */
 
-    function getFieldContainer(element) {
+    function getFieldInput(field) {
 
-        return element.closest(
-            ".proposal-editor-field"
-        );
+        const editor =
+            field.querySelector(
+                "[data-field-editor]"
+            );
 
-    }
-
-
-    function getFieldName(field) {
-
-        return field.dataset.field || null;
-
-    }
-
-
-    function getDisplay(field) {
-
-        const fieldName =
-            getFieldName(field);
-
-        if (!fieldName) {
+        if (!editor) {
             return null;
         }
-
-        return field.querySelector(
-            `[data-field-display="${CSS.escape(fieldName)}"]`
-        );
-
-    }
-
-
-    function getEditor(field) {
-
-        const fieldName =
-            getFieldName(field);
-
-        if (!fieldName) {
-            return null;
-        }
-
-        return field.querySelector(
-            `[data-field-editor="${CSS.escape(fieldName)}"]`
-        );
-
-    }
-
-
-    function getEditButton(field) {
-
-        return field.querySelector(
-            '[data-proposal-action="edit"]'
-        );
-
-    }
-
-
-    function getInput(editor) {
 
         return editor.querySelector(
-            "input:not([type=hidden]):not([type=submit]), " +
-            "textarea, " +
-            "select"
+            "input:not([type=hidden]), textarea, select"
         );
-
-    }
-
-
-    function getProposalIndicator(field) {
-
-        return field.querySelector(
-            "[data-proposal-indicator]"
-        );
-
-    }
-
-
-    function getDiscardButton(field) {
-
-        return field.querySelector(
-            '[data-proposal-action="discard"]'
-        );
-
     }
 
 
     function openField(field) {
 
         const display =
-            getDisplay(field);
+            field.querySelector(
+                "[data-field-display]"
+            );
 
         const editor =
-            getEditor(field);
+            field.querySelector(
+                "[data-field-editor]"
+            );
 
         const editButton =
-            getEditButton(field);
+            field.querySelector(
+                '[data-proposal-action="edit"]'
+            );
 
         if (!display || !editor) {
-            return;
-        }
-
-        const input =
-            getInput(editor);
-
-        if (!input) {
             return;
         }
 
@@ -453,60 +517,71 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
         if (root) {
-            closeOtherFields(
-                root,
-                field
-            );
+
+            root.querySelectorAll(
+                ".proposal-editor-field"
+            ).forEach(function (other) {
+
+                if (other === field) {
+                    return;
+                }
+
+                const otherDisplay =
+                    other.querySelector(
+                        "[data-field-display]"
+                    );
+
+                const otherEditor =
+                    other.querySelector(
+                        "[data-field-editor]"
+                    );
+
+                const otherEditButton =
+                    other.querySelector(
+                        '[data-proposal-action="edit"]'
+                    );
+
+                if (
+                    otherDisplay
+                    && otherEditor
+                ) {
+
+                    otherDisplay.hidden =
+                        false;
+
+                    otherEditor.hidden =
+                        true;
+
+                    if (otherEditButton) {
+                        otherEditButton.hidden =
+                            false;
+                    }
+
+                }
+
+            });
+
         }
 
-        display.hidden = true;
-        editor.hidden = false;
+
+        display.hidden =
+            true;
+
+        editor.hidden =
+            false;
 
         if (editButton) {
-            editButton.hidden = true;
+            editButton.hidden =
+                true;
         }
 
-        input.focus();
 
-    }
+        const input =
+            getFieldInput(field);
 
-
-    function closeOtherFields(
-        root,
-        currentField
-    ) {
-
-        root.querySelectorAll(
-            ".proposal-editor-field"
-        ).forEach(
-            function (field) {
-
-                if (field === currentField) {
-                    return;
-                }
-
-                const editor =
-                    getEditor(field);
-
-                const display =
-                    getDisplay(field);
-
-                if (!editor || !display) {
-                    return;
-                }
-
-                editor.hidden = true;
-                display.hidden = false;
-
-                const editButton =
-                    getEditButton(field);
-
-                if (editButton) {
-                    editButton.hidden = false;
-                }
-
-            }
-        );
+        if (input) {
+            input.focus();
+        }
 
     }
 
@@ -514,24 +589,36 @@ document.addEventListener("DOMContentLoaded", function () {
     function cancelField(field) {
 
         const display =
-            getDisplay(field);
+            field.querySelector(
+                "[data-field-display]"
+            );
 
         const editor =
-            getEditor(field);
+            field.querySelector(
+                "[data-field-editor]"
+            );
 
         const editButton =
-            getEditButton(field);
+            field.querySelector(
+                '[data-proposal-action="edit"]'
+            );
 
         if (!display || !editor) {
             return;
         }
 
-        editor.hidden = true;
-        display.hidden = false;
+        editor.hidden =
+            true;
+
+        display.hidden =
+            false;
 
         if (editButton) {
-            editButton.hidden = false;
+            editButton.hidden =
+                false;
         }
+
+        clearFieldError(field);
 
     }
 
@@ -544,35 +631,24 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
 
         const fieldName =
-            getFieldName(field);
-
-        if (!fieldName) {
-            return;
-        }
-
-        const display =
-            getDisplay(field);
-
-        const editor =
-            getEditor(field);
-
-        if (!display || !editor) {
-            return;
-        }
+            field.dataset.field;
 
         const input =
-            getInput(editor);
+            getFieldInput(field);
 
-        if (!input) {
+        if (
+            !fieldName
+            || !input
+        ) {
             return;
         }
 
-        const value =
-            readInputValue(input);
 
-        clearError(field);
+        clearFieldError(field);
 
-        button.disabled = true;
+        button.disabled =
+            true;
+
 
         try {
 
@@ -581,70 +657,107 @@ document.addEventListener("DOMContentLoaded", function () {
                     root.dataset.updateUrl,
                     csrfToken.value,
                     {
-                        field: fieldName,
-                        value: value
+                        field:
+                            fieldName,
+
+                        value:
+                            readInputValue(input)
                     }
                 );
+
 
             writeInputValue(
                 input,
                 data.value
             );
 
-            renderDisplayValue(
-                display,
+
+            updateFieldDisplay(
+                field,
                 data.value,
                 input
             );
 
-            editor.hidden = true;
-            display.hidden = false;
+
+            const display =
+                field.querySelector(
+                    "[data-field-display]"
+                );
+
+            const editor =
+                field.querySelector(
+                    "[data-field-editor]"
+                );
 
             const editButton =
-                getEditButton(field);
-
-            if (editButton) {
-                editButton.hidden = false;
-            }
+                field.querySelector(
+                    '[data-proposal-action="edit"]'
+                );
 
             const indicator =
-                getProposalIndicator(field);
+                field.querySelector(
+                    "[data-proposal-indicator]"
+                );
 
-            const discardButton =
-                getDiscardButton(field);
+            const discard =
+                field.querySelector(
+                    '[data-proposal-action="discard"]'
+                );
+
+
+            if (editor) {
+                editor.hidden =
+                    true;
+            }
+
+            if (display) {
+                display.hidden =
+                    false;
+            }
+
+            if (editButton) {
+                editButton.hidden =
+                    false;
+            }
+
 
             if (data.proposed) {
 
                 if (indicator) {
-                    indicator.hidden = false;
+                    indicator.hidden =
+                        false;
                 }
 
-                if (discardButton) {
-                    discardButton.hidden = false;
+                if (discard) {
+                    discard.hidden =
+                        false;
                 }
 
             } else {
 
                 if (indicator) {
-                    indicator.hidden = true;
+                    indicator.hidden =
+                        true;
                 }
 
-                if (discardButton) {
-                    discardButton.hidden = true;
+                if (discard) {
+                    discard.hidden =
+                        true;
                 }
 
             }
 
         } catch (error) {
 
-            showError(
+            showFieldError(
                 field,
                 error.message
             );
 
         } finally {
 
-            button.disabled = false;
+            button.disabled =
+                false;
 
         }
 
@@ -659,24 +772,14 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
 
         const fieldName =
-            getFieldName(field);
+            field.dataset.field;
 
         if (!fieldName) {
             return;
         }
 
-        const display =
-            getDisplay(field);
-
-        const editor =
-            getEditor(field);
-
-        const input =
-            editor
-                ? getInput(editor)
-                : null;
-
-        button.disabled = true;
+        button.disabled =
+            true;
 
         try {
 
@@ -685,145 +788,102 @@ document.addEventListener("DOMContentLoaded", function () {
                     root.dataset.updateUrl,
                     csrfToken.value,
                     {
-                        field: fieldName,
-                        action: "discard"
+                        field:
+                            fieldName,
+
+                        action:
+                            "discard"
                     }
                 );
 
+
+            const input =
+                getFieldInput(field);
+
             if (input) {
+
                 writeInputValue(
                     input,
                     data.value
                 );
+
             }
 
-            if (display) {
-                renderDisplayValue(
-                    display,
-                    data.value,
-                    input
-                );
-            }
 
-            if (editor) {
-                editor.hidden = true;
-            }
+            updateFieldDisplay(
+                field,
+                data.value,
+                input
+            );
 
-            if (display) {
-                display.hidden = false;
-            }
 
-            const editButton =
-                getEditButton(field);
+            cancelField(
+                field
+            );
 
-            if (editButton) {
-                editButton.hidden = false;
-            }
 
             const indicator =
-                getProposalIndicator(field);
+                field.querySelector(
+                    "[data-proposal-indicator]"
+                );
+
+            const discard =
+                field.querySelector(
+                    '[data-proposal-action="discard"]'
+                );
+
 
             if (indicator) {
-                indicator.hidden = true;
+                indicator.hidden =
+                    true;
             }
 
-            button.hidden = true;
+            if (discard) {
+                discard.hidden =
+                    true;
+            }
 
         } catch (error) {
 
-            showError(
+            showFieldError(
                 field,
                 error.message
             );
 
         } finally {
 
-            button.disabled = false;
+            button.disabled =
+                false;
 
         }
 
     }
 
 
-    function readInputValue(input) {
-
-        if (
-            input instanceof HTMLInputElement
-            && input.type === "checkbox"
-        ) {
-            return input.checked
-                ? "true"
-                : "false";
-        }
-
-        return input.value;
-
-    }
-
-
-    function writeInputValue(
-        input,
-        value
-    ) {
-
-        if (!input) {
-            return;
-        }
-
-        const stringValue =
-            normaliseValue(value);
-
-        if (
-            input instanceof HTMLInputElement
-            && input.type === "checkbox"
-        ) {
-
-            input.checked =
-                stringValue === "true"
-                || stringValue === "1"
-                || stringValue === "yes"
-                || stringValue === "on";
-
-            return;
-        }
-
-        input.value =
-            stringValue;
-
-    }
-
-
-    function renderDisplayValue(
-        display,
+    function updateFieldDisplay(
+        field,
         value,
         input
     ) {
+
+        const display =
+            field.querySelector(
+                "[data-field-display]"
+            );
 
         if (!display) {
             return;
         }
 
-        const stringValue =
-            normaliseValue(value);
 
         display.replaceChildren();
 
-        if (
-            input instanceof HTMLInputElement
-            && input.type === "checkbox"
-        ) {
 
-            display.textContent =
-                input.checked
-                    ? "Active"
-                    : "Inactive";
+        const text =
+            normaliseValue(value);
 
-            return;
-        }
 
-        if (
-            !stringValue.trim()
-        ) {
+        if (!text.trim()) {
 
             const empty =
                 document.createElement(
@@ -843,20 +903,314 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+
         display.textContent =
-            stringValue;
+            text;
+
+    }
+
+
+    function readInputValue(
+        input
+    ) {
+
+        if (
+            input instanceof HTMLInputElement
+            && input.type === "checkbox"
+        ) {
+
+            return input.checked
+                ? "true"
+                : "false";
+
+        }
+
+        return input.value;
+
+    }
+
+
+    function writeInputValue(
+        input,
+        value
+    ) {
+
+        if (!input) {
+            return;
+        }
+
+
+        const normalised =
+            normaliseValue(value);
+
+
+        if (
+            input instanceof HTMLInputElement
+            && input.type === "checkbox"
+        ) {
+
+            input.checked =
+                normalised === "true"
+                || normalised === "1"
+                || normalised === "yes"
+                || normalised === "on";
+
+            return;
+        }
+
+
+        input.value =
+            normalised;
 
     }
 
 
     /*
      * ============================================================
-     * Attribute editors
+     * ObjectType lifecycle
      * ============================================================
      */
 
+    async function setObjectTypeStatus(
+        root,
+        csrfToken,
+        button
+    ) {
 
-    function openAttribute(attribute) {
+        const control =
+            root.querySelector(
+                "[data-object-type-lifecycle]"
+            );
+
+        if (!control) {
+            return;
+        }
+
+
+        const currentActive =
+            control.dataset.active ===
+            "true";
+
+
+        const desiredActive =
+            !currentActive;
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const data =
+                await post(
+                    root.dataset.updateUrl,
+                    csrfToken.value,
+                    {
+                        action:
+                            "set_object_type_status",
+
+                        is_active:
+                            desiredActive
+                                ? "true"
+                                : "false"
+                    }
+                );
+
+
+            updateObjectTypeStatusUI(
+                root,
+                data.value,
+                data.proposed
+            );
+
+        } catch (error) {
+
+            console.error(
+                error
+            );
+
+        } finally {
+
+            button.disabled =
+                false;
+
+        }
+
+    }
+
+
+    async function discardObjectTypeStatus(
+        root,
+        csrfToken,
+        button
+    ) {
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const data =
+                await post(
+                    root.dataset.updateUrl,
+                    csrfToken.value,
+                    {
+                        action:
+                            "discard_object_type_status"
+                    }
+                );
+
+
+            updateObjectTypeStatusUI(
+                root,
+                data.value,
+                false
+            );
+
+        } catch (error) {
+
+            console.error(
+                error
+            );
+
+        } finally {
+
+            button.disabled =
+                false;
+
+        }
+
+    }
+
+
+    function updateObjectTypeStatusUI(
+        root,
+        value,
+        proposed
+    ) {
+
+        const active =
+            normaliseValue(
+                value
+            ) === "true";
+
+
+        const control =
+            root.querySelector(
+                "[data-object-type-lifecycle]"
+            );
+
+        const status =
+            root.querySelector(
+                "[data-status-display]"
+            );
+
+        const toggle =
+            root.querySelector(
+                "[data-status-toggle]"
+            );
+
+        const indicator =
+            root.querySelector(
+                "[data-lifecycle-proposal-indicator]"
+            );
+
+        const discard =
+            root.querySelector(
+                "[data-lifecycle-discard]"
+            );
+
+
+        if (control) {
+
+            control.dataset.active =
+                active
+                    ? "true"
+                    : "false";
+
+            control.dataset.proposed =
+                proposed
+                    ? "true"
+                    : "false";
+
+        }
+
+
+        if (status) {
+
+            status.className =
+                "model-status-pill "
+                + (
+                    active
+                        ? "model-status-active"
+                        : "model-status-retired"
+                );
+
+
+            status.replaceChildren();
+
+
+            const icon =
+                document.createElement(
+                    "i"
+                );
+
+            icon.className =
+                active
+                    ? "bi bi-check-circle"
+                    : "bi bi-archive";
+
+
+            status.appendChild(
+                icon
+            );
+
+
+            status.appendChild(
+                document.createTextNode(
+                    active
+                        ? " Active"
+                        : " Retired"
+                )
+            );
+
+        }
+
+
+        if (toggle) {
+
+            toggle.textContent =
+                active
+                    ? "Retire"
+                    : "Activate";
+
+        }
+
+
+        if (indicator) {
+            indicator.hidden =
+                !proposed;
+        }
+
+        if (discard) {
+            discard.hidden =
+                !proposed;
+        }
+
+    }
+
+
+    /*
+     * ============================================================
+     * Attribute editor
+     * ============================================================
+     */
+
+    function openAttribute(
+        attribute
+    ) {
 
         if (!attribute) {
             return;
@@ -876,8 +1230,12 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        display.hidden = true;
-        editor.hidden = false;
+        display.hidden =
+            true;
+
+        editor.hidden =
+            false;
+
 
         const input =
             editor.querySelector(
@@ -891,7 +1249,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function closeAttribute(attribute) {
+    function closeAttribute(
+        attribute
+    ) {
 
         if (!attribute) {
             return;
@@ -911,8 +1271,111 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        editor.hidden = true;
-        display.hidden = false;
+        editor.hidden =
+            true;
+
+        display.hidden =
+            false;
+
+        clearAttributeError(
+            attribute
+        );
+
+    }
+
+
+    function collectAttributeForm(
+        editor
+    ) {
+
+        const name =
+            editor.querySelector(
+                '[name="attribute_name"]'
+            );
+
+        const key =
+            editor.querySelector(
+                '[name="attribute_key"]'
+            );
+
+        const dataType =
+            editor.querySelector(
+                '[name="attribute_data_type"]'
+            );
+
+        const description =
+            editor.querySelector(
+                '[name="attribute_description"]'
+            );
+
+        const defaultValue =
+            editor.querySelector(
+                '[name="attribute_default_value"]'
+            );
+
+        const sortOrder =
+            editor.querySelector(
+                '[name="attribute_sort_order"]'
+            );
+
+        const required =
+            editor.querySelector(
+                '[name="attribute_required"]'
+            );
+
+        const nullable =
+            editor.querySelector(
+                '[name="attribute_nullable"]'
+            );
+
+
+        return {
+
+            action:
+                "save_attribute",
+
+            attribute_name:
+                name
+                    ? name.value
+                    : "",
+
+            attribute_key:
+                key
+                    ? key.value
+                    : "",
+
+            attribute_data_type:
+                dataType
+                    ? dataType.value
+                    : "text",
+
+            attribute_description:
+                description
+                    ? description.value
+                    : "",
+
+            attribute_default_value:
+                defaultValue
+                    ? defaultValue.value
+                    : "",
+
+            attribute_sort_order:
+                sortOrder
+                    ? sortOrder.value
+                    : "0",
+
+            attribute_required:
+                required
+                && required.checked
+                    ? "on"
+                    : "",
+
+            attribute_nullable:
+                nullable
+                && nullable.checked
+                    ? "on"
+                    : ""
+        };
 
     }
 
@@ -944,65 +1407,83 @@ document.addEventListener("DOMContentLoaded", function () {
                 "[data-attribute-editor]"
             );
 
-        const errorElement =
-            attribute.querySelector(
-                "[data-attribute-error]"
-            );
-
         if (!editor) {
             return;
         }
 
+        const error =
+            attribute.querySelector(
+                "[data-attribute-error]"
+            );
+
+
         clearAttributeError(
-            errorElement
+            attribute
         );
 
-        button.disabled = true;
+
+        button.disabled =
+            true;
+
 
         try {
 
-            const form =
+            const values =
                 collectAttributeForm(
                     editor
                 );
 
-            form.action =
-                "save_attribute";
-
-            form.attribute_id =
+            values.attribute_id =
                 attributeId;
+
 
             const data =
                 await postForm(
                     root.dataset.updateUrl,
                     csrfToken.value,
-                    form
+                    values
                 );
+
 
             applyAttributeValues(
                 attribute,
                 data.values
             );
 
-            setAttributeProposedState(
+
+            updateAttributeProposedState(
                 attribute,
-                data.proposed_fields
+                data.proposed_fields,
+                data.proposed
             );
+
 
             closeAttribute(
                 attribute
             );
 
-        } catch (error) {
+
+            /*
+             * Newly-created proposed attributes
+             * should no longer be treated as blank.
+             */
+
+            attribute.dataset.attributeCreated =
+                data.created
+                    ? "true"
+                    : attribute.dataset.attributeCreated;
+
+        } catch (errorValue) {
 
             showAttributeError(
-                errorElement,
-                error
+                error,
+                errorValue
             );
 
         } finally {
 
-            button.disabled = false;
+            button.disabled =
+                false;
 
         }
 
@@ -1031,7 +1512,10 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        button.disabled = true;
+
+        button.disabled =
+            true;
+
 
         try {
 
@@ -1048,6 +1532,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 );
 
+
             if (data.removed) {
 
                 attribute.remove();
@@ -1057,17 +1542,22 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
                 return;
+
             }
+
 
             applyAttributeValues(
                 attribute,
                 data.values
             );
 
-            setAttributeProposedState(
+
+            updateAttributeProposedState(
                 attribute,
-                null
+                data.proposed_fields,
+                false
             );
+
 
             closeAttribute(
                 attribute
@@ -1075,181 +1565,351 @@ document.addEventListener("DOMContentLoaded", function () {
 
         } catch (error) {
 
-            const errorElement =
+            showAttributeError(
                 attribute.querySelector(
                     "[data-attribute-error]"
-                );
-
-            showAttributeError(
-                errorElement,
+                ),
                 error
             );
 
         } finally {
 
-            button.disabled = false;
+            button.disabled =
+                false;
 
         }
 
     }
 
 
-    function collectAttributeForm(
-        editor
+    /*
+     * ============================================================
+     * Attribute lifecycle
+     * ============================================================
+     */
+
+    async function setAttributeStatus(
+        root,
+        csrfToken,
+        button
     ) {
 
-        const nameInput =
-            editor.querySelector(
-                '[name="attribute_name"]'
+        const attribute =
+            button.closest(
+                ".model-object-type-attribute"
             );
 
-        const keyInput =
-            editor.querySelector(
-                '[name="attribute_key"]'
+        if (!attribute) {
+            return;
+        }
+
+
+        const current =
+            (
+                attribute.dataset
+                    .attributeActive
+                === "true"
             );
 
-        const dataTypeInput =
-            editor.querySelector(
-                '[name="attribute_data_type"]'
+
+        /*
+         * If the HTML did not provide the cached
+         * value, derive it from the visible button.
+         */
+
+        const desired =
+            !current;
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const data =
+                await postForm(
+                    root.dataset.updateUrl,
+                    csrfToken.value,
+                    {
+                        action:
+                            "set_attribute_status",
+
+                        attribute_id:
+                            attribute.dataset
+                                .attributeId,
+
+                        is_active:
+                            desired
+                                ? "true"
+                                : "false"
+                    }
+                );
+
+
+            updateAttributeStatusUI(
+                attribute,
+                data.value,
+                data.proposed
             );
 
-        const descriptionInput =
-            editor.querySelector(
-                '[name="attribute_description"]'
+
+            updateAttributeProposedState(
+                attribute,
+                data.proposed_fields,
+                data.proposed
             );
 
-        const defaultValueInput =
-            editor.querySelector(
-                '[name="attribute_default_value"]'
+        } catch (error) {
+
+            showAttributeError(
+                attribute.querySelector(
+                    "[data-attribute-error]"
+                ),
+                error
             );
 
-        const sortOrderInput =
-            editor.querySelector(
-                '[name="attribute_sort_order"]'
-            );
+        } finally {
 
-        const requiredInput =
-            editor.querySelector(
-                '[name="attribute_required"]'
-            );
+            button.disabled =
+                false;
 
-        return {
-            attribute_name:
-                nameInput
-                    ? nameInput.value
-                    : "",
-
-            attribute_key:
-                keyInput
-                    ? keyInput.value
-                    : "",
-
-            attribute_data_type:
-                dataTypeInput
-                    ? dataTypeInput.value
-                    : "text",
-
-            attribute_description:
-                descriptionInput
-                    ? descriptionInput.value
-                    : "",
-
-            attribute_default_value:
-                defaultValueInput
-                    ? defaultValueInput.value
-                    : "",
-
-            attribute_sort_order:
-                sortOrderInput
-                    ? sortOrderInput.value
-                    : "0",
-
-            attribute_required:
-                requiredInput
-                    && requiredInput.checked
-                    ? "on"
-                    : ""
-        };
+        }
 
     }
 
+
+    function updateAttributeStatusUI(
+        attribute,
+        value,
+        proposed
+    ) {
+
+        const active =
+            normaliseValue(
+                value
+            ) === "true";
+
+
+        attribute.dataset
+            .attributeActive =
+            active
+                ? "true"
+                : "false";
+
+
+        const button =
+            attribute.querySelector(
+                "[data-attribute-status-toggle]"
+            );
+
+        if (button) {
+
+            button.textContent =
+                active
+                    ? "Retire"
+                    : "Activate";
+
+        }
+
+
+        const editorStatus =
+            attribute.querySelector(
+                "[data-attribute-editor-status]"
+            );
+
+        if (editorStatus) {
+
+            const pill =
+                document.createElement(
+                    "span"
+                );
+
+            pill.className =
+                "model-status-pill "
+                + (
+                    active
+                        ? "model-status-active"
+                        : "model-status-retired"
+                );
+
+
+            const icon =
+                document.createElement(
+                    "i"
+                );
+
+            icon.className =
+                active
+                    ? "bi bi-check-circle"
+                    : "bi bi-archive";
+
+
+            pill.appendChild(
+                icon
+            );
+
+
+            pill.appendChild(
+                document.createTextNode(
+                    active
+                        ? " Active"
+                        : " Retired"
+                )
+            );
+
+
+            editorStatus.replaceChildren(
+                pill
+            );
+
+        }
+
+
+        const display =
+            attribute.querySelector(
+                "[data-attribute-display]"
+            );
+
+        if (display) {
+
+            const status =
+                display.querySelector(
+                    "[data-attribute-status]"
+                );
+
+            if (status) {
+
+                status.textContent =
+                    active
+                        ? "Active"
+                        : "Retired";
+
+            }
+
+        }
+
+    }
+
+
+    /*
+     * ============================================================
+     * Attribute values
+     * ============================================================
+     */
 
     function applyAttributeValues(
         attribute,
         values
     ) {
 
-        const nameInput =
+        const name =
             attribute.querySelector(
                 '[name="attribute_name"]'
             );
 
-        const keyInput =
+        const key =
             attribute.querySelector(
                 '[name="attribute_key"]'
             );
 
-        const dataTypeInput =
+        const dataType =
             attribute.querySelector(
                 '[name="attribute_data_type"]'
             );
 
-        const descriptionInput =
+        const description =
             attribute.querySelector(
                 '[name="attribute_description"]'
             );
 
-        const defaultValueInput =
+        const defaultValue =
             attribute.querySelector(
                 '[name="attribute_default_value"]'
             );
 
-        const sortOrderInput =
+        const sortOrder =
             attribute.querySelector(
                 '[name="attribute_sort_order"]'
             );
 
-        const requiredInput =
+        const required =
             attribute.querySelector(
                 '[name="attribute_required"]'
             );
 
+        const nullable =
+            attribute.querySelector(
+                '[name="attribute_nullable"]'
+            );
+
+        const active =
+            attribute.querySelector(
+                '[name="attribute_is_active"]'
+            );
+
 
         writeInputValue(
-            nameInput,
+            name,
             values.name
         );
 
         writeInputValue(
-            keyInput,
+            key,
             values.key
         );
 
         writeInputValue(
-            dataTypeInput,
+            dataType,
             values.data_type
         );
 
         writeInputValue(
-            descriptionInput,
+            description,
             values.description
         );
 
         writeInputValue(
-            defaultValueInput,
+            defaultValue,
             values.default_value
         );
 
         writeInputValue(
-            sortOrderInput,
+            sortOrder,
             values.sort_order
         );
 
-        if (requiredInput) {
-            requiredInput.checked =
-                values.required === "true";
+
+        if (required) {
+
+            required.checked =
+                values.required ===
+                "true";
+
         }
 
+
+        if (nullable) {
+
+            nullable.checked =
+                values.nullable ===
+                "true";
+
+        }
+
+
+        if (active) {
+
+            active.checked =
+                values.is_active ===
+                "true";
+
+        }
+
+
+        /*
+         * Display values
+         */
 
         const nameDisplay =
             attribute.querySelector(
@@ -1271,6 +1931,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 "[data-attribute-required]"
             );
 
+        const nullableDisplay =
+            attribute.querySelector(
+                "[data-attribute-nullable]"
+            );
+
         const descriptionDisplay =
             attribute.querySelector(
                 "[data-attribute-description]"
@@ -1278,32 +1943,59 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         if (nameDisplay) {
+
             nameDisplay.textContent =
-                values.name || "Not defined";
+                values.name
+                || "Not defined";
+
         }
+
 
         if (keyDisplay) {
+
             keyDisplay.textContent =
-                values.key || "";
+                values.key
+                || "";
+
         }
 
+
         if (typeDisplay) {
+
             typeDisplay.textContent =
                 formatDataType(
                     values.data_type
                 );
+
         }
 
+
         if (requiredDisplay) {
+
             requiredDisplay.textContent =
-                values.required === "true"
+                values.required ===
+                "true"
                     ? "Required"
                     : "Optional";
+
         }
+
+
+        if (nullableDisplay) {
+
+            nullableDisplay.textContent =
+                values.nullable ===
+                "true"
+                    ? "Nullable"
+                    : "Not nullable";
+
+        }
+
 
         if (descriptionDisplay) {
 
             if (values.description) {
+
                 descriptionDisplay.textContent =
                     values.description;
 
@@ -1312,36 +2004,58 @@ document.addEventListener("DOMContentLoaded", function () {
 
             } else {
 
-                descriptionDisplay.textContent =
-                    "";
+                descriptionDisplay
+                    .textContent = "";
 
                 descriptionDisplay.hidden =
                     true;
+
             }
 
         }
 
+
+        /*
+         * Sync lifecycle controls.
+         */
+
+        updateAttributeStatusUI(
+            attribute,
+            values.is_active,
+            attribute.dataset
+                .attributeProposed
+                === "true"
+        );
+
     }
 
 
-    function setAttributeProposedState(
+    function updateAttributeProposedState(
         attribute,
-        proposedFields
+        proposedFields,
+        proposed
     ) {
 
-        const proposed =
-            proposedFields === null
-                ? false
-                : Object.values(
+        const isProposed =
+            Boolean(
+                proposed
+                || (
                     proposedFields
-                ).some(
-                    Boolean
-                );
+                    && Object.values(
+                        proposedFields
+                    ).some(
+                        Boolean
+                    )
+                )
+            );
 
-        attribute.dataset.attributeProposed =
-            proposed
+
+        attribute.dataset
+            .attributeProposed =
+            isProposed
                 ? "true"
                 : "false";
+
 
         const indicator =
             attribute.querySelector(
@@ -1350,50 +2064,68 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (indicator) {
             indicator.hidden =
-                !proposed;
+                !isProposed;
         }
 
-        let discardButton =
+
+        let discard =
             attribute.querySelector(
                 "[data-discard-attribute]"
             );
 
-        if (proposed && !discardButton) {
 
-            discardButton =
+        if (
+            isProposed
+            && !discard
+        ) {
+
+            discard =
                 document.createElement(
                     "button"
                 );
 
-            discardButton.type =
+            discard.type =
                 "button";
 
-            discardButton.className =
-                "btn btn-sm btn-outline-secondary";
+            discard.className =
+                "model-discard-button";
 
-            discardButton.dataset
+            discard.dataset
                 .discardAttribute =
                 "";
 
-            discardButton.textContent =
+            discard.textContent =
                 "Discard";
 
-            const actions =
+
+            const indicatorElement =
                 attribute.querySelector(
-                    ".model-object-type-attribute-actions"
+                    "[data-attribute-proposal-indicator]"
                 );
 
-            if (actions) {
-                actions.appendChild(
-                    discardButton
+
+            if (indicatorElement) {
+
+                indicatorElement.appendChild(
+                    document.createTextNode(
+                        " "
+                    )
                 );
+
+                indicatorElement.appendChild(
+                    discard
+                );
+
             }
 
         }
 
-        if (discardButton) {
-            discardButton.hidden =
-                !proposed;
+
+        if (discard) {
+
+            discard.hidden =
+                !isProposed;
+
         }
 
     }
@@ -1403,25 +2135,28 @@ document.addEventListener("DOMContentLoaded", function () {
         value
     ) {
 
-        if (value === "text") {
-            return "Text";
-        }
+        const labels = {
+            text: "Text",
+            number: "Number",
+            boolean: "Boolean",
+            date: "Date",
+            datetime: "Date & time",
+            choice: "Choice"
+        };
 
-        if (value === "number") {
-            return "Number";
-        }
 
-        return value || "";
+        return labels[value]
+            || value
+            || "";
 
     }
 
 
     /*
      * ============================================================
-     * New attribute creation
+     * New attribute
      * ============================================================
      */
-
 
     function openNewAttribute(
         root
@@ -1436,15 +2171,17 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        editor.hidden = false;
+        editor.hidden =
+            false;
 
-        const nameInput =
+
+        const input =
             editor.querySelector(
                 '[name="attribute_name"]'
             );
 
-        if (nameInput) {
-            nameInput.focus();
+        if (input) {
+            input.focus();
         }
 
     }
@@ -1463,7 +2200,9 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        editor.hidden = true;
+        editor.hidden =
+            true;
+
 
         clearNewAttributeForm(
             editor
@@ -1487,59 +2226,71 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const errorElement =
+
+        const error =
             editor.querySelector(
                 "[data-new-attribute-error]"
             );
 
-        if (errorElement) {
-            errorElement.hidden = true;
-            errorElement.textContent = "";
-        }
 
-        button.disabled = true;
+        clearElementError(
+            error
+        );
+
+
+        button.disabled =
+            true;
+
 
         try {
 
-            const form =
+            const values =
                 collectAttributeForm(
                     editor
                 );
 
-            form.action =
+            values.action =
                 "create_attribute";
+
 
             const data =
                 await postForm(
                     root.dataset.updateUrl,
                     csrfToken.value,
-                    form
+                    values
                 );
+
 
             const attribute =
                 createAttributeElement(
                     data
                 );
 
+
             const list =
                 root.querySelector(
                     "[data-attribute-list]"
                 );
 
-            const emptyState =
+            if (!list) {
+                return;
+            }
+
+
+            const empty =
                 root.querySelector(
                     "[data-attribute-empty]"
                 );
+
+            if (empty) {
+                empty.remove();
+            }
+
 
             const newEditor =
                 root.querySelector(
                     "[data-new-attribute-editor]"
                 );
-
-
-            if (emptyState) {
-                emptyState.remove();
-            }
 
 
             if (newEditor) {
@@ -1562,16 +2313,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 root
             );
 
-        } catch (error) {
+        } catch (errorValue) {
 
             showAttributeError(
-                errorElement,
-                error
+                error,
+                errorValue
             );
 
         } finally {
 
-            button.disabled = false;
+            button.disabled =
+                false;
 
         }
 
@@ -1599,6 +2351,12 @@ document.addEventListener("DOMContentLoaded", function () {
         article.dataset.attributeProposed =
             "true";
 
+        article.dataset.attributeActive =
+            data.values.is_active ===
+            "true"
+                ? "true"
+                : "false";
+
 
         article.innerHTML = `
             <div
@@ -1612,13 +2370,17 @@ document.addEventListener("DOMContentLoaded", function () {
                         class="model-object-type-attribute-name"
                     ></h3>
 
-                    <div class="model-object-type-attribute-meta">
+                    <div
+                        class="model-object-type-attribute-meta"
+                    >
 
                         <span data-attribute-key></span>
 
                         <span data-attribute-data-type></span>
 
                         <span data-attribute-required></span>
+
+                        <span data-attribute-nullable></span>
 
                     </div>
 
@@ -1644,9 +2406,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     <button
                         type="button"
                         class="btn btn-sm btn-outline-secondary"
-                        data-discard-attribute
+                        data-attribute-status-toggle
                     >
-                        Discard
+                        Retire
                     </button>
 
                 </div>
@@ -1658,8 +2420,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 class="model-proposed-indicator"
                 data-attribute-proposal-indicator
             >
+
                 <i class="bi bi-pencil-square"></i>
                 Proposed change
+
+                <button
+                    type="button"
+                    class="model-discard-button"
+                    data-discard-attribute
+                >
+                    Discard
+                </button>
+
             </div>
 
 
@@ -1716,6 +2488,22 @@ document.addEventListener("DOMContentLoaded", function () {
                                 Number
                             </option>
 
+                            <option value="boolean">
+                                Boolean
+                            </option>
+
+                            <option value="date">
+                                Date
+                            </option>
+
+                            <option value="datetime">
+                                Date & time
+                            </option>
+
+                            <option value="choice">
+                                Choice
+                            </option>
+
                         </select>
 
                     </div>
@@ -1755,8 +2543,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             type="number"
                             name="attribute_sort_order"
                             class="form-control"
-                            value="0"
                             min="0"
+                            value="0"
                         >
 
                     </div>
@@ -1774,6 +2562,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
                             <span class="form-check-label">
                                 Required
+                            </span>
+
+                        </label>
+
+
+                        <label class="form-check">
+
+                            <input
+                                type="checkbox"
+                                name="attribute_nullable"
+                                class="form-check-input"
+                            >
+
+                            <span class="form-check-label">
+                                Nullable
                             </span>
 
                         </label>
@@ -1819,6 +2622,7 @@ document.addEventListener("DOMContentLoaded", function () {
             data.values
         );
 
+
         return article;
 
     }
@@ -1828,16 +2632,14 @@ document.addEventListener("DOMContentLoaded", function () {
         editor
     ) {
 
-        const inputs =
-            editor.querySelectorAll(
-                "input, textarea, select"
-            );
-
-        inputs.forEach(
+        editor.querySelectorAll(
+            "input, textarea, select"
+        ).forEach(
             function (input) {
 
                 if (
-                    input.type === "checkbox"
+                    input.type ===
+                    "checkbox"
                 ) {
 
                     input.checked =
@@ -1863,6 +2665,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     input.value =
                         "";
+
                 }
 
             }
@@ -1884,33 +2687,39 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+
         const attributes =
             list.querySelectorAll(
-                ".model-object-type-attribute:not([data-new-attribute-editor])"
+                ".model-object-type-attribute"
+                + ":not([data-new-attribute-editor])"
             );
 
-        const existingEmpty =
+
+        const empty =
             list.querySelector(
                 "[data-attribute-empty]"
             );
 
+
         if (
             attributes.length === 0
-            && !existingEmpty
+            && !empty
         ) {
 
-            const empty =
+            const element =
                 document.createElement(
                     "div"
                 );
 
-            empty.className =
+            element.className =
                 "model-editor-empty";
 
-            empty.dataset.attributeEmpty =
+            element.dataset
+                .attributeEmpty =
                 "";
 
-            empty.innerHTML = `
+
+            element.innerHTML = `
                 <div class="model-editor-empty-icon">
                     <i class="bi bi-list-ul"></i>
                 </div>
@@ -1924,20 +2733,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
             `;
 
+
             const newEditor =
                 list.querySelector(
                     "[data-new-attribute-editor]"
                 );
 
+
             if (newEditor) {
+
                 list.insertBefore(
-                    empty,
+                    element,
                     newEditor
                 );
+
             } else {
+
                 list.appendChild(
-                    empty
+                    element
                 );
+
             }
 
         }
@@ -1950,7 +2765,6 @@ document.addEventListener("DOMContentLoaded", function () {
      * Request helpers
      * ============================================================
      */
-
 
     async function post(
         url,
@@ -1977,7 +2791,8 @@ document.addEventListener("DOMContentLoaded", function () {
             await fetch(
                 url,
                 {
-                    method: "POST",
+                    method:
+                        "POST",
 
                     headers: {
                         "X-CSRFToken":
@@ -2020,6 +2835,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let data;
 
+
         try {
 
             data =
@@ -2039,29 +2855,45 @@ document.addEventListener("DOMContentLoaded", function () {
             || !data.success
         ) {
 
-            const errorMessage =
-                data.error
-                || (
-                    data.errors
-                    ? Object.values(
+            let message =
+                data.error;
+
+
+            if (
+                !message
+                && data.errors
+            ) {
+
+                message =
+                    Object.values(
                         data.errors
-                    ).join(" ")
-                    : null
-                )
-                || "Unable to save the proposed change.";
+                    ).join(
+                        " "
+                    );
+
+            }
+
 
             throw new Error(
-                errorMessage
+                message
+                || "Unable to save the proposed change."
             );
 
         }
+
 
         return data;
 
     }
 
 
-    function showError(
+    /*
+     * ============================================================
+     * Errors
+     * ============================================================
+     */
+
+    function showFieldError(
         field,
         message
     ) {
@@ -2072,11 +2904,15 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
         if (!element) {
+
             console.error(
                 message
             );
+
             return;
+
         }
+
 
         element.textContent =
             message;
@@ -2087,7 +2923,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function clearError(
+    function clearFieldError(
         field
     ) {
 
@@ -2096,15 +2932,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 "[data-proposal-error]"
             );
 
-        if (!element) {
-            return;
-        }
-
-        element.textContent =
-            "";
-
-        element.hidden =
-            true;
+        clearElementError(
+            element
+        );
 
     }
 
@@ -2115,11 +2945,15 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
 
         if (!element) {
+
             console.error(
                 error.message
             );
+
             return;
+
         }
+
 
         element.textContent =
             error.message;
@@ -2131,12 +2965,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     function clearAttributeError(
+        attribute
+    ) {
+
+        if (!attribute) {
+            return;
+        }
+
+
+        clearElementError(
+            attribute.querySelector(
+                "[data-attribute-error]"
+            )
+        );
+
+    }
+
+
+    function clearElementError(
         element
     ) {
 
         if (!element) {
             return;
         }
+
 
         element.textContent =
             "";
@@ -2155,10 +3008,14 @@ document.addEventListener("DOMContentLoaded", function () {
             value === null
             || value === undefined
         ) {
+
             return "";
+
         }
 
-        return String(value);
+        return String(
+            value
+        );
 
     }
 
