@@ -3,30 +3,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /*
      * ============================================================
-     * Weave proposal-aware editing
+     * Weave proposal-aware model editing
      * ============================================================
      *
      * Supports:
      *
-     *   - ObjectType field editing
-     *   - ObjectType lifecycle
-     *   - AttributeDefinition editing
-     *   - AttributeDefinition lifecycle
-     *   - AttributeDefinition creation
-     *   - Proposal discard
-     *   - ObjectType index proposal discard
+     *   ObjectType index
+     *   ObjectType property editing
+     *   ObjectType lifecycle
+     *   AttributeDefinition property editing
+     *   AttributeDefinition lifecycle
+     *   AttributeDefinition creation
+     *   Proposal discard
      *
-     * All persistence goes through proposal-aware Django views.
-     * Canonical model records are never directly modified here.
+     * Nothing here modifies canonical model state directly.
+     * All writes go through proposal-aware Django endpoints.
      * ============================================================
      */
 
 
-    /*
-     * ============================================================
-     * CSRF
-     * ============================================================
-     */
+    /* ============================================================
+       CSRF
+       ============================================================ */
 
     function getCsrfToken() {
 
@@ -43,9 +41,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        const cookiePrefix =
-            "csrftoken=";
-
         const cookies =
             document.cookie.split(";");
 
@@ -59,14 +54,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             if (
-                cookie.indexOf(
-                    cookiePrefix
-                ) === 0
+                cookie.startsWith(
+                    "csrftoken="
+                )
             ) {
 
                 return decodeURIComponent(
                     cookie.substring(
-                        cookiePrefix.length
+                        "csrftoken=".length
                     )
                 );
 
@@ -76,497 +71,433 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         return null;
-
     }
 
 
-    /*
-     * ============================================================
-     * ObjectType index
-     * ============================================================
-     *
-     * This exists outside .proposal-editor, so it gets its own
-     * delegated click handler.
-     * ============================================================
-     */
+    /* ============================================================
+       Global delegated click handling
+       ============================================================ */
 
     document.addEventListener(
         "click",
         function (event) {
 
-            const discardButton =
+            /*
+             * ----------------------------------------------------
+             * ObjectType index discard
+             * ----------------------------------------------------
+             */
+
+            const discardObjectType =
                 event.target.closest(
                     "[data-discard-object-type]"
                 );
 
-            if (!discardButton) {
+            if (discardObjectType) {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                discardObjectTypeProposal(
+                    discardObjectType
+                );
+
                 return;
             }
 
-            event.preventDefault();
-            event.stopPropagation();
 
-            discardObjectTypeProposal(
-                discardButton
-            );
+            /*
+             * ----------------------------------------------------
+             * Find containing proposal editor.
+             * ----------------------------------------------------
+             */
+
+            const root =
+                event.target.closest(
+                    ".proposal-editor"
+                );
+
+            if (!root) {
+                return;
+            }
+
+
+            /*
+             * ----------------------------------------------------
+             * ObjectType property editing
+             * ----------------------------------------------------
+             */
+
+            const editButton =
+                event.target.closest(
+                    '[data-proposal-action="edit"]'
+                );
+
+            if (editButton) {
+
+                const field =
+                    editButton.closest(
+                        ".proposal-editor-field"
+                    );
+
+                if (field) {
+                    openField(
+                        field
+                    );
+                }
+
+                return;
+            }
+
+
+            const cancelButton =
+                event.target.closest(
+                    '[data-proposal-action="cancel"]'
+                );
+
+            if (cancelButton) {
+
+                const field =
+                    cancelButton.closest(
+                        ".proposal-editor-field"
+                    );
+
+                if (field) {
+                    cancelField(
+                        field
+                    );
+                }
+
+                return;
+            }
+
+
+            const saveButton =
+                event.target.closest(
+                    '[data-proposal-action="save"]'
+                );
+
+            if (saveButton) {
+
+                const field =
+                    saveButton.closest(
+                        ".proposal-editor-field"
+                    );
+
+                if (field) {
+
+                    saveField(
+                        root,
+                        field,
+                        saveButton
+                    );
+
+                }
+
+                return;
+            }
+
+
+            const discardFieldButton =
+                event.target.closest(
+                    '[data-proposal-action="discard"]'
+                );
+
+            if (discardFieldButton) {
+
+                const field =
+                    discardFieldButton.closest(
+                        ".proposal-editor-field"
+                    );
+
+                if (field) {
+
+                    discardField(
+                        root,
+                        field,
+                        discardFieldButton
+                    );
+
+                }
+
+                return;
+            }
+
+
+            /*
+             * ----------------------------------------------------
+             * ObjectType lifecycle
+             * ----------------------------------------------------
+             */
+
+            const objectTypeStatusButton =
+                event.target.closest(
+                    "[data-status-toggle]"
+                );
+
+            if (objectTypeStatusButton) {
+
+                setObjectTypeStatus(
+                    root,
+                    objectTypeStatusButton
+                );
+
+                return;
+            }
+
+
+            const objectTypeLifecycleDiscard =
+                event.target.closest(
+                    "[data-lifecycle-discard]"
+                );
+
+            if (objectTypeLifecycleDiscard) {
+
+                discardObjectTypeStatus(
+                    root,
+                    objectTypeLifecycleDiscard
+                );
+
+                return;
+            }
+
+
+            /*
+             * ----------------------------------------------------
+             * Attribute editing
+             * ----------------------------------------------------
+             */
+
+            const editAttribute =
+                event.target.closest(
+                    "[data-edit-attribute]"
+                );
+
+            if (editAttribute) {
+
+                const attribute =
+                    editAttribute.closest(
+                        ".model-object-type-attribute"
+                    );
+
+                if (attribute) {
+
+                    openAttribute(
+                        attribute
+                    );
+
+                }
+
+                return;
+            }
+
+
+            const cancelAttribute =
+                event.target.closest(
+                    "[data-cancel-attribute]"
+                );
+
+            if (cancelAttribute) {
+
+                const attribute =
+                    cancelAttribute.closest(
+                        ".model-object-type-attribute"
+                    );
+
+                if (attribute) {
+
+                    closeAttribute(
+                        attribute
+                    );
+
+                }
+
+                return;
+            }
+
+
+            const saveAttributeButton =
+                event.target.closest(
+                    "[data-save-attribute]"
+                );
+
+            if (saveAttributeButton) {
+
+                saveAttribute(
+                    root,
+                    saveAttributeButton
+                );
+
+                return;
+            }
+
+
+            const discardAttributeButton =
+                event.target.closest(
+                    "[data-discard-attribute]"
+                );
+
+            if (discardAttributeButton) {
+
+                discardAttribute(
+                    root,
+                    discardAttributeButton
+                );
+
+                return;
+            }
+
+
+            /*
+             * ----------------------------------------------------
+             * Attribute lifecycle
+             * ----------------------------------------------------
+             */
+
+            const attributeStatusButton =
+                event.target.closest(
+                    "[data-attribute-status-toggle]"
+                );
+
+            if (attributeStatusButton) {
+
+                setAttributeStatus(
+                    root,
+                    attributeStatusButton
+                );
+
+                return;
+            }
+
+
+            /*
+             * ----------------------------------------------------
+             * New Attribute
+             * ----------------------------------------------------
+             */
+
+            const addAttributeButton =
+                event.target.closest(
+                    "[data-add-attribute]"
+                );
+
+            if (addAttributeButton) {
+
+                openNewAttribute(
+                    root
+                );
+
+                return;
+            }
+
+
+            const cancelNewAttributeButton =
+                event.target.closest(
+                    "[data-cancel-new-attribute]"
+                );
+
+            if (cancelNewAttributeButton) {
+
+                closeNewAttribute(
+                    root
+                );
+
+                return;
+            }
+
+
+            const saveNewAttributeButton =
+                event.target.closest(
+                    "[data-save-new-attribute]"
+                );
+
+            if (saveNewAttributeButton) {
+
+                saveNewAttribute(
+                    root,
+                    saveNewAttributeButton
+                );
+
+            }
 
         }
     );
 
 
-    /*
-     * ============================================================
-     * Proposal editors
-     * ============================================================
-     */
+    /* ============================================================
+       Escape handling
+       ============================================================ */
 
-    document.querySelectorAll(
-        ".proposal-editor"
-    ).forEach(
-        function (root) {
+    document.addEventListener(
+        "keydown",
+        function (event) {
 
-            initialiseProposalEditor(
-                root
-            );
+            if (
+                event.key !== "Escape"
+            ) {
+                return;
+            }
+
+
+            const root =
+                event.target.closest(
+                    ".proposal-editor"
+                );
+
+            if (!root) {
+                return;
+            }
+
+
+            const fieldEditor =
+                event.target.closest(
+                    "[data-field-editor]"
+                );
+
+            if (fieldEditor) {
+
+                const field =
+                    fieldEditor.closest(
+                        ".proposal-editor-field"
+                    );
+
+                if (field) {
+                    cancelField(
+                        field
+                    );
+                }
+
+                return;
+            }
+
+
+            const attributeEditor =
+                event.target.closest(
+                    "[data-attribute-editor]"
+                );
+
+            if (attributeEditor) {
+
+                const attribute =
+                    attributeEditor.closest(
+                        ".model-object-type-attribute"
+                    );
+
+                if (attribute) {
+                    closeAttribute(
+                        attribute
+                    );
+                }
+
+            }
 
         }
     );
 
 
-    /*
-     * ============================================================
-     * Initialise proposal editor
-     * ============================================================
-     */
-
-    function initialiseProposalEditor(
-        root
-    ) {
-
-        const updateUrl =
-            root.dataset.updateUrl;
-
-        if (!updateUrl) {
-
-            console.error(
-                "Proposal editor: data-update-url is missing."
-            );
-
-            return;
-
-        }
-
-
-        /*
-         * --------------------------------------------------------
-         * Delegated clicks
-         * --------------------------------------------------------
-         */
-
-        root.addEventListener(
-            "click",
-            function (event) {
-
-                /*
-                 * Generic field edit
-                 */
-
-                const editButton =
-                    event.target.closest(
-                        '[data-proposal-action="edit"]'
-                    );
-
-                if (editButton) {
-
-                    const field =
-                        editButton.closest(
-                            ".proposal-editor-field"
-                        );
-
-                    if (field) {
-                        openField(
-                            field
-                        );
-                    }
-
-                    return;
-
-                }
-
-
-                /*
-                 * Generic field cancel
-                 */
-
-                const cancelButton =
-                    event.target.closest(
-                        '[data-proposal-action="cancel"]'
-                    );
-
-                if (cancelButton) {
-
-                    const field =
-                        cancelButton.closest(
-                            ".proposal-editor-field"
-                        );
-
-                    if (field) {
-                        cancelField(
-                            field
-                        );
-                    }
-
-                    return;
-
-                }
-
-
-                /*
-                 * Generic field save
-                 */
-
-                const saveButton =
-                    event.target.closest(
-                        '[data-proposal-action="save"]'
-                    );
-
-                if (saveButton) {
-
-                    const field =
-                        saveButton.closest(
-                            ".proposal-editor-field"
-                        );
-
-                    if (field) {
-
-                        saveField(
-                            root,
-                            field,
-                            saveButton
-                        );
-
-                    }
-
-                    return;
-
-                }
-
-
-                /*
-                 * Generic field discard
-                 */
-
-                const discardFieldButton =
-                    event.target.closest(
-                        '[data-proposal-action="discard"]'
-                    );
-
-                if (discardFieldButton) {
-
-                    const field =
-                        discardFieldButton.closest(
-                            ".proposal-editor-field"
-                        );
-
-                    if (field) {
-
-                        discardField(
-                            root,
-                            field,
-                            discardFieldButton
-                        );
-
-                    }
-
-                    return;
-
-                }
-
-
-                /*
-                 * ObjectType lifecycle toggle
-                 */
-
-                const objectTypeStatusButton =
-                    event.target.closest(
-                        "[data-status-toggle]"
-                    );
-
-                if (objectTypeStatusButton) {
-
-                    setObjectTypeStatus(
-                        root,
-                        objectTypeStatusButton
-                    );
-
-                    return;
-
-                }
-
-
-                /*
-                 * ObjectType lifecycle proposal discard
-                 */
-
-                const objectTypeLifecycleDiscard =
-                    event.target.closest(
-                        "[data-lifecycle-discard]"
-                    );
-
-                if (objectTypeLifecycleDiscard) {
-
-                    discardObjectTypeStatus(
-                        root,
-                        objectTypeLifecycleDiscard
-                    );
-
-                    return;
-
-                }
-
-
-                /*
-                 * Attribute edit
-                 */
-
-                const attributeEditButton =
-                    event.target.closest(
-                        "[data-edit-attribute]"
-                    );
-
-                if (attributeEditButton) {
-
-                    const attribute =
-                        attributeEditButton.closest(
-                            ".model-object-type-attribute"
-                        );
-
-                    if (attribute) {
-                        openAttribute(
-                            attribute
-                        );
-                    }
-
-                    return;
-
-                }
-
-
-                /*
-                 * Attribute cancel
-                 */
-
-                const attributeCancelButton =
-                    event.target.closest(
-                        "[data-cancel-attribute]"
-                    );
-
-                if (attributeCancelButton) {
-
-                    const attribute =
-                        attributeCancelButton.closest(
-                            ".model-object-type-attribute"
-                        );
-
-                    if (attribute) {
-                        closeAttribute(
-                            attribute
-                        );
-                    }
-
-                    return;
-
-                }
-
-
-                /*
-                 * Attribute save
-                 */
-
-                const attributeSaveButton =
-                    event.target.closest(
-                        "[data-save-attribute]"
-                    );
-
-                if (attributeSaveButton) {
-
-                    saveAttribute(
-                        root,
-                        attributeSaveButton
-                    );
-
-                    return;
-
-                }
-
-
-                /*
-                 * Attribute proposal discard
-                 */
-
-                const attributeDiscardButton =
-                    event.target.closest(
-                        "[data-discard-attribute]"
-                    );
-
-                if (attributeDiscardButton) {
-
-                    discardAttribute(
-                        root,
-                        attributeDiscardButton
-                    );
-
-                    return;
-
-                }
-
-
-                /*
-                 * Attribute lifecycle
-                 */
-
-                const attributeStatusButton =
-                    event.target.closest(
-                        "[data-attribute-status-toggle]"
-                    );
-
-                if (attributeStatusButton) {
-
-                    setAttributeStatus(
-                        root,
-                        attributeStatusButton
-                    );
-
-                    return;
-
-                }
-
-
-                /*
-                 * New attribute editor
-                 */
-
-                const addAttributeButton =
-                    event.target.closest(
-                        "[data-add-attribute]"
-                    );
-
-                if (addAttributeButton) {
-
-                    openNewAttribute(
-                        root
-                    );
-
-                    return;
-
-                }
-
-
-                const cancelNewAttributeButton =
-                    event.target.closest(
-                        "[data-cancel-new-attribute]"
-                    );
-
-                if (cancelNewAttributeButton) {
-
-                    closeNewAttribute(
-                        root
-                    );
-
-                    return;
-
-                }
-
-
-                const saveNewAttributeButton =
-                    event.target.closest(
-                        "[data-save-new-attribute]"
-                    );
-
-                if (saveNewAttributeButton) {
-
-                    saveNewAttribute(
-                        root,
-                        saveNewAttributeButton
-                    );
-
-                }
-
-            }
-        );
-
-
-        /*
-         * --------------------------------------------------------
-         * Escape closes open editors
-         * --------------------------------------------------------
-         */
-
-        root.addEventListener(
-            "keydown",
-            function (event) {
-
-                if (
-                    event.key !== "Escape"
-                ) {
-                    return;
-                }
-
-
-                const fieldEditor =
-                    event.target.closest(
-                        "[data-field-editor]"
-                    );
-
-                if (fieldEditor) {
-
-                    const field =
-                        fieldEditor.closest(
-                            ".proposal-editor-field"
-                        );
-
-                    if (field) {
-                        cancelField(
-                            field
-                        );
-                    }
-
-                    return;
-
-                }
-
-
-                const attributeEditor =
-                    event.target.closest(
-                        "[data-attribute-editor]"
-                    );
-
-                if (attributeEditor) {
-
-                    const attribute =
-                        attributeEditor.closest(
-                            ".model-object-type-attribute"
-                        );
-
-                    if (attribute) {
-                        closeAttribute(
-                            attribute
-                        );
-                    }
-
-                }
-
-            }
-        );
-
-    }
-
-
-    /*
-     * ============================================================
-     * GENERIC OBJECTTYPE FIELD EDITING
-     * ============================================================
-     */
+    /* ============================================================
+       ObjectType field helpers
+       ============================================================ */
 
     function getFieldInput(
         field
@@ -581,10 +512,72 @@ document.addEventListener("DOMContentLoaded", function () {
             return null;
         }
 
+
         return editor.querySelector(
             "input:not([type=hidden]), textarea, select"
         );
+    }
 
+
+    function readInputValue(
+        input
+    ) {
+
+        if (!input) {
+            return "";
+        }
+
+
+        if (
+            input instanceof HTMLInputElement
+            && input.type === "checkbox"
+        ) {
+
+            return input.checked
+                ? "true"
+                : "false";
+        }
+
+
+        return input.value;
+    }
+
+
+    function writeInputValue(
+        input,
+        value
+    ) {
+
+        if (!input) {
+            return;
+        }
+
+
+        if (
+            input instanceof HTMLInputElement
+            && input.type === "checkbox"
+        ) {
+
+            const normalised =
+                normaliseValue(
+                    value
+                );
+
+
+            input.checked =
+                normalised === "true"
+                || normalised === "1"
+                || normalised === "yes"
+                || normalised === "on";
+
+            return;
+        }
+
+
+        input.value =
+            normaliseValue(
+                value
+            );
     }
 
 
@@ -607,19 +600,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 '[data-proposal-action="edit"]'
             );
 
-        if (!display || !editor) {
+
+        if (
+            !display
+            || !editor
+        ) {
             return;
         }
 
-
-        /*
-         * Only one ordinary field editor open at once.
-         */
 
         const root =
             field.closest(
                 ".proposal-editor"
             );
+
 
         if (root) {
 
@@ -634,6 +628,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         return;
                     }
 
+
                     const otherDisplay =
                         otherField.querySelector(
                             "[data-field-display]"
@@ -644,10 +639,11 @@ document.addEventListener("DOMContentLoaded", function () {
                             "[data-field-editor]"
                         );
 
-                    const otherEditButton =
+                    const otherEdit =
                         otherField.querySelector(
                             '[data-proposal-action="edit"]'
                         );
+
 
                     if (
                         otherDisplay
@@ -660,8 +656,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         otherEditor.hidden =
                             true;
 
-                        if (otherEditButton) {
-                            otherEditButton.hidden =
+                        if (otherEdit) {
+                            otherEdit.hidden =
                                 false;
                         }
 
@@ -679,6 +675,7 @@ document.addEventListener("DOMContentLoaded", function () {
         editor.hidden =
             false;
 
+
         if (editButton) {
             editButton.hidden =
                 true;
@@ -689,6 +686,7 @@ document.addEventListener("DOMContentLoaded", function () {
             getFieldInput(
                 field
             );
+
 
         if (input) {
             input.focus();
@@ -716,7 +714,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 '[data-proposal-action="edit"]'
             );
 
-        if (!display || !editor) {
+
+        if (
+            !display
+            || !editor
+        ) {
             return;
         }
 
@@ -726,6 +728,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         display.hidden =
             false;
+
 
         if (editButton) {
             editButton.hidden =
@@ -754,6 +757,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 field
             );
 
+
         if (
             !fieldName
             || !input
@@ -762,24 +766,24 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        clearFieldError(
-            field
-        );
-
-
         const csrfToken =
             getCsrfToken();
+
 
         if (!csrfToken) {
 
             showFieldError(
                 field,
-                "Unable to save: CSRF token is unavailable."
+                "Unable to save: CSRF token unavailable."
             );
 
             return;
-
         }
+
+
+        clearFieldError(
+            field
+        );
 
 
         button.disabled =
@@ -821,42 +825,12 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-            const indicator =
-                field.querySelector(
-                    "[data-proposal-indicator]"
-                );
-
-            const discard =
-                field.querySelector(
-                    '[data-proposal-action="discard"]'
-                );
-
-
-            if (data.proposed) {
-
-                if (indicator) {
-                    indicator.hidden =
-                        false;
-                }
-
-                if (discard) {
-                    discard.hidden =
-                        false;
-                }
-
-            } else {
-
-                if (indicator) {
-                    indicator.hidden =
-                        true;
-                }
-
-                if (discard) {
-                    discard.hidden =
-                        true;
-                }
-
-            }
+            setFieldProposalState(
+                field,
+                Boolean(
+                    data.proposed
+                )
+            );
 
         } catch (error) {
 
@@ -884,6 +858,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const fieldName =
             field.dataset.field;
 
+
         if (!fieldName) {
             return;
         }
@@ -892,15 +867,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const csrfToken =
             getCsrfToken();
 
+
         if (!csrfToken) {
 
             showFieldError(
                 field,
-                "Unable to discard: CSRF token is unavailable."
+                "Unable to discard: CSRF token unavailable."
             );
 
             return;
-
         }
 
 
@@ -930,14 +905,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
 
-            if (input) {
-
-                writeInputValue(
-                    input,
-                    data.value
-                );
-
-            }
+            writeInputValue(
+                input,
+                data.value
+            );
 
 
             updateFieldDisplay(
@@ -951,27 +922,10 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-            const indicator =
-                field.querySelector(
-                    "[data-proposal-indicator]"
-                );
-
-            const discard =
-                field.querySelector(
-                    '[data-proposal-action="discard"]'
-                );
-
-
-            if (indicator) {
-                indicator.hidden =
-                    true;
-            }
-
-
-            if (discard) {
-                discard.hidden =
-                    true;
-            }
+            setFieldProposalState(
+                field,
+                false
+            );
 
         } catch (error) {
 
@@ -990,6 +944,36 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    function setFieldProposalState(
+        field,
+        proposed
+    ) {
+
+        const indicator =
+            field.querySelector(
+                "[data-proposal-indicator]"
+            );
+
+        const discard =
+            field.querySelector(
+                '[data-proposal-action="discard"]'
+            );
+
+
+        if (indicator) {
+            indicator.hidden =
+                !proposed;
+        }
+
+
+        if (discard) {
+            discard.hidden =
+                !proposed;
+        }
+
+    }
+
+
     function updateFieldDisplay(
         field,
         value
@@ -1000,33 +984,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 "[data-field-display]"
             );
 
+
         if (!display) {
             return;
         }
 
 
         display.replaceChildren();
-
-
-        /*
-         * is_active isn't rendered as literal true/false.
-         */
-
-        if (
-            field.dataset.field ===
-            "is_active"
-        ) {
-
-            display.textContent =
-                normaliseValue(
-                    value
-                ) === "true"
-                    ? "Active"
-                    : "Retired";
-
-            return;
-
-        }
 
 
         const text =
@@ -1053,7 +1017,6 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
             return;
-
         }
 
 
@@ -1063,11 +1026,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    /*
-     * ============================================================
-     * OBJECTTYPE LIFECYCLE
-     * ============================================================
-     */
+    /* ============================================================
+       ObjectType lifecycle
+       ============================================================ */
 
     async function setObjectTypeStatus(
         root,
@@ -1078,6 +1039,7 @@ document.addEventListener("DOMContentLoaded", function () {
             root.querySelector(
                 "[data-object-type-lifecycle]"
             );
+
 
         if (!control) {
             return;
@@ -1096,10 +1058,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const csrfToken =
             getCsrfToken();
 
+
         if (!csrfToken) {
+
             console.error(
-                "ObjectType status: CSRF token unavailable."
+                "ObjectType lifecycle: CSRF unavailable."
             );
+
             return;
         }
 
@@ -1126,7 +1091,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
 
-            updateObjectTypeStatus(
+            updateObjectTypeStatusUI(
                 root,
                 data.value,
                 data.proposed
@@ -1135,7 +1100,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (error) {
 
             console.error(
-                "ObjectType status update failed:",
+                "ObjectType lifecycle update failed:",
                 error
             );
 
@@ -1157,9 +1122,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const csrfToken =
             getCsrfToken();
 
+
         if (!csrfToken) {
             console.error(
-                "ObjectType lifecycle discard: CSRF token unavailable."
+                "ObjectType lifecycle discard: CSRF unavailable."
             );
             return;
         }
@@ -1182,7 +1148,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
 
-            updateObjectTypeStatus(
+            updateObjectTypeStatusUI(
                 root,
                 data.value,
                 false
@@ -1205,7 +1171,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function updateObjectTypeStatus(
+    function updateObjectTypeStatusUI(
         root,
         value,
         proposed
@@ -1222,7 +1188,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "[data-object-type-lifecycle]"
             );
 
-        const pill =
+        const status =
             root.querySelector(
                 "[data-status-display]"
             );
@@ -1250,6 +1216,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     ? "true"
                     : "false";
 
+
             control.dataset.proposed =
                 proposed
                     ? "true"
@@ -1258,9 +1225,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        if (pill) {
+        if (status) {
 
-            pill.className =
+            status.className =
                 "model-status-pill "
                 + (
                     active
@@ -1269,7 +1236,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
 
-            pill.replaceChildren();
+            status.replaceChildren();
 
 
             const icon =
@@ -1277,18 +1244,19 @@ document.addEventListener("DOMContentLoaded", function () {
                     "i"
                 );
 
+
             icon.className =
                 active
                     ? "bi bi-check-circle"
                     : "bi bi-archive";
 
 
-            pill.appendChild(
+            status.appendChild(
                 icon
             );
 
 
-            pill.appendChild(
+            status.appendChild(
                 document.createTextNode(
                     active
                         ? " Active"
@@ -1310,37 +1278,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         if (indicator) {
-
             indicator.hidden =
                 !proposed;
-
         }
 
 
         if (discard) {
-
             discard.hidden =
                 !proposed;
-
         }
 
     }
 
 
-    /*
-     * ============================================================
-     * ATTRIBUTE EDITOR
-     * ============================================================
-     */
+    /* ============================================================
+       Attribute helpers
+       ============================================================ */
 
     function openAttribute(
         attribute
     ) {
-
-        if (!attribute) {
-            return;
-        }
-
 
         const display =
             attribute.querySelector(
@@ -1353,7 +1310,10 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-        if (!display || !editor) {
+        if (
+            !display
+            || !editor
+        ) {
             return;
         }
 
@@ -1382,11 +1342,6 @@ document.addEventListener("DOMContentLoaded", function () {
         attribute
     ) {
 
-        if (!attribute) {
-            return;
-        }
-
-
         const display =
             attribute.querySelector(
                 "[data-attribute-display]"
@@ -1398,7 +1353,10 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-        if (!display || !editor) {
+        if (
+            !display
+            || !editor
+        ) {
             return;
         }
 
@@ -1413,6 +1371,101 @@ document.addEventListener("DOMContentLoaded", function () {
         clearAttributeError(
             attribute
         );
+
+    }
+
+
+    function collectAttributeValues(
+        editor
+    ) {
+
+        const read =
+            function (
+                name,
+                fallback
+            ) {
+
+                const input =
+                    editor.querySelector(
+                        `[name="${name}"]`
+                    );
+
+                return input
+                    ? input.value
+                    : fallback;
+
+            };
+
+
+        const checked =
+            function (
+                name
+            ) {
+
+                const input =
+                    editor.querySelector(
+                        `[name="${name}"]`
+                    );
+
+                return (
+                    input
+                    && input.checked
+                )
+                    ? "on"
+                    : "";
+
+            };
+
+
+        return {
+
+            attribute_name:
+                read(
+                    "attribute_name",
+                    ""
+                ),
+
+            attribute_key:
+                read(
+                    "attribute_key",
+                    ""
+                ),
+
+            attribute_data_type:
+                read(
+                    "attribute_data_type",
+                    "text"
+                ),
+
+            attribute_description:
+                read(
+                    "attribute_description",
+                    ""
+                ),
+
+            attribute_default_value:
+                read(
+                    "attribute_default_value",
+                    ""
+                ),
+
+            attribute_sort_order:
+                read(
+                    "attribute_sort_order",
+                    "0"
+                ),
+
+            attribute_required:
+                checked(
+                    "attribute_required"
+                ),
+
+            attribute_nullable:
+                checked(
+                    "attribute_nullable"
+                )
+
+        };
 
     }
 
@@ -1436,6 +1489,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const attributeId =
             attribute.dataset.attributeId;
 
+
         const editor =
             attribute.querySelector(
                 "[data-attribute-editor]"
@@ -1450,24 +1504,24 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        clearAttributeError(
-            attribute
-        );
-
-
         const csrfToken =
             getCsrfToken();
+
 
         if (!csrfToken) {
 
             showAttributeError(
                 attribute,
-                "Unable to save: CSRF token is unavailable."
+                "Unable to save: CSRF token unavailable."
             );
 
             return;
-
         }
+
+
+        clearAttributeError(
+            attribute
+        );
 
 
         button.disabled =
@@ -1477,13 +1531,14 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
 
             const values =
-                collectAttributeForm(
+                collectAttributeValues(
                     editor
                 );
 
 
             values.action =
                 "save_attribute";
+
 
             values.attribute_id =
                 attributeId;
@@ -1503,7 +1558,7 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-            updateAttributeProposedState(
+            updateAttributeProposalState(
                 attribute,
                 data.proposed_fields,
                 data.proposed
@@ -1513,19 +1568,6 @@ document.addEventListener("DOMContentLoaded", function () {
             closeAttribute(
                 attribute
             );
-
-
-            if (
-                data.created !== undefined
-            ) {
-
-                attribute.dataset
-                    .attributeCreated =
-                    data.created
-                        ? "true"
-                        : "false";
-
-            }
 
         } catch (error) {
 
@@ -1563,6 +1605,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const attributeId =
             attribute.dataset.attributeId;
 
+
         if (!attributeId) {
             return;
         }
@@ -1571,15 +1614,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const csrfToken =
             getCsrfToken();
 
+
         if (!csrfToken) {
 
             showAttributeError(
                 attribute,
-                "Unable to discard: CSRF token is unavailable."
+                "Unable to discard: CSRF token unavailable."
             );
 
             return;
-
         }
 
 
@@ -1622,10 +1665,10 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-            updateAttributeProposedState(
+            updateAttributeProposalState(
                 attribute,
                 data.proposed_fields,
-                false
+                data.proposed
             );
 
 
@@ -1669,42 +1712,19 @@ document.addEventListener("DOMContentLoaded", function () {
         const attributeId =
             attribute.dataset.attributeId;
 
+
         if (!attributeId) {
             return;
         }
 
 
-        /*
-         * Store the effective current state on the element.
-         */
-
-        let current =
-            attribute.dataset.attributeActive;
-
-
-        /*
-         * Older pages may not provide data-attribute-active.
-         * Infer it from the visible button.
-         */
-
-        if (
-            current !== "true"
-            && current !== "false"
-        ) {
-
-            current =
-                button.textContent
-                    .trim()
-                    .toLowerCase()
-                    === "activate"
-                        ? "false"
-                        : "true";
-
-        }
+        const current =
+            attribute.dataset.attributeActive ===
+            "true";
 
 
         const desired =
-            current !== "true";
+            !current;
 
 
         const csrfToken =
@@ -1715,11 +1735,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             showAttributeError(
                 attribute,
-                "Unable to update status: CSRF token is unavailable."
+                "Unable to update status: CSRF token unavailable."
             );
 
             return;
-
         }
 
 
@@ -1748,13 +1767,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
 
-            updateAttributeStatus(
+            updateAttributeStatusUI(
                 attribute,
                 data.value
             );
 
 
-            updateAttributeProposedState(
+            updateAttributeProposalState(
                 attribute,
                 data.proposed_fields,
                 data.proposed
@@ -1777,7 +1796,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function updateAttributeStatus(
+    function updateAttributeStatusUI(
         attribute,
         value
     ) {
@@ -1810,15 +1829,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        const status =
+        const editorStatus =
             attribute.querySelector(
                 "[data-attribute-editor-status]"
             );
 
 
-        if (status) {
+        if (editorStatus) {
 
-            status.replaceChildren();
+            editorStatus.replaceChildren();
 
 
             const pill =
@@ -1862,111 +1881,11 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-            status.appendChild(
+            editorStatus.appendChild(
                 pill
             );
 
         }
-
-    }
-
-
-    /*
-     * ============================================================
-     * ATTRIBUTE FORM
-     * ============================================================
-     */
-
-    function collectAttributeForm(
-        editor
-    ) {
-
-        const name =
-            editor.querySelector(
-                '[name="attribute_name"]'
-            );
-
-        const key =
-            editor.querySelector(
-                '[name="attribute_key"]'
-            );
-
-        const dataType =
-            editor.querySelector(
-                '[name="attribute_data_type"]'
-            );
-
-        const description =
-            editor.querySelector(
-                '[name="attribute_description"]'
-            );
-
-        const defaultValue =
-            editor.querySelector(
-                '[name="attribute_default_value"]'
-            );
-
-        const sortOrder =
-            editor.querySelector(
-                '[name="attribute_sort_order"]'
-            );
-
-        const required =
-            editor.querySelector(
-                '[name="attribute_required"]'
-            );
-
-        const nullable =
-            editor.querySelector(
-                '[name="attribute_nullable"]'
-            );
-
-
-        return {
-
-            attribute_name:
-                name
-                    ? name.value
-                    : "",
-
-            attribute_key:
-                key
-                    ? key.value
-                    : "",
-
-            attribute_data_type:
-                dataType
-                    ? dataType.value
-                    : "text",
-
-            attribute_description:
-                description
-                    ? description.value
-                    : "",
-
-            attribute_default_value:
-                defaultValue
-                    ? defaultValue.value
-                    : "",
-
-            attribute_sort_order:
-                sortOrder
-                    ? sortOrder.value
-                    : "0",
-
-            attribute_required:
-                required
-                && required.checked
-                    ? "on"
-                    : "",
-
-            attribute_nullable:
-                nullable
-                && nullable.checked
-                    ? "on"
-                    : ""
-
-        };
 
     }
 
@@ -1976,44 +1895,56 @@ document.addEventListener("DOMContentLoaded", function () {
         values
     ) {
 
+        const input =
+            function (
+                name
+            ) {
+
+                return attribute.querySelector(
+                    `[name="${name}"]`
+                );
+
+            };
+
+
         const name =
-            attribute.querySelector(
-                '[name="attribute_name"]'
+            input(
+                "attribute_name"
             );
 
         const key =
-            attribute.querySelector(
-                '[name="attribute_key"]'
+            input(
+                "attribute_key"
             );
 
         const dataType =
-            attribute.querySelector(
-                '[name="attribute_data_type"]'
+            input(
+                "attribute_data_type"
             );
 
         const description =
-            attribute.querySelector(
-                '[name="attribute_description"]'
+            input(
+                "attribute_description"
             );
 
         const defaultValue =
-            attribute.querySelector(
-                '[name="attribute_default_value"]'
+            input(
+                "attribute_default_value"
             );
 
         const sortOrder =
-            attribute.querySelector(
-                '[name="attribute_sort_order"]'
+            input(
+                "attribute_sort_order"
             );
 
         const required =
-            attribute.querySelector(
-                '[name="attribute_required"]'
+            input(
+                "attribute_required"
             );
 
         const nullable =
-            attribute.querySelector(
-                '[name="attribute_nullable"]'
+            input(
+                "attribute_nullable"
             );
 
 
@@ -2022,25 +1953,30 @@ document.addEventListener("DOMContentLoaded", function () {
             values.name
         );
 
+
         writeInputValue(
             key,
             values.key
         );
+
 
         writeInputValue(
             dataType,
             values.data_type
         );
 
+
         writeInputValue(
             description,
             values.description
         );
 
+
         writeInputValue(
             defaultValue,
             values.default_value
         );
+
 
         writeInputValue(
             sortOrder,
@@ -2068,21 +2004,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        const active =
-            normaliseValue(
-                values.is_active
-            ) === "true";
+        updateAttributeStatusUI(
+            attribute,
+            values.is_active
+        );
 
-
-        attribute.dataset.attributeActive =
-            active
-                ? "true"
-                : "false";
-
-
-        /*
-         * Display
-         */
 
         const nameDisplay =
             attribute.querySelector(
@@ -2178,16 +2104,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
-
-        updateAttributeStatus(
-            attribute,
-            values.is_active
-        );
-
     }
 
 
-    function updateAttributeProposedState(
+    function updateAttributeProposalState(
         attribute,
         proposedFields,
         proposed
@@ -2219,62 +2139,16 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-        if (indicator) {
-
-            indicator.hidden =
-                !isProposed;
-
-        }
-
-
-        let discard =
+        const discard =
             attribute.querySelector(
                 "[data-discard-attribute]"
             );
 
 
-        /*
-         * Put Discard alongside the proposal indicator,
-         * not beside Edit / Retire.
-         */
+        if (indicator) {
 
-        if (
-            isProposed
-            && !discard
-        ) {
-
-            discard =
-                document.createElement(
-                    "button"
-                );
-
-            discard.type =
-                "button";
-
-            discard.className =
-                "model-discard-button";
-
-            discard.dataset
-                .discardAttribute =
-                "";
-
-            discard.textContent =
-                "Discard";
-
-
-            if (indicator) {
-
-                indicator.appendChild(
-                    document.createTextNode(
-                        " "
-                    )
-                );
-
-                indicator.appendChild(
-                    discard
-                );
-
-            }
+            indicator.hidden =
+                !isProposed;
 
         }
 
@@ -2323,11 +2197,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    /*
-     * ============================================================
-     * NEW ATTRIBUTE
-     * ============================================================
-     */
+    /* ============================================================
+       New Attribute
+       ============================================================ */
 
     function openNewAttribute(
         root
@@ -2338,6 +2210,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "[data-new-attribute-editor]"
             );
 
+
         if (!editor) {
             return;
         }
@@ -2347,14 +2220,14 @@ document.addEventListener("DOMContentLoaded", function () {
             false;
 
 
-        const name =
+        const input =
             editor.querySelector(
                 '[name="attribute_name"]'
             );
 
 
-        if (name) {
-            name.focus();
+        if (input) {
+            input.focus();
         }
 
     }
@@ -2368,6 +2241,7 @@ document.addEventListener("DOMContentLoaded", function () {
             root.querySelector(
                 "[data-new-attribute-editor]"
             );
+
 
         if (!editor) {
             return;
@@ -2407,11 +2281,6 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-        clearElementError(
-            error
-        );
-
-
         const csrfToken =
             getCsrfToken();
 
@@ -2420,12 +2289,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
             showElementError(
                 error,
-                "Unable to save: CSRF token is unavailable."
+                "Unable to save: CSRF token unavailable."
             );
 
             return;
 
         }
+
+
+        clearElementError(
+            error
+        );
 
 
         button.disabled =
@@ -2435,7 +2309,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
 
             const values =
-                collectAttributeForm(
+                collectAttributeValues(
                     editor
                 );
 
@@ -2450,6 +2324,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     csrfToken,
                     values
                 );
+
+
+            /*
+             * Remove the empty state if present.
+             */
+
+            const empty =
+                root.querySelector(
+                    "[data-attribute-empty]"
+                );
+
+
+            if (empty) {
+                empty.remove();
+            }
 
 
             const attribute =
@@ -2470,17 +2359,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     "Attribute list not found."
                 );
 
-            }
-
-
-            const empty =
-                list.querySelector(
-                    "[data-attribute-empty]"
-                );
-
-
-            if (empty) {
-                empty.remove();
             }
 
 
@@ -2664,9 +2542,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <div class="model-editor-field">
 
-                        <label>
-                            Name
-                        </label>
+                        <label>Name</label>
 
                         <input
                             type="text"
@@ -2680,9 +2556,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <div class="model-editor-field">
 
-                        <label>
-                            Key
-                        </label>
+                        <label>Key</label>
 
                         <input
                             type="text"
@@ -2696,9 +2570,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <div class="model-editor-field">
 
-                        <label>
-                            Data type
-                        </label>
+                        <label>Data type</label>
 
                         <select
                             name="attribute_data_type"
@@ -2722,7 +2594,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             </option>
 
                             <option value="datetime">
-                                Date & time
+                                Date &amp; time
                             </option>
 
                             <option value="choice">
@@ -2736,9 +2608,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <div class="model-editor-field">
 
-                        <label>
-                            Description
-                        </label>
+                        <label>Description</label>
 
                         <textarea
                             name="attribute_description"
@@ -2751,9 +2621,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <div class="model-editor-field">
 
-                        <label>
-                            Default value
-                        </label>
+                        <label>Default value</label>
 
                         <input
                             type="text"
@@ -2766,9 +2634,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <div class="model-editor-field">
 
-                        <label>
-                            Sort order
-                        </label>
+                        <label>Sort order</label>
 
                         <input
                             type="number"
@@ -2997,11 +2863,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    /*
-     * ============================================================
-     * OBJECTTYPE INDEX PROPOSAL DISCARD
-     * ============================================================
-     */
+    /* ============================================================
+       ObjectType index discard
+       ============================================================ */
 
     async function discardObjectTypeProposal(
         button
@@ -3014,11 +2878,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!objectTypeId) {
 
             console.error(
-                "ObjectType proposal discard: object type ID is missing."
+                "ObjectType proposal discard: ID missing."
             );
 
             return;
-
         }
 
 
@@ -3029,11 +2892,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!csrfToken) {
 
             console.error(
-                "ObjectType proposal discard: CSRF token unavailable."
+                "ObjectType proposal discard: CSRF unavailable."
             );
 
             return;
-
         }
 
 
@@ -3084,11 +2946,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    /*
-     * ============================================================
-     * REQUEST HELPERS
-     * ============================================================
-     */
+    /* ============================================================
+       Request
+       ============================================================ */
 
     async function postForm(
         url,
@@ -3099,7 +2959,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!csrfToken) {
 
             throw new Error(
-                "CSRF token is unavailable."
+                "CSRF token unavailable."
             );
 
         }
@@ -3146,33 +3006,15 @@ document.addEventListener("DOMContentLoaded", function () {
             )
         ) {
 
-            /*
-             * Include a useful status in the error.
-             */
-
             throw new Error(
-                "The server returned an unexpected response "
-                + `(${response.status}).`
+                `Unexpected server response (${response.status}).`
             );
 
         }
 
 
-        let data;
-
-
-        try {
-
-            data =
-                await response.json();
-
-        } catch (error) {
-
-            throw new Error(
-                "The server returned invalid JSON."
-            );
-
-        }
+        const data =
+            await response.json();
 
 
         if (
@@ -3190,9 +3032,22 @@ document.addEventListener("DOMContentLoaded", function () {
             ) {
 
                 message =
-                    Object.values(
+                    Object.entries(
                         data.errors
-                    ).join(
+                    )
+                    .map(
+                        function (
+                            [
+                                field,
+                                error
+                            ]
+                        ) {
+
+                            return `${field}: ${error}`;
+
+                        }
+                    )
+                    .join(
                         " "
                     );
 
@@ -3201,7 +3056,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             throw new Error(
                 message
-                || "Unable to save the proposed change."
+                || "The proposed change could not be saved."
             );
 
         }
@@ -3212,11 +3067,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    /*
-     * ============================================================
-     * ERROR HELPERS
-     * ============================================================
-     */
+    /* ============================================================
+       Error helpers
+       ============================================================ */
 
     function showFieldError(
         field,
@@ -3293,19 +3146,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function clearAttributeError(
-        attribute
-    ) {
-
-        clearElementError(
-            attribute.querySelector(
-                "[data-attribute-error]"
-            )
-        );
-
-    }
-
-
     function showElementError(
         element,
         message
@@ -3349,6 +3189,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    function clearAttributeError(
+        attribute
+    ) {
+
+        clearElementError(
+            attribute.querySelector(
+                "[data-attribute-error]"
+            )
+        );
+
+    }
+
+
     function normaliseValue(
         value
     ) {
@@ -3357,10 +3210,9 @@ document.addEventListener("DOMContentLoaded", function () {
             value === null
             || value === undefined
         ) {
-
             return "";
-
         }
+
 
         return String(
             value
@@ -3369,3 +3221,4 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
+

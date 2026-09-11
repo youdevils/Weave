@@ -2,7 +2,6 @@ import uuid
 from types import SimpleNamespace
 
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 
@@ -12,16 +11,20 @@ from model.models.proposal import ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.views.common_context import get_model_context
 
-OBJECT_TYPE_FIELDS = {
+# =====================================================================
+# Field definitions
+# =====================================================================
+
+OBJECT_TYPE_PROPERTY_FIELDS = {
     "name",
     "key",
     "description",
     "sort_order",
-    "is_active",
 }
 
+OBJECT_TYPE_LIFECYCLE_FIELD = "is_active"
 
-ATTRIBUTE_FIELDS = {
+ATTRIBUTE_PROPERTY_FIELDS = {
     "name",
     "key",
     "data_type",
@@ -30,23 +33,29 @@ ATTRIBUTE_FIELDS = {
     "nullable",
     "default_value",
     "sort_order",
-    "is_active",
 }
+
+ATTRIBUTE_LIFECYCLE_FIELD = "is_active"
+
+
+# =====================================================================
+# Proposal helpers
+# =====================================================================
+
+
+def _working_proposal(
+    model,
+    user,
+):
+    return ProposalService.get_or_create_working(
+        model=model,
+        user=user,
+    )
 
 
 # =====================================================================
 # ObjectType helpers
 # =====================================================================
-
-
-def _object_type_canonical_values(object_type):
-    return {
-        "name": object_type.name,
-        "key": object_type.key,
-        "description": object_type.description,
-        "sort_order": object_type.sort_order,
-        "is_active": object_type.is_active,
-    }
 
 
 def _object_type_create_change(
@@ -67,44 +76,23 @@ def _object_type_create_change(
     )
 
 
-def _object_type_is_proposed_only(
-    object_type_id,
-    proposal,
+def _object_type_canonical_values(
+    object_type,
 ):
-    """
-    True when the ObjectType exists only as a CREATE proposal and does
-    not yet exist canonically.
-    """
-    return (
-        proposal is not None
-        and _object_type_create_change(
-            object_type_id,
-            proposal,
-        )
-        is not None
-        and not ObjectType.objects.filter(
-            id=object_type_id,
-        ).exists()
-    )
+    return {
+        "name": object_type.name,
+        "key": object_type.key,
+        "description": object_type.description,
+        "sort_order": object_type.sort_order,
+        "is_active": object_type.is_active,
+    }
 
 
 def _object_type_effective_values(
     object_type,
     proposal,
 ):
-    """
-    Resolve the effective ObjectType state.
-
-    Supports both canonical ObjectTypes and proposal-only CREATE
-    ObjectTypes.
-    """
-
-    if object_type is not None:
-        values = _object_type_canonical_values(
-            object_type,
-        )
-    else:
-        raise ValueError("A canonical ObjectType is required.")
+    values = _object_type_canonical_values(object_type)
 
     if not proposal:
         return values
@@ -130,22 +118,15 @@ def _proposed_only_object_type(
     object_type_id,
     proposal,
 ):
-    """
-    Construct a lightweight ObjectType-like object from a CREATE
-    proposal.
-
-    It is intentionally not written to the database.
-    """
-
-    change = _object_type_create_change(
+    create_change = _object_type_create_change(
         object_type_id,
         proposal,
     )
 
-    if change is None:
+    if create_change is None:
         return None
 
-    after = change.after or {}
+    after = dict(create_change.after or {})
 
     values = {
         "name": after.get(
@@ -170,23 +151,22 @@ def _proposed_only_object_type(
         ),
     }
 
-    # Apply subsequent UPDATE changes if any already exist.
-    changes = proposal.changes.filter(
+    for change in proposal.changes.filter(
         target_type="ObjectType",
         target_id=object_type_id,
         operation=ProposalChange.Operation.UPDATE,
-    ).order_by("created_at")
+    ).order_by("created_at"):
 
-    for update in changes:
-        update_after = update.after or {}
-        field = update_after.get("field")
+        after_update = change.after or {}
 
-        if field in values and "value" in update_after:
-            values[field] = update_after["value"]
+        field = after_update.get("field")
+
+        if field in values and "value" in after_update:
+            values[field] = after_update["value"]
 
     return SimpleNamespace(
         id=object_type_id,
-        model_id=change.parent_id,
+        model_id=create_change.parent_id,
         **values,
     )
 
@@ -195,7 +175,13 @@ def _object_type_proposed_fields(
     object_type_id,
     proposal,
 ):
-    result = {field: False for field in OBJECT_TYPE_FIELDS}
+    result = {
+        field: False
+        for field in (
+            *OBJECT_TYPE_PROPERTY_FIELDS,
+            OBJECT_TYPE_LIFECYCLE_FIELD,
+        )
+    }
 
     if not proposal:
         return result
@@ -209,13 +195,12 @@ def _object_type_proposed_fields(
         for field in result:
             result[field] = True
 
-    changes = proposal.changes.filter(
+    for change in proposal.changes.filter(
         target_type="ObjectType",
         target_id=object_type_id,
         operation=ProposalChange.Operation.UPDATE,
-    )
+    ):
 
-    for change in changes:
         after = change.after or {}
         field = after.get("field")
 
@@ -230,7 +215,9 @@ def _object_type_proposed_fields(
 # =====================================================================
 
 
-def _attribute_canonical_values(attribute):
+def _attribute_canonical_values(
+    attribute,
+):
     return {
         "name": attribute.name,
         "key": attribute.key,
@@ -282,14 +269,13 @@ def _attribute_effective_values(
     attribute,
     proposal,
 ):
-    values = _attribute_canonical_values(
-        attribute,
-    )
+    values = _attribute_canonical_values(attribute)
 
     for change in _attribute_update_changes(
         attribute.id,
         proposal,
     ):
+
         after = change.after or {}
         field = after.get("field")
 
@@ -305,14 +291,19 @@ def _attribute_proposal_values(
     proposal,
 ):
     """
-    Resolve either a canonical AttributeDefinition or a proposed-only
-    CREATE attribute.
+    Resolve either a canonical attribute or a proposal-only CREATE.
     """
 
-    attribute = AttributeDefinition.objects.filter(
-        id=attribute_id,
-        object_type=object_type if isinstance(object_type, ObjectType) else None,
-    ).first()
+    attribute = None
+
+    if isinstance(
+        object_type,
+        ObjectType,
+    ):
+        attribute = AttributeDefinition.objects.filter(
+            id=attribute_id,
+            object_type=object_type,
+        ).first()
 
     if attribute:
 
@@ -333,7 +324,7 @@ def _attribute_proposal_values(
     if create_change is None:
         return None, None, False
 
-    after = create_change.after or {}
+    after = dict(create_change.after or {})
 
     values = {
         "name": after.get(
@@ -378,20 +369,32 @@ def _attribute_proposal_values(
         attribute_id,
         proposal,
     ):
-        after_update = change.after or {}
-        field = after_update.get("field")
 
-        if field in values and "value" in after_update:
-            values[field] = after_update["value"]
+        update_after = change.after or {}
 
-    return None, values, True
+        field = update_after.get("field")
+
+        if field in values and "value" in update_after:
+            values[field] = update_after["value"]
+
+    return (
+        None,
+        values,
+        True,
+    )
 
 
 def _attribute_proposed_fields(
     attribute_id,
     proposal,
 ):
-    result = {field: False for field in ATTRIBUTE_FIELDS}
+    result = {
+        field: False
+        for field in (
+            *ATTRIBUTE_PROPERTY_FIELDS,
+            ATTRIBUTE_LIFECYCLE_FIELD,
+        )
+    }
 
     if not proposal:
         return result
@@ -399,11 +402,12 @@ def _attribute_proposed_fields(
     changes = proposal.changes.filter(
         target_type="AttributeDefinition",
         target_id=attribute_id,
-    )
+    ).order_by("created_at")
 
     for change in changes:
 
         if change.operation == (ProposalChange.Operation.CREATE):
+
             for field in result:
                 result[field] = True
 
@@ -435,16 +439,6 @@ def _build_attribute_view_objects(
     object_type,
     proposal,
 ):
-    """
-    Build the working attribute collection.
-
-    For a canonical ObjectType this combines canonical attributes with
-    proposed creates.
-
-    For a proposal-only ObjectType there are no canonical attributes,
-    so only proposed CREATE attributes are returned.
-    """
-
     attributes = []
 
     canonical_attributes = []
@@ -453,6 +447,7 @@ def _build_attribute_view_objects(
         object_type,
         ObjectType,
     ):
+
         canonical_attributes = list(
             AttributeDefinition.objects.filter(
                 object_type=object_type,
@@ -463,6 +458,10 @@ def _build_attribute_view_objects(
         )
 
     canonical_ids = {str(attribute.id) for attribute in canonical_attributes}
+
+    # -------------------------------------------------------------
+    # Canonical attributes
+    # -------------------------------------------------------------
 
     for attribute in canonical_attributes:
 
@@ -484,15 +483,17 @@ def _build_attribute_view_objects(
 
         attributes.append(attribute)
 
-    if proposal and object_type:
+    # -------------------------------------------------------------
+    # Proposed CREATE attributes
+    # -------------------------------------------------------------
 
-        object_type_id = object_type.id
+    if proposal and object_type:
 
         create_changes = proposal.changes.filter(
             target_type="AttributeDefinition",
             operation=(ProposalChange.Operation.CREATE),
             parent_type="ObjectType",
-            parent_id=object_type_id,
+            parent_id=object_type.id,
         ).order_by("created_at")
 
         for change in create_changes:
@@ -544,28 +545,28 @@ def _build_attribute_view_objects(
                 ),
             }
 
-            for update_change in _attribute_update_changes(
+            for update in _attribute_update_changes(
                 change.target_id,
                 proposal,
             ):
 
-                update_after = update_change.after or {}
+                update_after = update.after or {}
 
                 field = update_after.get("field")
 
                 if field in values and "value" in update_after:
                     values[field] = update_after["value"]
 
-            proposed_fields = _attribute_proposed_fields(
-                change.target_id,
-                proposal,
-            )
-
             attributes.append(
                 SimpleNamespace(
                     id=change.target_id,
                     proposed_values=values,
-                    proposed_fields=proposed_fields,
+                    proposed_fields=(
+                        _attribute_proposed_fields(
+                            change.target_id,
+                            proposal,
+                        )
+                    ),
                     attribute_proposed=True,
                     attribute_created=True,
                     data_type_choices=(AttributeDefinition.DataType.choices),
@@ -576,11 +577,13 @@ def _build_attribute_view_objects(
 
 
 # =====================================================================
-# Value conversion
+# Validation / coercion
 # =====================================================================
 
 
-def _serialize_value(value):
+def _serialize_value(
+    value,
+):
     if isinstance(value, bool):
         return "true" if value else "false"
 
@@ -615,7 +618,7 @@ def _coerce_boolean(
     raise ValueError(f"{label} must be true or false.")
 
 
-def _coerce_object_type_field(
+def _coerce_object_type_property(
     field,
     raw_value,
 ):
@@ -626,12 +629,6 @@ def _coerce_object_type_field(
     }:
         return raw_value.strip()
 
-    if field == "is_active":
-        return _coerce_boolean(
-            raw_value,
-            "Status",
-        )
-
     if field == "sort_order":
 
         value = raw_value.strip()
@@ -641,7 +638,7 @@ def _coerce_object_type_field(
 
         try:
             value = int(value)
-        except ValueError:
+        except (TypeError, ValueError):
             raise ValueError("Sort order must be a whole number.")
 
         if value < 0:
@@ -652,7 +649,7 @@ def _coerce_object_type_field(
     raise ValueError("Unsupported field.")
 
 
-def _validate_object_type_field(
+def _validate_object_type_property(
     model,
     object_type,
     field,
@@ -666,7 +663,9 @@ def _validate_object_type_field(
         if len(value) > 100:
             return "Name cannot exceed 100 characters."
 
-    elif field == "key":
+        return None
+
+    if field == "key":
 
         if not value:
             return "Key is required."
@@ -683,24 +682,20 @@ def _validate_object_type_field(
             object_type,
             ObjectType,
         ):
-            query = query.exclude(
-                id=object_type.id,
-            )
+            query = query.exclude(id=object_type.id)
 
         if query.exists():
             return "An object type with this key " "already exists."
 
-    elif field in {
+        return None
+
+    if field in {
         "description",
         "sort_order",
-        "is_active",
     }:
-        pass
+        return None
 
-    else:
-        return "Unsupported field."
-
-    return None
+    return "Unsupported field."
 
 
 def _coerce_default_value(
@@ -713,7 +708,9 @@ def _coerce_default_value(
         return None
 
     if data_type == (AttributeDefinition.DataType.NUMBER):
+
         try:
+
             if "." in raw_value:
                 return float(raw_value)
 
@@ -723,6 +720,7 @@ def _coerce_default_value(
             raise ValueError("Default value must be a number.")
 
     if data_type == (AttributeDefinition.DataType.BOOLEAN):
+
         return _coerce_boolean(
             raw_value,
             "Default value",
@@ -731,7 +729,7 @@ def _coerce_default_value(
     return raw_value
 
 
-def _coerce_attribute_data(
+def _coerce_attribute_properties(
     request,
     existing_values,
 ):
@@ -790,13 +788,11 @@ def _coerce_attribute_data(
 
     if not name:
         errors["name"] = "Name is required."
-
     elif len(name) > 100:
         errors["name"] = "Name cannot exceed 100 characters."
 
     if not key:
         errors["key"] = "Key is required."
-
     elif len(key) > 100:
         errors["key"] = "Key cannot exceed 100 characters."
 
@@ -810,7 +806,6 @@ def _coerce_attribute_data(
             data_type,
             default_value_raw,
         )
-
     except ValueError as exc:
         default_value = None
         errors["default_value"] = str(exc)
@@ -825,7 +820,7 @@ def _coerce_attribute_data(
         sort_order = 0
         errors["sort_order"] = "Sort order must be a whole number."
 
-    values = {
+    return {
         "name": name,
         "key": key,
         "data_type": data_type,
@@ -834,9 +829,7 @@ def _coerce_attribute_data(
         "nullable": nullable,
         "default_value": default_value,
         "sort_order": sort_order,
-    }
-
-    return values, errors
+    }, errors
 
 
 def _validate_attribute_key(
@@ -853,12 +846,41 @@ def _validate_attribute_key(
     )
 
     if attribute_id:
-        query = query.exclude(
-            id=attribute_id,
-        )
+        query = query.exclude(id=attribute_id)
 
     if query.exists():
         return "An attribute with this key " "already exists."
+
+    # Also prevent duplicate keys within the same working proposal.
+    # This is handled separately by the caller when necessary.
+    return None
+
+
+def _validate_proposed_attribute_key(
+    proposal,
+    object_type_id,
+    attribute_id,
+    key,
+):
+    if not proposal:
+        return None
+
+    create_changes = proposal.changes.filter(
+        target_type="AttributeDefinition",
+        operation=(ProposalChange.Operation.CREATE),
+        parent_type="ObjectType",
+        parent_id=object_type_id,
+    )
+
+    for change in create_changes:
+
+        if str(change.target_id) == str(attribute_id):
+            continue
+
+        after = change.after or {}
+
+        if after.get("key") == key:
+            return "An attribute with this key " "already exists."
 
     return None
 
@@ -909,8 +931,10 @@ def _build_form(
 
 
 def _render_editor(
+    *,
     request,
     context,
+    model,
     object_type,
     proposal,
     effective_values,
@@ -926,15 +950,21 @@ def _render_editor(
                     object_type.id,
                     proposal,
                 )
-                if object_type is not None
-                else {field: False for field in OBJECT_TYPE_FIELDS}
+                if object_type
+                else {
+                    field: False
+                    for field in (
+                        *OBJECT_TYPE_PROPERTY_FIELDS,
+                        OBJECT_TYPE_LIFECYCLE_FIELD,
+                    )
+                }
             ),
             "attributes": (
                 _build_attribute_view_objects(
                     object_type,
                     proposal,
                 )
-                if object_type is not None
+                if object_type
                 else []
             ),
             "form": _build_form(
@@ -1013,19 +1043,27 @@ def object_type_editor(
                 status=404,
             )
 
-        desired_active = _coerce_boolean(
-            request.POST.get(
-                "is_active",
-                "",
-            ),
-            "Status",
-        )
+        try:
+            desired_active = _coerce_boolean(
+                request.POST.get(
+                    "is_active",
+                    "",
+                ),
+                "Status",
+            )
+        except ValueError as exc:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": str(exc),
+                },
+                status=400,
+            )
 
-        # -------------------------------------------------------------
-        # Proposal-only CREATE
-        #
-        # Update the CREATE payload itself.
-        # -------------------------------------------------------------
+        proposal = _working_proposal(
+            model,
+            request.user,
+        )
 
         if proposal_only:
 
@@ -1038,7 +1076,7 @@ def object_type_editor(
                 return JsonResponse(
                     {
                         "success": False,
-                        "error": ("Proposed object type not found."),
+                        "error": ("Proposed object type " "not found."),
                     },
                     status=404,
                 )
@@ -1048,6 +1086,7 @@ def object_type_editor(
             after["is_active"] = desired_active
 
             create_change.after = after
+
             create_change.save(
                 update_fields=[
                     "after",
@@ -1069,26 +1108,25 @@ def object_type_editor(
 
         if desired_active == canonical_active:
 
-            if proposal:
-                ProposalService.discard_change(
-                    proposal=proposal,
-                    target_type="ObjectType",
-                    target_id=object_type.id,
-                    field="is_active",
-                )
+            ProposalService.discard_change(
+                proposal=proposal,
+                target_type="ObjectType",
+                target_id=object_type.id,
+                field="is_active",
+            )
 
             return JsonResponse(
                 {
                     "success": True,
                     "value": _serialize_value(canonical_active),
-                    "proposed": False,
+                    "proposed": (
+                        _object_type_proposed_fields(
+                            object_type.id,
+                            proposal,
+                        )["is_active"]
+                    ),
                 }
             )
-
-        proposal = ProposalService.get_or_create_working(
-            model=model,
-            user=request.user,
-        )
 
         ProposalService.record_change(
             proposal=proposal,
@@ -1134,42 +1172,34 @@ def object_type_editor(
                 status=404,
             )
 
-        if proposal_only:
-
-            create_change = _object_type_create_change(
-                object_type.id,
-                proposal,
-            )
-
-            if create_change is None:
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": ("Proposed object type not found."),
-                    },
-                    status=404,
-                )
-
+        if proposal is None:
             return JsonResponse(
                 {
-                    "success": True,
-                    "value": _serialize_value(
-                        (create_change.after or {}).get(
-                            "is_active",
-                            True,
-                        )
-                    ),
-                    "proposed": True,
-                }
+                    "success": False,
+                    "error": ("There is no working " "proposal to discard."),
+                },
+                status=400,
             )
 
-        if proposal:
-            ProposalService.discard_change(
-                proposal=proposal,
-                target_type="ObjectType",
-                target_id=object_type.id,
-                field="is_active",
+        if proposal_only:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": (
+                        "The lifecycle of a newly "
+                        "proposed ObjectType cannot "
+                        "be independently discarded."
+                    ),
+                },
+                status=400,
             )
+
+        ProposalService.discard_change(
+            proposal=proposal,
+            target_type="ObjectType",
+            target_id=object_type.id,
+            field="is_active",
+        )
 
         return JsonResponse(
             {
@@ -1245,15 +1275,28 @@ def object_type_editor(
                 status=404,
             )
 
-        desired_active = _coerce_boolean(
-            request.POST.get(
-                "is_active",
-                "",
-            ),
-            "Status",
+        try:
+            desired_active = _coerce_boolean(
+                request.POST.get(
+                    "is_active",
+                    "",
+                ),
+                "Status",
+            )
+        except ValueError as exc:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": str(exc),
+                },
+                status=400,
+            )
+
+        proposal = _working_proposal(
+            model,
+            request.user,
         )
 
-        # A proposed CREATE attribute has no canonical row.
         if attribute_created:
 
             create_change = _attribute_create_change(
@@ -1265,7 +1308,7 @@ def object_type_editor(
                 return JsonResponse(
                     {
                         "success": False,
-                        "error": ("Proposed attribute not found."),
+                        "error": ("Proposed attribute " "not found."),
                     },
                     status=404,
                 )
@@ -1303,13 +1346,12 @@ def object_type_editor(
 
         if desired_active == canonical_active:
 
-            if proposal:
-                ProposalService.discard_change(
-                    proposal=proposal,
-                    target_type="AttributeDefinition",
-                    target_id=attribute_uuid,
-                    field="is_active",
-                )
+            ProposalService.discard_change(
+                proposal=proposal,
+                target_type="AttributeDefinition",
+                target_id=attribute_uuid,
+                field="is_active",
+            )
 
             return JsonResponse(
                 {
@@ -1329,11 +1371,6 @@ def object_type_editor(
                     ),
                 }
             )
-
-        proposal = ProposalService.get_or_create_working(
-            model=model,
-            user=request.user,
-        )
 
         ProposalService.record_change(
             proposal=proposal,
@@ -1382,8 +1419,14 @@ def object_type_editor(
                 status=404,
             )
 
+        if proposal is None:
+            proposal = _working_proposal(
+                model,
+                request.user,
+            )
+
         try:
-            submitted_values, errors = _coerce_attribute_data(
+            submitted_values, errors = _coerce_attribute_properties(
                 request,
                 {
                     "name": "",
@@ -1394,7 +1437,6 @@ def object_type_editor(
                     "nullable": False,
                     "default_value": None,
                     "sort_order": 0,
-                    "is_active": True,
                 },
             )
         except ValueError as exc:
@@ -1411,29 +1453,34 @@ def object_type_editor(
             ObjectType,
         ):
 
-            key_error = _validate_attribute_key(
+            canonical_key_error = _validate_attribute_key(
                 object_type=object_type,
                 attribute_id=None,
                 key=submitted_values["key"],
             )
 
-            if key_error:
-                errors["key"] = key_error
+            if canonical_key_error:
+                errors["key"] = canonical_key_error
+
+        proposed_key_error = _validate_proposed_attribute_key(
+            proposal=proposal,
+            object_type_id=object_type.id,
+            attribute_id=None,
+            key=submitted_values["key"],
+        )
+
+        if proposed_key_error:
+            errors["key"] = proposed_key_error
 
         if errors:
             return JsonResponse(
                 {
                     "success": False,
                     "errors": errors,
-                    "error": ("Please correct the attribute " "before adding it."),
+                    "error": ("Please correct the " "attribute before adding it."),
                 },
                 status=400,
             )
-
-        proposal = ProposalService.get_or_create_working(
-            model=model,
-            user=request.user,
-        )
 
         attribute_uuid = uuid.uuid4()
 
@@ -1451,29 +1498,36 @@ def object_type_editor(
             },
         )
 
+        values = {
+            **submitted_values,
+            "is_active": True,
+        }
+
         return JsonResponse(
             {
                 "success": True,
                 "created": True,
                 "attribute_id": str(attribute_uuid),
                 "values": {
-                    field: _serialize_value(
-                        (
-                            {
-                                **submitted_values,
-                                "is_active": True,
-                            }
-                        )[field]
+                    field: _serialize_value(values[field])
+                    for field in (
+                        *ATTRIBUTE_PROPERTY_FIELDS,
+                        ATTRIBUTE_LIFECYCLE_FIELD,
                     )
-                    for field in ATTRIBUTE_FIELDS
                 },
                 "proposed": True,
-                "proposed_fields": {field: True for field in ATTRIBUTE_FIELDS},
+                "proposed_fields": {
+                    field: True
+                    for field in (
+                        *ATTRIBUTE_PROPERTY_FIELDS,
+                        ATTRIBUTE_LIFECYCLE_FIELD,
+                    )
+                },
             }
         )
 
     # =================================================================
-    # Save AttributeDefinition
+    # Save AttributeDefinition properties
     # =================================================================
 
     if request.method == "POST" and request.POST.get("action") == "save_attribute":
@@ -1535,20 +1589,10 @@ def object_type_editor(
                 status=404,
             )
 
-        submitted_values, errors = _coerce_attribute_data(
+        submitted_values, errors = _coerce_attribute_properties(
             request,
             effective_values,
         )
-
-        if errors:
-            return JsonResponse(
-                {
-                    "success": False,
-                    "errors": errors,
-                    "error": ("Please correct the " "attribute before saving."),
-                },
-                status=400,
-            )
 
         if isinstance(
             object_type,
@@ -1564,6 +1608,18 @@ def object_type_editor(
             if key_error:
                 errors["key"] = key_error
 
+        if proposal:
+
+            proposed_key_error = _validate_proposed_attribute_key(
+                proposal=proposal,
+                object_type_id=object_type.id,
+                attribute_id=attribute_uuid,
+                key=submitted_values["key"],
+            )
+
+            if proposed_key_error:
+                errors["key"] = proposed_key_error
+
         if errors:
             return JsonResponse(
                 {
@@ -1574,15 +1630,14 @@ def object_type_editor(
                 status=400,
             )
 
-        proposal = ProposalService.get_or_create_working(
-            model=model,
-            user=request.user,
+        proposal = _working_proposal(
+            model,
+            request.user,
         )
 
         # -------------------------------------------------------------
-        # Proposed new AttributeDefinition.
-        #
-        # Update the CREATE payload.
+        # Proposed-only attribute:
+        # change the CREATE payload itself.
         # -------------------------------------------------------------
 
         if attribute_created:
@@ -1596,21 +1651,21 @@ def object_type_editor(
                 return JsonResponse(
                     {
                         "success": False,
-                        "error": ("Proposed attribute not found."),
+                        "error": ("Proposed attribute " "not found."),
                     },
                     status=404,
                 )
 
-            create_after = dict(create_change.after or {})
+            after = dict(create_change.after or {})
 
-            create_after.update(submitted_values)
+            after.update(submitted_values)
 
-            create_after.setdefault(
+            after.setdefault(
                 "is_active",
                 True,
             )
 
-            create_change.after = create_after
+            create_change.after = after
 
             create_change.save(
                 update_fields=[
@@ -1622,14 +1677,15 @@ def object_type_editor(
             ProposalService.reset_validation(proposal)
 
         # -------------------------------------------------------------
-        # Existing canonical attribute.
+        # Existing canonical attribute:
+        # record only differences from canonical state.
         # -------------------------------------------------------------
 
         else:
 
             canonical_values = _attribute_canonical_values(attribute)
 
-            for field in ATTRIBUTE_FIELDS:
+            for field in ATTRIBUTE_PROPERTY_FIELDS:
 
                 canonical_value = canonical_values[field]
 
@@ -1637,13 +1693,12 @@ def object_type_editor(
 
                 if submitted_value == canonical_value:
 
-                    if proposal:
-                        ProposalService.discard_change(
-                            proposal=proposal,
-                            target_type="AttributeDefinition",
-                            target_id=attribute_uuid,
-                            field=field,
-                        )
+                    ProposalService.discard_change(
+                        proposal=proposal,
+                        target_type="AttributeDefinition",
+                        target_id=attribute_uuid,
+                        field=field,
+                    )
 
                     continue
 
@@ -1666,7 +1721,7 @@ def object_type_editor(
                 )
 
         (
-            _,
+            _attribute,
             effective_values,
             attribute_created,
         ) = _attribute_proposal_values(
@@ -1688,9 +1743,17 @@ def object_type_editor(
                 "attribute_id": str(attribute_uuid),
                 "values": {
                     field: _serialize_value(effective_values[field])
-                    for field in ATTRIBUTE_FIELDS
+                    for field in (
+                        *ATTRIBUTE_PROPERTY_FIELDS,
+                        ATTRIBUTE_LIFECYCLE_FIELD,
+                    )
                 },
-                "proposed": True,
+                "proposed": (
+                    _attribute_is_proposed(
+                        attribute_uuid,
+                        proposal,
+                    )
+                ),
                 "proposed_fields": (
                     _attribute_proposed_fields(
                         attribute_uuid,
@@ -1768,7 +1831,7 @@ def object_type_editor(
             return JsonResponse(
                 {
                     "success": False,
-                    "error": "Attribute not found.",
+                    "error": ("Attribute not found."),
                 },
                 status=404,
             )
@@ -1780,7 +1843,6 @@ def object_type_editor(
         )
 
         if attribute_created:
-
             return JsonResponse(
                 {
                     "success": True,
@@ -1798,15 +1860,24 @@ def object_type_editor(
                 "attribute_id": str(attribute_uuid),
                 "values": {
                     field: _serialize_value(canonical_values[field])
-                    for field in ATTRIBUTE_FIELDS
+                    for field in (
+                        *ATTRIBUTE_PROPERTY_FIELDS,
+                        ATTRIBUTE_LIFECYCLE_FIELD,
+                    )
                 },
                 "proposed": False,
-                "proposed_fields": {field: False for field in ATTRIBUTE_FIELDS},
+                "proposed_fields": {
+                    field: False
+                    for field in (
+                        *ATTRIBUTE_PROPERTY_FIELDS,
+                        ATTRIBUTE_LIFECYCLE_FIELD,
+                    )
+                },
             }
         )
 
     # =================================================================
-    # ObjectType field editing
+    # ObjectType property editing
     # =================================================================
 
     if request.method == "POST" and request.POST.get("field"):
@@ -1825,7 +1896,7 @@ def object_type_editor(
             "",
         ).strip()
 
-        if field not in OBJECT_TYPE_FIELDS:
+        if field not in OBJECT_TYPE_PROPERTY_FIELDS:
             return JsonResponse(
                 {
                     "success": False,
@@ -1840,7 +1911,7 @@ def object_type_editor(
         ).strip()
 
         # -------------------------------------------------------------
-        # Discard
+        # Discard property proposal
         # -------------------------------------------------------------
 
         if action == "discard":
@@ -1856,43 +1927,16 @@ def object_type_editor(
 
             if proposal_only:
 
-                create_change = _object_type_create_change(
-                    object_type.id,
-                    proposal,
-                )
-
-                if create_change is None:
-                    return JsonResponse(
-                        {
-                            "success": False,
-                            "error": ("Proposed object type " "not found."),
-                        },
-                        status=404,
-                    )
-
-                after = create_change.after or {}
-
-                # For a CREATE proposal, field-level
-                # discard means restore the original
-                # CREATE value. The original CREATE
-                # payload is itself the working baseline.
-                #
-                # The editor therefore does not currently
-                # maintain an independent baseline. A full
-                # proposal discard remains available from
-                # the index.
-
                 return JsonResponse(
                     {
-                        "success": True,
-                        "value": _serialize_value(
-                            after.get(
-                                field,
-                                "",
-                            )
+                        "success": False,
+                        "error": (
+                            "Individual property discard "
+                            "is not available for a "
+                            "newly proposed ObjectType."
                         ),
-                        "proposed": True,
-                    }
+                    },
+                    status=400,
                 )
 
             ProposalService.discard_change(
@@ -1916,20 +1960,18 @@ def object_type_editor(
             return JsonResponse(
                 {
                     "success": False,
-                    "error": "Invalid action.",
+                    "error": ("Invalid action."),
                 },
                 status=400,
             )
 
-        raw_value = request.POST.get(
-            "value",
-            "",
-        )
-
         try:
-            value = _coerce_object_type_field(
+            value = _coerce_object_type_property(
                 field,
-                raw_value,
+                request.POST.get(
+                    "value",
+                    "",
+                ),
             )
         except ValueError as exc:
             return JsonResponse(
@@ -1940,7 +1982,7 @@ def object_type_editor(
                 status=400,
             )
 
-        validation_error = _validate_object_type_field(
+        validation_error = _validate_object_type_property(
             model,
             object_type,
             field,
@@ -1956,10 +1998,14 @@ def object_type_editor(
                 status=400,
             )
 
+        proposal = _working_proposal(
+            model,
+            request.user,
+        )
+
         # -------------------------------------------------------------
-        # Proposal-only ObjectType.
-        #
-        # Update its CREATE payload.
+        # Proposed-only ObjectType:
+        # mutate CREATE payload.
         # -------------------------------------------------------------
 
         if proposal_only:
@@ -2026,11 +2072,6 @@ def object_type_editor(
                     "proposed": False,
                 }
             )
-
-        proposal = ProposalService.get_or_create_working(
-            model=model,
-            user=request.user,
-        )
 
         ProposalService.record_change(
             proposal=proposal,
@@ -2101,27 +2142,25 @@ def object_type_editor(
 
         if errors:
 
-            effective_values = {
-                "name": name,
-                "key": key,
-                "description": description,
-                "sort_order": 0,
-                "is_active": True,
-            }
-
             return _render_editor(
                 request=request,
                 context=context,
                 model=model,
                 object_type=None,
                 proposal=proposal,
-                effective_values=effective_values,
+                effective_values={
+                    "name": name,
+                    "key": key,
+                    "description": description,
+                    "sort_order": 0,
+                    "is_active": True,
+                },
                 errors=errors,
             )
 
-        proposal = ProposalService.get_or_create_working(
-            model=model,
-            user=request.user,
+        proposal = _working_proposal(
+            model,
+            request.user,
         )
 
         object_type_uuid = uuid.uuid4()
@@ -2143,14 +2182,6 @@ def object_type_editor(
             },
         )
 
-        # -------------------------------------------------------------
-        # Important:
-        #
-        # Go directly to the proposed ObjectType editor so the user
-        # can continue building the same working proposal, including
-        # attributes.
-        # -------------------------------------------------------------
-
         return redirect(
             "model:object_type_edit",
             model.id,
@@ -2161,26 +2192,7 @@ def object_type_editor(
     # GET
     # =================================================================
 
-    if object_type is not None:
-
-        if proposal_only:
-
-            effective_values = {
-                "name": object_type.name,
-                "key": object_type.key,
-                "description": object_type.description,
-                "sort_order": object_type.sort_order,
-                "is_active": object_type.is_active,
-            }
-
-        else:
-
-            effective_values = _object_type_effective_values(
-                object_type,
-                proposal,
-            )
-
-    else:
+    if object_type is None:
 
         effective_values = {
             "name": "",
@@ -2190,9 +2202,27 @@ def object_type_editor(
             "is_active": True,
         }
 
+    elif proposal_only:
+
+        effective_values = {
+            "name": object_type.name,
+            "key": object_type.key,
+            "description": object_type.description,
+            "sort_order": object_type.sort_order,
+            "is_active": object_type.is_active,
+        }
+
+    else:
+
+        effective_values = _object_type_effective_values(
+            object_type,
+            proposal,
+        )
+
     return _render_editor(
         request=request,
         context=context,
+        model=model,
         object_type=object_type,
         proposal=proposal,
         effective_values=effective_values,
