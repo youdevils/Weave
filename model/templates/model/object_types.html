@@ -1,0 +1,132 @@
+
+{% extends "model/model_base.html" %}
+
+{% block model_content %}
+
+<div class="model-object-types">
+
+    <div class="model-page-header">
+
+        <div>
+            <div class="model-page-eyebrow">Ontology</div>
+
+            <h1 class="model-page-title">
+                Object types
+            </h1>
+
+            <p class="model-page-description">
+                Define the types of things that exist in this model.
+            </p>
+        </div>
+
+        <div class="model-page-header-actions">
+
+            <a href="{% url 'model:object_type_create' model.id %}"
+               class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                New object type
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="model-object-type-list">
+
+        {% for object_type in object_types %}
+
+            <a href="{% url 'model:object_type_edit' model.id object_type.id %}"
+               class="model-object-type-card">
+
+                <div class="model-object-type-card-main">
+
+                    <div class="model-object-type-card-heading">
+
+                        <h2 class="model-object-type-card-title">
+                            {{ object_type.name }}
+                        </h2>
+
+                        {% if not object_type.is_active %}
+
+                            <span class="model-object-type-card-status">
+                                Inactive
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    {% if object_type.description %}
+
+                        <p class="model-object-type-card-description">
+                            {{ object_type.description }}
+                        </p>
+
+                    {% else %}
+
+                        <p class="model-object-type-card-description model-object-type-card-description-empty">
+                            No description
+                        </p>
+
+                    {% endif %}
+
+
+                    <div class="model-object-type-card-meta">
+
+                        <span>
+                            <i class="bi bi-tag"></i>
+                            {{ object_type.key }}
+                        </span>
+
+                        <span>
+                            <i class="bi bi-list-ul"></i>
+                            {{ object_type.attributes.count }}
+                            attribute{{ object_type.attributes.count|pluralize }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="model-object-type-card-action">
+
+                    <i class="bi bi-chevron-right"></i>
+
+                </div>
+
+            </a>
+
+        {% empty %}
+
+            <div class="model-empty-state">
+
+                <div class="model-empty-state-icon">
+                    <i class="bi bi-box"></i>
+                </div>
+
+                <h2>No object types yet</h2>
+
+                <p>
+                    Object types define the kinds of things that can exist
+                    in this model.
+                </p>
+
+                <a href="{% url 'model:object_type_create' model.id %}"
+                   class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i>
+                    Create your first object type
+                </a>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}
+
