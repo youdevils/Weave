@@ -725,6 +725,7 @@
                             data-attribute-id="{{ attribute.id }}"
                             data-attribute-created="{% if attribute.attribute_created %}true{% else %}false{% endif %}"
                             data-attribute-proposed="{% if attribute.attribute_proposed %}true{% else %}false{% endif %}"
+                            data-attribute-active="{% if attribute.proposed_values.is_active %}true{% else %}false{% endif %}"
                         >
 
                             <!-- =================================================

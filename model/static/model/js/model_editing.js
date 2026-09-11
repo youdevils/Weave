@@ -6,14 +6,87 @@ document.addEventListener("DOMContentLoaded", function () {
      * Weave proposal-aware editing
      * ============================================================
      *
-     * Generic ObjectType / Model field editing
-     * AttributeDefinition compound editing
-     * Retire / Activate lifecycle proposals
-     * Proposal discard
+     * Supports:
      *
-     * Canonical model state is never modified by this JavaScript.
-     * All persistence goes through the proposal endpoint supplied
-     * by the page.
+     *   - ObjectType field editing
+     *   - ObjectType lifecycle
+     *   - AttributeDefinition editing
+     *   - AttributeDefinition lifecycle
+     *   - AttributeDefinition creation
+     *   - Proposal discard
+     *   - ObjectType index proposal discard
+     *
+     * All persistence goes through proposal-aware Django views.
+     * Canonical model records are never directly modified here.
+     * ============================================================
+     */
+
+
+    /*
+     * ============================================================
+     * CSRF
+     * ============================================================
+     */
+
+    function getCsrfToken() {
+
+        const input =
+            document.querySelector(
+                '[name="csrfmiddlewaretoken"]'
+            );
+
+        if (
+            input
+            && input.value
+        ) {
+            return input.value;
+        }
+
+
+        const cookiePrefix =
+            "csrftoken=";
+
+        const cookies =
+            document.cookie.split(";");
+
+
+        for (
+            let cookie of cookies
+        ) {
+
+            cookie =
+                cookie.trim();
+
+
+            if (
+                cookie.indexOf(
+                    cookiePrefix
+                ) === 0
+            ) {
+
+                return decodeURIComponent(
+                    cookie.substring(
+                        cookiePrefix.length
+                    )
+                );
+
+            }
+
+        }
+
+
+        return null;
+
+    }
+
+
+    /*
+     * ============================================================
+     * ObjectType index
+     * ============================================================
+     *
+     * This exists outside .proposal-editor, so it gets its own
+     * delegated click handler.
      * ============================================================
      */
 
@@ -21,68 +94,81 @@ document.addEventListener("DOMContentLoaded", function () {
         "click",
         function (event) {
 
-            const button =
+            const discardButton =
                 event.target.closest(
                     "[data-discard-object-type]"
                 );
 
-            if (!button) {
+            if (!discardButton) {
                 return;
             }
 
+            event.preventDefault();
+            event.stopPropagation();
+
             discardObjectTypeProposal(
-                button
+                discardButton
             );
 
         }
     );
 
+
+    /*
+     * ============================================================
+     * Proposal editors
+     * ============================================================
+     */
+
     document.querySelectorAll(
         ".proposal-editor"
-    ).forEach(function (root) {
+    ).forEach(
+        function (root) {
+
+            initialiseProposalEditor(
+                root
+            );
+
+        }
+    );
+
+
+    /*
+     * ============================================================
+     * Initialise proposal editor
+     * ============================================================
+     */
+
+    function initialiseProposalEditor(
+        root
+    ) {
 
         const updateUrl =
             root.dataset.updateUrl;
 
         if (!updateUrl) {
+
             console.error(
-                "Proposal editor: update URL is missing."
+                "Proposal editor: data-update-url is missing."
             );
+
             return;
-        }
 
-
-        const csrfToken =
-            root.querySelector(
-                "[name=csrfmiddlewaretoken]"
-            )
-            || document.querySelector(
-                "[name=csrfmiddlewaretoken]"
-            );
-
-        if (!csrfToken) {
-            console.error(
-                "Proposal editor: CSRF token is missing."
-            );
-            return;
         }
 
 
         /*
-         * ========================================================
-         * Click delegation
-         * ========================================================
+         * --------------------------------------------------------
+         * Delegated clicks
+         * --------------------------------------------------------
          */
 
         root.addEventListener(
             "click",
             function (event) {
 
-
                 /*
-                 * ------------------------------------------------
-                 * ObjectType field edit
-                 * ------------------------------------------------
+                 * Generic field edit
                  */
 
                 const editButton =
@@ -98,17 +184,18 @@ document.addEventListener("DOMContentLoaded", function () {
                         );
 
                     if (field) {
-                        openField(field);
+                        openField(
+                            field
+                        );
                     }
 
                     return;
+
                 }
 
 
                 /*
-                 * ------------------------------------------------
-                 * ObjectType field cancel
-                 * ------------------------------------------------
+                 * Generic field cancel
                  */
 
                 const cancelButton =
@@ -124,17 +211,18 @@ document.addEventListener("DOMContentLoaded", function () {
                         );
 
                     if (field) {
-                        cancelField(field);
+                        cancelField(
+                            field
+                        );
                     }
 
                     return;
+
                 }
 
 
                 /*
-                 * ------------------------------------------------
-                 * ObjectType field save
-                 * ------------------------------------------------
+                 * Generic field save
                  */
 
                 const saveButton =
@@ -150,22 +238,22 @@ document.addEventListener("DOMContentLoaded", function () {
                         );
 
                     if (field) {
+
                         saveField(
                             root,
-                            csrfToken,
                             field,
                             saveButton
                         );
+
                     }
 
                     return;
+
                 }
 
 
                 /*
-                 * ------------------------------------------------
-                 * ObjectType field discard
-                 * ------------------------------------------------
+                 * Generic field discard
                  */
 
                 const discardFieldButton =
@@ -181,232 +269,214 @@ document.addEventListener("DOMContentLoaded", function () {
                         );
 
                     if (field) {
+
                         discardField(
                             root,
-                            csrfToken,
                             field,
                             discardFieldButton
                         );
+
                     }
 
                     return;
+
                 }
 
 
                 /*
-                 * ------------------------------------------------
-                 * ObjectType Retire / Activate
-                 * ------------------------------------------------
+                 * ObjectType lifecycle toggle
                  */
 
-                const statusToggle =
+                const objectTypeStatusButton =
                     event.target.closest(
                         "[data-status-toggle]"
                     );
 
-                if (statusToggle) {
+                if (objectTypeStatusButton) {
 
                     setObjectTypeStatus(
                         root,
-                        csrfToken,
-                        statusToggle
+                        objectTypeStatusButton
                     );
 
                     return;
+
                 }
 
 
                 /*
-                 * ------------------------------------------------
-                 * ObjectType lifecycle discard
-                 * ------------------------------------------------
+                 * ObjectType lifecycle proposal discard
                  */
 
-                const lifecycleDiscard =
+                const objectTypeLifecycleDiscard =
                     event.target.closest(
                         "[data-lifecycle-discard]"
                     );
 
-                if (lifecycleDiscard) {
+                if (objectTypeLifecycleDiscard) {
 
                     discardObjectTypeStatus(
                         root,
-                        csrfToken,
-                        lifecycleDiscard
+                        objectTypeLifecycleDiscard
                     );
 
                     return;
+
                 }
 
 
                 /*
-                 * ------------------------------------------------
                  * Attribute edit
-                 * ------------------------------------------------
                  */
 
-                const attributeEdit =
+                const attributeEditButton =
                     event.target.closest(
                         "[data-edit-attribute]"
                     );
 
-                if (attributeEdit) {
+                if (attributeEditButton) {
 
                     const attribute =
-                        attributeEdit.closest(
+                        attributeEditButton.closest(
                             ".model-object-type-attribute"
                         );
 
                     if (attribute) {
-                        openAttribute(attribute);
+                        openAttribute(
+                            attribute
+                        );
                     }
 
                     return;
+
                 }
 
 
                 /*
-                 * ------------------------------------------------
                  * Attribute cancel
-                 * ------------------------------------------------
                  */
 
-                const attributeCancel =
+                const attributeCancelButton =
                     event.target.closest(
                         "[data-cancel-attribute]"
                     );
 
-                if (attributeCancel) {
+                if (attributeCancelButton) {
 
                     const attribute =
-                        attributeCancel.closest(
+                        attributeCancelButton.closest(
                             ".model-object-type-attribute"
                         );
 
                     if (attribute) {
-                        closeAttribute(attribute);
+                        closeAttribute(
+                            attribute
+                        );
                     }
 
                     return;
+
                 }
 
 
                 /*
-                 * ------------------------------------------------
                  * Attribute save
-                 * ------------------------------------------------
                  */
 
-                const attributeSave =
+                const attributeSaveButton =
                     event.target.closest(
                         "[data-save-attribute]"
                     );
 
-                if (attributeSave) {
+                if (attributeSaveButton) {
 
                     saveAttribute(
                         root,
-                        csrfToken,
-                        attributeSave
+                        attributeSaveButton
                     );
 
                     return;
+
                 }
 
 
                 /*
-                 * ------------------------------------------------
                  * Attribute proposal discard
-                 * ------------------------------------------------
                  */
 
-                const attributeDiscard =
+                const attributeDiscardButton =
                     event.target.closest(
                         "[data-discard-attribute]"
                     );
 
-                if (attributeDiscard) {
+                if (attributeDiscardButton) {
 
                     discardAttribute(
                         root,
-                        csrfToken,
-                        attributeDiscard
+                        attributeDiscardButton
                     );
 
                     return;
+
                 }
 
 
                 /*
-                 * ------------------------------------------------
-                 * Attribute Retire / Activate
-                 * ------------------------------------------------
+                 * Attribute lifecycle
                  */
 
-                const attributeStatus =
+                const attributeStatusButton =
                     event.target.closest(
                         "[data-attribute-status-toggle]"
                     );
 
-                if (attributeStatus) {
+                if (attributeStatusButton) {
 
                     setAttributeStatus(
                         root,
-                        csrfToken,
-                        attributeStatus
+                        attributeStatusButton
                     );
 
                     return;
+
                 }
 
 
                 /*
-                 * ------------------------------------------------
-                 * Add attribute
-                 * ------------------------------------------------
+                 * New attribute editor
                  */
 
-                const addAttribute =
+                const addAttributeButton =
                     event.target.closest(
                         "[data-add-attribute]"
                     );
 
-                if (addAttribute) {
+                if (addAttributeButton) {
 
                     openNewAttribute(
                         root
                     );
 
                     return;
+
                 }
 
 
-                /*
-                 * ------------------------------------------------
-                 * Cancel new attribute
-                 * ------------------------------------------------
-                 */
-
-                const cancelNewAttribute =
+                const cancelNewAttributeButton =
                     event.target.closest(
                         "[data-cancel-new-attribute]"
                     );
 
-                if (cancelNewAttribute) {
+                if (cancelNewAttributeButton) {
 
                     closeNewAttribute(
                         root
                     );
 
                     return;
+
                 }
 
-
-                /*
-                 * ------------------------------------------------
-                 * Save new attribute
-                 * ------------------------------------------------
-                 */
 
                 const saveNewAttributeButton =
                     event.target.closest(
@@ -417,7 +487,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     saveNewAttribute(
                         root,
-                        csrfToken,
                         saveNewAttributeButton
                     );
 
@@ -428,16 +497,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         /*
-         * ========================================================
-         * Escape
-         * ========================================================
+         * --------------------------------------------------------
+         * Escape closes open editors
+         * --------------------------------------------------------
          */
 
         root.addEventListener(
             "keydown",
             function (event) {
 
-                if (event.key !== "Escape") {
+                if (
+                    event.key !== "Escape"
+                ) {
                     return;
                 }
 
@@ -455,10 +526,13 @@ document.addEventListener("DOMContentLoaded", function () {
                         );
 
                     if (field) {
-                        cancelField(field);
+                        cancelField(
+                            field
+                        );
                     }
 
                     return;
+
                 }
 
 
@@ -475,7 +549,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         );
 
                     if (attribute) {
-                        closeAttribute(attribute);
+                        closeAttribute(
+                            attribute
+                        );
                     }
 
                 }
@@ -483,16 +559,18 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         );
 
-    });
+    }
 
 
     /*
      * ============================================================
-     * Generic ObjectType fields
+     * GENERIC OBJECTTYPE FIELD EDITING
      * ============================================================
      */
 
-    function getFieldInput(field) {
+    function getFieldInput(
+        field
+    ) {
 
         const editor =
             field.querySelector(
@@ -506,10 +584,13 @@ document.addEventListener("DOMContentLoaded", function () {
         return editor.querySelector(
             "input:not([type=hidden]), textarea, select"
         );
+
     }
 
 
-    function openField(field) {
+    function openField(
+        field
+    ) {
 
         const display =
             field.querySelector(
@@ -530,6 +611,11 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+
+        /*
+         * Only one ordinary field editor open at once.
+         */
+
         const root =
             field.closest(
                 ".proposal-editor"
@@ -539,46 +625,50 @@ document.addEventListener("DOMContentLoaded", function () {
 
             root.querySelectorAll(
                 ".proposal-editor-field"
-            ).forEach(function (other) {
+            ).forEach(
+                function (otherField) {
 
-                if (other === field) {
-                    return;
-                }
+                    if (
+                        otherField === field
+                    ) {
+                        return;
+                    }
 
-                const otherDisplay =
-                    other.querySelector(
-                        "[data-field-display]"
-                    );
+                    const otherDisplay =
+                        otherField.querySelector(
+                            "[data-field-display]"
+                        );
 
-                const otherEditor =
-                    other.querySelector(
-                        "[data-field-editor]"
-                    );
+                    const otherEditor =
+                        otherField.querySelector(
+                            "[data-field-editor]"
+                        );
 
-                const otherEditButton =
-                    other.querySelector(
-                        '[data-proposal-action="edit"]'
-                    );
+                    const otherEditButton =
+                        otherField.querySelector(
+                            '[data-proposal-action="edit"]'
+                        );
 
-                if (
-                    otherDisplay
-                    && otherEditor
-                ) {
+                    if (
+                        otherDisplay
+                        && otherEditor
+                    ) {
 
-                    otherDisplay.hidden =
-                        false;
-
-                    otherEditor.hidden =
-                        true;
-
-                    if (otherEditButton) {
-                        otherEditButton.hidden =
+                        otherDisplay.hidden =
                             false;
+
+                        otherEditor.hidden =
+                            true;
+
+                        if (otherEditButton) {
+                            otherEditButton.hidden =
+                                false;
+                        }
+
                     }
 
                 }
-
-            });
+            );
 
         }
 
@@ -596,7 +686,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         const input =
-            getFieldInput(field);
+            getFieldInput(
+                field
+            );
 
         if (input) {
             input.focus();
@@ -605,7 +697,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function cancelField(field) {
+    function cancelField(
+        field
+    ) {
 
         const display =
             field.querySelector(
@@ -626,6 +720,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+
         editor.hidden =
             true;
 
@@ -637,35 +732,53 @@ document.addEventListener("DOMContentLoaded", function () {
                 false;
         }
 
-        clearFieldError(field);
+
+        clearFieldError(
+            field
+        );
 
     }
 
-    async function discardObjectTypeProposal(
+
+    async function saveField(
+        root,
+        field,
         button
     ) {
 
-        const objectTypeId =
-            button.dataset.objectTypeId;
+        const fieldName =
+            field.dataset.field;
 
-        if (!objectTypeId) {
-            console.error(
-                "ObjectType ID is missing."
+        const input =
+            getFieldInput(
+                field
             );
+
+        if (
+            !fieldName
+            || !input
+        ) {
             return;
         }
 
 
+        clearFieldError(
+            field
+        );
+
+
         const csrfToken =
-            document.querySelector(
-                "[name=csrfmiddlewaretoken]"
-            );
+            getCsrfToken();
 
         if (!csrfToken) {
-            console.error(
-                "CSRF token is missing."
+
+            showFieldError(
+                field,
+                "Unable to save: CSRF token is unavailable."
             );
+
             return;
+
         }
 
 
@@ -677,91 +790,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const data =
                 await postForm(
-                    window.location.href,
-                    csrfToken.value,
-                    {
-                        action:
-                            "discard_object_type_proposal",
-
-                        object_type_id:
-                            objectTypeId
-                    }
-                );
-
-
-            if (!data.success) {
-
-                throw new Error(
-                    data.error
-                    || "Unable to discard object type proposal."
-                );
-
-            }
-
-
-            /*
-             * The server has already removed the CREATE proposal
-             * and any proposed child AttributeDefinitions.
-             *
-             * Reload the index so it becomes the authoritative
-             * representation of the working proposal.
-             */
-
-            window.location.reload();
-
-        } catch (error) {
-
-            console.error(
-                "ObjectType proposal discard failed:",
-                error
-            );
-
-            button.disabled =
-                false;
-
-        }
-
-    }
-
-    async function saveField(
-        root,
-        csrfToken,
-        field,
-        button
-    ) {
-
-        const fieldName =
-            field.dataset.field;
-
-        const input =
-            getFieldInput(field);
-
-        if (
-            !fieldName
-            || !input
-        ) {
-            return;
-        }
-
-
-        clearFieldError(field);
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await post(
                     root.dataset.updateUrl,
-                    csrfToken.value,
+                    csrfToken,
                     {
                         field:
                             fieldName,
 
                         value:
-                            readInputValue(input)
+                            readInputValue(
+                                input
+                            )
                     }
                 );
 
@@ -774,25 +812,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
             updateFieldDisplay(
                 field,
-                data.value,
-                input
+                data.value
             );
 
 
-            const display =
-                field.querySelector(
-                    "[data-field-display]"
-                );
+            cancelField(
+                field
+            );
 
-            const editor =
-                field.querySelector(
-                    "[data-field-editor]"
-                );
-
-            const editButton =
-                field.querySelector(
-                    '[data-proposal-action="edit"]'
-                );
 
             const indicator =
                 field.querySelector(
@@ -803,22 +830,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 field.querySelector(
                     '[data-proposal-action="discard"]'
                 );
-
-
-            if (editor) {
-                editor.hidden =
-                    true;
-            }
-
-            if (display) {
-                display.hidden =
-                    false;
-            }
-
-            if (editButton) {
-                editButton.hidden =
-                    false;
-            }
 
 
             if (data.proposed) {
@@ -866,7 +877,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function discardField(
         root,
-        csrfToken,
         field,
         button
     ) {
@@ -878,15 +888,32 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+
+        const csrfToken =
+            getCsrfToken();
+
+        if (!csrfToken) {
+
+            showFieldError(
+                field,
+                "Unable to discard: CSRF token is unavailable."
+            );
+
+            return;
+
+        }
+
+
         button.disabled =
             true;
+
 
         try {
 
             const data =
-                await post(
+                await postForm(
                     root.dataset.updateUrl,
-                    csrfToken.value,
+                    csrfToken,
                     {
                         field:
                             fieldName,
@@ -898,7 +925,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             const input =
-                getFieldInput(field);
+                getFieldInput(
+                    field
+                );
+
 
             if (input) {
 
@@ -912,8 +942,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             updateFieldDisplay(
                 field,
-                data.value,
-                input
+                data.value
             );
 
 
@@ -937,6 +966,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 indicator.hidden =
                     true;
             }
+
 
             if (discard) {
                 discard.hidden =
@@ -962,8 +992,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function updateFieldDisplay(
         field,
-        value,
-        input
+        value
     ) {
 
         const display =
@@ -979,8 +1008,31 @@ document.addEventListener("DOMContentLoaded", function () {
         display.replaceChildren();
 
 
+        /*
+         * is_active isn't rendered as literal true/false.
+         */
+
+        if (
+            field.dataset.field ===
+            "is_active"
+        ) {
+
+            display.textContent =
+                normaliseValue(
+                    value
+                ) === "true"
+                    ? "Active"
+                    : "Retired";
+
+            return;
+
+        }
+
+
         const text =
-            normaliseValue(value);
+            normaliseValue(
+                value
+            );
 
 
         if (!text.trim()) {
@@ -1001,6 +1053,7 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
             return;
+
         }
 
 
@@ -1010,70 +1063,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function readInputValue(
-        input
-    ) {
-
-        if (
-            input instanceof HTMLInputElement
-            && input.type === "checkbox"
-        ) {
-
-            return input.checked
-                ? "true"
-                : "false";
-
-        }
-
-        return input.value;
-
-    }
-
-
-    function writeInputValue(
-        input,
-        value
-    ) {
-
-        if (!input) {
-            return;
-        }
-
-
-        const normalised =
-            normaliseValue(value);
-
-
-        if (
-            input instanceof HTMLInputElement
-            && input.type === "checkbox"
-        ) {
-
-            input.checked =
-                normalised === "true"
-                || normalised === "1"
-                || normalised === "yes"
-                || normalised === "on";
-
-            return;
-        }
-
-
-        input.value =
-            normalised;
-
-    }
-
-
     /*
      * ============================================================
-     * ObjectType lifecycle
+     * OBJECTTYPE LIFECYCLE
      * ============================================================
      */
 
     async function setObjectTypeStatus(
         root,
-        csrfToken,
         button
     ) {
 
@@ -1087,13 +1084,24 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        const currentActive =
+        const current =
             control.dataset.active ===
             "true";
 
 
-        const desiredActive =
-            !currentActive;
+        const desired =
+            !current;
+
+
+        const csrfToken =
+            getCsrfToken();
+
+        if (!csrfToken) {
+            console.error(
+                "ObjectType status: CSRF token unavailable."
+            );
+            return;
+        }
 
 
         button.disabled =
@@ -1103,22 +1111,22 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
 
             const data =
-                await post(
+                await postForm(
                     root.dataset.updateUrl,
-                    csrfToken.value,
+                    csrfToken,
                     {
                         action:
                             "set_object_type_status",
 
                         is_active:
-                            desiredActive
+                            desired
                                 ? "true"
                                 : "false"
                     }
                 );
 
 
-            updateObjectTypeStatusUI(
+            updateObjectTypeStatus(
                 root,
                 data.value,
                 data.proposed
@@ -1127,6 +1135,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (error) {
 
             console.error(
+                "ObjectType status update failed:",
                 error
             );
 
@@ -1142,9 +1151,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function discardObjectTypeStatus(
         root,
-        csrfToken,
         button
     ) {
+
+        const csrfToken =
+            getCsrfToken();
+
+        if (!csrfToken) {
+            console.error(
+                "ObjectType lifecycle discard: CSRF token unavailable."
+            );
+            return;
+        }
+
 
         button.disabled =
             true;
@@ -1153,9 +1172,9 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
 
             const data =
-                await post(
+                await postForm(
                     root.dataset.updateUrl,
-                    csrfToken.value,
+                    csrfToken,
                     {
                         action:
                             "discard_object_type_status"
@@ -1163,7 +1182,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
 
-            updateObjectTypeStatusUI(
+            updateObjectTypeStatus(
                 root,
                 data.value,
                 false
@@ -1172,6 +1191,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (error) {
 
             console.error(
+                "ObjectType lifecycle discard failed:",
                 error
             );
 
@@ -1185,7 +1205,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    function updateObjectTypeStatusUI(
+    function updateObjectTypeStatus(
         root,
         value,
         proposed
@@ -1202,7 +1222,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "[data-object-type-lifecycle]"
             );
 
-        const status =
+        const pill =
             root.querySelector(
                 "[data-status-display]"
             );
@@ -1238,9 +1258,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        if (status) {
+        if (pill) {
 
-            status.className =
+            pill.className =
                 "model-status-pill "
                 + (
                     active
@@ -1249,7 +1269,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
 
-            status.replaceChildren();
+            pill.replaceChildren();
 
 
             const icon =
@@ -1263,12 +1283,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     : "bi bi-archive";
 
 
-            status.appendChild(
+            pill.appendChild(
                 icon
             );
 
 
-            status.appendChild(
+            pill.appendChild(
                 document.createTextNode(
                     active
                         ? " Active"
@@ -1290,13 +1310,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         if (indicator) {
+
             indicator.hidden =
                 !proposed;
+
         }
 
+
         if (discard) {
+
             discard.hidden =
                 !proposed;
+
         }
 
     }
@@ -1304,7 +1329,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /*
      * ============================================================
-     * Attribute editor
+     * ATTRIBUTE EDITOR
      * ============================================================
      */
 
@@ -1316,6 +1341,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+
         const display =
             attribute.querySelector(
                 "[data-attribute-display]"
@@ -1326,9 +1352,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 "[data-attribute-editor]"
             );
 
+
         if (!display || !editor) {
             return;
         }
+
 
         display.hidden =
             true;
@@ -1337,13 +1365,14 @@ document.addEventListener("DOMContentLoaded", function () {
             false;
 
 
-        const input =
+        const firstInput =
             editor.querySelector(
                 "input:not([type=hidden]), textarea, select"
             );
 
-        if (input) {
-            input.focus();
+
+        if (firstInput) {
+            firstInput.focus();
         }
 
     }
@@ -1357,6 +1386,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+
         const display =
             attribute.querySelector(
                 "[data-attribute-display]"
@@ -1367,9 +1397,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 "[data-attribute-editor]"
             );
 
+
         if (!display || !editor) {
             return;
         }
+
 
         editor.hidden =
             true;
@@ -1377,12 +1409,473 @@ document.addEventListener("DOMContentLoaded", function () {
         display.hidden =
             false;
 
+
         clearAttributeError(
             attribute
         );
 
     }
 
+
+    async function saveAttribute(
+        root,
+        button
+    ) {
+
+        const attribute =
+            button.closest(
+                ".model-object-type-attribute"
+            );
+
+
+        if (!attribute) {
+            return;
+        }
+
+
+        const attributeId =
+            attribute.dataset.attributeId;
+
+        const editor =
+            attribute.querySelector(
+                "[data-attribute-editor]"
+            );
+
+
+        if (
+            !attributeId
+            || !editor
+        ) {
+            return;
+        }
+
+
+        clearAttributeError(
+            attribute
+        );
+
+
+        const csrfToken =
+            getCsrfToken();
+
+        if (!csrfToken) {
+
+            showAttributeError(
+                attribute,
+                "Unable to save: CSRF token is unavailable."
+            );
+
+            return;
+
+        }
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const values =
+                collectAttributeForm(
+                    editor
+                );
+
+
+            values.action =
+                "save_attribute";
+
+            values.attribute_id =
+                attributeId;
+
+
+            const data =
+                await postForm(
+                    root.dataset.updateUrl,
+                    csrfToken,
+                    values
+                );
+
+
+            applyAttributeValues(
+                attribute,
+                data.values
+            );
+
+
+            updateAttributeProposedState(
+                attribute,
+                data.proposed_fields,
+                data.proposed
+            );
+
+
+            closeAttribute(
+                attribute
+            );
+
+
+            if (
+                data.created !== undefined
+            ) {
+
+                attribute.dataset
+                    .attributeCreated =
+                    data.created
+                        ? "true"
+                        : "false";
+
+            }
+
+        } catch (error) {
+
+            showAttributeError(
+                attribute,
+                error.message
+            );
+
+        } finally {
+
+            button.disabled =
+                false;
+
+        }
+
+    }
+
+
+    async function discardAttribute(
+        root,
+        button
+    ) {
+
+        const attribute =
+            button.closest(
+                ".model-object-type-attribute"
+            );
+
+
+        if (!attribute) {
+            return;
+        }
+
+
+        const attributeId =
+            attribute.dataset.attributeId;
+
+        if (!attributeId) {
+            return;
+        }
+
+
+        const csrfToken =
+            getCsrfToken();
+
+        if (!csrfToken) {
+
+            showAttributeError(
+                attribute,
+                "Unable to discard: CSRF token is unavailable."
+            );
+
+            return;
+
+        }
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const data =
+                await postForm(
+                    root.dataset.updateUrl,
+                    csrfToken,
+                    {
+                        action:
+                            "discard_attribute",
+
+                        attribute_id:
+                            attributeId
+                    }
+                );
+
+
+            if (data.removed) {
+
+                attribute.remove();
+
+                updateAttributeEmptyState(
+                    root
+                );
+
+                return;
+
+            }
+
+
+            applyAttributeValues(
+                attribute,
+                data.values
+            );
+
+
+            updateAttributeProposedState(
+                attribute,
+                data.proposed_fields,
+                false
+            );
+
+
+            closeAttribute(
+                attribute
+            );
+
+        } catch (error) {
+
+            showAttributeError(
+                attribute,
+                error.message
+            );
+
+        } finally {
+
+            button.disabled =
+                false;
+
+        }
+
+    }
+
+
+    async function setAttributeStatus(
+        root,
+        button
+    ) {
+
+        const attribute =
+            button.closest(
+                ".model-object-type-attribute"
+            );
+
+
+        if (!attribute) {
+            return;
+        }
+
+
+        const attributeId =
+            attribute.dataset.attributeId;
+
+        if (!attributeId) {
+            return;
+        }
+
+
+        /*
+         * Store the effective current state on the element.
+         */
+
+        let current =
+            attribute.dataset.attributeActive;
+
+
+        /*
+         * Older pages may not provide data-attribute-active.
+         * Infer it from the visible button.
+         */
+
+        if (
+            current !== "true"
+            && current !== "false"
+        ) {
+
+            current =
+                button.textContent
+                    .trim()
+                    .toLowerCase()
+                    === "activate"
+                        ? "false"
+                        : "true";
+
+        }
+
+
+        const desired =
+            current !== "true";
+
+
+        const csrfToken =
+            getCsrfToken();
+
+
+        if (!csrfToken) {
+
+            showAttributeError(
+                attribute,
+                "Unable to update status: CSRF token is unavailable."
+            );
+
+            return;
+
+        }
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const data =
+                await postForm(
+                    root.dataset.updateUrl,
+                    csrfToken,
+                    {
+                        action:
+                            "set_attribute_status",
+
+                        attribute_id:
+                            attributeId,
+
+                        is_active:
+                            desired
+                                ? "true"
+                                : "false"
+                    }
+                );
+
+
+            updateAttributeStatus(
+                attribute,
+                data.value
+            );
+
+
+            updateAttributeProposedState(
+                attribute,
+                data.proposed_fields,
+                data.proposed
+            );
+
+        } catch (error) {
+
+            showAttributeError(
+                attribute,
+                error.message
+            );
+
+        } finally {
+
+            button.disabled =
+                false;
+
+        }
+
+    }
+
+
+    function updateAttributeStatus(
+        attribute,
+        value
+    ) {
+
+        const active =
+            normaliseValue(
+                value
+            ) === "true";
+
+
+        attribute.dataset.attributeActive =
+            active
+                ? "true"
+                : "false";
+
+
+        const button =
+            attribute.querySelector(
+                "[data-attribute-status-toggle]"
+            );
+
+
+        if (button) {
+
+            button.textContent =
+                active
+                    ? "Retire"
+                    : "Activate";
+
+        }
+
+
+        const status =
+            attribute.querySelector(
+                "[data-attribute-editor-status]"
+            );
+
+
+        if (status) {
+
+            status.replaceChildren();
+
+
+            const pill =
+                document.createElement(
+                    "span"
+                );
+
+
+            pill.className =
+                "model-status-pill "
+                + (
+                    active
+                        ? "model-status-active"
+                        : "model-status-retired"
+                );
+
+
+            const icon =
+                document.createElement(
+                    "i"
+                );
+
+
+            icon.className =
+                active
+                    ? "bi bi-check-circle"
+                    : "bi bi-archive";
+
+
+            pill.appendChild(
+                icon
+            );
+
+
+            pill.appendChild(
+                document.createTextNode(
+                    active
+                        ? " Active"
+                        : " Retired"
+                )
+            );
+
+
+            status.appendChild(
+                pill
+            );
+
+        }
+
+    }
+
+
+    /*
+     * ============================================================
+     * ATTRIBUTE FORM
+     * ============================================================
+     */
 
     function collectAttributeForm(
         editor
@@ -1431,9 +1924,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         return {
 
-            action:
-                "save_attribute",
-
             attribute_name:
                 name
                     ? name.value
@@ -1475,428 +1965,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 && nullable.checked
                     ? "on"
                     : ""
+
         };
 
     }
 
-
-    async function saveAttribute(
-        root,
-        csrfToken,
-        button
-    ) {
-
-        const attribute =
-            button.closest(
-                ".model-object-type-attribute"
-            );
-
-        if (!attribute) {
-            return;
-        }
-
-        const attributeId =
-            attribute.dataset.attributeId;
-
-        if (!attributeId) {
-            return;
-        }
-
-        const editor =
-            attribute.querySelector(
-                "[data-attribute-editor]"
-            );
-
-        if (!editor) {
-            return;
-        }
-
-        const error =
-            attribute.querySelector(
-                "[data-attribute-error]"
-            );
-
-
-        clearAttributeError(
-            attribute
-        );
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const values =
-                collectAttributeForm(
-                    editor
-                );
-
-            values.attribute_id =
-                attributeId;
-
-
-            const data =
-                await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken.value,
-                    values
-                );
-
-
-            applyAttributeValues(
-                attribute,
-                data.values
-            );
-
-
-            updateAttributeProposedState(
-                attribute,
-                data.proposed_fields,
-                data.proposed
-            );
-
-
-            closeAttribute(
-                attribute
-            );
-
-
-            /*
-             * Newly-created proposed attributes
-             * should no longer be treated as blank.
-             */
-
-            attribute.dataset.attributeCreated =
-                data.created
-                    ? "true"
-                    : attribute.dataset.attributeCreated;
-
-        } catch (errorValue) {
-
-            showAttributeError(
-                error,
-                errorValue
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
-    }
-
-
-    async function discardAttribute(
-        root,
-        csrfToken,
-        button
-    ) {
-
-        const attribute =
-            button.closest(
-                ".model-object-type-attribute"
-            );
-
-        if (!attribute) {
-            return;
-        }
-
-        const attributeId =
-            attribute.dataset.attributeId;
-
-        if (!attributeId) {
-            return;
-        }
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken.value,
-                    {
-                        action:
-                            "discard_attribute",
-
-                        attribute_id:
-                            attributeId
-                    }
-                );
-
-
-            if (data.removed) {
-
-                attribute.remove();
-
-                updateAttributeEmptyState(
-                    root
-                );
-
-                return;
-
-            }
-
-
-            applyAttributeValues(
-                attribute,
-                data.values
-            );
-
-
-            updateAttributeProposedState(
-                attribute,
-                data.proposed_fields,
-                false
-            );
-
-
-            closeAttribute(
-                attribute
-            );
-
-        } catch (error) {
-
-            showAttributeError(
-                attribute.querySelector(
-                    "[data-attribute-error]"
-                ),
-                error
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
-    }
-
-
-    /*
-     * ============================================================
-     * Attribute lifecycle
-     * ============================================================
-     */
-
-    async function setAttributeStatus(
-        root,
-        csrfToken,
-        button
-    ) {
-
-        const attribute =
-            button.closest(
-                ".model-object-type-attribute"
-            );
-
-        if (!attribute) {
-            return;
-        }
-
-
-        const current =
-            (
-                attribute.dataset
-                    .attributeActive
-                === "true"
-            );
-
-
-        /*
-         * If the HTML did not provide the cached
-         * value, derive it from the visible button.
-         */
-
-        const desired =
-            !current;
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken.value,
-                    {
-                        action:
-                            "set_attribute_status",
-
-                        attribute_id:
-                            attribute.dataset
-                                .attributeId,
-
-                        is_active:
-                            desired
-                                ? "true"
-                                : "false"
-                    }
-                );
-
-
-            updateAttributeStatusUI(
-                attribute,
-                data.value,
-                data.proposed
-            );
-
-
-            updateAttributeProposedState(
-                attribute,
-                data.proposed_fields,
-                data.proposed
-            );
-
-        } catch (error) {
-
-            showAttributeError(
-                attribute.querySelector(
-                    "[data-attribute-error]"
-                ),
-                error
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
-    }
-
-
-    function updateAttributeStatusUI(
-        attribute,
-        value,
-        proposed
-    ) {
-
-        const active =
-            normaliseValue(
-                value
-            ) === "true";
-
-
-        attribute.dataset
-            .attributeActive =
-            active
-                ? "true"
-                : "false";
-
-
-        const button =
-            attribute.querySelector(
-                "[data-attribute-status-toggle]"
-            );
-
-        if (button) {
-
-            button.textContent =
-                active
-                    ? "Retire"
-                    : "Activate";
-
-        }
-
-
-        const editorStatus =
-            attribute.querySelector(
-                "[data-attribute-editor-status]"
-            );
-
-        if (editorStatus) {
-
-            const pill =
-                document.createElement(
-                    "span"
-                );
-
-            pill.className =
-                "model-status-pill "
-                + (
-                    active
-                        ? "model-status-active"
-                        : "model-status-retired"
-                );
-
-
-            const icon =
-                document.createElement(
-                    "i"
-                );
-
-            icon.className =
-                active
-                    ? "bi bi-check-circle"
-                    : "bi bi-archive";
-
-
-            pill.appendChild(
-                icon
-            );
-
-
-            pill.appendChild(
-                document.createTextNode(
-                    active
-                        ? " Active"
-                        : " Retired"
-                )
-            );
-
-
-            editorStatus.replaceChildren(
-                pill
-            );
-
-        }
-
-
-        const display =
-            attribute.querySelector(
-                "[data-attribute-display]"
-            );
-
-        if (display) {
-
-            const status =
-                display.querySelector(
-                    "[data-attribute-status]"
-                );
-
-            if (status) {
-
-                status.textContent =
-                    active
-                        ? "Active"
-                        : "Retired";
-
-            }
-
-        }
-
-    }
-
-
-    /*
-     * ============================================================
-     * Attribute values
-     * ============================================================
-     */
 
     function applyAttributeValues(
         attribute,
@@ -1943,11 +2016,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 '[name="attribute_nullable"]'
             );
 
-        const active =
-            attribute.querySelector(
-                '[name="attribute_is_active"]'
-            );
-
 
         writeInputValue(
             name,
@@ -1983,8 +2051,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (required) {
 
             required.checked =
-                values.required ===
-                "true";
+                normaliseValue(
+                    values.required
+                ) === "true";
 
         }
 
@@ -1992,23 +2061,27 @@ document.addEventListener("DOMContentLoaded", function () {
         if (nullable) {
 
             nullable.checked =
-                values.nullable ===
-                "true";
+                normaliseValue(
+                    values.nullable
+                ) === "true";
 
         }
 
 
-        if (active) {
+        const active =
+            normaliseValue(
+                values.is_active
+            ) === "true";
 
-            active.checked =
-                values.is_active ===
-                "true";
 
-        }
+        attribute.dataset.attributeActive =
+            active
+                ? "true"
+                : "false";
 
 
         /*
-         * Display values
+         * Display
          */
 
         const nameDisplay =
@@ -2073,8 +2146,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (requiredDisplay) {
 
             requiredDisplay.textContent =
-                values.required ===
-                "true"
+                normaliseValue(
+                    values.required
+                ) === "true"
                     ? "Required"
                     : "Optional";
 
@@ -2084,8 +2158,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (nullableDisplay) {
 
             nullableDisplay.textContent =
-                values.nullable ===
-                "true"
+                normaliseValue(
+                    values.nullable
+                ) === "true"
                     ? "Nullable"
                     : "Not nullable";
 
@@ -2094,37 +2169,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (descriptionDisplay) {
 
-            if (values.description) {
+            descriptionDisplay.textContent =
+                values.description
+                || "";
 
-                descriptionDisplay.textContent =
-                    values.description;
-
-                descriptionDisplay.hidden =
-                    false;
-
-            } else {
-
-                descriptionDisplay
-                    .textContent = "";
-
-                descriptionDisplay.hidden =
-                    true;
-
-            }
+            descriptionDisplay.hidden =
+                !values.description;
 
         }
 
 
-        /*
-         * Sync lifecycle controls.
-         */
-
-        updateAttributeStatusUI(
+        updateAttributeStatus(
             attribute,
-            values.is_active,
-            attribute.dataset
-                .attributeProposed
-                === "true"
+            values.is_active
         );
 
     }
@@ -2150,8 +2207,7 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-        attribute.dataset
-            .attributeProposed =
+        attribute.dataset.attributeProposed =
             isProposed
                 ? "true"
                 : "false";
@@ -2162,9 +2218,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 "[data-attribute-proposal-indicator]"
             );
 
+
         if (indicator) {
+
             indicator.hidden =
                 !isProposed;
+
         }
 
 
@@ -2173,6 +2232,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 "[data-discard-attribute]"
             );
 
+
+        /*
+         * Put Discard alongside the proposal indicator,
+         * not beside Edit / Retire.
+         */
 
         if (
             isProposed
@@ -2198,21 +2262,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Discard";
 
 
-            const indicatorElement =
-                attribute.querySelector(
-                    "[data-attribute-proposal-indicator]"
-                );
+            if (indicator) {
 
-
-            if (indicatorElement) {
-
-                indicatorElement.appendChild(
+                indicator.appendChild(
                     document.createTextNode(
                         " "
                     )
                 );
 
-                indicatorElement.appendChild(
+                indicator.appendChild(
                     discard
                 );
 
@@ -2236,12 +2294,25 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
 
         const labels = {
-            text: "Text",
-            number: "Number",
-            boolean: "Boolean",
-            date: "Date",
-            datetime: "Date & time",
-            choice: "Choice"
+
+            text:
+                "Text",
+
+            number:
+                "Number",
+
+            boolean:
+                "Boolean",
+
+            date:
+                "Date",
+
+            datetime:
+                "Date & time",
+
+            choice:
+                "Choice"
+
         };
 
 
@@ -2254,7 +2325,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /*
      * ============================================================
-     * New attribute
+     * NEW ATTRIBUTE
      * ============================================================
      */
 
@@ -2271,17 +2342,19 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+
         editor.hidden =
             false;
 
 
-        const input =
+        const name =
             editor.querySelector(
                 '[name="attribute_name"]'
             );
 
-        if (input) {
-            input.focus();
+
+        if (name) {
+            name.focus();
         }
 
     }
@@ -2300,6 +2373,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+
         editor.hidden =
             true;
 
@@ -2313,7 +2387,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     async function saveNewAttribute(
         root,
-        csrfToken,
         button
     ) {
 
@@ -2321,6 +2394,7 @@ document.addEventListener("DOMContentLoaded", function () {
             root.querySelector(
                 "[data-new-attribute-editor]"
             );
+
 
         if (!editor) {
             return;
@@ -2338,6 +2412,22 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
 
+        const csrfToken =
+            getCsrfToken();
+
+
+        if (!csrfToken) {
+
+            showElementError(
+                error,
+                "Unable to save: CSRF token is unavailable."
+            );
+
+            return;
+
+        }
+
+
         button.disabled =
             true;
 
@@ -2349,6 +2439,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     editor
                 );
 
+
             values.action =
                 "create_attribute";
 
@@ -2356,7 +2447,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const data =
                 await postForm(
                     root.dataset.updateUrl,
-                    csrfToken.value,
+                    csrfToken,
                     values
                 );
 
@@ -2372,15 +2463,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     "[data-attribute-list]"
                 );
 
+
             if (!list) {
-                return;
+
+                throw new Error(
+                    "Attribute list not found."
+                );
+
             }
 
 
             const empty =
-                root.querySelector(
+                list.querySelector(
                     "[data-attribute-empty]"
                 );
+
 
             if (empty) {
                 empty.remove();
@@ -2388,7 +2485,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             const newEditor =
-                root.querySelector(
+                list.querySelector(
                     "[data-new-attribute-editor]"
                 );
 
@@ -2415,9 +2512,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         } catch (errorValue) {
 
-            showAttributeError(
+            showElementError(
                 error,
-                errorValue
+                errorValue.message
             );
 
         } finally {
@@ -2434,55 +2531,73 @@ document.addEventListener("DOMContentLoaded", function () {
         data
     ) {
 
-        const article =
+        const attribute =
             document.createElement(
                 "article"
             );
 
-        article.className =
+
+        attribute.className =
             "model-object-type-attribute";
 
-        article.dataset.attributeId =
+
+        attribute.dataset.attributeId =
             data.attribute_id;
 
-        article.dataset.attributeCreated =
+
+        attribute.dataset.attributeCreated =
             "true";
 
-        article.dataset.attributeProposed =
+
+        attribute.dataset.attributeProposed =
             "true";
 
-        article.dataset.attributeActive =
-            data.values.is_active ===
-            "true"
+
+        attribute.dataset.attributeActive =
+            normaliseValue(
+                data.values.is_active
+            ) === "true"
                 ? "true"
                 : "false";
 
 
-        article.innerHTML = `
+        attribute.innerHTML = `
             <div
                 class="model-object-type-attribute-display"
                 data-attribute-display
             >
 
-                <div class="model-object-type-attribute-main">
+                <div
+                    class="model-object-type-attribute-main"
+                >
 
                     <h3
                         class="model-object-type-attribute-name"
                     ></h3>
 
+
                     <div
                         class="model-object-type-attribute-meta"
                     >
 
-                        <span data-attribute-key></span>
+                        <span
+                            data-attribute-key
+                        ></span>
 
-                        <span data-attribute-data-type></span>
+                        <span
+                            data-attribute-data-type
+                        ></span>
 
-                        <span data-attribute-required></span>
+                        <span
+                            data-attribute-required
+                        ></span>
 
-                        <span data-attribute-nullable></span>
+                        <span
+                            data-attribute-nullable
+                        ></span>
 
                     </div>
+
 
                     <div
                         class="model-object-type-attribute-description"
@@ -2490,6 +2605,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     ></div>
 
                 </div>
+
 
                 <div
                     class="model-object-type-attribute-actions"
@@ -2502,6 +2618,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     >
                         Edit
                     </button>
+
 
                     <button
                         type="button"
@@ -2522,6 +2639,7 @@ document.addEventListener("DOMContentLoaded", function () {
             >
 
                 <i class="bi bi-pencil-square"></i>
+
                 Proposed change
 
                 <button
@@ -2543,9 +2661,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 <div class="model-editor-fields">
 
+
                     <div class="model-editor-field">
 
-                        <label>Name</label>
+                        <label>
+                            Name
+                        </label>
 
                         <input
                             type="text"
@@ -2559,7 +2680,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <div class="model-editor-field">
 
-                        <label>Key</label>
+                        <label>
+                            Key
+                        </label>
 
                         <input
                             type="text"
@@ -2573,7 +2696,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <div class="model-editor-field">
 
-                        <label>Data type</label>
+                        <label>
+                            Data type
+                        </label>
 
                         <select
                             name="attribute_data_type"
@@ -2611,7 +2736,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <div class="model-editor-field">
 
-                        <label>Description</label>
+                        <label>
+                            Description
+                        </label>
 
                         <textarea
                             name="attribute_description"
@@ -2624,7 +2751,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <div class="model-editor-field">
 
-                        <label>Default value</label>
+                        <label>
+                            Default value
+                        </label>
 
                         <input
                             type="text"
@@ -2637,14 +2766,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     <div class="model-editor-field">
 
-                        <label>Sort order</label>
+                        <label>
+                            Sort order
+                        </label>
 
                         <input
                             type="number"
                             name="attribute_sort_order"
                             class="form-control"
-                            min="0"
                             value="0"
+                            min="0"
                         >
 
                     </div>
@@ -2703,6 +2834,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         Cancel
                     </button>
 
+
                     <button
                         type="button"
                         class="btn btn-sm btn-primary"
@@ -2718,12 +2850,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         applyAttributeValues(
-            article,
+            attribute,
             data.values
         );
 
 
-        return article;
+        return attribute;
 
     }
 
@@ -2783,6 +2915,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "[data-attribute-list]"
             );
 
+
         if (!list) {
             return;
         }
@@ -2811,11 +2944,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     "div"
                 );
 
+
             element.className =
                 "model-editor-empty";
 
-            element.dataset
-                .attributeEmpty =
+
+            element.dataset.attributeEmpty =
                 "";
 
 
@@ -2825,11 +2959,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
 
                 <div>
+
                     <h3>No attributes yet</h3>
+
                     <p>
                         Add attributes to define the information
                         stored against objects of this type.
                     </p>
+
                 </div>
             `;
 
@@ -2862,30 +2999,111 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /*
      * ============================================================
-     * Request helpers
+     * OBJECTTYPE INDEX PROPOSAL DISCARD
      * ============================================================
      */
 
-    async function post(
-        url,
-        csrfToken,
-        values
+    async function discardObjectTypeProposal(
+        button
     ) {
 
-        return postForm(
-            url,
-            csrfToken,
-            values
-        );
+        const objectTypeId =
+            button.dataset.objectTypeId;
+
+
+        if (!objectTypeId) {
+
+            console.error(
+                "ObjectType proposal discard: object type ID is missing."
+            );
+
+            return;
+
+        }
+
+
+        const csrfToken =
+            getCsrfToken();
+
+
+        if (!csrfToken) {
+
+            console.error(
+                "ObjectType proposal discard: CSRF token unavailable."
+            );
+
+            return;
+
+        }
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const data =
+                await postForm(
+                    window.location.href,
+                    csrfToken,
+                    {
+                        action:
+                            "discard_object_type_proposal",
+
+                        object_type_id:
+                            objectTypeId
+                    }
+                );
+
+
+            if (!data.success) {
+
+                throw new Error(
+                    data.error
+                    || "Unable to discard object type proposal."
+                );
+
+            }
+
+
+            window.location.reload();
+
+        } catch (error) {
+
+            console.error(
+                "ObjectType proposal discard failed:",
+                error
+            );
+
+            button.disabled =
+                false;
+
+        }
 
     }
 
+
+    /*
+     * ============================================================
+     * REQUEST HELPERS
+     * ============================================================
+     */
 
     async function postForm(
         url,
         csrfToken,
         values
     ) {
+
+        if (!csrfToken) {
+
+            throw new Error(
+                "CSRF token is unavailable."
+            );
+
+        }
+
 
         const response =
             await fetch(
@@ -2895,14 +3113,16 @@ document.addEventListener("DOMContentLoaded", function () {
                         "POST",
 
                     headers: {
+
                         "X-CSRFToken":
                             csrfToken,
 
                         "Content-Type":
-                            "application/x-www-form-urlencoded",
+                            "application/x-www-form-urlencoded; charset=UTF-8",
 
                         "X-Requested-With":
                             "XMLHttpRequest"
+
                     },
 
                     body:
@@ -2926,8 +3146,13 @@ document.addEventListener("DOMContentLoaded", function () {
             )
         ) {
 
+            /*
+             * Include a useful status in the error.
+             */
+
             throw new Error(
-                "The server returned an unexpected response."
+                "The server returned an unexpected response "
+                + `(${response.status}).`
             );
 
         }
@@ -2989,7 +3214,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /*
      * ============================================================
-     * Errors
+     * ERROR HELPERS
      * ============================================================
      */
 
@@ -3002,6 +3227,7 @@ document.addEventListener("DOMContentLoaded", function () {
             field.querySelector(
                 "[data-proposal-error]"
             );
+
 
         if (!element) {
 
@@ -3027,22 +3253,25 @@ document.addEventListener("DOMContentLoaded", function () {
         field
     ) {
 
-        const element =
+        clearElementError(
             field.querySelector(
                 "[data-proposal-error]"
-            );
-
-        clearElementError(
-            element
+            )
         );
 
     }
 
 
     function showAttributeError(
-        element,
+        attribute,
         error
     ) {
+
+        const element =
+            attribute.querySelector(
+                "[data-attribute-error]"
+            );
+
 
         if (!element) {
 
@@ -3068,16 +3297,36 @@ document.addEventListener("DOMContentLoaded", function () {
         attribute
     ) {
 
-        if (!attribute) {
-            return;
-        }
-
-
         clearElementError(
             attribute.querySelector(
                 "[data-attribute-error]"
             )
         );
+
+    }
+
+
+    function showElementError(
+        element,
+        message
+    ) {
+
+        if (!element) {
+
+            console.error(
+                message
+            );
+
+            return;
+
+        }
+
+
+        element.textContent =
+            message;
+
+        element.hidden =
+            false;
 
     }
 
@@ -3120,4 +3369,3 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
-
