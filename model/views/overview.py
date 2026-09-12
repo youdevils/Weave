@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from model.models.proposal import Proposal, ProposalChange
+from model.models.proposal import ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.views.common_context import get_model_context
 
@@ -14,8 +14,61 @@ EDITABLE_FIELDS = {
 }
 
 
+def _get_working_model_values(
+    model,
+    proposal,
+):
+    """
+    Resolve the effective values for the editable Model fields.
+
+    Canonical values come from the Model instance. Any matching UPDATE
+    changes in the user's working proposal are overlaid on top.
+    """
+
+    values = {
+        "description": model.description,
+        "purpose": model.purpose,
+        "scope": model.scope,
+        "exclusions": model.exclusions,
+    }
+
+    proposed_fields = set()
+
+    if proposal:
+
+        for change in proposal.changes.all():
+
+            if (
+                change.target_type != "Model"
+                or change.target_id != model.id
+                or change.operation != ProposalChange.Operation.UPDATE
+            ):
+                continue
+
+            after = change.after or {}
+
+            field = after.get("field")
+
+            if field not in EDITABLE_FIELDS:
+                continue
+
+            if "value" not in after:
+                continue
+
+            values[field] = after["value"]
+            proposed_fields.add(field)
+
+    return values, proposed_fields
+
+
 @login_required
-def overview(request, model_id):
+def overview(
+    request,
+    model_id,
+):
+    # =================================================================
+    # Common model context
+    # =================================================================
 
     context = get_model_context(
         request,
@@ -23,10 +76,11 @@ def overview(request, model_id):
     )
 
     model = context["model"]
+    proposal = context["my_working_proposal"]
 
-    # ================================================================
-    # POST - proposal-aware field editing
-    # ================================================================
+    # =================================================================
+    # POST - proposal-aware Model field editing
+    # =================================================================
 
     if request.method == "POST":
 
@@ -55,25 +109,18 @@ def overview(request, model_id):
                 status=400,
             )
 
-        # ============================================================
+        # =============================================================
         # DISCARD
-        # ============================================================
+        # =============================================================
 
         if action == "discard":
 
-            proposal = Proposal.objects.filter(
-                model=model,
-                created_by=request.user,
-                source=Proposal.Source.USER,
-                status=Proposal.Status.WORKING,
-            ).first()
-
-            if not proposal:
+            if proposal is None:
 
                 return JsonResponse(
                     {
                         "success": False,
-                        "error": ("No working proposal exists."),
+                        "error": "No working proposal exists.",
                     },
                     status=400,
                 )
@@ -97,9 +144,9 @@ def overview(request, model_id):
                 }
             )
 
-        # ============================================================
+        # =============================================================
         # SAVE
-        # ============================================================
+        # =============================================================
 
         if action:
 
@@ -116,20 +163,12 @@ def overview(request, model_id):
             field_name,
         )
 
-        # ------------------------------------------------------------
-        # If the proposed value is the canonical value, there is no
-        # change to propose. Remove any existing proposal for this
-        # field.
-        # ------------------------------------------------------------
+        # -------------------------------------------------------------
+        # Saving the canonical value means there is no proposal to
+        # maintain for this field. Discard the existing change.
+        # -------------------------------------------------------------
 
         if value == canonical_value:
-
-            proposal = Proposal.objects.filter(
-                model=model,
-                created_by=request.user,
-                source=Proposal.Source.USER,
-                status=Proposal.Status.WORKING,
-            ).first()
 
             if proposal:
 
@@ -149,9 +188,9 @@ def overview(request, model_id):
                 }
             )
 
-        # ------------------------------------------------------------
-        # Get/create working proposal
-        # ------------------------------------------------------------
+        # -------------------------------------------------------------
+        # Create/retrieve the user's working proposal.
+        # -------------------------------------------------------------
 
         proposal = ProposalService.get_or_create_working(
             model=model,
@@ -179,62 +218,37 @@ def overview(request, model_id):
         return JsonResponse(
             {
                 "success": True,
-                "proposal_id": str(proposal.id),
-                "change_id": str(change.id),
+                "proposal_id": str(
+                    proposal.id,
+                ),
+                "change_id": str(
+                    change.id,
+                ),
                 "field": field_name,
                 "value": value,
                 "proposed": True,
             }
         )
 
-    # ================================================================
-    # GET - calculate effective values
-    # ================================================================
+    # =================================================================
+    # GET - working Model values
+    # =================================================================
 
-    working_proposal = context["my_working_proposal"]
-
-    proposed_values = {}
-
-    if working_proposal:
-
-        for change in working_proposal.changes.all():
-
-            if (
-                change.target_type == "Model"
-                and change.target_id == model.id
-                and change.operation == ProposalChange.Operation.UPDATE
-            ):
-
-                field_name = change.after.get("field")
-
-                if field_name and field_name in EDITABLE_FIELDS:
-
-                    proposed_values[field_name] = change.after.get(
-                        "value",
-                        "",
-                    )
-
-    def effective_value(field_name):
-
-        if field_name in proposed_values:
-
-            return proposed_values[field_name]
-
-        return getattr(
-            model,
-            field_name,
-        )
+    working_values, proposed_fields = _get_working_model_values(
+        model,
+        proposal,
+    )
 
     context.update(
         {
-            "description_value": effective_value("description"),
-            "description_proposed": ("description" in proposed_values),
-            "purpose_value": effective_value("purpose"),
-            "purpose_proposed": ("purpose" in proposed_values),
-            "scope_value": effective_value("scope"),
-            "scope_proposed": ("scope" in proposed_values),
-            "exclusions_value": effective_value("exclusions"),
-            "exclusions_proposed": ("exclusions" in proposed_values),
+            "description_value": working_values["description"],
+            "description_proposed": ("description" in proposed_fields),
+            "purpose_value": working_values["purpose"],
+            "purpose_proposed": ("purpose" in proposed_fields),
+            "scope_value": working_values["scope"],
+            "scope_proposed": ("scope" in proposed_fields),
+            "exclusions_value": working_values["exclusions"],
+            "exclusions_proposed": ("exclusions" in proposed_fields),
         }
     )
 

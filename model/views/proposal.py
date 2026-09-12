@@ -1,11 +1,11 @@
 from collections import defaultdict
 from model.services.proposal.review import ProposalReviewService
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from model.models.proposal import Proposal, ProposalChange
+from model.models.proposal import ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.views.common_context import get_model_context
 
