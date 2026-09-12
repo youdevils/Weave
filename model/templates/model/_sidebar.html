@@ -68,7 +68,7 @@
                     {% for object_type in object_types|slice:":10" %}
 
                         <a
-                            href="#"
+                            href="{% url 'model:object_type_edit' model.id object_type.id %}"
                             class="model-nav-child"
                         >
                             <span>{{ object_type.name }}</span>
