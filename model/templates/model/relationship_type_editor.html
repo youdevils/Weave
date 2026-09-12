@@ -1,0 +1,1844 @@
+{% extends "model/model_base.html" %}
+
+{% block model_content %}
+
+<div class="model-object-type-editor">
+
+    <!-- ============================================================
+         PAGE HEADER
+         ============================================================ -->
+
+    <div class="model-page-header">
+
+        <div>
+
+            <a
+                href="{% url 'model:relationship_types' model.id %}"
+                class="model-back-link"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Relationship types
+            </a>
+
+
+            <div class="model-page-eyebrow">
+                Ontology
+            </div>
+
+
+            <h1 class="model-page-title">
+
+                {% if relationship_type %}
+
+                    {{ proposed_values.name|default:relationship_type.name }}
+
+                {% else %}
+
+                    New relationship type
+
+                {% endif %}
+
+            </h1>
+
+
+            <p class="model-page-description">
+                Define how two object types can be connected, including
+                the information and rules that apply to the relationship.
+            </p>
+
+        </div>
+
+
+        <div class="model-page-header-actions">
+
+            <a
+                href="{% url 'model:relationship_types' model.id %}"
+                class="btn btn-outline-secondary"
+            >
+                Cancel
+            </a>
+
+        </div>
+
+    </div>
+
+
+    {% if relationship_type %}
+
+        <div
+            class="proposal-editor"
+            data-update-url="{{ proposal_update_url }}"
+        >
+
+            {% csrf_token %}
+
+
+            <!-- ========================================================
+                 DETAILS
+                 ======================================================== -->
+
+            <section class="model-editor-section">
+
+                <div class="model-editor-section-header">
+
+                    <div>
+
+                        <h2>Details</h2>
+
+                        <p>
+                            Define the identity and purpose of this
+                            relationship type.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="model-editor-fields">
+
+
+                    <!-- =================================================
+                         NAME
+                         ================================================= -->
+
+                    <div
+                        class="model-editor-field proposal-editor-field"
+                        data-field="name"
+                    >
+
+                        <div class="model-editor-field-header">
+
+                            <label>
+                                Name
+                            </label>
+
+                            <button
+                                type="button"
+                                class="model-inline-edit-button"
+                                data-proposal-action="edit"
+                            >
+                                Edit
+                            </button>
+
+                        </div>
+
+
+                        <div
+                            class="model-editor-field-display"
+                            data-field-display="name"
+                        >
+
+                            {% if proposed_values.name %}
+
+                                {{ proposed_values.name }}
+
+                            {% else %}
+
+                                <span class="model-field-empty">
+                                    Not defined
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div
+                            class="model-editor-field-editor"
+                            data-field-editor="name"
+                            hidden
+                        >
+
+                            <input
+                                type="text"
+                                name="name"
+                                value="{{ proposed_values.name|default:'' }}"
+                                class="form-control"
+                                maxlength="100"
+                            >
+
+                            <div
+                                class="model-editor-field-error"
+                                data-proposal-error
+                                hidden
+                            ></div>
+
+
+                            <div class="model-editor-actions">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    data-proposal-action="cancel"
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-primary"
+                                    data-proposal-action="save"
+                                >
+                                    Save
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         KEY
+                         ================================================= -->
+
+                    <div
+                        class="model-editor-field proposal-editor-field"
+                        data-field="key"
+                    >
+
+                        <div class="model-editor-field-header">
+
+                            <label>
+                                Key
+                            </label>
+
+                            <button
+                                type="button"
+                                class="model-inline-edit-button"
+                                data-proposal-action="edit"
+                            >
+                                Edit
+                            </button>
+
+                        </div>
+
+
+                        <div
+                            class="model-editor-field-display"
+                            data-field-display="key"
+                        >
+
+                            {% if proposed_values.key %}
+
+                                {{ proposed_values.key }}
+
+                            {% else %}
+
+                                <span class="model-field-empty">
+                                    Not defined
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div
+                            class="model-editor-field-editor"
+                            data-field-editor="key"
+                            hidden
+                        >
+
+                            <input
+                                type="text"
+                                name="key"
+                                value="{{ proposed_values.key|default:'' }}"
+                                class="form-control"
+                                maxlength="100"
+                            >
+
+                            <div class="model-editor-field-help">
+                                A unique identifier for this relationship type.
+                            </div>
+
+
+                            <div
+                                class="model-editor-field-error"
+                                data-proposal-error
+                                hidden
+                            ></div>
+
+
+                            <div class="model-editor-actions">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    data-proposal-action="cancel"
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-primary"
+                                    data-proposal-action="save"
+                                >
+                                    Save
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         DESCRIPTION
+                         ================================================= -->
+
+                    <div
+                        class="model-editor-field proposal-editor-field"
+                        data-field="description"
+                    >
+
+                        <div class="model-editor-field-header">
+
+                            <label>
+                                Description
+                            </label>
+
+                            <button
+                                type="button"
+                                class="model-inline-edit-button"
+                                data-proposal-action="edit"
+                            >
+                                Edit
+                            </button>
+
+                        </div>
+
+
+                        <div
+                            class="model-editor-field-display"
+                            data-field-display="description"
+                        >
+
+                            {% if proposed_values.description %}
+
+                                {{ proposed_values.description }}
+
+                            {% else %}
+
+                                <span class="model-field-empty">
+                                    Not defined
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div
+                            class="model-editor-field-editor"
+                            data-field-editor="description"
+                            hidden
+                        >
+
+                            <textarea
+                                name="description"
+                                class="form-control"
+                                rows="4"
+                            >{{ proposed_values.description|default:'' }}</textarea>
+
+
+                            <div
+                                class="model-editor-field-error"
+                                data-proposal-error
+                                hidden
+                            ></div>
+
+
+                            <div class="model-editor-actions">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    data-proposal-action="cancel"
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-primary"
+                                    data-proposal-action="save"
+                                >
+                                    Save
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         SORT ORDER
+                         ================================================= -->
+
+                    <div
+                        class="model-editor-field proposal-editor-field"
+                        data-field="sort_order"
+                    >
+
+                        <div class="model-editor-field-header">
+
+                            <label>
+                                Sort order
+                            </label>
+
+                            <button
+                                type="button"
+                                class="model-inline-edit-button"
+                                data-proposal-action="edit"
+                            >
+                                Edit
+                            </button>
+
+                        </div>
+
+
+                        <div
+                            class="model-editor-field-display"
+                            data-field-display="sort_order"
+                        >
+                            {{ proposed_values.sort_order }}
+                        </div>
+
+
+                        <div
+                            class="model-editor-field-editor"
+                            data-field-editor="sort_order"
+                            hidden
+                        >
+
+                            <input
+                                type="number"
+                                name="sort_order"
+                                value="{{ proposed_values.sort_order }}"
+                                class="form-control"
+                                min="0"
+                            >
+
+
+                            <div
+                                class="model-editor-field-error"
+                                data-proposal-error
+                                hidden
+                            ></div>
+
+
+                            <div class="model-editor-actions">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    data-proposal-action="cancel"
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-primary"
+                                    data-proposal-action="save"
+                                >
+                                    Save
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ========================================================
+                 ATTRIBUTES
+                 ======================================================== -->
+
+            <section class="model-editor-section">
+
+                <div class="model-editor-section-header">
+
+                    <div>
+
+                        <h2>Attributes</h2>
+
+                        <p>
+                            Define information that can be recorded against
+                            instances of this relationship.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        data-add-new-attribute
+                    >
+                        <i class="bi bi-plus-lg"></i>
+                        Add attribute
+                    </button>
+
+                </div>
+
+
+                <div class="model-editor-fields">
+
+                    {% for attribute in attributes %}
+
+                        <article
+                            class="model-object-type-attribute"
+                            data-attribute-id="{{ attribute.id }}"
+                            data-attribute-created="{{ attribute.attribute_created|yesno:'true,false' }}"
+                        >
+
+                            <div class="model-object-type-attribute-display">
+
+                                <div class="model-object-type-attribute-main">
+
+                                    <h3 class="model-object-type-attribute-name">
+                                        {{ attribute.proposed_values.name }}
+                                    </h3>
+
+
+                                    <div class="model-object-type-attribute-meta">
+
+                                        <span>
+                                            {{ attribute.proposed_values.key }}
+                                        </span>
+
+                                        <span>
+                                            {{ attribute.proposed_values.data_type }}
+                                        </span>
+
+                                        {% if attribute.proposed_values.required %}
+                                            <span>Required</span>
+                                        {% endif %}
+
+                                        {% if attribute.proposed_values.nullable %}
+                                            <span>Nullable</span>
+                                        {% endif %}
+
+                                    </div>
+
+
+                                    {% if attribute.proposed_values.description %}
+
+                                        <div class="model-object-type-attribute-description">
+                                            {{ attribute.proposed_values.description }}
+                                        </div>
+
+                                    {% endif %}
+
+
+                                    {% if attribute.attribute_proposed %}
+
+                                        <div class="model-attribute-proposed">
+
+                                            <span
+                                                data-attribute-proposal-indicator
+                                            >
+                                                <i class="bi bi-pencil-square"></i>
+                                                Proposed change
+                                            </span>
+
+                                            <button
+                                                type="button"
+                                                class="model-discard-button"
+                                                data-discard-attribute
+                                            >
+                                                Discard
+                                            </button>
+
+                                        </div>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <div class="model-object-type-attribute-actions">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        data-edit-attribute
+                                    >
+                                        Edit
+                                    </button>
+
+
+                                    {% if attribute.proposed_values.is_active %}
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-secondary"
+                                            data-attribute-status-toggle
+                                            data-is-active="true"
+                                        >
+                                            Active
+                                        </button>
+
+                                    {% else %}
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-secondary"
+                                            data-attribute-status-toggle
+                                            data-is-active="false"
+                                        >
+                                            Retired
+                                        </button>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                class="model-object-type-attribute-editor"
+                                data-attribute-editor
+                                hidden
+                            >
+
+                                <div class="model-editor-fields">
+
+
+                                    <div class="model-editor-field">
+
+                                        <label>
+                                            Name
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="attribute_name"
+                                            value="{{ attribute.proposed_values.name }}"
+                                            class="form-control"
+                                            maxlength="100"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="model-editor-field">
+
+                                        <label>
+                                            Key
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="attribute_key"
+                                            value="{{ attribute.proposed_values.key }}"
+                                            class="form-control"
+                                            maxlength="100"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="model-editor-field">
+
+                                        <label>
+                                            Data type
+                                        </label>
+
+                                        <select
+                                            name="attribute_data_type"
+                                            class="form-select"
+                                        >
+
+                                            {% for value, label in attribute.data_type_choices %}
+
+                                                <option
+                                                    value="{{ value }}"
+                                                    {% if attribute.proposed_values.data_type == value %}
+                                                        selected
+                                                    {% endif %}
+                                                >
+                                                    {{ label }}
+                                                </option>
+
+                                            {% endfor %}
+
+                                        </select>
+
+                                    </div>
+
+
+                                    <div class="model-editor-field">
+
+                                        <label>
+                                            Description
+                                        </label>
+
+                                        <textarea
+                                            name="attribute_description"
+                                            class="form-control"
+                                            rows="3"
+                                        >{{ attribute.proposed_values.description }}</textarea>
+
+                                    </div>
+
+
+                                    <div class="model-editor-field">
+
+                                        <label>
+                                            Default value
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="attribute_default_value"
+                                            value="{{ attribute.proposed_values.default_value|default:'' }}"
+                                            class="form-control"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="model-editor-field">
+
+                                        <label>
+                                            Sort order
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            name="attribute_sort_order"
+                                            value="{{ attribute.proposed_values.sort_order }}"
+                                            class="form-control"
+                                            min="0"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="model-editor-checkboxes">
+
+                                        <label class="form-check">
+
+                                            <input
+                                                type="checkbox"
+                                                name="attribute_required"
+                                                class="form-check-input"
+                                                {% if attribute.proposed_values.required %}
+                                                    checked
+                                                {% endif %}
+                                            >
+
+                                            <span class="form-check-label">
+                                                Required
+                                            </span>
+
+                                        </label>
+
+
+                                        <label class="form-check">
+
+                                            <input
+                                                type="checkbox"
+                                                name="attribute_nullable"
+                                                class="form-check-input"
+                                                {% if attribute.proposed_values.nullable %}
+                                                    checked
+                                                {% endif %}
+                                            >
+
+                                            <span class="form-check-label">
+                                                Nullable
+                                            </span>
+
+                                        </label>
+
+                                    </div>
+
+
+                                    <div
+                                        class="model-editor-field-error"
+                                        data-attribute-error
+                                        hidden
+                                    ></div>
+
+                                </div>
+
+
+                                <div class="model-editor-actions">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        data-cancel-attribute
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-primary"
+                                        data-save-attribute
+                                    >
+                                        Save attribute
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </article>
+
+                    {% empty %}
+
+                        <div
+                            class="model-editor-empty"
+                            data-attribute-empty
+                        >
+
+                            <div class="model-editor-empty-icon">
+                                <i class="bi bi-list-ul"></i>
+                            </div>
+
+                            <div>
+
+                                <h3>No attributes yet</h3>
+
+                                <p>
+                                    Add attributes to define the information
+                                    stored against relationships of this type.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+
+                    <!-- =================================================
+                         NEW ATTRIBUTE
+                         ================================================= -->
+
+                    <article
+                        class="model-object-type-attribute model-object-type-attribute-new"
+                        data-new-attribute-editor
+                        hidden
+                    >
+
+                        <div class="model-object-type-attribute-editor">
+
+                            <div class="model-editor-fields">
+
+                                <div class="model-editor-field">
+
+                                    <label>
+                                        Name
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="attribute_name"
+                                        class="form-control"
+                                        maxlength="100"
+                                        placeholder="e.g. Effective from"
+                                    >
+
+                                </div>
+
+
+                                <div class="model-editor-field">
+
+                                    <label>
+                                        Key
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="attribute_key"
+                                        class="form-control"
+                                        maxlength="100"
+                                        placeholder="e.g. effective_from"
+                                    >
+
+                                </div>
+
+
+                                <div class="model-editor-field">
+
+                                    <label>
+                                        Data type
+                                    </label>
+
+                                    <select
+                                        name="attribute_data_type"
+                                        class="form-select"
+                                    >
+
+                                        {% for value, label in attribute_data_types %}
+
+                                            <option
+                                                value="{{ value }}"
+                                                {% if value == "text" %}
+                                                    selected
+                                                {% endif %}
+                                            >
+                                                {{ label }}
+                                            </option>
+
+                                        {% endfor %}
+
+                                    </select>
+
+                                </div>
+
+
+                                <div class="model-editor-field">
+
+                                    <label>
+                                        Description
+                                    </label>
+
+                                    <textarea
+                                        name="attribute_description"
+                                        class="form-control"
+                                        rows="3"
+                                    ></textarea>
+
+                                </div>
+
+
+                                <div class="model-editor-field">
+
+                                    <label>
+                                        Default value
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="attribute_default_value"
+                                        class="form-control"
+                                    >
+
+                                </div>
+
+
+                                <div class="model-editor-field">
+
+                                    <label>
+                                        Sort order
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        name="attribute_sort_order"
+                                        value="0"
+                                        class="form-control"
+                                        min="0"
+                                    >
+
+                                </div>
+
+
+                                <div class="model-editor-checkboxes">
+
+                                    <label class="form-check">
+
+                                        <input
+                                            type="checkbox"
+                                            name="attribute_required"
+                                            class="form-check-input"
+                                        >
+
+                                        <span class="form-check-label">
+                                            Required
+                                        </span>
+
+                                    </label>
+
+
+                                    <label class="form-check">
+
+                                        <input
+                                            type="checkbox"
+                                            name="attribute_nullable"
+                                            class="form-check-input"
+                                        >
+
+                                        <span class="form-check-label">
+                                            Nullable
+                                        </span>
+
+                                    </label>
+
+                                </div>
+
+
+                                <div
+                                    class="model-editor-field-error"
+                                    data-new-attribute-error
+                                    hidden
+                                ></div>
+
+                            </div>
+
+
+                            <div class="model-editor-actions">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    data-cancel-new-attribute
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-primary"
+                                    data-save-new-attribute
+                                >
+                                    Add attribute
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+            </section>
+
+
+            <!-- ========================================================
+                 RULES
+                 ======================================================== -->
+
+            <section class="model-editor-section">
+
+                <div class="model-editor-section-header">
+
+                    <div>
+
+                        <h2>Rules</h2>
+
+                        <p>
+                            Define which object type combinations are valid
+                            for this relationship and how many connections
+                            are allowed.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        data-rule-add
+                    >
+                        <i class="bi bi-plus-lg"></i>
+                        Add rule
+                    </button>
+
+                </div>
+
+
+                <div
+                    class="model-relationship-rules"
+                    data-rule-list
+                >
+
+                    {% for rule in rules %}
+
+                        <article
+                            class="model-relationship-rule"
+                            data-rule-id="{{ rule.id }}"
+                        >
+
+                            <div class="model-relationship-rule-main">
+
+                                <div class="model-relationship-rule-types">
+
+                                    <div class="model-relationship-rule-type">
+
+                                        <span class="model-relationship-rule-label">
+                                            Subject
+                                        </span>
+
+                                        <strong>
+                                            {% if rule.subject_type %}
+                                                {{ rule.subject_type.name }}
+                                            {% else %}
+                                                Unknown
+                                            {% endif %}
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="model-relationship-rule-arrow">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </div>
+
+
+                                    <div class="model-relationship-rule-type">
+
+                                        <span class="model-relationship-rule-label">
+                                            Object
+                                        </span>
+
+                                        <strong>
+                                            {% if rule.object_type %}
+                                                {{ rule.object_type.name }}
+                                            {% else %}
+                                                Unknown
+                                            {% endif %}
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="model-relationship-rule-cardinality">
+
+                                    <span>
+                                        {{ rule.subject_minimum }}..
+                                        {% if rule.subject_maximum is None %}
+                                            *
+                                        {% else %}
+                                            {{ rule.subject_maximum }}
+                                        {% endif %}
+                                    </span>
+
+                                    <i class="bi bi-arrow-left-right"></i>
+
+                                    <span>
+                                        {{ rule.object_minimum }}..
+                                        {% if rule.object_maximum is None %}
+                                            *
+                                        {% else %}
+                                            {{ rule.object_maximum }}
+                                        {% endif %}
+                                    </span>
+
+                                </div>
+
+
+                                {% if rule.is_proposed %}
+
+                                    <div class="model-proposed-indicator">
+
+                                        <i class="bi bi-pencil-square"></i>
+
+                                        {% if rule.is_created %}
+                                            Proposed rule
+                                        {% else %}
+                                            Proposed change
+                                        {% endif %}
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <div class="model-object-type-attribute-actions">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    data-rule-edit
+                                    data-rule-id="{{ rule.id }}"
+                                >
+                                    Edit
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    data-rule-discard
+                                    data-rule-id="{{ rule.id }}"
+                                >
+                                    {% if rule.is_created %}
+                                        Remove
+                                    {% else %}
+                                        Discard
+                                    {% endif %}
+                                </button>
+
+                            </div>
+
+
+                            <!-- =================================================
+                                 RULE EDITOR
+                                 ================================================= -->
+
+                            <div
+                                class="model-object-type-attribute-editor"
+                                data-rule-editor
+                                hidden
+                            >
+
+                                <div class="model-editor-fields">
+
+
+                                    <div class="model-editor-field">
+
+                                        <label>
+                                            Subject object type
+                                        </label>
+
+                                        <select
+                                            name="subject_type_id"
+                                            class="form-select"
+                                        >
+
+                                            <option value="">
+                                                Select object type
+                                            </option>
+
+                                            {% for object_type in working_object_types %}
+
+                                                <option
+                                                    value="{{ object_type.id }}"
+                                                    {% if object_type.id == rule.subject_type_id %}
+                                                        selected
+                                                    {% endif %}
+                                                >
+                                                    {{ object_type.name }}
+                                                </option>
+
+                                            {% endfor %}
+
+                                        </select>
+
+                                    </div>
+
+
+                                    <div class="model-editor-field">
+
+                                        <label>
+                                            Object type
+                                        </label>
+
+                                        <select
+                                            name="object_type_id"
+                                            class="form-select"
+                                        >
+
+                                            <option value="">
+                                                Select object type
+                                            </option>
+
+                                            {% for object_type in working_object_types %}
+
+                                                <option
+                                                    value="{{ object_type.id }}"
+                                                    {% if object_type.id == rule.object_type_id %}
+                                                        selected
+                                                    {% endif %}
+                                                >
+                                                    {{ object_type.name }}
+                                                </option>
+
+                                            {% endfor %}
+
+                                        </select>
+
+                                    </div>
+
+
+                                    <div class="model-editor-field">
+
+                                        <label>
+                                            Subject minimum
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            name="subject_minimum"
+                                            value="{{ rule.subject_minimum }}"
+                                            class="form-control"
+                                            min="0"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="model-editor-field">
+
+                                        <label>
+                                            Subject maximum
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            name="subject_maximum"
+                                            value="{{ rule.subject_maximum|default_if_none:'' }}"
+                                            class="form-control"
+                                            min="0"
+                                        >
+
+                                        <div class="model-editor-field-help">
+                                            Leave blank for unlimited.
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="model-editor-field">
+
+                                        <label>
+                                            Object minimum
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            name="object_minimum"
+                                            value="{{ rule.object_minimum }}"
+                                            class="form-control"
+                                            min="0"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="model-editor-field">
+
+                                        <label>
+                                            Object maximum
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            name="object_maximum"
+                                            value="{{ rule.object_maximum|default_if_none:'' }}"
+                                            class="form-control"
+                                            min="0"
+                                        >
+
+                                        <div class="model-editor-field-help">
+                                            Leave blank for unlimited.
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="model-editor-checkboxes">
+
+                                        <label class="form-check">
+
+                                            <input
+                                                type="checkbox"
+                                                name="subject_required"
+                                                class="form-check-input"
+                                                {% if rule.subject_required %}
+                                                    checked
+                                                {% endif %}
+                                            >
+
+                                            <span class="form-check-label">
+                                                Subject required
+                                            </span>
+
+                                        </label>
+
+
+                                        <label class="form-check">
+
+                                            <input
+                                                type="checkbox"
+                                                name="object_required"
+                                                class="form-check-input"
+                                                {% if rule.object_required %}
+                                                    checked
+                                                {% endif %}
+                                            >
+
+                                            <span class="form-check-label">
+                                                Object required
+                                            </span>
+
+                                        </label>
+
+                                    </div>
+
+
+                                    <div
+                                        class="model-editor-field-error"
+                                        data-rule-error
+                                        hidden
+                                    ></div>
+
+                                </div>
+
+
+                                <div class="model-editor-actions">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        data-rule-cancel
+                                    >
+                                        Cancel
+                                    </button>
+
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-primary"
+                                        data-rule-save
+                                        data-rule-id="{{ rule.id }}"
+                                    >
+                                        Save rule
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </article>
+
+                    {% empty %}
+
+                        <div class="model-editor-empty">
+
+                            <div class="model-editor-empty-icon">
+                                <i class="bi bi-diagram-3"></i>
+                            </div>
+
+                            <div>
+
+                                <h3>No rules yet</h3>
+
+                                <p>
+                                    Add rules to define which combinations
+                                    of object types may participate in this
+                                    relationship.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- =====================================================
+                     NEW RULE
+                     ===================================================== -->
+
+                <div
+                    class="model-object-type-attribute-editor"
+                    data-new-rule-editor
+                    hidden
+                >
+
+                    <div class="model-editor-fields">
+
+
+                        <div class="model-editor-field">
+
+                            <label>
+                                Subject object type
+                            </label>
+
+                            <select
+                                name="subject_type_id"
+                                data-new-rule-subject
+                                class="form-select"
+                            >
+
+                                <option value="">
+                                    Select object type
+                                </option>
+
+                                {% for object_type in working_object_types %}
+
+                                    <option value="{{ object_type.id }}">
+                                        {{ object_type.name }}
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="model-editor-field">
+
+                            <label>
+                                Object type
+                            </label>
+
+                            <select
+                                name="object_type_id"
+                                data-new-rule-object
+                                class="form-select"
+                            >
+
+                                <option value="">
+                                    Select object type
+                                </option>
+
+                                {% for object_type in working_object_types %}
+
+                                    <option value="{{ object_type.id }}">
+                                        {{ object_type.name }}
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="model-editor-field">
+
+                            <label>
+                                Subject minimum
+                            </label>
+
+                            <input
+                                type="number"
+                                name="subject_minimum"
+                                data-new-rule-subject-minimum
+                                value="0"
+                                class="form-control"
+                                min="0"
+                            >
+
+                        </div>
+
+
+                        <div class="model-editor-field">
+
+                            <label>
+                                Subject maximum
+                            </label>
+
+                            <input
+                                type="number"
+                                name="subject_maximum"
+                                data-new-rule-subject-maximum
+                                class="form-control"
+                                min="0"
+                                placeholder="Unlimited"
+                            >
+
+                        </div>
+
+
+                        <div class="model-editor-field">
+
+                            <label>
+                                Object minimum
+                            </label>
+
+                            <input
+                                type="number"
+                                name="object_minimum"
+                                data-new-rule-object-minimum
+                                value="0"
+                                class="form-control"
+                                min="0"
+                            >
+
+                        </div>
+
+
+                        <div class="model-editor-field">
+
+                            <label>
+                                Object maximum
+                            </label>
+
+                            <input
+                                type="number"
+                                name="object_maximum"
+                                data-new-rule-object-maximum
+                                class="form-control"
+                                min="0"
+                                placeholder="Unlimited"
+                            >
+
+                        </div>
+
+
+                        <div class="model-editor-checkboxes">
+
+                            <label class="form-check">
+
+                                <input
+                                    type="checkbox"
+                                    name="subject_required"
+                                    data-new-rule-subject-required
+                                    class="form-check-input"
+                                >
+
+                                <span class="form-check-label">
+                                    Subject required
+                                </span>
+
+                            </label>
+
+
+                            <label class="form-check">
+
+                                <input
+                                    type="checkbox"
+                                    name="object_required"
+                                    data-new-rule-object-required
+                                    class="form-check-input"
+                                >
+
+                                <span class="form-check-label">
+                                    Object required
+                                </span>
+
+                            </label>
+
+                        </div>
+
+
+                        <div
+                            class="model-editor-field-error"
+                            data-new-rule-error
+                            hidden
+                        ></div>
+
+                    </div>
+
+
+                    <div class="model-editor-actions">
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            data-rule-cancel-new
+                        >
+                            Cancel
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-primary"
+                            data-rule-save-new
+                        >
+                            Add rule
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ========================================================
+                 FOOTER
+                 ======================================================== -->
+
+            <div class="model-editor-footer">
+
+                <a
+                    href="{% url 'model:relationship_types' model.id %}"
+                    class="btn btn-outline-secondary"
+                >
+                    Back to relationship types
+                </a>
+
+            </div>
+
+        </div>
+
+
+    {% else %}
+
+        <!-- ============================================================
+             CREATE RELATIONSHIP TYPE
+             ============================================================ -->
+
+        <form
+            method="post"
+            class="model-object-type-create-form"
+        >
+
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="action"
+                value="create_relationship_type"
+            >
+
+
+            <section class="model-editor-section">
+
+                <div class="model-editor-section-header">
+
+                    <div>
+
+                        <h2>Details</h2>
+
+                        <p>
+                            Define the identity and purpose of this
+                            relationship type.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="model-editor-fields">
+
+
+                    <div class="model-editor-field">
+
+                        <div class="model-editor-field-header">
+
+                            <label for="id_name">
+                                Name
+                            </label>
+
+                        </div>
+
+
+                        <input
+                            type="text"
+                            id="id_name"
+                            name="name"
+                            value="{{ form.name.value|default:'' }}"
+                            class="form-control"
+                            maxlength="100"
+                            placeholder="e.g. Uses"
+                            required
+                        >
+
+
+                        {% if form.name.errors %}
+
+                            <div class="model-editor-field-error">
+                                {{ form.name.errors }}
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="model-editor-field">
+
+                        <div class="model-editor-field-header">
+
+                            <label for="id_key">
+                                Key
+                            </label>
+
+                        </div>
+
+
+                        <input
+                            type="text"
+                            id="id_key"
+                            name="key"
+                            value="{{ form.key.value|default:'' }}"
+                            class="form-control"
+                            maxlength="100"
+                            placeholder="e.g. uses"
+                            required
+                        >
+
+
+                        <div class="model-editor-field-help">
+                            A unique identifier for this relationship type.
+                        </div>
+
+
+                        {% if form.key.errors %}
+
+                            <div class="model-editor-field-error">
+                                {{ form.key.errors }}
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="model-editor-field">
+
+                        <div class="model-editor-field-header">
+
+                            <label for="id_description">
+                                Description
+                            </label>
+
+                        </div>
+
+
+                        <textarea
+                            id="id_description"
+                            name="description"
+                            class="form-control"
+                            rows="4"
+                        >{{ form.description.value|default:'' }}</textarea>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <div class="model-editor-footer">
+
+                <a
+                    href="{% url 'model:relationship_types' model.id %}"
+                    class="btn btn-outline-secondary"
+                >
+                    Cancel
+                </a>
+
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    Create relationship type
+                </button>
+
+            </div>
+
+        </form>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
