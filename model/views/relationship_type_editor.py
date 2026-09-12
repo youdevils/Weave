@@ -1355,6 +1355,205 @@ def relationship_type_editor(
             proposal_only = True
 
     # =================================================================
+    # RelationshipType lifecycle
+    # =================================================================
+
+    if (
+        request.method == "POST"
+        and request.POST.get("action") == "set_relationship_type_status"
+    ):
+
+        if relationship_type is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Relationship type not found.",
+                },
+                status=404,
+            )
+
+        try:
+            desired_active = _coerce_boolean(
+                request.POST.get(
+                    "is_active",
+                    "",
+                ),
+                "Status",
+            )
+
+        except ValueError as exc:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": str(exc),
+                },
+                status=400,
+            )
+
+        if proposal is None:
+            proposal = _working_proposal(
+                model,
+                request.user,
+            )
+
+        if proposal_only:
+
+            create_change = _relationship_type_create_change(
+                relationship_type.id,
+                proposal,
+            )
+
+            if create_change is None:
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": "Proposed relationship type not found.",
+                    },
+                    status=404,
+                )
+
+            after = dict(
+                create_change.after or {},
+            )
+
+            after["is_active"] = desired_active
+
+            create_change.after = after
+
+            create_change.save(
+                update_fields=[
+                    "after",
+                    "updated_at",
+                ]
+            )
+
+            ProposalService.reset_validation(
+                proposal,
+            )
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "value": _serialize_value(
+                        desired_active,
+                    ),
+                    "proposed": True,
+                }
+            )
+
+        canonical_active = relationship_type.is_active
+
+        if desired_active == canonical_active:
+
+            if proposal:
+                ProposalService.discard_change(
+                    proposal=proposal,
+                    target_type="RelationshipType",
+                    target_id=relationship_type.id,
+                    field="is_active",
+                )
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "value": _serialize_value(
+                        canonical_active,
+                    ),
+                    "proposed": (
+                        _relationship_type_proposed_fields(
+                            relationship_type.id,
+                            proposal,
+                        )["is_active"]
+                    ),
+                }
+            )
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="RelationshipType",
+            target_id=relationship_type.id,
+            parent_type="Model",
+            parent_id=model.id,
+            field="is_active",
+            before={
+                "field": "is_active",
+                "value": canonical_active,
+            },
+            after={
+                "field": "is_active",
+                "value": desired_active,
+            },
+        )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "value": _serialize_value(
+                    desired_active,
+                ),
+                "proposed": True,
+            }
+        )
+
+    # =================================================================
+    # RelationshipType lifecycle discard
+    # =================================================================
+
+    if (
+        request.method == "POST"
+        and request.POST.get("action") == "discard_relationship_type_status"
+    ):
+
+        if relationship_type is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Relationship type not found.",
+                },
+                status=404,
+            )
+
+        if proposal is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "There is no working proposal to discard.",
+                },
+                status=400,
+            )
+
+        if proposal_only:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": (
+                        "The lifecycle of a newly proposed "
+                        "Relationship Type cannot be independently "
+                        "discarded."
+                    ),
+                },
+                status=400,
+            )
+
+        ProposalService.discard_change(
+            proposal=proposal,
+            target_type="RelationshipType",
+            target_id=relationship_type.id,
+            field="is_active",
+        )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "value": _serialize_value(
+                    relationship_type.is_active,
+                ),
+                "proposed": False,
+            }
+        )
+
+    # =================================================================
     # Relationship Type property editing
     # =================================================================
 

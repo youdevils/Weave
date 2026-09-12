@@ -261,10 +261,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (objectTypeStatusButton) {
 
-                setObjectTypeStatus(
-                    root,
-                    objectTypeStatusButton
-                );
+                if (
+                    root.querySelector(
+                        "[data-relationship-type-lifecycle]"
+                    )
+                ) {
+
+                    setRelationshipTypeStatus(
+                        root,
+                        objectTypeStatusButton
+                    );
+
+                } else {
+
+                    setObjectTypeStatus(
+                        root,
+                        objectTypeStatusButton
+                    );
+
+                }
 
                 return;
             }
@@ -277,10 +292,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (objectTypeLifecycleDiscard) {
 
-                discardObjectTypeStatus(
-                    root,
-                    objectTypeLifecycleDiscard
-                );
+                if (
+                    root.querySelector(
+                        "[data-relationship-type-lifecycle]"
+                    )
+                ) {
+
+                    discardRelationshipTypeStatus(
+                        root,
+                        objectTypeLifecycleDiscard
+                    );
+
+                } else {
+
+                    discardObjectTypeStatus(
+                        root,
+                        objectTypeLifecycleDiscard
+                    );
+
+                }
 
                 return;
             }
@@ -1402,6 +1432,271 @@ document.addEventListener("DOMContentLoaded", function () {
                 active
                     ? "bi bi-check-circle"
                     : "bi bi-archive";
+
+
+            status.appendChild(
+                icon
+            );
+
+
+            status.appendChild(
+                document.createTextNode(
+                    active
+                        ? " Active"
+                        : " Retired"
+                )
+            );
+
+        }
+
+
+        if (toggle) {
+
+            toggle.textContent =
+                active
+                    ? "Retire"
+                    : "Activate";
+
+        }
+
+
+        if (indicator) {
+            indicator.hidden =
+                !proposed;
+        }
+
+
+        if (discard) {
+            discard.hidden =
+                !proposed;
+        }
+
+    }
+
+
+    /* ============================================================
+       RelationshipType lifecycle
+       ============================================================ */
+
+    async function setRelationshipTypeStatus(
+        root,
+        button
+    ) {
+
+        const control =
+            root.querySelector(
+                "[data-relationship-type-lifecycle]"
+            );
+
+
+        if (!control) {
+            return;
+        }
+
+
+        const current =
+            control.dataset.active ===
+            "true";
+
+
+        const desired =
+            !current;
+
+
+        const csrfToken =
+            getCsrfToken();
+
+
+        if (!csrfToken) {
+
+            console.error(
+                "RelationshipType lifecycle: CSRF unavailable."
+            );
+
+            return;
+        }
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const data =
+                await postForm(
+                    root.dataset.updateUrl,
+                    csrfToken,
+                    {
+                        action:
+                            "set_relationship_type_status",
+
+                        is_active:
+                            desired
+                                ? "true"
+                                : "false"
+                    }
+                );
+
+
+            updateRelationshipTypeStatusUI(
+                root,
+                data.value,
+                data.proposed
+            );
+
+        } catch (error) {
+
+            console.error(
+                "RelationshipType lifecycle update failed:",
+                error
+            );
+
+        } finally {
+
+            button.disabled =
+                false;
+
+        }
+
+    }
+
+
+    async function discardRelationshipTypeStatus(
+        root,
+        button
+    ) {
+
+        const csrfToken =
+            getCsrfToken();
+
+
+        if (!csrfToken) {
+            console.error(
+                "RelationshipType lifecycle discard: CSRF unavailable."
+            );
+            return;
+        }
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const data =
+                await postForm(
+                    root.dataset.updateUrl,
+                    csrfToken,
+                    {
+                        action:
+                            "discard_relationship_type_status"
+                    }
+                );
+
+
+            updateRelationshipTypeStatusUI(
+                root,
+                data.value,
+                false
+            );
+
+        } catch (error) {
+
+            console.error(
+                "RelationshipType lifecycle discard failed:",
+                error
+            );
+
+        } finally {
+
+            button.disabled =
+                false;
+
+        }
+
+    }
+
+
+    function updateRelationshipTypeStatusUI(
+        root,
+        value,
+        proposed
+    ) {
+
+        const active =
+            normaliseValue(
+                value
+            ) === "true";
+
+
+        const control =
+            root.querySelector(
+                "[data-relationship-type-lifecycle]"
+            );
+
+        const status =
+            root.querySelector(
+                "[data-status-display]"
+            );
+
+        const toggle =
+            root.querySelector(
+                "[data-status-toggle]"
+            );
+
+        const indicator =
+            root.querySelector(
+                "[data-lifecycle-proposal-indicator]"
+            );
+
+        const discard =
+            root.querySelector(
+                "[data-lifecycle-discard]"
+            );
+
+
+        if (control) {
+
+            control.dataset.active =
+                active
+                    ? "true"
+                    : "false";
+
+
+            control.dataset.proposed =
+                proposed
+                    ? "true"
+                    : "false";
+
+        }
+
+
+        if (status) {
+
+            status.className =
+                "model-status-pill "
+                + (
+                    active
+                        ? "model-status-active"
+                        : "model-status-retired"
+                );
+
+
+            status.replaceChildren();
+
+
+            const icon =
+                document.createElement(
+                    "i"
+                );
+
+
+            icon.className =
+                active
+                    ? "bi bi-check-circle"
+                    : "bi bi-dash-circle";
 
 
             status.appendChild(

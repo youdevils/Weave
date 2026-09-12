@@ -458,6 +458,95 @@
 
                     </div>
 
+                    <div class="model-object-type-lifecycle">
+
+                        <div class="model-object-type-lifecycle-main">
+
+                            <div class="model-object-type-lifecycle-label">
+                                Status
+                            </div>
+
+                            <div class="model-object-type-lifecycle-description">
+                                Controls whether this relationship type is available for
+                                new modelling. Retiring a relationship type does not remove
+                                it or its existing relationships from the model.
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="model-object-type-lifecycle-control"
+                            data-relationship-type-lifecycle
+                            data-active="{{ proposed_values.is_active|yesno:'true,false' }}"
+                            data-proposed="{{ proposed_fields.is_active|yesno:'true,false' }}"
+                        >
+
+                            <div
+                                class="
+                                    model-status-pill
+                                    {% if proposed_values.is_active %}
+                                        model-status-active
+                                    {% else %}
+                                        model-status-retired
+                                    {% endif %}
+                                "
+                                data-status-display
+                            >
+
+                                {% if proposed_values.is_active %}
+
+                                    <i class="bi bi-check-circle"></i>
+                                    Active
+
+                                {% else %}
+
+                                    <i class="bi bi-dash-circle"></i>
+                                    Retired
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                data-status-toggle
+                            >
+
+                                {% if proposed_values.is_active %}
+                                    Retire
+                                {% else %}
+                                    Activate
+                                {% endif %}
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="model-proposed-indicator model-object-type-lifecycle-proposal"
+                        data-lifecycle-proposal-indicator
+                        {% if not proposed_fields.is_active %}hidden{% endif %}
+                    >
+                        <i class="bi bi-pencil-square"></i>
+                        Proposed change
+
+                        <button
+                            type="button"
+                            class="model-discard-button"
+                            data-lifecycle-discard
+                            {% if not proposed_fields.is_active %}hidden{% endif %}
+                        >
+                            Discard
+                        </button>
+
+                    </div>
+
                 </div>
 
             </section>
@@ -1073,94 +1162,70 @@
 
                             <div class="model-relationship-rule-main">
 
-                                <div class="model-relationship-rule-types">
+                                <div class="model-relationship-rule-endpoint">
 
-                                    <div class="model-relationship-rule-type">
+                                    <strong class="model-relationship-rule-type">
 
-                                        <span class="model-relationship-rule-label">
-                                            Subject
-                                        </span>
+                                        {% if rule.subject_type %}
+                                            {{ rule.subject_type.name }}
+                                        {% else %}
+                                            Unknown
+                                        {% endif %}
 
-                                        <strong>
-                                            {% if rule.subject_type %}
-                                                {{ rule.subject_type.name }}
-                                            {% else %}
-                                                Unknown
-                                            {% endif %}
-                                        </strong>
+                                    </strong>
 
-                                    </div>
+                                    <span class="model-relationship-rule-cardinality">
 
-
-                                    <div class="model-relationship-rule-arrow">
-                                        <i class="bi bi-arrow-right"></i>
-                                    </div>
-
-
-                                    <div class="model-relationship-rule-type">
-
-                                        <span class="model-relationship-rule-label">
-                                            Object
-                                        </span>
-
-                                        <strong>
-                                            {% if rule.object_type %}
-                                                {{ rule.object_type.name }}
-                                            {% else %}
-                                                Unknown
-                                            {% endif %}
-                                        </strong>
-
-                                    </div>
-
-                                </div>
-
-
-                                <div class="model-relationship-rule-cardinality">
-
-                                    <span>
                                         {{ rule.subject_minimum }}..
                                         {% if rule.subject_maximum is None %}
                                             *
                                         {% else %}
                                             {{ rule.subject_maximum }}
                                         {% endif %}
+
                                     </span>
 
-                                    <i class="bi bi-arrow-left-right"></i>
+                                </div>
 
-                                    <span>
+
+                                <div class="model-relationship-rule-connector">
+
+                                    <span class="model-relationship-rule-line"></span>
+
+                                    <i class="bi bi-arrow-right"></i>
+
+                                </div>
+
+
+                                <div class="model-relationship-rule-endpoint">
+
+                                    <span class="model-relationship-rule-cardinality">
+
                                         {{ rule.object_minimum }}..
                                         {% if rule.object_maximum is None %}
                                             *
                                         {% else %}
                                             {{ rule.object_maximum }}
                                         {% endif %}
+
                                     </span>
 
-                                </div>
+                                    <strong class="model-relationship-rule-type">
 
-
-                                {% if rule.is_proposed %}
-
-                                    <div class="model-proposed-indicator">
-
-                                        <i class="bi bi-pencil-square"></i>
-
-                                        {% if rule.is_created %}
-                                            Proposed rule
+                                        {% if rule.object_type %}
+                                            {{ rule.object_type.name }}
                                         {% else %}
-                                            Proposed change
+                                            Unknown
                                         {% endif %}
 
-                                    </div>
+                                    </strong>
 
-                                {% endif %}
+                                </div>
 
                             </div>
 
 
-                            <div class="model-object-type-attribute-actions">
+                            <div class="model-object-type-attribute-actions mt-2">
 
                                 <button
                                     type="button"
