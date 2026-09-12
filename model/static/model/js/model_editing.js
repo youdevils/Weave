@@ -108,6 +108,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
             /*
              * ----------------------------------------------------
+             * RelationshipType index discard
+             * ----------------------------------------------------
+             */
+
+            const discardRelationshipType =
+                event.target.closest(
+                    "[data-discard-relationship-type]"
+                );
+
+            if (discardRelationshipType) {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                discardRelationshipTypeProposal(
+                    discardRelationshipType
+                );
+
+                return;
+            }
+
+
+            /*
+             * ----------------------------------------------------
              * Find containing proposal editor.
              * ----------------------------------------------------
              */
@@ -378,7 +402,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const addAttributeButton =
                 event.target.closest(
-                    "[data-add-attribute]"
+                    "[data-add-new-attribute]"
                 );
 
             if (addAttributeButton) {
@@ -416,6 +440,135 @@ document.addEventListener("DOMContentLoaded", function () {
                 saveNewAttribute(
                     root,
                     saveNewAttributeButton
+                );
+
+            }
+
+
+            /*
+             * ----------------------------------------------------
+             * RelationshipType rule editing
+             * ----------------------------------------------------
+             */
+
+            const addRuleButton =
+                event.target.closest(
+                    "[data-rule-add]"
+                );
+
+            if (addRuleButton) {
+
+                openNewRule(
+                    root
+                );
+
+                return;
+            }
+
+
+            const editRuleButton =
+                event.target.closest(
+                    "[data-rule-edit]"
+                );
+
+            if (editRuleButton) {
+
+                const rule =
+                    editRuleButton.closest(
+                        ".model-relationship-rule"
+                    );
+
+                if (rule) {
+                    openRule(rule);
+                }
+
+                return;
+            }
+
+
+            const cancelRuleButton =
+                event.target.closest(
+                    "[data-rule-cancel]"
+                );
+
+            if (cancelRuleButton) {
+
+                const rule =
+                    cancelRuleButton.closest(
+                        ".model-relationship-rule"
+                    );
+
+                if (rule) {
+                    closeRule(rule);
+                }
+
+                return;
+            }
+
+
+            const saveRuleButton =
+                event.target.closest(
+                    "[data-rule-save]"
+                );
+
+            if (saveRuleButton) {
+
+                saveRule(
+                    root,
+                    saveRuleButton
+                );
+
+                return;
+            }
+
+
+            const discardRuleButton =
+                event.target.closest(
+                    "[data-rule-discard]"
+                );
+
+            if (discardRuleButton) {
+
+                discardRule(
+                    root,
+                    discardRuleButton
+                );
+
+                return;
+            }
+
+
+            /*
+             * ----------------------------------------------------
+             * RelationshipType new rule
+             * ----------------------------------------------------
+             */
+
+            const cancelNewRuleButton =
+                event.target.closest(
+                    "[data-rule-cancel-new]"
+                );
+
+            if (cancelNewRuleButton) {
+
+                closeNewRule(
+                    root
+                );
+
+                return;
+            }
+
+
+            const saveNewRuleButton =
+                event.target.closest(
+                    "[data-rule-save-new]"
+                );
+
+            if (saveNewRuleButton) {
+
+                saveNewRule(
+                    root,
+                    saveNewRuleButton
                 );
 
             }
@@ -2318,75 +2471,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 "create_attribute";
 
 
-            const data =
-                await postForm(
+            
+            await postForm(
                     root.dataset.updateUrl,
                     csrfToken,
                     values
                 );
 
+            window.location.reload();
 
-            /*
-             * Remove the empty state if present.
-             */
-
-            const empty =
-                root.querySelector(
-                    "[data-attribute-empty]"
-                );
-
-
-            if (empty) {
-                empty.remove();
-            }
-
-
-            const attribute =
-                createAttributeElement(
-                    data
-                );
-
-
-            const list =
-                root.querySelector(
-                    "[data-attribute-list]"
-                );
-
-
-            if (!list) {
-
-                throw new Error(
-                    "Attribute list not found."
-                );
-
-            }
-
-
-            const newEditor =
-                list.querySelector(
-                    "[data-new-attribute-editor]"
-                );
-
-
-            if (newEditor) {
-
-                list.insertBefore(
-                    attribute,
-                    newEditor
-                );
-
-            } else {
-
-                list.appendChild(
-                    attribute
-                );
-
-            }
-
-
-            closeNewAttribute(
-                root
-            );
 
         } catch (errorValue) {
 
@@ -2401,327 +2494,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 false;
 
         }
-
-    }
-
-
-    function createAttributeElement(
-        data
-    ) {
-
-        const attribute =
-            document.createElement(
-                "article"
-            );
-
-
-        attribute.className =
-            "model-object-type-attribute";
-
-
-        attribute.dataset.attributeId =
-            data.attribute_id;
-
-
-        attribute.dataset.attributeCreated =
-            "true";
-
-
-        attribute.dataset.attributeProposed =
-            "true";
-
-
-        attribute.dataset.attributeActive =
-            normaliseValue(
-                data.values.is_active
-            ) === "true"
-                ? "true"
-                : "false";
-
-
-        attribute.innerHTML = `
-            <div
-                class="model-object-type-attribute-display"
-                data-attribute-display
-            >
-
-                <div
-                    class="model-object-type-attribute-main"
-                >
-
-                    <h3
-                        class="model-object-type-attribute-name"
-                    ></h3>
-
-
-                    <div
-                        class="model-object-type-attribute-meta"
-                    >
-
-                        <span
-                            data-attribute-key
-                        ></span>
-
-                        <span
-                            data-attribute-data-type
-                        ></span>
-
-                        <span
-                            data-attribute-required
-                        ></span>
-
-                        <span
-                            data-attribute-nullable
-                        ></span>
-
-                    </div>
-
-
-                    <div
-                        class="model-object-type-attribute-description"
-                        data-attribute-description
-                    ></div>
-
-                </div>
-
-
-                <div
-                    class="model-object-type-attribute-actions"
-                >
-
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        data-edit-attribute
-                    >
-                        Edit
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        data-attribute-status-toggle
-                    >
-                        Retire
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <div
-                class="model-proposed-indicator"
-                data-attribute-proposal-indicator
-            >
-
-                <i class="bi bi-pencil-square"></i>
-
-                Proposed change
-
-                <button
-                    type="button"
-                    class="model-discard-button"
-                    data-discard-attribute
-                >
-                    Discard
-                </button>
-
-            </div>
-
-
-            <div
-                class="model-object-type-attribute-editor"
-                data-attribute-editor
-                hidden
-            >
-
-                <div class="model-editor-fields">
-
-
-                    <div class="model-editor-field">
-
-                        <label>Name</label>
-
-                        <input
-                            type="text"
-                            name="attribute_name"
-                            class="form-control"
-                            maxlength="100"
-                        >
-
-                    </div>
-
-
-                    <div class="model-editor-field">
-
-                        <label>Key</label>
-
-                        <input
-                            type="text"
-                            name="attribute_key"
-                            class="form-control"
-                            maxlength="100"
-                        >
-
-                    </div>
-
-
-                    <div class="model-editor-field">
-
-                        <label>Data type</label>
-
-                        <select
-                            name="attribute_data_type"
-                            class="form-select"
-                        >
-
-                            <option value="text">
-                                Text
-                            </option>
-
-                            <option value="number">
-                                Number
-                            </option>
-
-                            <option value="boolean">
-                                Boolean
-                            </option>
-
-                            <option value="date">
-                                Date
-                            </option>
-
-                            <option value="datetime">
-                                Date &amp; time
-                            </option>
-
-                            <option value="choice">
-                                Choice
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="model-editor-field">
-
-                        <label>Description</label>
-
-                        <textarea
-                            name="attribute_description"
-                            class="form-control"
-                            rows="3"
-                        ></textarea>
-
-                    </div>
-
-
-                    <div class="model-editor-field">
-
-                        <label>Default value</label>
-
-                        <input
-                            type="text"
-                            name="attribute_default_value"
-                            class="form-control"
-                        >
-
-                    </div>
-
-
-                    <div class="model-editor-field">
-
-                        <label>Sort order</label>
-
-                        <input
-                            type="number"
-                            name="attribute_sort_order"
-                            class="form-control"
-                            value="0"
-                            min="0"
-                        >
-
-                    </div>
-
-
-                    <div class="model-editor-checkboxes">
-
-                        <label class="form-check">
-
-                            <input
-                                type="checkbox"
-                                name="attribute_required"
-                                class="form-check-input"
-                            >
-
-                            <span class="form-check-label">
-                                Required
-                            </span>
-
-                        </label>
-
-
-                        <label class="form-check">
-
-                            <input
-                                type="checkbox"
-                                name="attribute_nullable"
-                                class="form-check-input"
-                            >
-
-                            <span class="form-check-label">
-                                Nullable
-                            </span>
-
-                        </label>
-
-                    </div>
-
-
-                    <div
-                        class="model-editor-field-error"
-                        data-attribute-error
-                        hidden
-                    ></div>
-
-                </div>
-
-
-                <div class="model-editor-actions">
-
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary"
-                        data-cancel-attribute
-                    >
-                        Cancel
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-primary"
-                        data-save-attribute
-                    >
-                        Save attribute
-                    </button>
-
-                </div>
-
-            </div>
-        `;
-
-
-        applyAttributeValues(
-            attribute,
-            data.values
-        );
-
-
-        return attribute;
 
     }
 
@@ -2942,6 +2714,560 @@ document.addEventListener("DOMContentLoaded", function () {
                 false;
 
         }
+
+    }
+
+
+    /* ============================================================
+       RelationshipType index discard
+       ============================================================ */
+
+    async function discardRelationshipTypeProposal(
+        button
+    ) {
+
+        const relationshipTypeId =
+            button.dataset.relationshipTypeId;
+
+
+        if (!relationshipTypeId) {
+
+            console.error(
+                "RelationshipType proposal discard: ID missing."
+            );
+
+            return;
+        }
+
+
+        const csrfToken =
+            getCsrfToken();
+
+
+        if (!csrfToken) {
+
+            console.error(
+                "RelationshipType proposal discard: CSRF unavailable."
+            );
+
+            return;
+        }
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const data =
+                await postForm(
+                    window.location.href,
+                    csrfToken,
+                    {
+                        action:
+                            "discard_relationship_type_proposal",
+
+                        relationship_type_id:
+                            relationshipTypeId
+                    }
+                );
+
+
+            if (!data.success) {
+
+                throw new Error(
+                    data.error
+                    || "Unable to discard relationship type proposal."
+                );
+
+            }
+
+
+            window.location.reload();
+
+        } catch (error) {
+
+            console.error(
+                "RelationshipType proposal discard failed:",
+                error
+            );
+
+            button.disabled =
+                false;
+
+        }
+
+    }
+
+
+    /* ============================================================
+       RelationshipType rules
+       ============================================================ */
+
+    function collectRuleValues(
+        editor
+    ) {
+
+        return {
+
+            subject_type_id:
+                editor.querySelector(
+                    '[name="subject_type_id"]'
+                ).value,
+
+            object_type_id:
+                editor.querySelector(
+                    '[name="object_type_id"]'
+                ).value,
+
+            subject_minimum:
+                editor.querySelector(
+                    '[name="subject_minimum"]'
+                ).value,
+
+            subject_maximum:
+                editor.querySelector(
+                    '[name="subject_maximum"]'
+                ).value,
+
+            subject_required:
+                editor.querySelector(
+                    '[name="subject_required"]'
+                ).checked
+                    ? "on"
+                    : "",
+
+            object_minimum:
+                editor.querySelector(
+                    '[name="object_minimum"]'
+                ).value,
+
+            object_maximum:
+                editor.querySelector(
+                    '[name="object_maximum"]'
+                ).value,
+
+            object_required:
+                editor.querySelector(
+                    '[name="object_required"]'
+                ).checked
+                    ? "on"
+                    : ""
+
+        };
+
+    }
+
+
+    function openRule(
+        rule
+    ) {
+
+        const editor =
+            rule.querySelector(
+                "[data-rule-editor]"
+            );
+
+
+        if (!editor) {
+            return;
+        }
+
+
+        editor.hidden =
+            false;
+
+
+        const firstInput =
+            editor.querySelector(
+                "input, select"
+            );
+
+
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+    }
+
+
+    function closeRule(
+        rule
+    ) {
+
+        const editor =
+            rule.querySelector(
+                "[data-rule-editor]"
+            );
+
+
+        if (!editor) {
+            return;
+        }
+
+
+        editor.hidden =
+            true;
+
+
+        clearElementError(
+            editor.querySelector(
+                "[data-rule-error]"
+            )
+        );
+
+    }
+
+
+    async function saveRule(
+        root,
+        button
+    ) {
+
+        const rule =
+            button.closest(
+                ".model-relationship-rule"
+            );
+
+
+        if (!rule) {
+            return;
+        }
+
+
+        const ruleId =
+            rule.dataset.ruleId;
+
+
+        const editor =
+            rule.querySelector(
+                "[data-rule-editor]"
+            );
+
+
+        if (
+            !ruleId
+            || !editor
+        ) {
+            return;
+        }
+
+
+        const error =
+            editor.querySelector(
+                "[data-rule-error]"
+            );
+
+
+        const csrfToken =
+            getCsrfToken();
+
+
+        if (!csrfToken) {
+
+            showElementError(
+                error,
+                "Unable to save: CSRF token unavailable."
+            );
+
+            return;
+        }
+
+
+        clearElementError(
+            error
+        );
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const values =
+                collectRuleValues(
+                    editor
+                );
+
+
+            values.action =
+                "save_rule";
+
+
+            values.rule_id =
+                ruleId;
+
+
+            await postForm(
+                root.dataset.updateUrl,
+                csrfToken,
+                values
+            );
+
+
+            window.location.reload();
+
+        } catch (errorValue) {
+
+            showElementError(
+                error,
+                errorValue.message
+            );
+
+            button.disabled =
+                false;
+
+        }
+
+    }
+
+
+    async function discardRule(
+        root,
+        button
+    ) {
+
+        const ruleId =
+            button.dataset.ruleId;
+
+
+        if (!ruleId) {
+            return;
+        }
+
+
+        const csrfToken =
+            getCsrfToken();
+
+
+        if (!csrfToken) {
+
+            console.error(
+                "Rule discard: CSRF unavailable."
+            );
+
+            return;
+        }
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            await postForm(
+                root.dataset.updateUrl,
+                csrfToken,
+                {
+                    action:
+                        "discard_rule",
+
+                    rule_id:
+                        ruleId
+                }
+            );
+
+
+            window.location.reload();
+
+        } catch (error) {
+
+            console.error(
+                "Rule discard failed:",
+                error
+            );
+
+            button.disabled =
+                false;
+
+        }
+
+    }
+
+
+    function openNewRule(
+        root
+    ) {
+
+        const editor =
+            root.querySelector(
+                "[data-new-rule-editor]"
+            );
+
+
+        if (!editor) {
+            return;
+        }
+
+
+        editor.hidden =
+            false;
+
+
+        const firstInput =
+            editor.querySelector(
+                "[data-new-rule-subject]"
+            );
+
+
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+    }
+
+
+    function closeNewRule(
+        root
+    ) {
+
+        const editor =
+            root.querySelector(
+                "[data-new-rule-editor]"
+            );
+
+
+        if (!editor) {
+            return;
+        }
+
+
+        editor.hidden =
+            true;
+
+
+        clearElementError(
+            editor.querySelector(
+                "[data-new-rule-error]"
+            )
+        );
+
+        clearNewRuleForm(
+            editor
+        );
+
+    }
+
+
+    async function saveNewRule(
+        root,
+        button
+    ) {
+
+        const editor =
+            root.querySelector(
+                "[data-new-rule-editor]"
+            );
+
+
+        if (!editor) {
+            return;
+        }
+
+
+        const error =
+            editor.querySelector(
+                "[data-new-rule-error]"
+            );
+
+
+        const csrfToken =
+            getCsrfToken();
+
+
+        if (!csrfToken) {
+
+            showElementError(
+                error,
+                "Unable to save: CSRF token unavailable."
+            );
+
+            return;
+        }
+
+
+        clearElementError(
+            error
+        );
+
+
+        button.disabled =
+            true;
+
+
+        try {
+
+            const values =
+                collectRuleValues(
+                    editor
+                );
+
+
+            values.action =
+                "create_rule";
+
+
+            await postForm(
+                root.dataset.updateUrl,
+                csrfToken,
+                values
+            );
+
+
+            window.location.reload();
+
+        } catch (errorValue) {
+
+            showElementError(
+                error,
+                errorValue.message
+            );
+
+            button.disabled =
+                false;
+
+        }
+
+    }
+
+
+    function clearNewRuleForm(
+        editor
+    ) {
+
+        editor.querySelectorAll(
+            "input, select"
+        ).forEach(
+            function (input) {
+
+                if (
+                    input.type ===
+                    "checkbox"
+                ) {
+
+                    input.checked =
+                        false;
+
+                } else if (
+                    input.name === "subject_minimum"
+                    || input.name === "object_minimum"
+                ) {
+
+                    input.value =
+                        "0";
+
+                } else {
+
+                    input.value =
+                        "";
+
+                }
+
+            }
+        );
 
     }
 

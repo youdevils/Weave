@@ -377,6 +377,19 @@ def _attribute_proposed_fields(
     return result
 
 
+def _attribute_is_proposed(
+    attribute_id,
+    proposal,
+):
+    if not proposal:
+        return False
+
+    return proposal.changes.filter(
+        target_type="AttributeDefinition",
+        target_id=attribute_id,
+    ).exists()
+
+
 def _build_attribute_view_objects(
     relationship_type,
     proposal,
@@ -513,6 +526,26 @@ def _build_attribute_view_objects(
 # =====================================================================
 
 
+def _coerce_rule_type_id(value):
+    """
+    Rehydrate a subject/object type id read back from proposal JSON
+    (stored as a string, see _serialise_rule_value) into a UUID so it
+    compares correctly against ObjectType.id elsewhere (view objects,
+    templates).
+    """
+
+    if isinstance(value, uuid.UUID):
+        return value
+
+    if value in (None, ""):
+        return value
+
+    try:
+        return uuid.UUID(str(value))
+    except (TypeError, ValueError):
+        return value
+
+
 def _rule_canonical_values(rule):
     return {
         "subject_type_id": rule.subject_type_id,
@@ -566,6 +599,14 @@ def _rule_effective_values(
 
         if field in values and "value" in after:
             values[field] = after["value"]
+
+    values["subject_type_id"] = _coerce_rule_type_id(
+        values["subject_type_id"],
+    )
+
+    values["object_type_id"] = _coerce_rule_type_id(
+        values["object_type_id"],
+    )
 
     return values
 
@@ -642,13 +683,17 @@ def _rule_create_values(change):
     )
 
     return {
-        "subject_type_id": after.get(
-            "subject_type_id",
-            after.get("subject_type"),
+        "subject_type_id": _coerce_rule_type_id(
+            after.get(
+                "subject_type_id",
+                after.get("subject_type"),
+            ),
         ),
-        "object_type_id": after.get(
-            "object_type_id",
-            after.get("object_type"),
+        "object_type_id": _coerce_rule_type_id(
+            after.get(
+                "object_type_id",
+                after.get("object_type"),
+            ),
         ),
         "subject_minimum": after.get(
             "subject_minimum",
@@ -702,6 +747,14 @@ def _rule_create_effective_values(
 
         if field in values and "value" in after:
             values[field] = after["value"]
+
+    values["subject_type_id"] = _coerce_rule_type_id(
+        values["subject_type_id"],
+    )
+
+    values["object_type_id"] = _coerce_rule_type_id(
+        values["object_type_id"],
+    )
 
     return values
 
@@ -926,6 +979,26 @@ def _validate_rule_object_types(
     return None
 
 
+def _serialise_rule_value(value):
+    """
+    Convert a single coerced rule field value into a JSON-safe value
+    for storage in ProposalChange.before/after, preserving integers,
+    booleans, and None, and converting UUID instances to strings.
+    """
+
+    if isinstance(value, uuid.UUID):
+        return str(value)
+
+    return value
+
+
+def _serialise_rule_values(values):
+    return {
+        field: _serialise_rule_value(value)
+        for field, value in values.items()
+    }
+
+
 # =====================================================================
 # Attribute validation helpers
 # =====================================================================
@@ -1092,6 +1165,35 @@ def _validate_attribute_key(
 
     if query.exists():
         return "An attribute with this key already exists."
+
+    return None
+
+
+def _validate_proposed_attribute_key(
+    proposal,
+    relationship_type_id,
+    attribute_id,
+    key,
+):
+    if not proposal:
+        return None
+
+    create_changes = proposal.changes.filter(
+        target_type="AttributeDefinition",
+        operation=ProposalChange.Operation.CREATE,
+        parent_type="RelationshipType",
+        parent_id=relationship_type_id,
+    )
+
+    for change in create_changes:
+
+        if str(change.target_id) == str(attribute_id):
+            continue
+
+        after = change.after or {}
+
+        if after.get("key") == key:
+            return "An attribute with this key already exists."
 
     return None
 
@@ -1650,6 +1752,699 @@ def relationship_type_editor(
         )
 
     # =================================================================
+    # Create AttributeDefinition
+    # =================================================================
+
+    if request.method == "POST" and request.POST.get("action") == "create_attribute":
+
+        if relationship_type is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Relationship type not found.",
+                },
+                status=404,
+            )
+
+        if proposal is None:
+            proposal = _working_proposal(
+                model,
+                request.user,
+            )
+
+        submitted_values, errors = _coerce_attribute_properties(
+            request,
+            {
+                "name": "",
+                "key": "",
+                "data_type": AttributeDefinition.DataType.TEXT,
+                "description": "",
+                "required": False,
+                "nullable": False,
+                "default_value": None,
+                "sort_order": 0,
+            },
+        )
+
+        if isinstance(
+            relationship_type,
+            RelationshipType,
+        ):
+
+            canonical_key_error = _validate_attribute_key(
+                relationship_type,
+                None,
+                submitted_values["key"],
+            )
+
+            if canonical_key_error:
+                errors["key"] = canonical_key_error
+
+        proposed_key_error = _validate_proposed_attribute_key(
+            proposal=proposal,
+            relationship_type_id=relationship_type.id,
+            attribute_id=None,
+            key=submitted_values["key"],
+        )
+
+        if proposed_key_error:
+            errors["key"] = proposed_key_error
+
+        if errors:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "errors": errors,
+                    "error": "Please correct the attribute before adding it.",
+                },
+                status=400,
+            )
+
+        attribute_uuid = uuid.uuid4()
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="AttributeDefinition",
+            target_id=attribute_uuid,
+            parent_type="RelationshipType",
+            parent_id=relationship_type.id,
+            before=None,
+            after={
+                **submitted_values,
+                "is_active": True,
+            },
+        )
+
+        values = {
+            **submitted_values,
+            "is_active": True,
+        }
+
+        return JsonResponse(
+            {
+                "success": True,
+                "created": True,
+                "attribute_id": str(attribute_uuid),
+                "values": {
+                    field: _serialize_value(
+                        values[field],
+                    )
+                    for field in (
+                        *ATTRIBUTE_PROPERTY_FIELDS,
+                        ATTRIBUTE_LIFECYCLE_FIELD,
+                    )
+                },
+                "proposed": True,
+                "proposed_fields": {
+                    field: True
+                    for field in (
+                        *ATTRIBUTE_PROPERTY_FIELDS,
+                        ATTRIBUTE_LIFECYCLE_FIELD,
+                    )
+                },
+            }
+        )
+
+    # =================================================================
+    # Save AttributeDefinition properties
+    # =================================================================
+
+    if request.method == "POST" and request.POST.get("action") == "save_attribute":
+
+        if relationship_type is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Relationship type not found.",
+                },
+                status=404,
+            )
+
+        attribute_id = request.POST.get(
+            "attribute_id",
+        )
+
+        if not attribute_id:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Attribute ID is required.",
+                },
+                status=400,
+            )
+
+        try:
+            attribute_uuid = uuid.UUID(
+                attribute_id,
+            )
+
+        except ValueError:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Invalid attribute ID.",
+                },
+                status=400,
+            )
+
+        (
+            attribute,
+            effective_values,
+            attribute_created,
+        ) = _attribute_proposal_values(
+            attribute_uuid,
+            (
+                relationship_type
+                if isinstance(
+                    relationship_type,
+                    RelationshipType,
+                )
+                else None
+            ),
+            proposal,
+        )
+
+        if effective_values is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Attribute not found.",
+                },
+                status=404,
+            )
+
+        submitted_values, errors = _coerce_attribute_properties(
+            request,
+            effective_values,
+        )
+
+        if isinstance(
+            relationship_type,
+            RelationshipType,
+        ):
+
+            key_error = _validate_attribute_key(
+                relationship_type,
+                (None if attribute_created else attribute_uuid),
+                submitted_values["key"],
+            )
+
+            if key_error:
+                errors["key"] = key_error
+
+        if proposal:
+
+            proposed_key_error = _validate_proposed_attribute_key(
+                proposal=proposal,
+                relationship_type_id=relationship_type.id,
+                attribute_id=attribute_uuid,
+                key=submitted_values["key"],
+            )
+
+            if proposed_key_error:
+                errors["key"] = proposed_key_error
+
+        if errors:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "errors": errors,
+                    "error": "Please correct the attribute before saving.",
+                },
+                status=400,
+            )
+
+        if proposal is None:
+            proposal = _working_proposal(
+                model,
+                request.user,
+            )
+
+        if attribute_created:
+
+            create_change = _attribute_create_change(
+                attribute_uuid,
+                proposal,
+            )
+
+            if create_change is None:
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": "Proposed attribute not found.",
+                    },
+                    status=404,
+                )
+
+            after = dict(
+                create_change.after or {},
+            )
+
+            after.update(
+                submitted_values,
+            )
+
+            after.setdefault(
+                "is_active",
+                True,
+            )
+
+            create_change.after = after
+
+            create_change.save(
+                update_fields=[
+                    "after",
+                    "updated_at",
+                ]
+            )
+
+            ProposalService.reset_validation(
+                proposal,
+            )
+
+        else:
+
+            canonical_values = _attribute_canonical_values(
+                attribute,
+            )
+
+            for field in ATTRIBUTE_PROPERTY_FIELDS:
+
+                canonical_value = canonical_values[field]
+                submitted_value = submitted_values[field]
+
+                if submitted_value == canonical_value:
+
+                    ProposalService.discard_change(
+                        proposal=proposal,
+                        target_type="AttributeDefinition",
+                        target_id=attribute_uuid,
+                        field=field,
+                    )
+
+                    continue
+
+                ProposalService.record_change(
+                    proposal=proposal,
+                    operation=ProposalChange.Operation.UPDATE,
+                    target_type="AttributeDefinition",
+                    target_id=attribute_uuid,
+                    parent_type="RelationshipType",
+                    parent_id=relationship_type.id,
+                    field=field,
+                    before={
+                        "field": field,
+                        "value": canonical_value,
+                    },
+                    after={
+                        "field": field,
+                        "value": submitted_value,
+                    },
+                )
+
+        (
+            _attribute,
+            effective_values,
+            attribute_created,
+        ) = _attribute_proposal_values(
+            attribute_uuid,
+            (
+                relationship_type
+                if isinstance(
+                    relationship_type,
+                    RelationshipType,
+                )
+                else None
+            ),
+            proposal,
+        )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "attribute_id": str(
+                    attribute_uuid,
+                ),
+                "values": {
+                    field: _serialize_value(effective_values[field])
+                    for field in (
+                        *ATTRIBUTE_PROPERTY_FIELDS,
+                        ATTRIBUTE_LIFECYCLE_FIELD,
+                    )
+                },
+                "proposed": (
+                    _attribute_is_proposed(
+                        attribute_uuid,
+                        proposal,
+                    )
+                ),
+                "proposed_fields": (
+                    _attribute_proposed_fields(
+                        attribute_uuid,
+                        proposal,
+                    )
+                ),
+                "created": attribute_created,
+            }
+        )
+
+    # =================================================================
+    # Discard AttributeDefinition proposal
+    # =================================================================
+
+    if request.method == "POST" and request.POST.get("action") == "discard_attribute":
+
+        if relationship_type is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Relationship type not found.",
+                },
+                status=404,
+            )
+
+        attribute_id = request.POST.get(
+            "attribute_id",
+        )
+
+        if not attribute_id:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Attribute ID is required.",
+                },
+                status=400,
+            )
+
+        try:
+            attribute_uuid = uuid.UUID(
+                attribute_id,
+            )
+
+        except ValueError:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Invalid attribute ID.",
+                },
+                status=400,
+            )
+
+        if proposal is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "There is no working proposal to discard.",
+                },
+                status=400,
+            )
+
+        (
+            attribute,
+            effective_values,
+            attribute_created,
+        ) = _attribute_proposal_values(
+            attribute_uuid,
+            (
+                relationship_type
+                if isinstance(
+                    relationship_type,
+                    RelationshipType,
+                )
+                else None
+            ),
+            proposal,
+        )
+
+        if effective_values is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Attribute not found.",
+                },
+                status=404,
+            )
+
+        ProposalService.discard_change(
+            proposal=proposal,
+            target_type="AttributeDefinition",
+            target_id=attribute_uuid,
+        )
+
+        if attribute_created:
+            return JsonResponse(
+                {
+                    "success": True,
+                    "removed": True,
+                    "attribute_id": str(
+                        attribute_uuid,
+                    ),
+                }
+            )
+
+        canonical_values = _attribute_canonical_values(
+            attribute,
+        )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "removed": False,
+                "attribute_id": str(
+                    attribute_uuid,
+                ),
+                "values": {
+                    field: _serialize_value(canonical_values[field])
+                    for field in (
+                        *ATTRIBUTE_PROPERTY_FIELDS,
+                        ATTRIBUTE_LIFECYCLE_FIELD,
+                    )
+                },
+                "proposed": False,
+                "proposed_fields": {
+                    field: False
+                    for field in (
+                        *ATTRIBUTE_PROPERTY_FIELDS,
+                        ATTRIBUTE_LIFECYCLE_FIELD,
+                    )
+                },
+            }
+        )
+
+    # =================================================================
+    # Attribute lifecycle
+    # =================================================================
+
+    if (
+        request.method == "POST"
+        and request.POST.get("action") == "set_attribute_status"
+    ):
+
+        if relationship_type is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Relationship type not found.",
+                },
+                status=404,
+            )
+
+        attribute_id = request.POST.get(
+            "attribute_id",
+        )
+
+        if not attribute_id:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Attribute ID is required.",
+                },
+                status=400,
+            )
+
+        try:
+            attribute_uuid = uuid.UUID(
+                attribute_id,
+            )
+
+        except ValueError:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Invalid attribute ID.",
+                },
+                status=400,
+            )
+
+        (
+            attribute,
+            effective_values,
+            attribute_created,
+        ) = _attribute_proposal_values(
+            attribute_uuid,
+            (
+                relationship_type
+                if isinstance(
+                    relationship_type,
+                    RelationshipType,
+                )
+                else None
+            ),
+            proposal,
+        )
+
+        if effective_values is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Attribute not found.",
+                },
+                status=404,
+            )
+
+        try:
+            desired_active = _coerce_boolean(
+                request.POST.get(
+                    "is_active",
+                    "",
+                ),
+                "Status",
+            )
+
+        except ValueError as exc:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": str(exc),
+                },
+                status=400,
+            )
+
+        if proposal is None:
+            proposal = _working_proposal(
+                model,
+                request.user,
+            )
+
+        if attribute_created:
+
+            create_change = _attribute_create_change(
+                attribute_uuid,
+                proposal,
+            )
+
+            if create_change is None:
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": "Proposed attribute not found.",
+                    },
+                    status=404,
+                )
+
+            after = dict(
+                create_change.after or {},
+            )
+
+            after["is_active"] = desired_active
+
+            create_change.after = after
+
+            create_change.save(
+                update_fields=[
+                    "after",
+                    "updated_at",
+                ]
+            )
+
+            ProposalService.reset_validation(
+                proposal,
+            )
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "value": _serialize_value(
+                        desired_active,
+                    ),
+                    "proposed": True,
+                    "proposed_fields": (
+                        _attribute_proposed_fields(
+                            attribute_uuid,
+                            proposal,
+                        )
+                    ),
+                }
+            )
+
+        canonical_active = attribute.is_active
+
+        if desired_active == canonical_active:
+
+            ProposalService.discard_change(
+                proposal=proposal,
+                target_type="AttributeDefinition",
+                target_id=attribute_uuid,
+                field="is_active",
+            )
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "value": _serialize_value(
+                        canonical_active,
+                    ),
+                    "proposed": (
+                        _attribute_is_proposed(
+                            attribute_uuid,
+                            proposal,
+                        )
+                    ),
+                    "proposed_fields": (
+                        _attribute_proposed_fields(
+                            attribute_uuid,
+                            proposal,
+                        )
+                    ),
+                }
+            )
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="AttributeDefinition",
+            target_id=attribute_uuid,
+            parent_type="RelationshipType",
+            parent_id=relationship_type.id,
+            field="is_active",
+            before={
+                "field": "is_active",
+                "value": canonical_active,
+            },
+            after={
+                "field": "is_active",
+                "value": desired_active,
+            },
+        )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "value": _serialize_value(
+                    desired_active,
+                ),
+                "proposed": True,
+                "proposed_fields": (
+                    _attribute_proposed_fields(
+                        attribute_uuid,
+                        proposal,
+                    )
+                ),
+            }
+        )
+
+    # =================================================================
     # Create Rule
     # =================================================================
 
@@ -1732,7 +2527,7 @@ def relationship_type_editor(
             parent_type="RelationshipType",
             parent_id=relationship_type.id,
             before=None,
-            after=values,
+            after=_serialise_rule_values(values),
         )
 
         return JsonResponse(
@@ -1901,7 +2696,7 @@ def relationship_type_editor(
                     status=404,
                 )
 
-            create_change.after = values
+            create_change.after = _serialise_rule_values(values)
 
             create_change.save(
                 update_fields=[
@@ -1945,11 +2740,11 @@ def relationship_type_editor(
                     field=field,
                     before={
                         "field": field,
-                        "value": canonical_value,
+                        "value": _serialise_rule_value(canonical_value),
                     },
                     after={
                         "field": field,
-                        "value": submitted_value,
+                        "value": _serialise_rule_value(submitted_value),
                     },
                 )
 

@@ -1082,6 +1082,16 @@
     max-width: 700px;
 }
 
+/* Keep checkbox inputs at their natural size inside editors */
+
+.model-object-type-attribute-editor input[type="checkbox"],
+.model-object-type-attribute-editor .form-check-input {
+    width: 1rem;
+    max-width: 1rem;
+    height: 1rem;
+    flex: 0 0 auto;
+}
+
 .model-object-type-attribute-editor textarea {
     resize: vertical;
 }
@@ -1115,6 +1125,190 @@
 .model-attribute-editor-status {
     display: flex;
     align-items: center;
+}
+
+/* =========================================================
+   Relationship Rules
+   ========================================================= */
+
+.model-relationship-rules {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--model-border-light);
+}
+
+.model-relationship-rule {
+    position: relative;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--model-border-light);
+    background: var(--model-surface);
+}
+
+.model-relationship-rule:last-child {
+    border-bottom: 0;
+}
+
+/* ---------------------------------------------------------
+   Rule display
+   --------------------------------------------------------- */
+
+.model-relationship-rule-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.model-relationship-rule-main {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.model-relationship-rule-endpoint {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.model-relationship-rule-label {
+    color: var(--model-text-muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.model-relationship-rule-type {
+    color: var(--model-text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.model-relationship-rule-cardinality {
+    margin-left: 0.35rem;
+    color: var(--model-text-muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.model-relationship-rule-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 32px;
+    color: var(--model-text-placeholder);
+    font-size: 0.8rem;
+}
+
+.model-relationship-rule-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: 0 0 auto;
+}
+
+.model-relationship-rule-actions .btn {
+    font-size: 0.71rem;
+}
+
+/* ---------------------------------------------------------
+   Rule proposal state
+   --------------------------------------------------------- */
+
+.model-relationship-rule .model-proposed-indicator {
+    margin-top: 0.55rem;
+}
+
+/* ---------------------------------------------------------
+   Rule editor
+   --------------------------------------------------------- */
+
+.model-relationship-rule [data-rule-editor] {
+    margin-top: 0.75rem;
+}
+
+.model-relationship-rule [data-rule-editor],
+.model-relationship-rule [data-new-rule-editor] {
+    padding: 1rem 1.1rem 1.1rem;
+    border-top: 1px solid var(--model-border-light);
+    background: var(--model-surface-subtle);
+}
+
+.model-relationship-rule [data-rule-editor] .model-editor-field,
+.model-relationship-rule [data-new-rule-editor] .model-editor-field {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--model-border-light);
+}
+
+.model-relationship-rule [data-rule-editor] .model-editor-field:first-child,
+.model-relationship-rule [data-new-rule-editor] .model-editor-field:first-child {
+    padding-top: 0;
+}
+
+.model-relationship-rule [data-rule-editor] .model-editor-field:last-child,
+.model-relationship-rule [data-new-rule-editor] .model-editor-field:last-child {
+    border-bottom: 0;
+}
+
+.model-relationship-rule [data-rule-editor] label,
+.model-relationship-rule [data-new-rule-editor] label {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--model-text-secondary);
+    font-size: 0.77rem;
+    font-weight: 600;
+}
+
+.model-relationship-rule [data-rule-editor] input,
+.model-relationship-rule [data-rule-editor] select,
+.model-relationship-rule [data-new-rule-editor] input,
+.model-relationship-rule [data-new-rule-editor] select {
+    width: 100%;
+    max-width: 700px;
+}
+
+/* ---------------------------------------------------------
+   Rule checkboxes
+   --------------------------------------------------------- */
+
+.model-relationship-rule .model-editor-checkboxes,
+[data-new-rule-editor] .model-editor-checkboxes {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    padding-top: 0.75rem;
+}
+
+.model-relationship-rule .model-editor-checkboxes .form-check,
+[data-new-rule-editor] .model-editor-checkboxes .form-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: auto;
+    margin: 0;
+    padding: 0;
+}
+
+.model-relationship-rule .model-editor-checkboxes .form-check-input,
+[data-new-rule-editor] .model-editor-checkboxes .form-check-input {
+    flex: 0 0 auto;
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+}
+
+.model-relationship-rule .model-editor-checkboxes .form-check-label,
+[data-new-rule-editor] .model-editor-checkboxes .form-check-label {
+    width: auto;
+    margin: 0;
+    color: var(--model-text-secondary);
+    font-size: 0.77rem;
+    font-weight: 500;
 }
 
 /* =========================================================

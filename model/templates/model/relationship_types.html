@@ -31,7 +31,7 @@
         <div class="model-page-header-actions">
 
             <a
-                href="#"
+                href="{% url 'model:relationship_type_create' model.id %}"
                 class="btn btn-primary"
             >
                 <i class="bi bi-plus-lg"></i>
@@ -66,7 +66,10 @@
                      Main card
                      ================================================= -->
 
-                <div class="model-object-type-card-link">
+                <a
+                    href="{% url 'model:relationship_type_edit' model.id relationship_type.id %}"
+                    class="model-object-type-card-link"
+                >
 
                     <div class="model-object-type-card-main">
 
@@ -174,7 +177,7 @@
 
                     </div>
 
-                </div>
+                </a>
 
 
                 <!-- =================================================
@@ -240,7 +243,7 @@
 
 
                 <a
-                    href="#"
+                    href="{% url 'model:relationship_type_create' model.id %}"
                     class="btn btn-primary"
                 >
                     <i class="bi bi-plus-lg"></i>

@@ -123,7 +123,7 @@
                     {% for relationship_type in relationship_types|slice:":10" %}
 
                         <a
-                            href="#"
+                            href="{% url 'model:relationship_type_edit' model.id relationship_type.id %}"
                             class="model-nav-child"
                         >
                             <span>{{ relationship_type.name }}</span>
