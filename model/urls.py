@@ -7,6 +7,10 @@ from .views.object_type_editor import object_type_editor
 from .views.relationship_types import relationship_types
 
 from .views.relationship_type_editor import relationship_type_editor
+from .views.data_objects import data_object_types, data_objects
+from .views.data_object_editor import data_object_editor
+from .views.data_relationships import data_relationship_types, data_relationships
+from .views.data_relationship_editor import data_relationship_editor
 
 app_name = "model"
 
@@ -63,5 +67,51 @@ urlpatterns = [
         "<uuid:model_id>/relationship-types/<uuid:relationship_type_id>/",
         relationship_type_editor,
         name="relationship_type_edit",
+    ),
+    # ================================================================
+    # Data — Objects
+    # ================================================================
+    path(
+        "<uuid:model_id>/data/objects/",
+        data_object_types,
+        name="data_object_types",
+    ),
+    path(
+        "<uuid:model_id>/data/objects/<uuid:object_type_id>/",
+        data_objects,
+        name="data_objects",
+    ),
+    path(
+        "<uuid:model_id>/data/objects/<uuid:object_type_id>/new/",
+        data_object_editor,
+        name="data_object_create",
+    ),
+    path(
+        "<uuid:model_id>/data/objects/<uuid:object_type_id>/<uuid:object_id>/",
+        data_object_editor,
+        name="data_object_edit",
+    ),
+    # ================================================================
+    # Data — Relationships
+    # ================================================================
+    path(
+        "<uuid:model_id>/data/relationships/",
+        data_relationship_types,
+        name="data_relationship_types",
+    ),
+    path(
+        "<uuid:model_id>/data/relationships/<uuid:relationship_type_id>/",
+        data_relationships,
+        name="data_relationships",
+    ),
+    path(
+        "<uuid:model_id>/data/relationships/<uuid:relationship_type_id>/new/",
+        data_relationship_editor,
+        name="data_relationship_create",
+    ),
+    path(
+        "<uuid:model_id>/data/relationships/<uuid:relationship_type_id>/<uuid:relationship_id>/",
+        data_relationship_editor,
+        name="data_relationship_edit",
     ),
 ]

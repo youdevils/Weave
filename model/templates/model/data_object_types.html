@@ -1,0 +1,122 @@
+
+{% extends "model/model_base.html" %}
+
+{% block model_content %}
+
+<div class="model-object-types">
+
+    <div class="model-page-header">
+
+        <div>
+
+            <div class="model-page-eyebrow">
+                Data
+            </div>
+
+            <h1 class="model-page-title">
+                Objects
+            </h1>
+
+            <p class="model-page-description">
+                Browse and edit records for each object type in this model.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="model-object-type-list">
+
+        {% for object_type in object_types %}
+
+            <a
+                href="{% url 'model:data_objects' model.id object_type.id %}"
+                class="model-object-type-card model-object-type-card-link"
+            >
+
+                <div class="model-object-type-card-main">
+
+                    <div class="model-object-type-card-heading">
+
+                        <h2 class="model-object-type-card-title">
+                            {{ object_type.name }}
+                        </h2>
+
+                        {% if not object_type.is_active %}
+                            <span class="model-object-type-card-status">
+                                Retired
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+
+                    {% if object_type.description %}
+
+                        <p class="model-object-type-card-description">
+                            {{ object_type.description }}
+                        </p>
+
+                    {% else %}
+
+                        <p class="model-object-type-card-description
+                                  model-object-type-card-description-empty">
+                            No description
+                        </p>
+
+                    {% endif %}
+
+
+                    <div class="model-object-type-card-meta">
+
+                        <span>
+                            <i class="bi bi-database"></i>
+                            {{ object_type.record_count }}
+                            record{{ object_type.record_count|pluralize }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="model-object-type-card-action">
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+
+            </a>
+
+        {% empty %}
+
+            <div class="model-empty-state">
+
+                <div class="model-empty-state-icon">
+                    <i class="bi bi-database"></i>
+                </div>
+
+                <h2>
+                    No object types yet
+                </h2>
+
+                <p>
+                    Define an object type in the model's ontology before
+                    adding data records.
+                </p>
+
+                <a
+                    href="{% url 'model:object_types' model.id %}"
+                    class="btn btn-primary"
+                >
+                    Go to object types
+                </a>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

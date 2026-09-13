@@ -1,0 +1,270 @@
+
+{% extends "model/model_base.html" %}
+
+{% block model_content %}
+
+<div class="model-data-index">
+
+    <div class="model-page-header">
+
+        <div>
+
+            <a
+                href="{% url 'model:data_object_types' model.id %}"
+                class="model-back-link"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Objects
+            </a>
+
+            <div class="model-page-eyebrow">
+                Data
+            </div>
+
+            <h1 class="model-page-title">
+                {{ object_type.name }}
+            </h1>
+
+            <p class="model-page-description">
+                {% if object_type.description %}
+                    {{ object_type.description }}
+                {% else %}
+                    Browse and edit {{ object_type.name }} records.
+                {% endif %}
+            </p>
+
+        </div>
+
+        <div class="model-page-header-actions">
+
+            <a
+                href="{% url 'model:data_object_create' model.id object_type.id %}"
+                class="btn btn-primary"
+            >
+                <i class="bi bi-plus-lg"></i>
+                New {{ object_type.name }}
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <section class="model-data-toolbar">
+
+        <form method="get">
+
+            <div class="model-data-toolbar-row">
+
+                <div class="model-proposal-search">
+
+                    <i class="bi bi-search"></i>
+
+                    <input
+                        type="search"
+                        name="q"
+                        value="{{ search }}"
+                        placeholder="Search {{ object_type.name|lower }}..."
+                        aria-label="Search {{ object_type.name }}"
+                    >
+
+                </div>
+
+
+                <select
+                    name="sort"
+                    class="form-select form-select-sm"
+                    aria-label="Sort"
+                >
+                    <option value="name" {% if sort == "name" %}selected{% endif %}>Sort: Name (A-Z)</option>
+                    <option value="name_desc" {% if sort == "name_desc" %}selected{% endif %}>Sort: Name (Z-A)</option>
+                    <option value="status" {% if sort == "status" %}selected{% endif %}>Sort: Status</option>
+                    <option value="created" {% if sort == "created" %}selected{% endif %}>Sort: Newest</option>
+                    <option value="created_desc" {% if sort == "created_desc" %}selected{% endif %}>Sort: Oldest</option>
+                </select>
+
+
+                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                    Apply
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    {% if pending_rows %}
+
+        <section class="model-data-pending">
+
+            <div class="model-data-pending-header">
+                Proposed new records
+            </div>
+
+            {% for row in pending_rows %}
+
+                <div class="model-data-pending-item">
+
+                    <a href="{% url 'model:data_object_edit' model.id object_type.id row.id %}">
+                        {{ row.name|default:"Untitled" }}
+                    </a>
+
+                    <span class="model-proposed-indicator">
+                        <i class="bi bi-pencil-square"></i>
+                        Proposed
+                    </span>
+
+                    <button
+                        type="button"
+                        class="model-discard-button"
+                        data-discard-object
+                        data-object-id="{{ row.id }}"
+                    >
+                        Discard
+                    </button>
+
+                </div>
+
+            {% endfor %}
+
+        </section>
+
+    {% endif %}
+
+
+    <section class="model-data-section">
+
+        <div class="model-data-table-wrapper">
+
+            <table class="model-data-table">
+
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Status</th>
+                        {% for column in columns %}
+                            <th>{{ column.name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for row in rows %}
+
+                        <tr
+                            class="model-data-row"
+                            data-href="{% url 'model:data_object_edit' model.id object_type.id row.id %}"
+                        >
+                            <td>
+                                <a href="{% url 'model:data_object_edit' model.id object_type.id row.id %}">
+                                    {{ row.name }}
+                                </a>
+                                {% if row.is_proposed %}
+                                    <span class="model-proposed-indicator">
+                                        <i class="bi bi-pencil-square"></i>
+                                        Proposed change
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="is-status">
+                                <span class="model-status-pill {% if row.is_active %}model-status-active{% else %}model-status-retired{% endif %}">
+                                    {% if row.is_active %}
+                                        <i class="bi bi-check-circle"></i> Active
+                                    {% else %}
+                                        <i class="bi bi-archive"></i> Retired
+                                    {% endif %}
+                                </span>
+                            </td>
+                            {% for value in row.column_values %}
+                                <td>{{ value|default:"—" }}</td>
+                            {% endfor %}
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="{{ columns|length|add:2 }}">
+
+                                <div class="model-empty-state">
+
+                                    <div class="model-empty-state-icon">
+                                        <i class="bi bi-database"></i>
+                                    </div>
+
+                                    <h2>
+                                        No {{ object_type.name|lower }} records yet
+                                    </h2>
+
+                                    <p>
+                                        {% if search %}
+                                            No records match your search.
+                                        {% else %}
+                                            Create the first {{ object_type.name }} record.
+                                        {% endif %}
+                                    </p>
+
+                                    <a
+                                        href="{% url 'model:data_object_create' model.id object_type.id %}"
+                                        class="btn btn-primary"
+                                    >
+                                        <i class="bi bi-plus-lg"></i>
+                                        New {{ object_type.name }}
+                                    </a>
+
+                                </div>
+
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% if page.paginator.num_pages > 1 %}
+
+            <div class="model-data-pagination">
+
+                <div class="model-data-pagination-summary">
+                    Showing page {{ page.number }} of {{ page.paginator.num_pages }}
+                    ({{ total_count }} record{{ total_count|pluralize }})
+                </div>
+
+                <div class="model-data-pagination-controls">
+
+                    {% if page.has_previous %}
+                        <a
+                            class="btn btn-sm btn-outline-secondary"
+                            href="?q={{ search }}&sort={{ sort }}&page={{ page.previous_page_number }}"
+                        >
+                            Previous
+                        </a>
+                    {% endif %}
+
+                    {% if page.has_next %}
+                        <a
+                            class="btn btn-sm btn-outline-secondary"
+                            href="?q={{ search }}&sort={{ sort }}&page={{ page.next_page_number }}"
+                        >
+                            Next
+                        </a>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

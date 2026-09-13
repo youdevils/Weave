@@ -1,0 +1,444 @@
+
+{% extends "model/model_base.html" %}
+
+{% block model_content %}
+
+<div class="model-object-type-editor">
+
+    <!-- ============================================================
+         PAGE HEADER
+         ============================================================ -->
+
+    <div class="model-page-header">
+
+        <div>
+
+            <a
+                href="{% url 'model:data_relationships' model.id relationship_type.id %}"
+                class="model-back-link"
+            >
+                <i class="bi bi-arrow-left"></i>
+                {{ relationship_type.name }}
+            </a>
+
+            <div class="model-page-eyebrow">
+                Data
+            </div>
+
+            <h1 class="model-page-title">
+
+                {% if relationship %}
+                    {{ relationship_type.name }}
+                {% else %}
+                    New {{ relationship_type.name }}
+                {% endif %}
+
+            </h1>
+
+            <p class="model-page-description">
+                {{ relationship_type.name }} relationship record.
+            </p>
+
+        </div>
+
+        <div class="model-page-header-actions">
+
+            <a
+                href="{% url 'model:data_relationships' model.id relationship_type.id %}"
+                class="btn btn-outline-secondary"
+            >
+                Cancel
+            </a>
+
+        </div>
+
+    </div>
+
+
+    {% if relationship %}
+
+        <!-- ========================================================
+             ENDPOINTS (read-only)
+             ======================================================== -->
+
+        <section class="model-editor-section">
+
+            <div class="model-editor-section-header">
+                <div>
+                    <h2>Relationship</h2>
+                    <p>The subject and object connected by this record.</p>
+                </div>
+            </div>
+
+            <div class="model-relationship-rule">
+
+                <div class="model-relationship-rule-display">
+
+                    <div class="model-relationship-rule-main">
+
+                        <div class="model-relationship-rule-endpoint">
+                            <span class="model-relationship-rule-label">Subject</span>
+                            <a class="model-relationship-rule-type" href="{% url 'model:data_object_edit' model.id relationship.subject.object_type_id relationship.subject.id %}">
+                                {{ relationship.subject.name }}
+                            </a>
+                        </div>
+
+                        <div class="model-relationship-rule-arrow">
+                            <i class="bi bi-arrow-right"></i>
+                        </div>
+
+                        <div class="model-relationship-rule-endpoint">
+                            <span class="model-relationship-rule-label">Object</span>
+                            <a class="model-relationship-rule-type" href="{% url 'model:data_object_edit' model.id relationship.object.object_type_id relationship.object.id %}">
+                                {{ relationship.object.name }}
+                            </a>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <div
+            class="proposal-editor"
+            data-update-url="{{ proposal_update_url }}"
+        >
+
+            {% csrf_token %}
+
+            <!-- ====================================================
+                 ATTRIBUTES
+                 ==================================================== -->
+
+            <section class="model-editor-section">
+
+                <div class="model-editor-section-header">
+                    <div>
+                        <h2>Details</h2>
+                        <p>Edit the values recorded for this relationship.</p>
+                    </div>
+                </div>
+
+                <div class="model-editor-fields">
+
+                    {% for attribute in attribute_definitions %}
+
+                        <div
+                            class="model-editor-field proposal-editor-field"
+                            data-field="{{ attribute.field_name }}"
+                        >
+
+                            <div class="model-editor-field-header">
+                                <label for="id_{{ attribute.field_name }}">{{ attribute.name }}</label>
+                                <button type="button" class="model-inline-edit-button" data-proposal-action="edit">Edit</button>
+                            </div>
+
+                            <div class="model-editor-field-display" data-field-display="{{ attribute.field_name }}">
+                                {% if attribute.current_value is not None %}
+                                    {% if attribute.data_type == "boolean" %}
+                                        {% if attribute.current_value %}Yes{% else %}No{% endif %}
+                                    {% else %}
+                                        {{ attribute.current_value }}
+                                    {% endif %}
+                                {% else %}
+                                    <span class="model-field-empty">Not defined</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="model-editor-field-editor" data-field-editor="{{ attribute.field_name }}" hidden>
+
+                                {% if attribute.data_type == "boolean" %}
+
+                                    <select id="id_{{ attribute.field_name }}" class="form-select">
+                                        <option value="" {% if attribute.current_value is None %}selected{% endif %}>Not set</option>
+                                        <option value="true" {% if attribute.current_value == True %}selected{% endif %}>Yes</option>
+                                        <option value="false" {% if attribute.current_value == False %}selected{% endif %}>No</option>
+                                    </select>
+
+                                {% elif attribute.data_type == "choice" %}
+
+                                    <select id="id_{{ attribute.field_name }}" class="form-select">
+                                        <option value="">Not set</option>
+                                        {% for choice in attribute.choices %}
+                                            <option value="{{ choice }}" {% if attribute.current_value == choice %}selected{% endif %}>{{ choice }}</option>
+                                        {% endfor %}
+                                    </select>
+
+                                {% elif attribute.data_type == "number" %}
+
+                                    <input type="number" step="any" id="id_{{ attribute.field_name }}" class="form-control" value="{{ attribute.current_value|default_if_none:'' }}">
+
+                                {% elif attribute.data_type == "date" %}
+
+                                    <input type="date" id="id_{{ attribute.field_name }}" class="form-control" value="{{ attribute.current_value|default_if_none:'' }}">
+
+                                {% elif attribute.data_type == "datetime" %}
+
+                                    <input type="datetime-local" id="id_{{ attribute.field_name }}" class="form-control" value="{{ attribute.current_value|default_if_none:'' }}">
+
+                                {% else %}
+
+                                    <input type="text" id="id_{{ attribute.field_name }}" class="form-control" value="{{ attribute.current_value|default_if_none:'' }}">
+
+                                {% endif %}
+
+                                <div class="model-editor-field-help">{{ attribute.get_data_type_display }}{% if attribute.required %} · Required{% endif %}</div>
+
+                                <div class="model-editor-field-error" data-proposal-error hidden></div>
+
+                                <div class="model-editor-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-proposal-action="cancel">Cancel</button>
+                                    <button type="button" class="btn btn-sm btn-primary" data-proposal-action="save">Save</button>
+                                </div>
+
+                            </div>
+
+                            <div
+                                class="model-proposed-indicator"
+                                data-proposal-indicator
+                                {% if not attribute.is_proposed %}hidden{% endif %}
+                            >
+                                <i class="bi bi-pencil-square"></i>
+                                Proposed change
+                            </div>
+
+                            <button
+                                type="button"
+                                class="model-discard-button"
+                                data-proposal-action="discard"
+                                {% if not attribute.is_proposed %}hidden{% endif %}
+                            >
+                                Discard
+                            </button>
+
+                        </div>
+
+                    {% empty %}
+
+                        <p class="model-field-empty">This relationship type has no attributes.</p>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- ================================================
+                     LIFECYCLE
+                     ================================================ -->
+
+                <div class="model-object-type-lifecycle">
+
+                    <div class="model-object-type-lifecycle-main">
+                        <div class="model-object-type-lifecycle-label">Status</div>
+                        <div class="model-object-type-lifecycle-description">
+                            Controls whether this relationship is active. Retiring
+                            it does not delete it.
+                        </div>
+                    </div>
+
+                    <div
+                        class="model-object-type-lifecycle-control"
+                        data-relationship-lifecycle
+                        data-active="{% if proposed_values.is_active %}true{% else %}false{% endif %}"
+                        data-proposed="{% if proposed_fields.is_active %}true{% else %}false{% endif %}"
+                    >
+
+                        <div
+                            class="model-status-pill {% if proposed_values.is_active %}model-status-active{% else %}model-status-retired{% endif %}"
+                            data-status-display
+                        >
+                            {% if proposed_values.is_active %}
+                                <i class="bi bi-check-circle"></i> Active
+                            {% else %}
+                                <i class="bi bi-archive"></i> Retired
+                            {% endif %}
+                        </div>
+
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-status-toggle>
+                            {% if proposed_values.is_active %}Retire{% else %}Activate{% endif %}
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div
+                    class="model-proposed-indicator model-object-type-lifecycle-proposal"
+                    data-lifecycle-proposal-indicator
+                    {% if not proposed_fields.is_active %}hidden{% endif %}
+                >
+                    <i class="bi bi-pencil-square"></i>
+                    Proposed change
+
+                    <button
+                        type="button"
+                        class="model-discard-button"
+                        data-lifecycle-discard
+                        {% if not proposed_fields.is_active %}hidden{% endif %}
+                    >
+                        Discard
+                    </button>
+                </div>
+
+            </section>
+
+        </div>
+
+    {% else %}
+
+        <!-- ============================================================
+             CREATE FORM (plain full-page submit)
+             ============================================================ -->
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <section class="model-editor-section">
+
+                <div class="model-editor-section-header">
+                    <div>
+                        <h2>Endpoints</h2>
+                        <p>Choose the subject and object this relationship connects.</p>
+                    </div>
+                </div>
+
+                <div class="model-editor-fields">
+
+                    <div class="model-editor-field">
+
+                        <label for="id_subject_id">Subject</label>
+
+                        <select id="id_subject_id" name="subject_id" class="form-select">
+                            <option value="">Select a subject...</option>
+                            {% regroup subject_choices by object_type as subject_groups %}
+                            {% for group in subject_groups %}
+                                <optgroup label="{{ group.grouper.name }}">
+                                    {% for choice in group.list %}
+                                        <option value="{{ choice.id }}" {% if form_values.subject_id == choice.id|stringformat:'s' %}selected{% endif %}>{{ choice.name }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                            {% endfor %}
+                        </select>
+
+                        {% if errors.subject_id %}
+                            <div class="model-editor-field-error">{{ errors.subject_id }}</div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="model-editor-field">
+
+                        <label for="id_object_id">Object</label>
+
+                        <select id="id_object_id" name="object_id" class="form-select">
+                            <option value="">Select an object...</option>
+                            {% regroup object_choices by object_type as object_groups %}
+                            {% for group in object_groups %}
+                                <optgroup label="{{ group.grouper.name }}">
+                                    {% for choice in group.list %}
+                                        <option value="{{ choice.id }}" {% if form_values.object_id == choice.id|stringformat:'s' %}selected{% endif %}>{{ choice.name }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                            {% endfor %}
+                        </select>
+
+                        {% if errors.object_id %}
+                            <div class="model-editor-field-error">{{ errors.object_id }}</div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <section class="model-editor-section">
+
+                <div class="model-editor-section-header">
+                    <div>
+                        <h2>Details</h2>
+                        <p>Enter the attribute values for this relationship.</p>
+                    </div>
+                </div>
+
+                <div class="model-editor-fields">
+
+                    {% for attribute in attribute_definitions %}
+
+                        <div class="model-editor-field">
+
+                            <label for="id_{{ attribute.field_name }}">
+                                {{ attribute.name }}
+                                {% if attribute.required %}*{% endif %}
+                            </label>
+
+                            {% if attribute.data_type == "boolean" %}
+
+                                <select id="id_{{ attribute.field_name }}" name="{{ attribute.field_name }}" class="form-select">
+                                    <option value="" {% if attribute.raw_value == "" %}selected{% endif %}>Not set</option>
+                                    <option value="true" {% if attribute.raw_value == "true" %}selected{% endif %}>Yes</option>
+                                    <option value="false" {% if attribute.raw_value == "false" %}selected{% endif %}>No</option>
+                                </select>
+
+                            {% elif attribute.data_type == "choice" %}
+
+                                <select id="id_{{ attribute.field_name }}" name="{{ attribute.field_name }}" class="form-select">
+                                    <option value="">Not set</option>
+                                    {% for choice in attribute.choices %}
+                                        <option value="{{ choice }}" {% if attribute.raw_value == choice %}selected{% endif %}>{{ choice }}</option>
+                                    {% endfor %}
+                                </select>
+
+                            {% elif attribute.data_type == "number" %}
+
+                                <input type="number" step="any" id="id_{{ attribute.field_name }}" name="{{ attribute.field_name }}" class="form-control" value="{{ attribute.raw_value }}">
+
+                            {% elif attribute.data_type == "date" %}
+
+                                <input type="date" id="id_{{ attribute.field_name }}" name="{{ attribute.field_name }}" class="form-control" value="{{ attribute.raw_value }}">
+
+                            {% elif attribute.data_type == "datetime" %}
+
+                                <input type="datetime-local" id="id_{{ attribute.field_name }}" name="{{ attribute.field_name }}" class="form-control" value="{{ attribute.raw_value }}">
+
+                            {% else %}
+
+                                <input type="text" id="id_{{ attribute.field_name }}" name="{{ attribute.field_name }}" class="form-control" value="{{ attribute.raw_value }}">
+
+                            {% endif %}
+
+                            <div class="model-editor-field-help">{{ attribute.get_data_type_display }}{% if attribute.required %} · Required{% endif %}</div>
+
+                            {% if attribute.error %}
+                                <div class="model-editor-field-error">{{ attribute.error }}</div>
+                            {% endif %}
+
+                        </div>
+
+                    {% empty %}
+
+                        <p class="model-field-empty">This relationship type has no attributes.</p>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+            <div class="model-editor-footer">
+                <button type="submit" class="btn btn-primary">Create {{ relationship_type.name }}</button>
+            </div>
+
+        </form>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

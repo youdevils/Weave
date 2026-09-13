@@ -88,6 +88,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /*
      * ----------------------------------------------------
+     * Object data index discard (pending/proposed records)
+     * ----------------------------------------------------
+     */
+
+    const discardObject = event.target.closest("[data-discard-object]");
+
+    if (discardObject) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      discardObjectProposal(discardObject);
+
+      return;
+    }
+
+    /*
+     * ----------------------------------------------------
+     * Relationship data index discard (pending/proposed records)
+     * ----------------------------------------------------
+     */
+
+    const discardRelationship = event.target.closest(
+      "[data-discard-relationship]",
+    );
+
+    if (discardRelationship) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      discardRelationshipProposal(discardRelationship);
+
+      return;
+    }
+
+    /*
+     * ----------------------------------------------------
      * Find containing proposal editor.
      * ----------------------------------------------------
      */
@@ -167,6 +203,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (objectTypeStatusButton) {
       if (root.querySelector("[data-relationship-type-lifecycle]")) {
         setRelationshipTypeStatus(root, objectTypeStatusButton);
+      } else if (root.querySelector("[data-object-lifecycle]")) {
+        setObjectStatus(root, objectTypeStatusButton);
+      } else if (root.querySelector("[data-relationship-lifecycle]")) {
+        setRelationshipStatus(root, objectTypeStatusButton);
       } else {
         setObjectTypeStatus(root, objectTypeStatusButton);
       }
@@ -181,6 +221,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (objectTypeLifecycleDiscard) {
       if (root.querySelector("[data-relationship-type-lifecycle]")) {
         discardRelationshipTypeStatus(root, objectTypeLifecycleDiscard);
+      } else if (root.querySelector("[data-object-lifecycle]")) {
+        discardObjectStatus(root, objectTypeLifecycleDiscard);
+      } else if (root.querySelector("[data-relationship-lifecycle]")) {
+        discardRelationshipStatus(root, objectTypeLifecycleDiscard);
       } else {
         discardObjectTypeStatus(root, objectTypeLifecycleDiscard);
       }
@@ -753,6 +797,318 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (discard) {
       discard.hidden = !proposed;
+    }
+  }
+
+  /* ============================================================
+       Object (data record) lifecycle
+       ============================================================ */
+
+  async function setObjectStatus(root, button) {
+    const control = root.querySelector("[data-object-lifecycle]");
+
+    if (!control) {
+      return;
+    }
+
+    const current = control.dataset.active === "true";
+
+    const desired = !current;
+
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      console.error("Object lifecycle: CSRF unavailable.");
+
+      return;
+    }
+
+    button.disabled = true;
+
+    try {
+      const data = await postForm(root.dataset.updateUrl, csrfToken, {
+        action: "set_object_status",
+
+        is_active: desired ? "true" : "false",
+      });
+
+      updateObjectStatusUI(root, data.value, data.proposed);
+    } catch (error) {
+      console.error("Object lifecycle update failed:", error);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  async function discardObjectStatus(root, button) {
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      console.error("Object lifecycle discard: CSRF unavailable.");
+      return;
+    }
+
+    button.disabled = true;
+
+    try {
+      const data = await postForm(root.dataset.updateUrl, csrfToken, {
+        action: "discard_object_status",
+      });
+
+      updateObjectStatusUI(root, data.value, false);
+    } catch (error) {
+      console.error("Object lifecycle discard failed:", error);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function updateObjectStatusUI(root, value, proposed) {
+    const active = normaliseValue(value) === "true";
+
+    const control = root.querySelector("[data-object-lifecycle]");
+
+    const status = root.querySelector("[data-status-display]");
+
+    const toggle = root.querySelector("[data-status-toggle]");
+
+    const indicator = root.querySelector("[data-lifecycle-proposal-indicator]");
+
+    const discard = root.querySelector("[data-lifecycle-discard]");
+
+    if (control) {
+      control.dataset.active = active ? "true" : "false";
+
+      control.dataset.proposed = proposed ? "true" : "false";
+    }
+
+    if (status) {
+      status.className =
+        "model-status-pill " +
+        (active ? "model-status-active" : "model-status-retired");
+
+      status.replaceChildren();
+
+      const icon = document.createElement("i");
+
+      icon.className = active ? "bi bi-check-circle" : "bi bi-archive";
+
+      status.appendChild(icon);
+
+      status.appendChild(
+        document.createTextNode(active ? " Active" : " Retired"),
+      );
+    }
+
+    if (toggle) {
+      toggle.textContent = active ? "Retire" : "Activate";
+    }
+
+    if (indicator) {
+      indicator.hidden = !proposed;
+    }
+
+    if (discard) {
+      discard.hidden = !proposed;
+    }
+  }
+
+  /* ============================================================
+       Object data index discard
+       ============================================================ */
+
+  async function discardObjectProposal(button) {
+    const objectId = button.dataset.objectId;
+
+    if (!objectId) {
+      console.error("Object proposal discard: ID missing.");
+
+      return;
+    }
+
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      console.error("Object proposal discard: CSRF unavailable.");
+
+      return;
+    }
+
+    button.disabled = true;
+
+    try {
+      const data = await postForm(window.location.href, csrfToken, {
+        action: "discard_object_proposal",
+
+        object_id: objectId,
+      });
+
+      if (!data.success) {
+        throw new Error(data.error || "Unable to discard object proposal.");
+      }
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Object proposal discard failed:", error);
+
+      button.disabled = false;
+    }
+  }
+
+  /* ============================================================
+       Relationship (data record) lifecycle
+       ============================================================ */
+
+  async function setRelationshipStatus(root, button) {
+    const control = root.querySelector("[data-relationship-lifecycle]");
+
+    if (!control) {
+      return;
+    }
+
+    const current = control.dataset.active === "true";
+
+    const desired = !current;
+
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      console.error("Relationship lifecycle: CSRF unavailable.");
+
+      return;
+    }
+
+    button.disabled = true;
+
+    try {
+      const data = await postForm(root.dataset.updateUrl, csrfToken, {
+        action: "set_relationship_status",
+
+        is_active: desired ? "true" : "false",
+      });
+
+      updateRelationshipStatusUI(root, data.value, data.proposed);
+    } catch (error) {
+      console.error("Relationship lifecycle update failed:", error);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  async function discardRelationshipStatus(root, button) {
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      console.error("Relationship lifecycle discard: CSRF unavailable.");
+      return;
+    }
+
+    button.disabled = true;
+
+    try {
+      const data = await postForm(root.dataset.updateUrl, csrfToken, {
+        action: "discard_relationship_status",
+      });
+
+      updateRelationshipStatusUI(root, data.value, false);
+    } catch (error) {
+      console.error("Relationship lifecycle discard failed:", error);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function updateRelationshipStatusUI(root, value, proposed) {
+    const active = normaliseValue(value) === "true";
+
+    const control = root.querySelector("[data-relationship-lifecycle]");
+
+    const status = root.querySelector("[data-status-display]");
+
+    const toggle = root.querySelector("[data-status-toggle]");
+
+    const indicator = root.querySelector("[data-lifecycle-proposal-indicator]");
+
+    const discard = root.querySelector("[data-lifecycle-discard]");
+
+    if (control) {
+      control.dataset.active = active ? "true" : "false";
+
+      control.dataset.proposed = proposed ? "true" : "false";
+    }
+
+    if (status) {
+      status.className =
+        "model-status-pill " +
+        (active ? "model-status-active" : "model-status-retired");
+
+      status.replaceChildren();
+
+      const icon = document.createElement("i");
+
+      icon.className = active ? "bi bi-check-circle" : "bi bi-archive";
+
+      status.appendChild(icon);
+
+      status.appendChild(
+        document.createTextNode(active ? " Active" : " Retired"),
+      );
+    }
+
+    if (toggle) {
+      toggle.textContent = active ? "Retire" : "Activate";
+    }
+
+    if (indicator) {
+      indicator.hidden = !proposed;
+    }
+
+    if (discard) {
+      discard.hidden = !proposed;
+    }
+  }
+
+  /* ============================================================
+       Relationship data index discard
+       ============================================================ */
+
+  async function discardRelationshipProposal(button) {
+    const relationshipId = button.dataset.relationshipId;
+
+    if (!relationshipId) {
+      console.error("Relationship proposal discard: ID missing.");
+
+      return;
+    }
+
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      console.error("Relationship proposal discard: CSRF unavailable.");
+
+      return;
+    }
+
+    button.disabled = true;
+
+    try {
+      const data = await postForm(window.location.href, csrfToken, {
+        action: "discard_relationship_proposal",
+
+        relationship_id: relationshipId,
+      });
+
+      if (!data.success) {
+        throw new Error(
+          data.error || "Unable to discard relationship proposal.",
+        );
+      }
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Relationship proposal discard failed:", error);
+
+      button.disabled = false;
     }
   }
 
@@ -1830,4 +2186,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
     return String(value);
   }
+
+  /* ============================================================
+       Data index — click row to open record
+       ============================================================ */
+
+  document.querySelectorAll(".model-data-row[data-href]").forEach(function (row) {
+    row.addEventListener("click", function (event) {
+      if (event.target.closest("a, button")) {
+        return;
+      }
+
+      window.location.href = row.dataset.href;
+    });
+  });
 });

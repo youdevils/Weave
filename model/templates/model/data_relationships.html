@@ -1,0 +1,277 @@
+
+{% extends "model/model_base.html" %}
+
+{% block model_content %}
+
+<div class="model-data-index">
+
+    <div class="model-page-header">
+
+        <div>
+
+            <a
+                href="{% url 'model:data_relationship_types' model.id %}"
+                class="model-back-link"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Relationships
+            </a>
+
+            <div class="model-page-eyebrow">
+                Data
+            </div>
+
+            <h1 class="model-page-title">
+                {{ relationship_type.name }}
+            </h1>
+
+            <p class="model-page-description">
+                {% if relationship_type.description %}
+                    {{ relationship_type.description }}
+                {% else %}
+                    Browse and edit {{ relationship_type.name }} relationships.
+                {% endif %}
+            </p>
+
+        </div>
+
+        <div class="model-page-header-actions">
+
+            <a
+                href="{% url 'model:data_relationship_create' model.id relationship_type.id %}"
+                class="btn btn-primary"
+            >
+                <i class="bi bi-plus-lg"></i>
+                New {{ relationship_type.name }}
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <section class="model-data-toolbar">
+
+        <form method="get">
+
+            <div class="model-data-toolbar-row">
+
+                <div class="model-proposal-search">
+
+                    <i class="bi bi-search"></i>
+
+                    <input
+                        type="search"
+                        name="q"
+                        value="{{ search }}"
+                        placeholder="Search by subject or object..."
+                        aria-label="Search {{ relationship_type.name }}"
+                    >
+
+                </div>
+
+
+                <select
+                    name="sort"
+                    class="form-select form-select-sm"
+                    aria-label="Sort"
+                >
+                    <option value="subject" {% if sort == "subject" %}selected{% endif %}>Sort: Subject (A-Z)</option>
+                    <option value="subject_desc" {% if sort == "subject_desc" %}selected{% endif %}>Sort: Subject (Z-A)</option>
+                    <option value="object" {% if sort == "object" %}selected{% endif %}>Sort: Object (A-Z)</option>
+                    <option value="status" {% if sort == "status" %}selected{% endif %}>Sort: Status</option>
+                    <option value="created" {% if sort == "created" %}selected{% endif %}>Sort: Newest</option>
+                    <option value="created_desc" {% if sort == "created_desc" %}selected{% endif %}>Sort: Oldest</option>
+                </select>
+
+
+                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                    Apply
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    {% if pending_rows %}
+
+        <section class="model-data-pending">
+
+            <div class="model-data-pending-header">
+                Proposed new relationships
+            </div>
+
+            {% for row in pending_rows %}
+
+                <div class="model-data-pending-item">
+
+                    <a href="{% url 'model:data_relationship_edit' model.id relationship_type.id row.id %}">
+                        {{ row.subject_name }} → {{ row.object_name }}
+                    </a>
+
+                    <span class="model-proposed-indicator">
+                        <i class="bi bi-pencil-square"></i>
+                        Proposed
+                    </span>
+
+                    <button
+                        type="button"
+                        class="model-discard-button"
+                        data-discard-relationship
+                        data-relationship-id="{{ row.id }}"
+                    >
+                        Discard
+                    </button>
+
+                </div>
+
+            {% endfor %}
+
+        </section>
+
+    {% endif %}
+
+
+    <section class="model-data-section">
+
+        <div class="model-data-table-wrapper">
+
+            <table class="model-data-table">
+
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Object</th>
+                        <th>Status</th>
+                        {% for column in columns %}
+                            <th>{{ column.name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for row in rows %}
+
+                        <tr
+                            class="model-data-row"
+                            data-href="{% url 'model:data_relationship_edit' model.id relationship_type.id row.id %}"
+                        >
+                            <td>
+                                <a href="{% url 'model:data_object_edit' model.id row.subject_object_type_id row.subject_id %}">
+                                    {{ row.subject_name }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{% url 'model:data_object_edit' model.id row.object_object_type_id row.object_id %}">
+                                    {{ row.object_name }}
+                                </a>
+                                {% if row.is_proposed %}
+                                    <span class="model-proposed-indicator">
+                                        <i class="bi bi-pencil-square"></i>
+                                        Proposed change
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="is-status">
+                                <span class="model-status-pill {% if row.is_active %}model-status-active{% else %}model-status-retired{% endif %}">
+                                    {% if row.is_active %}
+                                        <i class="bi bi-check-circle"></i> Active
+                                    {% else %}
+                                        <i class="bi bi-archive"></i> Retired
+                                    {% endif %}
+                                </span>
+                            </td>
+                            {% for value in row.column_values %}
+                                <td>{{ value|default:"—" }}</td>
+                            {% endfor %}
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+                            <td colspan="{{ columns|length|add:3 }}">
+
+                                <div class="model-empty-state">
+
+                                    <div class="model-empty-state-icon">
+                                        <i class="bi bi-database"></i>
+                                    </div>
+
+                                    <h2>
+                                        No {{ relationship_type.name|lower }} relationships yet
+                                    </h2>
+
+                                    <p>
+                                        {% if search %}
+                                            No relationships match your search.
+                                        {% else %}
+                                            Create the first {{ relationship_type.name }} relationship.
+                                        {% endif %}
+                                    </p>
+
+                                    <a
+                                        href="{% url 'model:data_relationship_create' model.id relationship_type.id %}"
+                                        class="btn btn-primary"
+                                    >
+                                        <i class="bi bi-plus-lg"></i>
+                                        New {{ relationship_type.name }}
+                                    </a>
+
+                                </div>
+
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% if page.paginator.num_pages > 1 %}
+
+            <div class="model-data-pagination">
+
+                <div class="model-data-pagination-summary">
+                    Showing page {{ page.number }} of {{ page.paginator.num_pages }}
+                    ({{ total_count }} record{{ total_count|pluralize }})
+                </div>
+
+                <div class="model-data-pagination-controls">
+
+                    {% if page.has_previous %}
+                        <a
+                            class="btn btn-sm btn-outline-secondary"
+                            href="?q={{ search }}&sort={{ sort }}&page={{ page.previous_page_number }}"
+                        >
+                            Previous
+                        </a>
+                    {% endif %}
+
+                    {% if page.has_next %}
+                        <a
+                            class="btn btn-sm btn-outline-secondary"
+                            href="?q={{ search }}&sort={{ sort }}&page={{ page.next_page_number }}"
+                        >
+                            Next
+                        </a>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

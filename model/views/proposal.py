@@ -381,6 +381,11 @@ def proposal(request, model_id):
         create_lookup,
     )
 
+    object_names = ProposalReviewService.resolve_object_names(
+        change_list,
+        create_lookup,
+    )
+
     # Attach presentation metadata to each change.
     for change in change_list:
 
@@ -393,6 +398,7 @@ def proposal(request, model_id):
             targets,
             create_lookup,
             object_type_names,
+            object_names,
         )
 
         change.review_parent = ProposalReviewService.change_parent_context(

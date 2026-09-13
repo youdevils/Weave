@@ -1,0 +1,557 @@
+
+{% extends "model/model_base.html" %}
+
+{% block model_content %}
+
+<div class="model-object-type-editor">
+
+    <!-- ============================================================
+         PAGE HEADER
+         ============================================================ -->
+
+    <div class="model-page-header">
+
+        <div>
+
+            <a
+                href="{% url 'model:data_objects' model.id object_type.id %}"
+                class="model-back-link"
+            >
+                <i class="bi bi-arrow-left"></i>
+                {{ object_type.name }}
+            </a>
+
+
+            <div class="model-page-eyebrow">
+                Data
+            </div>
+
+
+            <h1 class="model-page-title">
+
+                {% if object %}
+                    {{ proposed_values.name|default:object.name }}
+                {% else %}
+                    New {{ object_type.name }}
+                {% endif %}
+
+            </h1>
+
+
+            <p class="model-page-description">
+                {{ object_type.name }} record.
+            </p>
+
+        </div>
+
+
+        <div class="model-page-header-actions">
+
+            <a
+                href="{% url 'model:data_objects' model.id object_type.id %}"
+                class="btn btn-outline-secondary"
+            >
+                Cancel
+            </a>
+
+        </div>
+
+    </div>
+
+
+    {% if object %}
+
+        <div
+            class="proposal-editor"
+            data-update-url="{{ proposal_update_url }}"
+        >
+
+            {% csrf_token %}
+
+            <!-- ========================================================
+                 DETAILS
+                 ======================================================== -->
+
+            <section class="model-editor-section">
+
+                <div class="model-editor-section-header">
+
+                    <div>
+                        <h2>Details</h2>
+                        <p>Edit the values recorded for this {{ object_type.name|lower }}.</p>
+                    </div>
+
+                </div>
+
+
+                <div class="model-editor-fields">
+
+                    <!-- =================================================
+                         NAME
+                         ================================================= -->
+
+                    <div
+                        class="model-editor-field proposal-editor-field"
+                        data-field="name"
+                    >
+
+                        <div class="model-editor-field-header">
+
+                            <label for="id_name">Name</label>
+
+                            <button
+                                type="button"
+                                class="model-inline-edit-button"
+                                data-proposal-action="edit"
+                            >
+                                Edit
+                            </button>
+
+                        </div>
+
+                        <div class="model-editor-field-display" data-field-display="name">
+                            {% if proposed_values.name %}
+                                {{ proposed_values.name }}
+                            {% else %}
+                                <span class="model-field-empty">Not defined</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="model-editor-field-editor" data-field-editor="name" hidden>
+
+                            <input
+                                type="text"
+                                id="id_name"
+                                name="name"
+                                value="{{ proposed_values.name|default:'' }}"
+                                class="form-control"
+                                maxlength="255"
+                            >
+
+                            <div class="model-editor-field-error" data-proposal-error hidden></div>
+
+                            <div class="model-editor-actions">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-proposal-action="cancel">Cancel</button>
+                                <button type="button" class="btn btn-sm btn-primary" data-proposal-action="save">Save</button>
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="model-proposed-indicator"
+                            data-proposal-indicator
+                            {% if not proposed_fields.name %}hidden{% endif %}
+                        >
+                            <i class="bi bi-pencil-square"></i>
+                            Proposed change
+                        </div>
+
+                        <button
+                            type="button"
+                            class="model-discard-button"
+                            data-proposal-action="discard"
+                            {% if not proposed_fields.name %}hidden{% endif %}
+                        >
+                            Discard
+                        </button>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         DESCRIPTION
+                         ================================================= -->
+
+                    <div
+                        class="model-editor-field proposal-editor-field"
+                        data-field="description"
+                    >
+
+                        <div class="model-editor-field-header">
+                            <label for="id_description">Description</label>
+                            <button type="button" class="model-inline-edit-button" data-proposal-action="edit">Edit</button>
+                        </div>
+
+                        <div class="model-editor-field-display" data-field-display="description">
+                            {% if proposed_values.description %}
+                                {{ proposed_values.description }}
+                            {% else %}
+                                <span class="model-field-empty">Not defined</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="model-editor-field-editor" data-field-editor="description" hidden>
+
+                            <textarea
+                                id="id_description"
+                                name="description"
+                                class="form-control"
+                                rows="3"
+                                maxlength="5000"
+                            >{{ proposed_values.description|default:'' }}</textarea>
+
+                            <div class="model-editor-field-error" data-proposal-error hidden></div>
+
+                            <div class="model-editor-actions">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-proposal-action="cancel">Cancel</button>
+                                <button type="button" class="btn btn-sm btn-primary" data-proposal-action="save">Save</button>
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="model-proposed-indicator"
+                            data-proposal-indicator
+                            {% if not proposed_fields.description %}hidden{% endif %}
+                        >
+                            <i class="bi bi-pencil-square"></i>
+                            Proposed change
+                        </div>
+
+                        <button
+                            type="button"
+                            class="model-discard-button"
+                            data-proposal-action="discard"
+                            {% if not proposed_fields.description %}hidden{% endif %}
+                        >
+                            Discard
+                        </button>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         DYNAMIC ATTRIBUTE FIELDS
+                         ================================================= -->
+
+                    {% for attribute in attribute_definitions %}
+
+                        <div
+                            class="model-editor-field proposal-editor-field"
+                            data-field="{{ attribute.field_name }}"
+                        >
+
+                            <div class="model-editor-field-header">
+                                <label for="id_{{ attribute.field_name }}">{{ attribute.name }}</label>
+                                <button type="button" class="model-inline-edit-button" data-proposal-action="edit">Edit</button>
+                            </div>
+
+                            <div class="model-editor-field-display" data-field-display="{{ attribute.field_name }}">
+                                {% if attribute.current_value is not None %}
+                                    {% if attribute.data_type == "boolean" %}
+                                        {% if attribute.current_value %}Yes{% else %}No{% endif %}
+                                    {% else %}
+                                        {{ attribute.current_value }}
+                                    {% endif %}
+                                {% else %}
+                                    <span class="model-field-empty">Not defined</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="model-editor-field-editor" data-field-editor="{{ attribute.field_name }}" hidden>
+
+                                {% if attribute.data_type == "boolean" %}
+
+                                    <select id="id_{{ attribute.field_name }}" class="form-select">
+                                        <option value="" {% if attribute.current_value is None %}selected{% endif %}>Not set</option>
+                                        <option value="true" {% if attribute.current_value == True %}selected{% endif %}>Yes</option>
+                                        <option value="false" {% if attribute.current_value == False %}selected{% endif %}>No</option>
+                                    </select>
+
+                                {% elif attribute.data_type == "choice" %}
+
+                                    <select id="id_{{ attribute.field_name }}" class="form-select">
+                                        <option value="">Not set</option>
+                                        {% for choice in attribute.choices %}
+                                            <option value="{{ choice }}" {% if attribute.current_value == choice %}selected{% endif %}>{{ choice }}</option>
+                                        {% endfor %}
+                                    </select>
+
+                                {% elif attribute.data_type == "number" %}
+
+                                    <input type="number" step="any" id="id_{{ attribute.field_name }}" class="form-control" value="{{ attribute.current_value|default_if_none:'' }}">
+
+                                {% elif attribute.data_type == "date" %}
+
+                                    <input type="date" id="id_{{ attribute.field_name }}" class="form-control" value="{{ attribute.current_value|default_if_none:'' }}">
+
+                                {% elif attribute.data_type == "datetime" %}
+
+                                    <input type="datetime-local" id="id_{{ attribute.field_name }}" class="form-control" value="{{ attribute.current_value|default_if_none:'' }}">
+
+                                {% else %}
+
+                                    <input type="text" id="id_{{ attribute.field_name }}" class="form-control" value="{{ attribute.current_value|default_if_none:'' }}">
+
+                                {% endif %}
+
+                                <div class="model-editor-field-help">{{ attribute.get_data_type_display }}{% if attribute.required %} · Required{% endif %}</div>
+
+                                <div class="model-editor-field-error" data-proposal-error hidden></div>
+
+                                <div class="model-editor-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-proposal-action="cancel">Cancel</button>
+                                    <button type="button" class="btn btn-sm btn-primary" data-proposal-action="save">Save</button>
+                                </div>
+
+                            </div>
+
+                            <div
+                                class="model-proposed-indicator"
+                                data-proposal-indicator
+                                {% if not attribute.is_proposed %}hidden{% endif %}
+                            >
+                                <i class="bi bi-pencil-square"></i>
+                                Proposed change
+                            </div>
+
+                            <button
+                                type="button"
+                                class="model-discard-button"
+                                data-proposal-action="discard"
+                                {% if not attribute.is_proposed %}hidden{% endif %}
+                            >
+                                Discard
+                            </button>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- ====================================================
+                     LIFECYCLE
+                     ==================================================== -->
+
+                <div class="model-object-type-lifecycle">
+
+                    <div class="model-object-type-lifecycle-main">
+                        <div class="model-object-type-lifecycle-label">Status</div>
+                        <div class="model-object-type-lifecycle-description">
+                            Controls whether this record is active. Retiring a
+                            record does not delete it.
+                        </div>
+                    </div>
+
+                    <div
+                        class="model-object-type-lifecycle-control"
+                        data-object-lifecycle
+                        data-active="{% if proposed_values.is_active %}true{% else %}false{% endif %}"
+                        data-proposed="{% if proposed_fields.is_active %}true{% else %}false{% endif %}"
+                    >
+
+                        <div
+                            class="model-status-pill {% if proposed_values.is_active %}model-status-active{% else %}model-status-retired{% endif %}"
+                            data-status-display
+                        >
+                            {% if proposed_values.is_active %}
+                                <i class="bi bi-check-circle"></i> Active
+                            {% else %}
+                                <i class="bi bi-archive"></i> Retired
+                            {% endif %}
+                        </div>
+
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-status-toggle>
+                            {% if proposed_values.is_active %}Retire{% else %}Activate{% endif %}
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div
+                    class="model-proposed-indicator model-object-type-lifecycle-proposal"
+                    data-lifecycle-proposal-indicator
+                    {% if not proposed_fields.is_active %}hidden{% endif %}
+                >
+                    <i class="bi bi-pencil-square"></i>
+                    Proposed change
+
+                    <button
+                        type="button"
+                        class="model-discard-button"
+                        data-lifecycle-discard
+                        {% if not proposed_fields.is_active %}hidden{% endif %}
+                    >
+                        Discard
+                    </button>
+                </div>
+
+            </section>
+
+
+            <!-- ========================================================
+                 RELATIONSHIPS (read-only)
+                 ======================================================== -->
+
+            {% if not proposal_only %}
+
+                <section class="model-editor-section">
+
+                    <div class="model-editor-section-header">
+                        <div>
+                            <h2>Relationships</h2>
+                            <p>Relationships involving this record.</p>
+                        </div>
+                    </div>
+
+                    {% if subject_relationship_groups or object_relationship_groups %}
+
+                        {% for group in subject_relationship_groups %}
+                            <div class="model-data-relationship-group">
+                                <div class="model-data-relationship-group-label">{{ group.label }}</div>
+                                {% for item in group.items %}
+                                    <a
+                                        class="model-data-relationship-item"
+                                        href="{% url 'model:data_object_edit' model.id item.object_type_id item.object_id %}"
+                                    >
+                                        {{ item.name }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+
+                        {% for group in object_relationship_groups %}
+                            <div class="model-data-relationship-group">
+                                <div class="model-data-relationship-group-label">{{ group.label }} (as object)</div>
+                                {% for item in group.items %}
+                                    <a
+                                        class="model-data-relationship-item"
+                                        href="{% url 'model:data_object_edit' model.id item.object_type_id item.object_id %}"
+                                    >
+                                        {{ item.name }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+
+                    {% else %}
+
+                        <p class="model-field-empty">No relationships recorded yet.</p>
+
+                    {% endif %}
+
+                </section>
+
+            {% endif %}
+
+        </div>
+
+    {% else %}
+
+        <!-- ============================================================
+             CREATE FORM (plain full-page submit)
+             ============================================================ -->
+
+        <form method="post" class="model-object-type-editor-form">
+
+            {% csrf_token %}
+
+            <section class="model-editor-section">
+
+                <div class="model-editor-section-header">
+                    <div>
+                        <h2>Details</h2>
+                        <p>Enter the values for this new {{ object_type.name|lower }}.</p>
+                    </div>
+                </div>
+
+                <div class="model-editor-fields">
+
+                    <div class="model-editor-field">
+                        <label for="id_name">Name</label>
+                        <input
+                            type="text"
+                            id="id_name"
+                            name="name"
+                            value="{{ form_values.name }}"
+                            class="form-control"
+                            maxlength="255"
+                        >
+                        {% if errors.name %}
+                            <div class="model-editor-field-error">{{ errors.name }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="model-editor-field">
+                        <label for="id_description">Description</label>
+                        <textarea
+                            id="id_description"
+                            name="description"
+                            class="form-control"
+                            rows="3"
+                            maxlength="5000"
+                        >{{ form_values.description }}</textarea>
+                    </div>
+
+                    {% for attribute in attribute_definitions %}
+
+                        <div class="model-editor-field">
+
+                            <label for="id_{{ attribute.field_name }}">
+                                {{ attribute.name }}
+                                {% if attribute.required %}*{% endif %}
+                            </label>
+
+                            {% if attribute.data_type == "boolean" %}
+
+                                <select id="id_{{ attribute.field_name }}" name="{{ attribute.field_name }}" class="form-select">
+                                    <option value="" {% if attribute.raw_value == "" %}selected{% endif %}>Not set</option>
+                                    <option value="true" {% if attribute.raw_value == "true" %}selected{% endif %}>Yes</option>
+                                    <option value="false" {% if attribute.raw_value == "false" %}selected{% endif %}>No</option>
+                                </select>
+
+                            {% elif attribute.data_type == "choice" %}
+
+                                <select id="id_{{ attribute.field_name }}" name="{{ attribute.field_name }}" class="form-select">
+                                    <option value="">Not set</option>
+                                    {% for choice in attribute.choices %}
+                                        <option value="{{ choice }}" {% if attribute.raw_value == choice %}selected{% endif %}>{{ choice }}</option>
+                                    {% endfor %}
+                                </select>
+
+                            {% elif attribute.data_type == "number" %}
+
+                                <input type="number" step="any" id="id_{{ attribute.field_name }}" name="{{ attribute.field_name }}" class="form-control" value="{{ attribute.raw_value }}">
+
+                            {% elif attribute.data_type == "date" %}
+
+                                <input type="date" id="id_{{ attribute.field_name }}" name="{{ attribute.field_name }}" class="form-control" value="{{ attribute.raw_value }}">
+
+                            {% elif attribute.data_type == "datetime" %}
+
+                                <input type="datetime-local" id="id_{{ attribute.field_name }}" name="{{ attribute.field_name }}" class="form-control" value="{{ attribute.raw_value }}">
+
+                            {% else %}
+
+                                <input type="text" id="id_{{ attribute.field_name }}" name="{{ attribute.field_name }}" class="form-control" value="{{ attribute.raw_value }}">
+
+                            {% endif %}
+
+                            <div class="model-editor-field-help">{{ attribute.get_data_type_display }}{% if attribute.required %} · Required{% endif %}</div>
+
+                            {% if attribute.error %}
+                                <div class="model-editor-field-error">{{ attribute.error }}</div>
+                            {% endif %}
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+            <div class="model-editor-footer">
+                <button type="submit" class="btn btn-primary">Create {{ object_type.name }}</button>
+            </div>
+
+        </form>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1939,6 +1939,164 @@
 }
 
 /* =========================================================
+   Data index — search/sort toolbar
+   ========================================================= */
+
+.model-data-toolbar {
+    margin-bottom: 1.5rem;
+}
+
+.model-data-toolbar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.model-data-toolbar-row .form-select {
+    width: auto;
+}
+
+/* =========================================================
+   Data index — pending (proposal-only) records
+   ========================================================= */
+
+.model-data-pending {
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--model-border-light);
+    border-radius: 0.5rem;
+    background: var(--model-surface-subtle);
+}
+
+.model-data-pending-header {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--model-border-light);
+    color: var(--model-text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.model-data-pending-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--model-border-light);
+    font-size: 0.85rem;
+}
+
+.model-data-pending-item:last-child {
+    border-bottom: 0;
+}
+
+/* =========================================================
+   Data index — table
+   ========================================================= */
+
+.model-data-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--model-border-light);
+    border-radius: 0.5rem;
+}
+
+.model-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.model-data-table thead th {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--model-border);
+    background: var(--model-surface-subtle);
+    color: var(--model-text-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.model-data-table tbody td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--model-border-light);
+    color: var(--model-text-secondary);
+    vertical-align: middle;
+}
+
+.model-data-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.model-data-table tbody tr:hover {
+    background: var(--model-surface-subtle);
+}
+
+.model-data-table td.is-status {
+    white-space: nowrap;
+}
+
+.model-data-table .model-proposed-indicator {
+    display: inline-flex;
+    margin-top: 0;
+    margin-left: 0.5rem;
+}
+
+/* =========================================================
+   Data index — pagination
+   ========================================================= */
+
+.model-data-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.model-data-pagination-summary {
+    color: var(--model-text-muted);
+    font-size: 0.78rem;
+}
+
+.model-data-pagination-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* =========================================================
+   Data record editor — relationships section
+   ========================================================= */
+
+.model-data-relationship-group {
+    margin-bottom: 1rem;
+}
+
+.model-data-relationship-group-label {
+    margin-bottom: 0.35rem;
+    color: var(--model-text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.model-data-relationship-item {
+    display: block;
+    padding: 0.3rem 0;
+    color: var(--model-text-secondary);
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+.model-data-relationship-item:hover {
+    text-decoration: underline;
+}
+
+/* =========================================================
    Responsive
    ========================================================= */
 

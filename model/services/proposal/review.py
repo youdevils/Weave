@@ -27,6 +27,7 @@ class ProposalReviewService:
     # trigger a query per FK.
     SELECT_RELATED = {
         "RelationshipTypeRule": ("subject_type", "object_type"),
+        "Relationship": ("subject", "object"),
     }
 
     # Human-facing display names for target_type / parent_type,
@@ -171,6 +172,55 @@ class ProposalReviewService:
 
         return names
 
+    @staticmethod
+    def resolve_object_names(changes, create_lookup):
+        """
+        Resolve Object names referenced by a Relationship CREATE
+        payload's subject_id/object_id, with a CREATE-lookup fallback
+        for endpoints that are themselves only proposal-only Objects
+        in the same working proposal.
+        """
+
+        ids = set()
+
+        for change in changes:
+
+            if change.target_type != "Relationship":
+                continue
+
+            payload = create_lookup.get(
+                ("Relationship", str(change.target_id))
+            ) or {}
+
+            for key in ("subject_id", "object_id"):
+
+                value = payload.get(key)
+
+                if value:
+                    ids.add(str(value))
+
+        if not ids:
+            return {}
+
+        names = {
+            str(object_id): name
+            for object_id, name in Object.objects.filter(
+                id__in=ids,
+            ).values_list("id", "name")
+        }
+
+        for object_id in ids:
+
+            if object_id in names:
+                continue
+
+            create_payload = create_lookup.get(("Object", object_id))
+
+            if create_payload:
+                names[object_id] = create_payload.get("name") or "Untitled"
+
+        return names
+
     # -----------------------------------------------------------------
     # Parent label
     # -----------------------------------------------------------------
@@ -264,6 +314,34 @@ class ProposalReviewService:
         return f"{subject_name} {subject_span} → {object_span} {object_name}"
 
     # -----------------------------------------------------------------
+    # Relationship identity
+    # -----------------------------------------------------------------
+
+    @staticmethod
+    def _relationship_identity(change, targets, create_lookup, object_names):
+        canonical_relationship = targets.get(
+            ("Relationship", change.target_id)
+        )
+
+        if canonical_relationship is not None:
+            subject_name = canonical_relationship.subject.name
+            object_name = canonical_relationship.object.name
+        else:
+            payload = create_lookup.get(
+                ("Relationship", str(change.target_id))
+            ) or {}
+            subject_name = object_names.get(
+                str(payload.get("subject_id")),
+                "Unknown",
+            )
+            object_name = object_names.get(
+                str(payload.get("object_id")),
+                "Unknown",
+            )
+
+        return f"{subject_name} → {object_name}"
+
+    # -----------------------------------------------------------------
     # Target identity
     #
     # The exact thing being changed, as distinct from its parent
@@ -271,7 +349,9 @@ class ProposalReviewService:
     # -----------------------------------------------------------------
 
     @staticmethod
-    def change_target(change, targets, create_lookup, object_type_names):
+    def change_target(change, targets, create_lookup, object_type_names, object_names=None):
+        object_names = object_names or {}
+
         display_type = ProposalReviewService.display_label(change.target_type)
 
         if change.target_type == "RelationshipTypeRule":
@@ -282,6 +362,17 @@ class ProposalReviewService:
                     targets,
                     create_lookup,
                     object_type_names,
+                ),
+            }
+
+        if change.target_type == "Relationship":
+            return {
+                "type": display_type,
+                "label": ProposalReviewService._relationship_identity(
+                    change,
+                    targets,
+                    create_lookup,
+                    object_names,
                 ),
             }
 
