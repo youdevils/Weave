@@ -1811,6 +1811,28 @@
     color: var(--model-text-secondary);
 }
 
+.model-proposal-change-actions.is-confirming .model-proposal-review,
+.model-proposal-change-actions.is-confirming .model-proposal-unreview,
+.model-proposal-change-actions.is-confirming .model-proposal-discard {
+    display: none;
+}
+
+.model-proposal-discard-confirm {
+    display: none;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.model-proposal-change-actions.is-confirming .model-proposal-discard-confirm {
+    display: flex;
+}
+
+.model-proposal-discard-confirm-text {
+    color: var(--model-text-muted);
+    font-size: 0.68rem;
+}
+
 .model-proposal-change-parent {
     display: flex;
     align-items: center;

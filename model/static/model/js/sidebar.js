@@ -1,58 +1,44 @@
-
 document.addEventListener("DOMContentLoaded", function () {
+  /*
+   * ---------------------------------------------------------
+   * Model navigation
+   * ---------------------------------------------------------
+   *
+   * This file owns model sidebar navigation only.
+   * It must not contain model overview editing behaviour.
+   * ---------------------------------------------------------
+   */
 
-    /*
-     * ---------------------------------------------------------
-     * Model navigation
-     * ---------------------------------------------------------
-     *
-     * This file owns model sidebar navigation only.
-     * It must not contain model overview editing behaviour.
-     * ---------------------------------------------------------
-     */
+  document.querySelectorAll(".model-nav-toggle").forEach(function (toggle) {
+    toggle.addEventListener("click", function () {
+      const group = toggle.closest(".model-nav-group");
 
-    document.querySelectorAll(".model-nav-toggle").forEach(function (toggle) {
+      if (!group) {
+        return;
+      }
 
-        toggle.addEventListener("click", function () {
+      const children = group.querySelector(".model-nav-children");
 
-            const group = toggle.closest(".model-nav-group");
+      if (!children) {
+        return;
+      }
 
-            if (!group) {
-                return;
-            }
+      const parentLabel = group.querySelector(".model-nav-parent span");
 
-            const children = group.querySelector(".model-nav-children");
+      const sectionName = parentLabel
+        ? parentLabel.textContent.trim()
+        : "section";
 
-            if (!children) {
-                return;
-            }
+      const expanded = toggle.getAttribute("aria-expanded") === "true";
 
-            const parentLabel = group.querySelector(
-                ".model-nav-parent span"
-            );
+      toggle.setAttribute("aria-expanded", expanded ? "false" : "true");
 
-            const sectionName = parentLabel
-                ? parentLabel.textContent.trim()
-                : "section";
+      toggle.setAttribute(
+        "aria-label",
+        expanded ? `Expand ${sectionName}` : `Collapse ${sectionName}`,
+      );
 
-            const expanded =
-                toggle.getAttribute("aria-expanded") === "true";
-
-            toggle.setAttribute(
-                "aria-expanded",
-                expanded ? "false" : "true"
-            );
-
-            toggle.setAttribute(
-                "aria-label",
-                expanded
-                    ? `Expand ${sectionName}`
-                    : `Collapse ${sectionName}`
-            );
-
-            children.classList.toggle("collapsed", expanded);
-        });
-
+      children.classList.toggle("collapsed", expanded);
     });
-
+  });
 });

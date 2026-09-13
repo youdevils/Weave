@@ -2200,10 +2200,6 @@ def object_type_editor(
         }
 
     else:
-
-        # The object_type came from the working-model context, so its
-        # values already represent canonical state plus any working
-        # proposal changes.
         effective_values = _object_type_effective_values(
             object_type,
             proposal,

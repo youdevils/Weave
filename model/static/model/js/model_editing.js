@@ -1,2892 +1,1388 @@
-
 document.addEventListener("DOMContentLoaded", function () {
+  /*
+   * ============================================================
+   * Weave proposal-aware model editing
+   * ============================================================
+   *
+   * Supports:
+   *
+   *   ObjectType index
+   *   ObjectType property editing
+   *   ObjectType lifecycle
+   *   AttributeDefinition property editing
+   *   AttributeDefinition lifecycle
+   *   AttributeDefinition creation
+   *   Proposal discard
+   *
+   * Nothing here modifies canonical model state directly.
+   * All writes go through proposal-aware Django endpoints.
+   * ============================================================
+   */
 
-    /*
-     * ============================================================
-     * Weave proposal-aware model editing
-     * ============================================================
-     *
-     * Supports:
-     *
-     *   ObjectType index
-     *   ObjectType property editing
-     *   ObjectType lifecycle
-     *   AttributeDefinition property editing
-     *   AttributeDefinition lifecycle
-     *   AttributeDefinition creation
-     *   Proposal discard
-     *
-     * Nothing here modifies canonical model state directly.
-     * All writes go through proposal-aware Django endpoints.
-     * ============================================================
-     */
-
-
-    /* ============================================================
+  /* ============================================================
        CSRF
        ============================================================ */
 
-    function getCsrfToken() {
+  function getCsrfToken() {
+    const input = document.querySelector('[name="csrfmiddlewaretoken"]');
 
-        const input =
-            document.querySelector(
-                '[name="csrfmiddlewaretoken"]'
-            );
-
-        if (
-            input
-            && input.value
-        ) {
-            return input.value;
-        }
-
-
-        const cookies =
-            document.cookie.split(";");
-
-
-        for (
-            let cookie of cookies
-        ) {
-
-            cookie =
-                cookie.trim();
-
-
-            if (
-                cookie.startsWith(
-                    "csrftoken="
-                )
-            ) {
-
-                return decodeURIComponent(
-                    cookie.substring(
-                        "csrftoken=".length
-                    )
-                );
-
-            }
-
-        }
-
-
-        return null;
+    if (input && input.value) {
+      return input.value;
     }
 
+    const cookies = document.cookie.split(";");
 
-    /* ============================================================
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+
+      if (cookie.startsWith("csrftoken=")) {
+        return decodeURIComponent(cookie.substring("csrftoken=".length));
+      }
+    }
+
+    return null;
+  }
+
+  /* ============================================================
        Global delegated click handling
        ============================================================ */
 
-    document.addEventListener(
-        "click",
-        function (event) {
-
-            /*
-             * ----------------------------------------------------
-             * ObjectType index discard
-             * ----------------------------------------------------
-             */
-
-            const discardObjectType =
-                event.target.closest(
-                    "[data-discard-object-type]"
-                );
-
-            if (discardObjectType) {
-
-                event.preventDefault();
-                event.stopPropagation();
-
-                discardObjectTypeProposal(
-                    discardObjectType
-                );
-
-                return;
-            }
-
-
-            /*
-             * ----------------------------------------------------
-             * RelationshipType index discard
-             * ----------------------------------------------------
-             */
-
-            const discardRelationshipType =
-                event.target.closest(
-                    "[data-discard-relationship-type]"
-                );
-
-            if (discardRelationshipType) {
-
-                event.preventDefault();
-                event.stopPropagation();
-
-                discardRelationshipTypeProposal(
-                    discardRelationshipType
-                );
-
-                return;
-            }
-
-
-            /*
-             * ----------------------------------------------------
-             * Find containing proposal editor.
-             * ----------------------------------------------------
-             */
-
-            const root =
-                event.target.closest(
-                    ".proposal-editor"
-                );
-
-            if (!root) {
-                return;
-            }
-
-
-            /*
-             * ----------------------------------------------------
-             * ObjectType property editing
-             * ----------------------------------------------------
-             */
-
-            const editButton =
-                event.target.closest(
-                    '[data-proposal-action="edit"]'
-                );
-
-            if (editButton) {
-
-                const field =
-                    editButton.closest(
-                        ".proposal-editor-field"
-                    );
-
-                if (field) {
-                    openField(
-                        field
-                    );
-                }
-
-                return;
-            }
-
-
-            const cancelButton =
-                event.target.closest(
-                    '[data-proposal-action="cancel"]'
-                );
-
-            if (cancelButton) {
-
-                const field =
-                    cancelButton.closest(
-                        ".proposal-editor-field"
-                    );
-
-                if (field) {
-                    cancelField(
-                        field
-                    );
-                }
-
-                return;
-            }
-
-
-            const saveButton =
-                event.target.closest(
-                    '[data-proposal-action="save"]'
-                );
-
-            if (saveButton) {
-
-                const field =
-                    saveButton.closest(
-                        ".proposal-editor-field"
-                    );
-
-                if (field) {
-
-                    saveField(
-                        root,
-                        field,
-                        saveButton
-                    );
-
-                }
-
-                return;
-            }
-
-
-            const discardFieldButton =
-                event.target.closest(
-                    '[data-proposal-action="discard"]'
-                );
-
-            if (discardFieldButton) {
-
-                const field =
-                    discardFieldButton.closest(
-                        ".proposal-editor-field"
-                    );
-
-                if (field) {
-
-                    discardField(
-                        root,
-                        field,
-                        discardFieldButton
-                    );
-
-                }
-
-                return;
-            }
-
-
-            /*
-             * ----------------------------------------------------
-             * ObjectType lifecycle
-             * ----------------------------------------------------
-             */
-
-            const objectTypeStatusButton =
-                event.target.closest(
-                    "[data-status-toggle]"
-                );
-
-            if (objectTypeStatusButton) {
-
-                if (
-                    root.querySelector(
-                        "[data-relationship-type-lifecycle]"
-                    )
-                ) {
-
-                    setRelationshipTypeStatus(
-                        root,
-                        objectTypeStatusButton
-                    );
-
-                } else {
-
-                    setObjectTypeStatus(
-                        root,
-                        objectTypeStatusButton
-                    );
-
-                }
-
-                return;
-            }
-
-
-            const objectTypeLifecycleDiscard =
-                event.target.closest(
-                    "[data-lifecycle-discard]"
-                );
-
-            if (objectTypeLifecycleDiscard) {
-
-                if (
-                    root.querySelector(
-                        "[data-relationship-type-lifecycle]"
-                    )
-                ) {
-
-                    discardRelationshipTypeStatus(
-                        root,
-                        objectTypeLifecycleDiscard
-                    );
-
-                } else {
-
-                    discardObjectTypeStatus(
-                        root,
-                        objectTypeLifecycleDiscard
-                    );
-
-                }
-
-                return;
-            }
-
-
-            /*
-             * ----------------------------------------------------
-             * Attribute editing
-             * ----------------------------------------------------
-             */
-
-            const editAttribute =
-                event.target.closest(
-                    "[data-edit-attribute]"
-                );
-
-            if (editAttribute) {
-
-                const attribute =
-                    editAttribute.closest(
-                        ".model-object-type-attribute"
-                    );
-
-                if (attribute) {
-
-                    openAttribute(
-                        attribute
-                    );
-
-                }
-
-                return;
-            }
-
-
-            const cancelAttribute =
-                event.target.closest(
-                    "[data-cancel-attribute]"
-                );
-
-            if (cancelAttribute) {
-
-                const attribute =
-                    cancelAttribute.closest(
-                        ".model-object-type-attribute"
-                    );
-
-                if (attribute) {
-
-                    closeAttribute(
-                        attribute
-                    );
-
-                }
-
-                return;
-            }
-
-
-            const saveAttributeButton =
-                event.target.closest(
-                    "[data-save-attribute]"
-                );
-
-            if (saveAttributeButton) {
-
-                saveAttribute(
-                    root,
-                    saveAttributeButton
-                );
-
-                return;
-            }
-
-
-            const discardAttributeButton =
-                event.target.closest(
-                    "[data-discard-attribute]"
-                );
-
-            if (discardAttributeButton) {
-
-                discardAttribute(
-                    root,
-                    discardAttributeButton
-                );
-
-                return;
-            }
-
-
-            /*
-             * ----------------------------------------------------
-             * Attribute lifecycle
-             * ----------------------------------------------------
-             */
-
-            const attributeStatusButton =
-                event.target.closest(
-                    "[data-attribute-status-toggle]"
-                );
-
-            if (attributeStatusButton) {
-
-                setAttributeStatus(
-                    root,
-                    attributeStatusButton
-                );
-
-                return;
-            }
-
-
-            /*
-             * ----------------------------------------------------
-             * New Attribute
-             * ----------------------------------------------------
-             */
-
-            const addAttributeButton =
-                event.target.closest(
-                    "[data-add-new-attribute]"
-                );
-
-            if (addAttributeButton) {
-
-                openNewAttribute(
-                    root
-                );
-
-                return;
-            }
-
-
-            const cancelNewAttributeButton =
-                event.target.closest(
-                    "[data-cancel-new-attribute]"
-                );
-
-            if (cancelNewAttributeButton) {
-
-                closeNewAttribute(
-                    root
-                );
-
-                return;
-            }
-
-
-            const saveNewAttributeButton =
-                event.target.closest(
-                    "[data-save-new-attribute]"
-                );
-
-            if (saveNewAttributeButton) {
-
-                saveNewAttribute(
-                    root,
-                    saveNewAttributeButton
-                );
-
-            }
-
-
-            /*
-             * ----------------------------------------------------
-             * RelationshipType rule editing
-             * ----------------------------------------------------
-             */
-
-            const addRuleButton =
-                event.target.closest(
-                    "[data-rule-add]"
-                );
-
-            if (addRuleButton) {
-
-                openNewRule(
-                    root
-                );
-
-                return;
-            }
-
-
-            const editRuleButton =
-                event.target.closest(
-                    "[data-rule-edit]"
-                );
-
-            if (editRuleButton) {
-
-                const rule =
-                    editRuleButton.closest(
-                        ".model-relationship-rule"
-                    );
-
-                if (rule) {
-                    openRule(rule);
-                }
-
-                return;
-            }
-
-
-            const cancelRuleButton =
-                event.target.closest(
-                    "[data-rule-cancel]"
-                );
-
-            if (cancelRuleButton) {
-
-                const rule =
-                    cancelRuleButton.closest(
-                        ".model-relationship-rule"
-                    );
-
-                if (rule) {
-                    closeRule(rule);
-                }
-
-                return;
-            }
-
-
-            const saveRuleButton =
-                event.target.closest(
-                    "[data-rule-save]"
-                );
-
-            if (saveRuleButton) {
-
-                saveRule(
-                    root,
-                    saveRuleButton
-                );
-
-                return;
-            }
-
-
-            const discardRuleButton =
-                event.target.closest(
-                    "[data-rule-discard]"
-                );
-
-            if (discardRuleButton) {
-
-                discardRule(
-                    root,
-                    discardRuleButton
-                );
-
-                return;
-            }
-
-
-            /*
-             * ----------------------------------------------------
-             * RelationshipType new rule
-             * ----------------------------------------------------
-             */
-
-            const cancelNewRuleButton =
-                event.target.closest(
-                    "[data-rule-cancel-new]"
-                );
-
-            if (cancelNewRuleButton) {
-
-                closeNewRule(
-                    root
-                );
-
-                return;
-            }
-
-
-            const saveNewRuleButton =
-                event.target.closest(
-                    "[data-rule-save-new]"
-                );
-
-            if (saveNewRuleButton) {
-
-                saveNewRule(
-                    root,
-                    saveNewRuleButton
-                );
-
-            }
-
-        }
+  document.addEventListener("click", function (event) {
+    /*
+     * ----------------------------------------------------
+     * ObjectType index discard
+     * ----------------------------------------------------
+     */
+
+    const discardObjectType = event.target.closest(
+      "[data-discard-object-type]",
     );
 
+    if (discardObjectType) {
+      event.preventDefault();
+      event.stopPropagation();
 
-    /* ============================================================
+      discardObjectTypeProposal(discardObjectType);
+
+      return;
+    }
+
+    /*
+     * ----------------------------------------------------
+     * RelationshipType index discard
+     * ----------------------------------------------------
+     */
+
+    const discardRelationshipType = event.target.closest(
+      "[data-discard-relationship-type]",
+    );
+
+    if (discardRelationshipType) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      discardRelationshipTypeProposal(discardRelationshipType);
+
+      return;
+    }
+
+    /*
+     * ----------------------------------------------------
+     * Find containing proposal editor.
+     * ----------------------------------------------------
+     */
+
+    const root = event.target.closest(".proposal-editor");
+
+    if (!root) {
+      return;
+    }
+
+    /*
+     * ----------------------------------------------------
+     * ObjectType property editing
+     * ----------------------------------------------------
+     */
+
+    const editButton = event.target.closest('[data-proposal-action="edit"]');
+
+    if (editButton) {
+      const field = editButton.closest(".proposal-editor-field");
+
+      if (field) {
+        openField(field);
+      }
+
+      return;
+    }
+
+    const cancelButton = event.target.closest(
+      '[data-proposal-action="cancel"]',
+    );
+
+    if (cancelButton) {
+      const field = cancelButton.closest(".proposal-editor-field");
+
+      if (field) {
+        cancelField(field);
+      }
+
+      return;
+    }
+
+    const saveButton = event.target.closest('[data-proposal-action="save"]');
+
+    if (saveButton) {
+      const field = saveButton.closest(".proposal-editor-field");
+
+      if (field) {
+        saveField(root, field, saveButton);
+      }
+
+      return;
+    }
+
+    const discardFieldButton = event.target.closest(
+      '[data-proposal-action="discard"]',
+    );
+
+    if (discardFieldButton) {
+      const field = discardFieldButton.closest(".proposal-editor-field");
+
+      if (field) {
+        discardField(root, field, discardFieldButton);
+      }
+
+      return;
+    }
+
+    /*
+     * ----------------------------------------------------
+     * ObjectType lifecycle
+     * ----------------------------------------------------
+     */
+
+    const objectTypeStatusButton = event.target.closest("[data-status-toggle]");
+
+    if (objectTypeStatusButton) {
+      if (root.querySelector("[data-relationship-type-lifecycle]")) {
+        setRelationshipTypeStatus(root, objectTypeStatusButton);
+      } else {
+        setObjectTypeStatus(root, objectTypeStatusButton);
+      }
+
+      return;
+    }
+
+    const objectTypeLifecycleDiscard = event.target.closest(
+      "[data-lifecycle-discard]",
+    );
+
+    if (objectTypeLifecycleDiscard) {
+      if (root.querySelector("[data-relationship-type-lifecycle]")) {
+        discardRelationshipTypeStatus(root, objectTypeLifecycleDiscard);
+      } else {
+        discardObjectTypeStatus(root, objectTypeLifecycleDiscard);
+      }
+
+      return;
+    }
+
+    /*
+     * ----------------------------------------------------
+     * Attribute editing
+     * ----------------------------------------------------
+     */
+
+    const editAttribute = event.target.closest("[data-edit-attribute]");
+
+    if (editAttribute) {
+      const attribute = editAttribute.closest(".model-object-type-attribute");
+
+      if (attribute) {
+        openAttribute(attribute);
+      }
+
+      return;
+    }
+
+    const cancelAttribute = event.target.closest("[data-cancel-attribute]");
+
+    if (cancelAttribute) {
+      const attribute = cancelAttribute.closest(".model-object-type-attribute");
+
+      if (attribute) {
+        closeAttribute(attribute);
+      }
+
+      return;
+    }
+
+    const saveAttributeButton = event.target.closest("[data-save-attribute]");
+
+    if (saveAttributeButton) {
+      saveAttribute(root, saveAttributeButton);
+
+      return;
+    }
+
+    const discardAttributeButton = event.target.closest(
+      "[data-discard-attribute]",
+    );
+
+    if (discardAttributeButton) {
+      discardAttribute(root, discardAttributeButton);
+
+      return;
+    }
+
+    /*
+     * ----------------------------------------------------
+     * Attribute lifecycle
+     * ----------------------------------------------------
+     */
+
+    const attributeStatusButton = event.target.closest(
+      "[data-attribute-status-toggle]",
+    );
+
+    if (attributeStatusButton) {
+      setAttributeStatus(root, attributeStatusButton);
+
+      return;
+    }
+
+    /*
+     * ----------------------------------------------------
+     * New Attribute
+     * ----------------------------------------------------
+     */
+
+    const addAttributeButton = event.target.closest("[data-add-new-attribute]");
+
+    if (addAttributeButton) {
+      openNewAttribute(root);
+
+      return;
+    }
+
+    const cancelNewAttributeButton = event.target.closest(
+      "[data-cancel-new-attribute]",
+    );
+
+    if (cancelNewAttributeButton) {
+      closeNewAttribute(root);
+
+      return;
+    }
+
+    const saveNewAttributeButton = event.target.closest(
+      "[data-save-new-attribute]",
+    );
+
+    if (saveNewAttributeButton) {
+      saveNewAttribute(root, saveNewAttributeButton);
+    }
+
+    /*
+     * ----------------------------------------------------
+     * RelationshipType rule editing
+     * ----------------------------------------------------
+     */
+
+    const addRuleButton = event.target.closest("[data-rule-add]");
+
+    if (addRuleButton) {
+      openNewRule(root);
+
+      return;
+    }
+
+    const editRuleButton = event.target.closest("[data-rule-edit]");
+
+    if (editRuleButton) {
+      const rule = editRuleButton.closest(".model-relationship-rule");
+
+      if (rule) {
+        openRule(rule);
+      }
+
+      return;
+    }
+
+    const cancelRuleButton = event.target.closest("[data-rule-cancel]");
+
+    if (cancelRuleButton) {
+      const rule = cancelRuleButton.closest(".model-relationship-rule");
+
+      if (rule) {
+        closeRule(rule);
+      }
+
+      return;
+    }
+
+    const saveRuleButton = event.target.closest("[data-rule-save]");
+
+    if (saveRuleButton) {
+      saveRule(root, saveRuleButton);
+
+      return;
+    }
+
+    const discardRuleButton = event.target.closest("[data-rule-discard]");
+
+    if (discardRuleButton) {
+      discardRule(root, discardRuleButton);
+
+      return;
+    }
+
+    /*
+     * ----------------------------------------------------
+     * RelationshipType new rule
+     * ----------------------------------------------------
+     */
+
+    const cancelNewRuleButton = event.target.closest("[data-rule-cancel-new]");
+
+    if (cancelNewRuleButton) {
+      closeNewRule(root);
+
+      return;
+    }
+
+    const saveNewRuleButton = event.target.closest("[data-rule-save-new]");
+
+    if (saveNewRuleButton) {
+      saveNewRule(root, saveNewRuleButton);
+    }
+  });
+
+  /* ============================================================
        Escape handling
        ============================================================ */
 
-    document.addEventListener(
-        "keydown",
-        function (event) {
+  document.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") {
+      return;
+    }
 
-            if (
-                event.key !== "Escape"
-            ) {
-                return;
-            }
+    const root = event.target.closest(".proposal-editor");
 
+    if (!root) {
+      return;
+    }
 
-            const root =
-                event.target.closest(
-                    ".proposal-editor"
-                );
+    const fieldEditor = event.target.closest("[data-field-editor]");
 
-            if (!root) {
-                return;
-            }
+    if (fieldEditor) {
+      const field = fieldEditor.closest(".proposal-editor-field");
 
+      if (field) {
+        cancelField(field);
+      }
 
-            const fieldEditor =
-                event.target.closest(
-                    "[data-field-editor]"
-                );
+      return;
+    }
 
-            if (fieldEditor) {
+    const attributeEditor = event.target.closest("[data-attribute-editor]");
 
-                const field =
-                    fieldEditor.closest(
-                        ".proposal-editor-field"
-                    );
+    if (attributeEditor) {
+      const attribute = attributeEditor.closest(".model-object-type-attribute");
 
-                if (field) {
-                    cancelField(
-                        field
-                    );
-                }
+      if (attribute) {
+        closeAttribute(attribute);
+      }
+    }
+  });
 
-                return;
-            }
-
-
-            const attributeEditor =
-                event.target.closest(
-                    "[data-attribute-editor]"
-                );
-
-            if (attributeEditor) {
-
-                const attribute =
-                    attributeEditor.closest(
-                        ".model-object-type-attribute"
-                    );
-
-                if (attribute) {
-                    closeAttribute(
-                        attribute
-                    );
-                }
-
-            }
-
-        }
-    );
-
-
-    /* ============================================================
+  /* ============================================================
        ObjectType field helpers
        ============================================================ */
 
-    function getFieldInput(
-        field
-    ) {
+  function getFieldInput(field) {
+    const editor = field.querySelector("[data-field-editor]");
 
-        const editor =
-            field.querySelector(
-                "[data-field-editor]"
-            );
-
-        if (!editor) {
-            return null;
-        }
-
-
-        return editor.querySelector(
-            "input:not([type=hidden]), textarea, select"
-        );
+    if (!editor) {
+      return null;
     }
 
+    return editor.querySelector("input:not([type=hidden]), textarea, select");
+  }
 
-    function readInputValue(
-        input
-    ) {
-
-        if (!input) {
-            return "";
-        }
-
-
-        if (
-            input instanceof HTMLInputElement
-            && input.type === "checkbox"
-        ) {
-
-            return input.checked
-                ? "true"
-                : "false";
-        }
-
-
-        return input.value;
+  function readInputValue(input) {
+    if (!input) {
+      return "";
     }
 
-
-    function writeInputValue(
-        input,
-        value
-    ) {
-
-        if (!input) {
-            return;
-        }
-
-
-        if (
-            input instanceof HTMLInputElement
-            && input.type === "checkbox"
-        ) {
-
-            const normalised =
-                normaliseValue(
-                    value
-                );
-
-
-            input.checked =
-                normalised === "true"
-                || normalised === "1"
-                || normalised === "yes"
-                || normalised === "on";
-
-            return;
-        }
-
-
-        input.value =
-            normaliseValue(
-                value
-            );
+    if (input instanceof HTMLInputElement && input.type === "checkbox") {
+      return input.checked ? "true" : "false";
     }
 
+    return input.value;
+  }
 
-    function openField(
-        field
-    ) {
-
-        const display =
-            field.querySelector(
-                "[data-field-display]"
-            );
-
-        const editor =
-            field.querySelector(
-                "[data-field-editor]"
-            );
-
-        const editButton =
-            field.querySelector(
-                '[data-proposal-action="edit"]'
-            );
-
-
-        if (
-            !display
-            || !editor
-        ) {
-            return;
-        }
-
-
-        const root =
-            field.closest(
-                ".proposal-editor"
-            );
-
-
-        if (root) {
-
-            root.querySelectorAll(
-                ".proposal-editor-field"
-            ).forEach(
-                function (otherField) {
-
-                    if (
-                        otherField === field
-                    ) {
-                        return;
-                    }
-
-
-                    const otherDisplay =
-                        otherField.querySelector(
-                            "[data-field-display]"
-                        );
-
-                    const otherEditor =
-                        otherField.querySelector(
-                            "[data-field-editor]"
-                        );
-
-                    const otherEdit =
-                        otherField.querySelector(
-                            '[data-proposal-action="edit"]'
-                        );
-
-
-                    if (
-                        otherDisplay
-                        && otherEditor
-                    ) {
-
-                        otherDisplay.hidden =
-                            false;
-
-                        otherEditor.hidden =
-                            true;
-
-                        if (otherEdit) {
-                            otherEdit.hidden =
-                                false;
-                        }
-
-                    }
-
-                }
-            );
-
-        }
-
-
-        display.hidden =
-            true;
-
-        editor.hidden =
-            false;
-
-
-        if (editButton) {
-            editButton.hidden =
-                true;
-        }
-
-
-        const input =
-            getFieldInput(
-                field
-            );
-
-
-        if (input) {
-            input.focus();
-        }
-
+  function writeInputValue(input, value) {
+    if (!input) {
+      return;
     }
 
+    if (input instanceof HTMLInputElement && input.type === "checkbox") {
+      const normalised = normaliseValue(value);
 
-    function cancelField(
-        field
-    ) {
+      input.checked =
+        normalised === "true" ||
+        normalised === "1" ||
+        normalised === "yes" ||
+        normalised === "on";
 
-        const display =
-            field.querySelector(
-                "[data-field-display]"
-            );
-
-        const editor =
-            field.querySelector(
-                "[data-field-editor]"
-            );
-
-        const editButton =
-            field.querySelector(
-                '[data-proposal-action="edit"]'
-            );
-
-
-        if (
-            !display
-            || !editor
-        ) {
-            return;
-        }
-
-
-        editor.hidden =
-            true;
-
-        display.hidden =
-            false;
-
-
-        if (editButton) {
-            editButton.hidden =
-                false;
-        }
-
-
-        clearFieldError(
-            field
-        );
-
+      return;
     }
 
+    input.value = normaliseValue(value);
+  }
 
-    async function saveField(
-        root,
-        field,
-        button
-    ) {
+  function openField(field) {
+    const display = field.querySelector("[data-field-display]");
 
-        const fieldName =
-            field.dataset.field;
+    const editor = field.querySelector("[data-field-editor]");
 
-        const input =
-            getFieldInput(
-                field
-            );
+    const editButton = field.querySelector('[data-proposal-action="edit"]');
 
-
-        if (
-            !fieldName
-            || !input
-        ) {
-            return;
-        }
-
-
-        const csrfToken =
-            getCsrfToken();
-
-
-        if (!csrfToken) {
-
-            showFieldError(
-                field,
-                "Unable to save: CSRF token unavailable."
-            );
-
-            return;
-        }
-
-
-        clearFieldError(
-            field
-        );
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken,
-                    {
-                        field:
-                            fieldName,
-
-                        value:
-                            readInputValue(
-                                input
-                            )
-                    }
-                );
-
-
-            writeInputValue(
-                input,
-                data.value
-            );
-
-
-            updateFieldDisplay(
-                field,
-                data.value
-            );
-
-
-            cancelField(
-                field
-            );
-
-
-            setFieldProposalState(
-                field,
-                Boolean(
-                    data.proposed
-                )
-            );
-
-        } catch (error) {
-
-            showFieldError(
-                field,
-                error.message
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
+    if (!display || !editor) {
+      return;
     }
 
+    const root = field.closest(".proposal-editor");
 
-    async function discardField(
-        root,
-        field,
-        button
-    ) {
-
-        const fieldName =
-            field.dataset.field;
-
-
-        if (!fieldName) {
+    if (root) {
+      root
+        .querySelectorAll(".proposal-editor-field")
+        .forEach(function (otherField) {
+          if (otherField === field) {
             return;
-        }
+          }
 
+          const otherDisplay = otherField.querySelector("[data-field-display]");
 
-        const csrfToken =
-            getCsrfToken();
+          const otherEditor = otherField.querySelector("[data-field-editor]");
 
+          const otherEdit = otherField.querySelector(
+            '[data-proposal-action="edit"]',
+          );
 
-        if (!csrfToken) {
+          if (otherDisplay && otherEditor) {
+            otherDisplay.hidden = false;
 
-            showFieldError(
-                field,
-                "Unable to discard: CSRF token unavailable."
-            );
+            otherEditor.hidden = true;
 
-            return;
-        }
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken,
-                    {
-                        field:
-                            fieldName,
-
-                        action:
-                            "discard"
-                    }
-                );
-
-
-            const input =
-                getFieldInput(
-                    field
-                );
-
-
-            writeInputValue(
-                input,
-                data.value
-            );
-
-
-            updateFieldDisplay(
-                field,
-                data.value
-            );
-
-
-            cancelField(
-                field
-            );
-
-
-            setFieldProposalState(
-                field,
-                false
-            );
-
-        } catch (error) {
-
-            showFieldError(
-                field,
-                error.message
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
+            if (otherEdit) {
+              otherEdit.hidden = false;
+            }
+          }
+        });
     }
 
+    display.hidden = true;
 
-    function setFieldProposalState(
-        field,
-        proposed
-    ) {
+    editor.hidden = false;
 
-        const indicator =
-            field.querySelector(
-                "[data-proposal-indicator]"
-            );
-
-        const discard =
-            field.querySelector(
-                '[data-proposal-action="discard"]'
-            );
-
-
-        if (indicator) {
-            indicator.hidden =
-                !proposed;
-        }
-
-
-        if (discard) {
-            discard.hidden =
-                !proposed;
-        }
-
+    if (editButton) {
+      editButton.hidden = true;
     }
 
+    const input = getFieldInput(field);
 
-    function updateFieldDisplay(
-        field,
-        value
-    ) {
+    if (input) {
+      input.focus();
+    }
+  }
 
-        const display =
-            field.querySelector(
-                "[data-field-display]"
-            );
+  function cancelField(field) {
+    const display = field.querySelector("[data-field-display]");
 
+    const editor = field.querySelector("[data-field-editor]");
 
-        if (!display) {
-            return;
-        }
+    const editButton = field.querySelector('[data-proposal-action="edit"]');
 
-
-        display.replaceChildren();
-
-
-        const text =
-            normaliseValue(
-                value
-            );
-
-
-        if (!text.trim()) {
-
-            const empty =
-                document.createElement(
-                    "span"
-                );
-
-            empty.className =
-                "model-field-empty";
-
-            empty.textContent =
-                "Not defined";
-
-            display.appendChild(
-                empty
-            );
-
-            return;
-        }
-
-
-        display.textContent =
-            text;
-
+    if (!display || !editor) {
+      return;
     }
 
+    editor.hidden = true;
 
-    /* ============================================================
+    display.hidden = false;
+
+    if (editButton) {
+      editButton.hidden = false;
+    }
+
+    clearFieldError(field);
+  }
+
+  async function saveField(root, field, button) {
+    const fieldName = field.dataset.field;
+
+    const input = getFieldInput(field);
+
+    if (!fieldName || !input) {
+      return;
+    }
+
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      showFieldError(field, "Unable to save: CSRF token unavailable.");
+
+      return;
+    }
+
+    clearFieldError(field);
+
+    button.disabled = true;
+
+    try {
+      const data = await postForm(root.dataset.updateUrl, csrfToken, {
+        field: fieldName,
+
+        value: readInputValue(input),
+      });
+
+      writeInputValue(input, data.value);
+
+      updateFieldDisplay(field, data.value);
+
+      cancelField(field);
+
+      setFieldProposalState(field, Boolean(data.proposed));
+    } catch (error) {
+      showFieldError(field, error.message);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  async function discardField(root, field, button) {
+    const fieldName = field.dataset.field;
+
+    if (!fieldName) {
+      return;
+    }
+
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      showFieldError(field, "Unable to discard: CSRF token unavailable.");
+
+      return;
+    }
+
+    button.disabled = true;
+
+    try {
+      const data = await postForm(root.dataset.updateUrl, csrfToken, {
+        field: fieldName,
+
+        action: "discard",
+      });
+
+      const input = getFieldInput(field);
+
+      writeInputValue(input, data.value);
+
+      updateFieldDisplay(field, data.value);
+
+      cancelField(field);
+
+      setFieldProposalState(field, false);
+    } catch (error) {
+      showFieldError(field, error.message);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function setFieldProposalState(field, proposed) {
+    const indicator = field.querySelector("[data-proposal-indicator]");
+
+    const discard = field.querySelector('[data-proposal-action="discard"]');
+
+    if (indicator) {
+      indicator.hidden = !proposed;
+    }
+
+    if (discard) {
+      discard.hidden = !proposed;
+    }
+  }
+
+  function updateFieldDisplay(field, value) {
+    const display = field.querySelector("[data-field-display]");
+
+    if (!display) {
+      return;
+    }
+
+    display.replaceChildren();
+
+    const text = normaliseValue(value);
+
+    if (!text.trim()) {
+      const empty = document.createElement("span");
+
+      empty.className = "model-field-empty";
+
+      empty.textContent = "Not defined";
+
+      display.appendChild(empty);
+
+      return;
+    }
+
+    display.textContent = text;
+  }
+
+  /* ============================================================
        ObjectType lifecycle
        ============================================================ */
 
-    async function setObjectTypeStatus(
-        root,
-        button
-    ) {
+  async function setObjectTypeStatus(root, button) {
+    const control = root.querySelector("[data-object-type-lifecycle]");
 
-        const control =
-            root.querySelector(
-                "[data-object-type-lifecycle]"
-            );
-
-
-        if (!control) {
-            return;
-        }
-
-
-        const current =
-            control.dataset.active ===
-            "true";
-
-
-        const desired =
-            !current;
-
-
-        const csrfToken =
-            getCsrfToken();
-
-
-        if (!csrfToken) {
-
-            console.error(
-                "ObjectType lifecycle: CSRF unavailable."
-            );
-
-            return;
-        }
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken,
-                    {
-                        action:
-                            "set_object_type_status",
-
-                        is_active:
-                            desired
-                                ? "true"
-                                : "false"
-                    }
-                );
-
-
-            updateObjectTypeStatusUI(
-                root,
-                data.value,
-                data.proposed
-            );
-
-        } catch (error) {
-
-            console.error(
-                "ObjectType lifecycle update failed:",
-                error
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
+    if (!control) {
+      return;
     }
 
+    const current = control.dataset.active === "true";
 
-    async function discardObjectTypeStatus(
-        root,
-        button
-    ) {
+    const desired = !current;
 
-        const csrfToken =
-            getCsrfToken();
+    const csrfToken = getCsrfToken();
 
+    if (!csrfToken) {
+      console.error("ObjectType lifecycle: CSRF unavailable.");
 
-        if (!csrfToken) {
-            console.error(
-                "ObjectType lifecycle discard: CSRF unavailable."
-            );
-            return;
-        }
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken,
-                    {
-                        action:
-                            "discard_object_type_status"
-                    }
-                );
-
-
-            updateObjectTypeStatusUI(
-                root,
-                data.value,
-                false
-            );
-
-        } catch (error) {
-
-            console.error(
-                "ObjectType lifecycle discard failed:",
-                error
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
+      return;
     }
 
+    button.disabled = true;
 
-    function updateObjectTypeStatusUI(
-        root,
-        value,
-        proposed
-    ) {
+    try {
+      const data = await postForm(root.dataset.updateUrl, csrfToken, {
+        action: "set_object_type_status",
 
-        const active =
-            normaliseValue(
-                value
-            ) === "true";
+        is_active: desired ? "true" : "false",
+      });
 
+      updateObjectTypeStatusUI(root, data.value, data.proposed);
+    } catch (error) {
+      console.error("ObjectType lifecycle update failed:", error);
+    } finally {
+      button.disabled = false;
+    }
+  }
 
-        const control =
-            root.querySelector(
-                "[data-object-type-lifecycle]"
-            );
+  async function discardObjectTypeStatus(root, button) {
+    const csrfToken = getCsrfToken();
 
-        const status =
-            root.querySelector(
-                "[data-status-display]"
-            );
-
-        const toggle =
-            root.querySelector(
-                "[data-status-toggle]"
-            );
-
-        const indicator =
-            root.querySelector(
-                "[data-lifecycle-proposal-indicator]"
-            );
-
-        const discard =
-            root.querySelector(
-                "[data-lifecycle-discard]"
-            );
-
-
-        if (control) {
-
-            control.dataset.active =
-                active
-                    ? "true"
-                    : "false";
-
-
-            control.dataset.proposed =
-                proposed
-                    ? "true"
-                    : "false";
-
-        }
-
-
-        if (status) {
-
-            status.className =
-                "model-status-pill "
-                + (
-                    active
-                        ? "model-status-active"
-                        : "model-status-retired"
-                );
-
-
-            status.replaceChildren();
-
-
-            const icon =
-                document.createElement(
-                    "i"
-                );
-
-
-            icon.className =
-                active
-                    ? "bi bi-check-circle"
-                    : "bi bi-archive";
-
-
-            status.appendChild(
-                icon
-            );
-
-
-            status.appendChild(
-                document.createTextNode(
-                    active
-                        ? " Active"
-                        : " Retired"
-                )
-            );
-
-        }
-
-
-        if (toggle) {
-
-            toggle.textContent =
-                active
-                    ? "Retire"
-                    : "Activate";
-
-        }
-
-
-        if (indicator) {
-            indicator.hidden =
-                !proposed;
-        }
-
-
-        if (discard) {
-            discard.hidden =
-                !proposed;
-        }
-
+    if (!csrfToken) {
+      console.error("ObjectType lifecycle discard: CSRF unavailable.");
+      return;
     }
 
+    button.disabled = true;
 
-    /* ============================================================
+    try {
+      const data = await postForm(root.dataset.updateUrl, csrfToken, {
+        action: "discard_object_type_status",
+      });
+
+      updateObjectTypeStatusUI(root, data.value, false);
+    } catch (error) {
+      console.error("ObjectType lifecycle discard failed:", error);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function updateObjectTypeStatusUI(root, value, proposed) {
+    const active = normaliseValue(value) === "true";
+
+    const control = root.querySelector("[data-object-type-lifecycle]");
+
+    const status = root.querySelector("[data-status-display]");
+
+    const toggle = root.querySelector("[data-status-toggle]");
+
+    const indicator = root.querySelector("[data-lifecycle-proposal-indicator]");
+
+    const discard = root.querySelector("[data-lifecycle-discard]");
+
+    if (control) {
+      control.dataset.active = active ? "true" : "false";
+
+      control.dataset.proposed = proposed ? "true" : "false";
+    }
+
+    if (status) {
+      status.className =
+        "model-status-pill " +
+        (active ? "model-status-active" : "model-status-retired");
+
+      status.replaceChildren();
+
+      const icon = document.createElement("i");
+
+      icon.className = active ? "bi bi-check-circle" : "bi bi-archive";
+
+      status.appendChild(icon);
+
+      status.appendChild(
+        document.createTextNode(active ? " Active" : " Retired"),
+      );
+    }
+
+    if (toggle) {
+      toggle.textContent = active ? "Retire" : "Activate";
+    }
+
+    if (indicator) {
+      indicator.hidden = !proposed;
+    }
+
+    if (discard) {
+      discard.hidden = !proposed;
+    }
+  }
+
+  /* ============================================================
        RelationshipType lifecycle
        ============================================================ */
 
-    async function setRelationshipTypeStatus(
-        root,
-        button
-    ) {
+  async function setRelationshipTypeStatus(root, button) {
+    const control = root.querySelector("[data-relationship-type-lifecycle]");
 
-        const control =
-            root.querySelector(
-                "[data-relationship-type-lifecycle]"
-            );
-
-
-        if (!control) {
-            return;
-        }
-
-
-        const current =
-            control.dataset.active ===
-            "true";
-
-
-        const desired =
-            !current;
-
-
-        const csrfToken =
-            getCsrfToken();
-
-
-        if (!csrfToken) {
-
-            console.error(
-                "RelationshipType lifecycle: CSRF unavailable."
-            );
-
-            return;
-        }
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken,
-                    {
-                        action:
-                            "set_relationship_type_status",
-
-                        is_active:
-                            desired
-                                ? "true"
-                                : "false"
-                    }
-                );
-
-
-            updateRelationshipTypeStatusUI(
-                root,
-                data.value,
-                data.proposed
-            );
-
-        } catch (error) {
-
-            console.error(
-                "RelationshipType lifecycle update failed:",
-                error
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
+    if (!control) {
+      return;
     }
 
+    const current = control.dataset.active === "true";
 
-    async function discardRelationshipTypeStatus(
-        root,
-        button
-    ) {
+    const desired = !current;
 
-        const csrfToken =
-            getCsrfToken();
+    const csrfToken = getCsrfToken();
 
+    if (!csrfToken) {
+      console.error("RelationshipType lifecycle: CSRF unavailable.");
 
-        if (!csrfToken) {
-            console.error(
-                "RelationshipType lifecycle discard: CSRF unavailable."
-            );
-            return;
-        }
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken,
-                    {
-                        action:
-                            "discard_relationship_type_status"
-                    }
-                );
-
-
-            updateRelationshipTypeStatusUI(
-                root,
-                data.value,
-                false
-            );
-
-        } catch (error) {
-
-            console.error(
-                "RelationshipType lifecycle discard failed:",
-                error
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
+      return;
     }
 
+    button.disabled = true;
 
-    function updateRelationshipTypeStatusUI(
-        root,
-        value,
-        proposed
-    ) {
+    try {
+      const data = await postForm(root.dataset.updateUrl, csrfToken, {
+        action: "set_relationship_type_status",
 
-        const active =
-            normaliseValue(
-                value
-            ) === "true";
+        is_active: desired ? "true" : "false",
+      });
 
+      updateRelationshipTypeStatusUI(root, data.value, data.proposed);
+    } catch (error) {
+      console.error("RelationshipType lifecycle update failed:", error);
+    } finally {
+      button.disabled = false;
+    }
+  }
 
-        const control =
-            root.querySelector(
-                "[data-relationship-type-lifecycle]"
-            );
+  async function discardRelationshipTypeStatus(root, button) {
+    const csrfToken = getCsrfToken();
 
-        const status =
-            root.querySelector(
-                "[data-status-display]"
-            );
-
-        const toggle =
-            root.querySelector(
-                "[data-status-toggle]"
-            );
-
-        const indicator =
-            root.querySelector(
-                "[data-lifecycle-proposal-indicator]"
-            );
-
-        const discard =
-            root.querySelector(
-                "[data-lifecycle-discard]"
-            );
-
-
-        if (control) {
-
-            control.dataset.active =
-                active
-                    ? "true"
-                    : "false";
-
-
-            control.dataset.proposed =
-                proposed
-                    ? "true"
-                    : "false";
-
-        }
-
-
-        if (status) {
-
-            status.className =
-                "model-status-pill "
-                + (
-                    active
-                        ? "model-status-active"
-                        : "model-status-retired"
-                );
-
-
-            status.replaceChildren();
-
-
-            const icon =
-                document.createElement(
-                    "i"
-                );
-
-
-            icon.className =
-                active
-                    ? "bi bi-check-circle"
-                    : "bi bi-dash-circle";
-
-
-            status.appendChild(
-                icon
-            );
-
-
-            status.appendChild(
-                document.createTextNode(
-                    active
-                        ? " Active"
-                        : " Retired"
-                )
-            );
-
-        }
-
-
-        if (toggle) {
-
-            toggle.textContent =
-                active
-                    ? "Retire"
-                    : "Activate";
-
-        }
-
-
-        if (indicator) {
-            indicator.hidden =
-                !proposed;
-        }
-
-
-        if (discard) {
-            discard.hidden =
-                !proposed;
-        }
-
+    if (!csrfToken) {
+      console.error("RelationshipType lifecycle discard: CSRF unavailable.");
+      return;
     }
 
+    button.disabled = true;
 
-    /* ============================================================
+    try {
+      const data = await postForm(root.dataset.updateUrl, csrfToken, {
+        action: "discard_relationship_type_status",
+      });
+
+      updateRelationshipTypeStatusUI(root, data.value, false);
+    } catch (error) {
+      console.error("RelationshipType lifecycle discard failed:", error);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function updateRelationshipTypeStatusUI(root, value, proposed) {
+    const active = normaliseValue(value) === "true";
+
+    const control = root.querySelector("[data-relationship-type-lifecycle]");
+
+    const status = root.querySelector("[data-status-display]");
+
+    const toggle = root.querySelector("[data-status-toggle]");
+
+    const indicator = root.querySelector("[data-lifecycle-proposal-indicator]");
+
+    const discard = root.querySelector("[data-lifecycle-discard]");
+
+    if (control) {
+      control.dataset.active = active ? "true" : "false";
+
+      control.dataset.proposed = proposed ? "true" : "false";
+    }
+
+    if (status) {
+      status.className =
+        "model-status-pill " +
+        (active ? "model-status-active" : "model-status-retired");
+
+      status.replaceChildren();
+
+      const icon = document.createElement("i");
+
+      icon.className = active ? "bi bi-check-circle" : "bi bi-dash-circle";
+
+      status.appendChild(icon);
+
+      status.appendChild(
+        document.createTextNode(active ? " Active" : " Retired"),
+      );
+    }
+
+    if (toggle) {
+      toggle.textContent = active ? "Retire" : "Activate";
+    }
+
+    if (indicator) {
+      indicator.hidden = !proposed;
+    }
+
+    if (discard) {
+      discard.hidden = !proposed;
+    }
+  }
+
+  /* ============================================================
        Attribute helpers
        ============================================================ */
 
-    function openAttribute(
-        attribute
-    ) {
+  function openAttribute(attribute) {
+    const display = attribute.querySelector("[data-attribute-display]");
 
-        const display =
-            attribute.querySelector(
-                "[data-attribute-display]"
-            );
+    const editor = attribute.querySelector("[data-attribute-editor]");
 
-        const editor =
-            attribute.querySelector(
-                "[data-attribute-editor]"
-            );
-
-
-        if (
-            !display
-            || !editor
-        ) {
-            return;
-        }
-
-
-        display.hidden =
-            true;
-
-        editor.hidden =
-            false;
-
-
-        const firstInput =
-            editor.querySelector(
-                "input:not([type=hidden]), textarea, select"
-            );
-
-
-        if (firstInput) {
-            firstInput.focus();
-        }
-
+    if (!display || !editor) {
+      return;
     }
 
+    display.hidden = true;
 
-    function closeAttribute(
-        attribute
-    ) {
+    editor.hidden = false;
 
-        const display =
-            attribute.querySelector(
-                "[data-attribute-display]"
-            );
+    const firstInput = editor.querySelector(
+      "input:not([type=hidden]), textarea, select",
+    );
 
-        const editor =
-            attribute.querySelector(
-                "[data-attribute-editor]"
-            );
+    if (firstInput) {
+      firstInput.focus();
+    }
+  }
 
+  function closeAttribute(attribute) {
+    const display = attribute.querySelector("[data-attribute-display]");
 
-        if (
-            !display
-            || !editor
-        ) {
-            return;
-        }
+    const editor = attribute.querySelector("[data-attribute-editor]");
 
-
-        editor.hidden =
-            true;
-
-        display.hidden =
-            false;
-
-
-        clearAttributeError(
-            attribute
-        );
-
+    if (!display || !editor) {
+      return;
     }
 
+    editor.hidden = true;
 
-    function collectAttributeValues(
-        editor
-    ) {
+    display.hidden = false;
 
-        const read =
-            function (
-                name,
-                fallback
-            ) {
+    clearAttributeError(attribute);
+  }
 
-                const input =
-                    editor.querySelector(
-                        `[name="${name}"]`
-                    );
+  function collectAttributeValues(editor) {
+    const read = function (name, fallback) {
+      const input = editor.querySelector(`[name="${name}"]`);
 
-                return input
-                    ? input.value
-                    : fallback;
+      return input ? input.value : fallback;
+    };
 
-            };
+    const checked = function (name) {
+      const input = editor.querySelector(`[name="${name}"]`);
 
+      return input && input.checked ? "on" : "";
+    };
 
-        const checked =
-            function (
-                name
-            ) {
+    return {
+      attribute_name: read("attribute_name", ""),
 
-                const input =
-                    editor.querySelector(
-                        `[name="${name}"]`
-                    );
+      attribute_key: read("attribute_key", ""),
 
-                return (
-                    input
-                    && input.checked
-                )
-                    ? "on"
-                    : "";
+      attribute_data_type: read("attribute_data_type", "text"),
 
-            };
+      attribute_description: read("attribute_description", ""),
 
+      attribute_default_value: read("attribute_default_value", ""),
 
-        return {
+      attribute_sort_order: read("attribute_sort_order", "0"),
 
-            attribute_name:
-                read(
-                    "attribute_name",
-                    ""
-                ),
+      attribute_required: checked("attribute_required"),
 
-            attribute_key:
-                read(
-                    "attribute_key",
-                    ""
-                ),
+      attribute_nullable: checked("attribute_nullable"),
+    };
+  }
 
-            attribute_data_type:
-                read(
-                    "attribute_data_type",
-                    "text"
-                ),
+  async function saveAttribute(root, button) {
+    const attribute = button.closest(".model-object-type-attribute");
 
-            attribute_description:
-                read(
-                    "attribute_description",
-                    ""
-                ),
-
-            attribute_default_value:
-                read(
-                    "attribute_default_value",
-                    ""
-                ),
-
-            attribute_sort_order:
-                read(
-                    "attribute_sort_order",
-                    "0"
-                ),
-
-            attribute_required:
-                checked(
-                    "attribute_required"
-                ),
-
-            attribute_nullable:
-                checked(
-                    "attribute_nullable"
-                )
-
-        };
-
+    if (!attribute) {
+      return;
     }
 
+    const attributeId = attribute.dataset.attributeId;
 
-    async function saveAttribute(
-        root,
-        button
-    ) {
+    const editor = attribute.querySelector("[data-attribute-editor]");
 
-        const attribute =
-            button.closest(
-                ".model-object-type-attribute"
-            );
-
-
-        if (!attribute) {
-            return;
-        }
-
-
-        const attributeId =
-            attribute.dataset.attributeId;
-
-
-        const editor =
-            attribute.querySelector(
-                "[data-attribute-editor]"
-            );
-
-
-        if (
-            !attributeId
-            || !editor
-        ) {
-            return;
-        }
-
-
-        const csrfToken =
-            getCsrfToken();
-
-
-        if (!csrfToken) {
-
-            showAttributeError(
-                attribute,
-                "Unable to save: CSRF token unavailable."
-            );
-
-            return;
-        }
-
-
-        clearAttributeError(
-            attribute
-        );
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const values =
-                collectAttributeValues(
-                    editor
-                );
-
-
-            values.action =
-                "save_attribute";
-
-
-            values.attribute_id =
-                attributeId;
-
-
-            const data =
-                await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken,
-                    values
-                );
-
-
-            applyAttributeValues(
-                attribute,
-                data.values
-            );
-
-
-            updateAttributeProposalState(
-                attribute,
-                data.proposed_fields,
-                data.proposed
-            );
-
-
-            closeAttribute(
-                attribute
-            );
-
-        } catch (error) {
-
-            showAttributeError(
-                attribute,
-                error.message
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
+    if (!attributeId || !editor) {
+      return;
     }
 
+    const csrfToken = getCsrfToken();
 
-    async function discardAttribute(
-        root,
-        button
-    ) {
+    if (!csrfToken) {
+      showAttributeError(attribute, "Unable to save: CSRF token unavailable.");
 
-        const attribute =
-            button.closest(
-                ".model-object-type-attribute"
-            );
-
-
-        if (!attribute) {
-            return;
-        }
-
-
-        const attributeId =
-            attribute.dataset.attributeId;
-
-
-        if (!attributeId) {
-            return;
-        }
-
-
-        const csrfToken =
-            getCsrfToken();
-
-
-        if (!csrfToken) {
-
-            showAttributeError(
-                attribute,
-                "Unable to discard: CSRF token unavailable."
-            );
-
-            return;
-        }
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken,
-                    {
-                        action:
-                            "discard_attribute",
-
-                        attribute_id:
-                            attributeId
-                    }
-                );
-
-
-            if (data.removed) {
-
-                attribute.remove();
-
-                updateAttributeEmptyState(
-                    root
-                );
-
-                return;
-
-            }
-
-
-            applyAttributeValues(
-                attribute,
-                data.values
-            );
-
-
-            updateAttributeProposalState(
-                attribute,
-                data.proposed_fields,
-                data.proposed
-            );
-
-
-            closeAttribute(
-                attribute
-            );
-
-        } catch (error) {
-
-            showAttributeError(
-                attribute,
-                error.message
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
+      return;
     }
 
+    clearAttributeError(attribute);
 
-    async function setAttributeStatus(
-        root,
-        button
-    ) {
+    button.disabled = true;
 
-        const attribute =
-            button.closest(
-                ".model-object-type-attribute"
-            );
+    try {
+      const values = collectAttributeValues(editor);
 
+      values.action = "save_attribute";
 
-        if (!attribute) {
-            return;
-        }
+      values.attribute_id = attributeId;
 
+      const data = await postForm(root.dataset.updateUrl, csrfToken, values);
 
-        const attributeId =
-            attribute.dataset.attributeId;
+      applyAttributeValues(attribute, data.values);
 
-
-        if (!attributeId) {
-            return;
-        }
-
-
-        const current =
-            attribute.dataset.attributeActive ===
-            "true";
-
-
-        const desired =
-            !current;
-
-
-        const csrfToken =
-            getCsrfToken();
-
-
-        if (!csrfToken) {
-
-            showAttributeError(
-                attribute,
-                "Unable to update status: CSRF token unavailable."
-            );
-
-            return;
-        }
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken,
-                    {
-                        action:
-                            "set_attribute_status",
-
-                        attribute_id:
-                            attributeId,
-
-                        is_active:
-                            desired
-                                ? "true"
-                                : "false"
-                    }
-                );
-
-
-            updateAttributeStatusUI(
-                attribute,
-                data.value
-            );
-
-
-            updateAttributeProposalState(
-                attribute,
-                data.proposed_fields,
-                data.proposed
-            );
-
-        } catch (error) {
-
-            showAttributeError(
-                attribute,
-                error.message
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
-    }
-
-
-    function updateAttributeStatusUI(
+      updateAttributeProposalState(
         attribute,
-        value
-    ) {
+        data.proposed_fields,
+        data.proposed,
+      );
 
-        const active =
-            normaliseValue(
-                value
-            ) === "true";
+      closeAttribute(attribute);
+    } catch (error) {
+      showAttributeError(attribute, error.message);
+    } finally {
+      button.disabled = false;
+    }
+  }
 
+  async function discardAttribute(root, button) {
+    const attribute = button.closest(".model-object-type-attribute");
 
-        attribute.dataset.attributeActive =
-            active
-                ? "true"
-                : "false";
-
-
-        const button =
-            attribute.querySelector(
-                "[data-attribute-status-toggle]"
-            );
-
-
-        if (button) {
-
-            button.textContent =
-                active
-                    ? "Retire"
-                    : "Activate";
-
-        }
-
-
-        const editorStatus =
-            attribute.querySelector(
-                "[data-attribute-editor-status]"
-            );
-
-
-        if (editorStatus) {
-
-            editorStatus.replaceChildren();
-
-
-            const pill =
-                document.createElement(
-                    "span"
-                );
-
-
-            pill.className =
-                "model-status-pill "
-                + (
-                    active
-                        ? "model-status-active"
-                        : "model-status-retired"
-                );
-
-
-            const icon =
-                document.createElement(
-                    "i"
-                );
-
-
-            icon.className =
-                active
-                    ? "bi bi-check-circle"
-                    : "bi bi-archive";
-
-
-            pill.appendChild(
-                icon
-            );
-
-
-            pill.appendChild(
-                document.createTextNode(
-                    active
-                        ? " Active"
-                        : " Retired"
-                )
-            );
-
-
-            editorStatus.appendChild(
-                pill
-            );
-
-        }
-
+    if (!attribute) {
+      return;
     }
 
+    const attributeId = attribute.dataset.attributeId;
 
-    function applyAttributeValues(
+    if (!attributeId) {
+      return;
+    }
+
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      showAttributeError(
         attribute,
-        values
-    ) {
+        "Unable to discard: CSRF token unavailable.",
+      );
 
-        const input =
-            function (
-                name
-            ) {
-
-                return attribute.querySelector(
-                    `[name="${name}"]`
-                );
-
-            };
-
-
-        const name =
-            input(
-                "attribute_name"
-            );
-
-        const key =
-            input(
-                "attribute_key"
-            );
-
-        const dataType =
-            input(
-                "attribute_data_type"
-            );
-
-        const description =
-            input(
-                "attribute_description"
-            );
-
-        const defaultValue =
-            input(
-                "attribute_default_value"
-            );
-
-        const sortOrder =
-            input(
-                "attribute_sort_order"
-            );
-
-        const required =
-            input(
-                "attribute_required"
-            );
-
-        const nullable =
-            input(
-                "attribute_nullable"
-            );
-
-
-        writeInputValue(
-            name,
-            values.name
-        );
-
-
-        writeInputValue(
-            key,
-            values.key
-        );
-
-
-        writeInputValue(
-            dataType,
-            values.data_type
-        );
-
-
-        writeInputValue(
-            description,
-            values.description
-        );
-
-
-        writeInputValue(
-            defaultValue,
-            values.default_value
-        );
-
-
-        writeInputValue(
-            sortOrder,
-            values.sort_order
-        );
-
-
-        if (required) {
-
-            required.checked =
-                normaliseValue(
-                    values.required
-                ) === "true";
-
-        }
-
-
-        if (nullable) {
-
-            nullable.checked =
-                normaliseValue(
-                    values.nullable
-                ) === "true";
-
-        }
-
-
-        updateAttributeStatusUI(
-            attribute,
-            values.is_active
-        );
-
-
-        const nameDisplay =
-            attribute.querySelector(
-                ".model-object-type-attribute-name"
-            );
-
-        const keyDisplay =
-            attribute.querySelector(
-                "[data-attribute-key]"
-            );
-
-        const typeDisplay =
-            attribute.querySelector(
-                "[data-attribute-data-type]"
-            );
-
-        const requiredDisplay =
-            attribute.querySelector(
-                "[data-attribute-required]"
-            );
-
-        const nullableDisplay =
-            attribute.querySelector(
-                "[data-attribute-nullable]"
-            );
-
-        const descriptionDisplay =
-            attribute.querySelector(
-                "[data-attribute-description]"
-            );
-
-
-        if (nameDisplay) {
-
-            nameDisplay.textContent =
-                values.name
-                || "Not defined";
-
-        }
-
-
-        if (keyDisplay) {
-
-            keyDisplay.textContent =
-                values.key
-                || "";
-
-        }
-
-
-        if (typeDisplay) {
-
-            typeDisplay.textContent =
-                formatDataType(
-                    values.data_type
-                );
-
-        }
-
-
-        if (requiredDisplay) {
-
-            requiredDisplay.textContent =
-                normaliseValue(
-                    values.required
-                ) === "true"
-                    ? "Required"
-                    : "Optional";
-
-        }
-
-
-        if (nullableDisplay) {
-
-            nullableDisplay.textContent =
-                normaliseValue(
-                    values.nullable
-                ) === "true"
-                    ? "Nullable"
-                    : "Not nullable";
-
-        }
-
-
-        if (descriptionDisplay) {
-
-            descriptionDisplay.textContent =
-                values.description
-                || "";
-
-            descriptionDisplay.hidden =
-                !values.description;
-
-        }
-
+      return;
     }
 
+    button.disabled = true;
 
-    function updateAttributeProposalState(
+    try {
+      const data = await postForm(root.dataset.updateUrl, csrfToken, {
+        action: "discard_attribute",
+
+        attribute_id: attributeId,
+      });
+
+      if (data.removed) {
+        attribute.remove();
+
+        updateAttributeEmptyState(root);
+
+        return;
+      }
+
+      applyAttributeValues(attribute, data.values);
+
+      updateAttributeProposalState(
         attribute,
-        proposedFields,
-        proposed
-    ) {
+        data.proposed_fields,
+        data.proposed,
+      );
 
-        const isProposed =
-            Boolean(
-                proposed
-                || (
-                    proposedFields
-                    && Object.values(
-                        proposedFields
-                    ).some(
-                        Boolean
-                    )
-                )
-            );
+      closeAttribute(attribute);
+    } catch (error) {
+      showAttributeError(attribute, error.message);
+    } finally {
+      button.disabled = false;
+    }
+  }
 
+  async function setAttributeStatus(root, button) {
+    const attribute = button.closest(".model-object-type-attribute");
 
-        attribute.dataset.attributeProposed =
-            isProposed
-                ? "true"
-                : "false";
-
-
-        const indicator =
-            attribute.querySelector(
-                "[data-attribute-proposal-indicator]"
-            );
-
-
-        const discard =
-            attribute.querySelector(
-                "[data-discard-attribute]"
-            );
-
-
-        if (indicator) {
-
-            indicator.hidden =
-                !isProposed;
-
-        }
-
-
-        if (discard) {
-
-            discard.hidden =
-                !isProposed;
-
-        }
-
+    if (!attribute) {
+      return;
     }
 
+    const attributeId = attribute.dataset.attributeId;
 
-    function formatDataType(
-        value
-    ) {
-
-        const labels = {
-
-            text:
-                "Text",
-
-            number:
-                "Number",
-
-            boolean:
-                "Boolean",
-
-            date:
-                "Date",
-
-            datetime:
-                "Date & time",
-
-            choice:
-                "Choice"
-
-        };
-
-
-        return labels[value]
-            || value
-            || "";
-
+    if (!attributeId) {
+      return;
     }
 
+    const current = attribute.dataset.attributeActive === "true";
 
-    /* ============================================================
+    const desired = !current;
+
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      showAttributeError(
+        attribute,
+        "Unable to update status: CSRF token unavailable.",
+      );
+
+      return;
+    }
+
+    button.disabled = true;
+
+    try {
+      const data = await postForm(root.dataset.updateUrl, csrfToken, {
+        action: "set_attribute_status",
+
+        attribute_id: attributeId,
+
+        is_active: desired ? "true" : "false",
+      });
+
+      updateAttributeStatusUI(attribute, data.value);
+
+      updateAttributeProposalState(
+        attribute,
+        data.proposed_fields,
+        data.proposed,
+      );
+    } catch (error) {
+      showAttributeError(attribute, error.message);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function updateAttributeStatusUI(attribute, value) {
+    const active = normaliseValue(value) === "true";
+
+    attribute.dataset.attributeActive = active ? "true" : "false";
+
+    const button = attribute.querySelector("[data-attribute-status-toggle]");
+
+    if (button) {
+      button.textContent = active ? "Retire" : "Activate";
+    }
+
+    const editorStatus = attribute.querySelector(
+      "[data-attribute-editor-status]",
+    );
+
+    if (editorStatus) {
+      editorStatus.replaceChildren();
+
+      const pill = document.createElement("span");
+
+      pill.className =
+        "model-status-pill " +
+        (active ? "model-status-active" : "model-status-retired");
+
+      const icon = document.createElement("i");
+
+      icon.className = active ? "bi bi-check-circle" : "bi bi-archive";
+
+      pill.appendChild(icon);
+
+      pill.appendChild(
+        document.createTextNode(active ? " Active" : " Retired"),
+      );
+
+      editorStatus.appendChild(pill);
+    }
+  }
+
+  function applyAttributeValues(attribute, values) {
+    const input = function (name) {
+      return attribute.querySelector(`[name="${name}"]`);
+    };
+
+    const name = input("attribute_name");
+
+    const key = input("attribute_key");
+
+    const dataType = input("attribute_data_type");
+
+    const description = input("attribute_description");
+
+    const defaultValue = input("attribute_default_value");
+
+    const sortOrder = input("attribute_sort_order");
+
+    const required = input("attribute_required");
+
+    const nullable = input("attribute_nullable");
+
+    writeInputValue(name, values.name);
+
+    writeInputValue(key, values.key);
+
+    writeInputValue(dataType, values.data_type);
+
+    writeInputValue(description, values.description);
+
+    writeInputValue(defaultValue, values.default_value);
+
+    writeInputValue(sortOrder, values.sort_order);
+
+    if (required) {
+      required.checked = normaliseValue(values.required) === "true";
+    }
+
+    if (nullable) {
+      nullable.checked = normaliseValue(values.nullable) === "true";
+    }
+
+    updateAttributeStatusUI(attribute, values.is_active);
+
+    const nameDisplay = attribute.querySelector(
+      ".model-object-type-attribute-name",
+    );
+
+    const keyDisplay = attribute.querySelector("[data-attribute-key]");
+
+    const typeDisplay = attribute.querySelector("[data-attribute-data-type]");
+
+    const requiredDisplay = attribute.querySelector(
+      "[data-attribute-required]",
+    );
+
+    const nullableDisplay = attribute.querySelector(
+      "[data-attribute-nullable]",
+    );
+
+    const descriptionDisplay = attribute.querySelector(
+      "[data-attribute-description]",
+    );
+
+    if (nameDisplay) {
+      nameDisplay.textContent = values.name || "Not defined";
+    }
+
+    if (keyDisplay) {
+      keyDisplay.textContent = values.key || "";
+    }
+
+    if (typeDisplay) {
+      typeDisplay.textContent = formatDataType(values.data_type);
+    }
+
+    if (requiredDisplay) {
+      requiredDisplay.textContent =
+        normaliseValue(values.required) === "true" ? "Required" : "Optional";
+    }
+
+    if (nullableDisplay) {
+      nullableDisplay.textContent =
+        normaliseValue(values.nullable) === "true"
+          ? "Nullable"
+          : "Not nullable";
+    }
+
+    if (descriptionDisplay) {
+      descriptionDisplay.textContent = values.description || "";
+
+      descriptionDisplay.hidden = !values.description;
+    }
+  }
+
+  function updateAttributeProposalState(attribute, proposedFields, proposed) {
+    const isProposed = Boolean(
+      proposed ||
+      (proposedFields && Object.values(proposedFields).some(Boolean)),
+    );
+
+    attribute.dataset.attributeProposed = isProposed ? "true" : "false";
+
+    const indicator = attribute.querySelector(
+      "[data-attribute-proposal-indicator]",
+    );
+
+    const discard = attribute.querySelector("[data-discard-attribute]");
+
+    if (indicator) {
+      indicator.hidden = !isProposed;
+    }
+
+    if (discard) {
+      discard.hidden = !isProposed;
+    }
+  }
+
+  function formatDataType(value) {
+    const labels = {
+      text: "Text",
+
+      number: "Number",
+
+      boolean: "Boolean",
+
+      date: "Date",
+
+      datetime: "Date & time",
+
+      choice: "Choice",
+    };
+
+    return labels[value] || value || "";
+  }
+
+  /* ============================================================
        New Attribute
        ============================================================ */
 
-    function openNewAttribute(
-        root
-    ) {
+  function openNewAttribute(root) {
+    const editor = root.querySelector("[data-new-attribute-editor]");
 
-        const editor =
-            root.querySelector(
-                "[data-new-attribute-editor]"
-            );
-
-
-        if (!editor) {
-            return;
-        }
-
-
-        editor.hidden =
-            false;
-
-
-        const input =
-            editor.querySelector(
-                '[name="attribute_name"]'
-            );
-
-
-        if (input) {
-            input.focus();
-        }
-
+    if (!editor) {
+      return;
     }
 
+    editor.hidden = false;
 
-    function closeNewAttribute(
-        root
-    ) {
+    const input = editor.querySelector('[name="attribute_name"]');
 
-        const editor =
-            root.querySelector(
-                "[data-new-attribute-editor]"
-            );
+    if (input) {
+      input.focus();
+    }
+  }
 
+  function closeNewAttribute(root) {
+    const editor = root.querySelector("[data-new-attribute-editor]");
 
-        if (!editor) {
-            return;
-        }
-
-
-        editor.hidden =
-            true;
-
-
-        clearNewAttributeForm(
-            editor
-        );
-
+    if (!editor) {
+      return;
     }
 
+    editor.hidden = true;
 
-    async function saveNewAttribute(
-        root,
-        button
-    ) {
+    clearNewAttributeForm(editor);
+  }
 
-        const editor =
-            root.querySelector(
-                "[data-new-attribute-editor]"
-            );
+  async function saveNewAttribute(root, button) {
+    const editor = root.querySelector("[data-new-attribute-editor]");
 
-
-        if (!editor) {
-            return;
-        }
-
-
-        const error =
-            editor.querySelector(
-                "[data-new-attribute-error]"
-            );
-
-
-        const csrfToken =
-            getCsrfToken();
-
-
-        if (!csrfToken) {
-
-            showElementError(
-                error,
-                "Unable to save: CSRF token unavailable."
-            );
-
-            return;
-
-        }
-
-
-        clearElementError(
-            error
-        );
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const values =
-                collectAttributeValues(
-                    editor
-                );
-
-
-            values.action =
-                "create_attribute";
-
-
-            
-            await postForm(
-                    root.dataset.updateUrl,
-                    csrfToken,
-                    values
-                );
-
-            window.location.reload();
-
-
-        } catch (errorValue) {
-
-            showElementError(
-                error,
-                errorValue.message
-            );
-
-        } finally {
-
-            button.disabled =
-                false;
-
-        }
-
+    if (!editor) {
+      return;
     }
 
+    const error = editor.querySelector("[data-new-attribute-error]");
 
-    function clearNewAttributeForm(
-        editor
-    ) {
+    const csrfToken = getCsrfToken();
 
-        editor.querySelectorAll(
-            "input, textarea, select"
-        ).forEach(
-            function (input) {
+    if (!csrfToken) {
+      showElementError(error, "Unable to save: CSRF token unavailable.");
 
-                if (
-                    input.type ===
-                    "checkbox"
-                ) {
-
-                    input.checked =
-                        false;
-
-                } else if (
-                    input.name ===
-                    "attribute_data_type"
-                ) {
-
-                    input.value =
-                        "text";
-
-                } else if (
-                    input.name ===
-                    "attribute_sort_order"
-                ) {
-
-                    input.value =
-                        "0";
-
-                } else {
-
-                    input.value =
-                        "";
-
-                }
-
-            }
-        );
-
+      return;
     }
 
+    clearElementError(error);
 
-    function updateAttributeEmptyState(
-        root
-    ) {
+    button.disabled = true;
 
-        const list =
-            root.querySelector(
-                "[data-attribute-list]"
-            );
+    try {
+      const values = collectAttributeValues(editor);
 
+      values.action = "create_attribute";
 
-        if (!list) {
-            return;
+      await postForm(root.dataset.updateUrl, csrfToken, values);
+
+      window.location.reload();
+    } catch (errorValue) {
+      showElementError(error, errorValue.message);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function clearNewAttributeForm(editor) {
+    editor
+      .querySelectorAll("input, textarea, select")
+      .forEach(function (input) {
+        if (input.type === "checkbox") {
+          input.checked = false;
+        } else if (input.name === "attribute_data_type") {
+          input.value = "text";
+        } else if (input.name === "attribute_sort_order") {
+          input.value = "0";
+        } else {
+          input.value = "";
         }
+      });
+  }
 
+  function updateAttributeEmptyState(root) {
+    const list = root.querySelector("[data-attribute-list]");
 
-        const attributes =
-            list.querySelectorAll(
-                ".model-object-type-attribute"
-                + ":not([data-new-attribute-editor])"
-            );
+    if (!list) {
+      return;
+    }
 
+    const attributes = list.querySelectorAll(
+      ".model-object-type-attribute" + ":not([data-new-attribute-editor])",
+    );
 
-        const empty =
-            list.querySelector(
-                "[data-attribute-empty]"
-            );
+    const empty = list.querySelector("[data-attribute-empty]");
 
+    if (attributes.length === 0 && !empty) {
+      const element = document.createElement("div");
 
-        if (
-            attributes.length === 0
-            && !empty
-        ) {
+      element.className = "model-editor-empty";
 
-            const element =
-                document.createElement(
-                    "div"
-                );
+      element.dataset.attributeEmpty = "";
 
-
-            element.className =
-                "model-editor-empty";
-
-
-            element.dataset.attributeEmpty =
-                "";
-
-
-            element.innerHTML = `
+      element.innerHTML = `
                 <div class="model-editor-empty-icon">
                     <i class="bi bi-list-ul"></i>
                 </div>
@@ -2903,943 +1399,435 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
             `;
 
+      const newEditor = list.querySelector("[data-new-attribute-editor]");
 
-            const newEditor =
-                list.querySelector(
-                    "[data-new-attribute-editor]"
-                );
-
-
-            if (newEditor) {
-
-                list.insertBefore(
-                    element,
-                    newEditor
-                );
-
-            } else {
-
-                list.appendChild(
-                    element
-                );
-
-            }
-
-        }
-
+      if (newEditor) {
+        list.insertBefore(element, newEditor);
+      } else {
+        list.appendChild(element);
+      }
     }
+  }
 
-
-    /* ============================================================
+  /* ============================================================
        ObjectType index discard
        ============================================================ */
 
-    async function discardObjectTypeProposal(
-        button
-    ) {
+  async function discardObjectTypeProposal(button) {
+    const objectTypeId = button.dataset.objectTypeId;
 
-        const objectTypeId =
-            button.dataset.objectTypeId;
+    if (!objectTypeId) {
+      console.error("ObjectType proposal discard: ID missing.");
 
-
-        if (!objectTypeId) {
-
-            console.error(
-                "ObjectType proposal discard: ID missing."
-            );
-
-            return;
-        }
-
-
-        const csrfToken =
-            getCsrfToken();
-
-
-        if (!csrfToken) {
-
-            console.error(
-                "ObjectType proposal discard: CSRF unavailable."
-            );
-
-            return;
-        }
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await postForm(
-                    window.location.href,
-                    csrfToken,
-                    {
-                        action:
-                            "discard_object_type_proposal",
-
-                        object_type_id:
-                            objectTypeId
-                    }
-                );
-
-
-            if (!data.success) {
-
-                throw new Error(
-                    data.error
-                    || "Unable to discard object type proposal."
-                );
-
-            }
-
-
-            window.location.reload();
-
-        } catch (error) {
-
-            console.error(
-                "ObjectType proposal discard failed:",
-                error
-            );
-
-            button.disabled =
-                false;
-
-        }
-
+      return;
     }
 
+    const csrfToken = getCsrfToken();
 
-    /* ============================================================
+    if (!csrfToken) {
+      console.error("ObjectType proposal discard: CSRF unavailable.");
+
+      return;
+    }
+
+    button.disabled = true;
+
+    try {
+      const data = await postForm(window.location.href, csrfToken, {
+        action: "discard_object_type_proposal",
+
+        object_type_id: objectTypeId,
+      });
+
+      if (!data.success) {
+        throw new Error(
+          data.error || "Unable to discard object type proposal.",
+        );
+      }
+
+      window.location.reload();
+    } catch (error) {
+      console.error("ObjectType proposal discard failed:", error);
+
+      button.disabled = false;
+    }
+  }
+
+  /* ============================================================
        RelationshipType index discard
        ============================================================ */
 
-    async function discardRelationshipTypeProposal(
-        button
-    ) {
+  async function discardRelationshipTypeProposal(button) {
+    const relationshipTypeId = button.dataset.relationshipTypeId;
 
-        const relationshipTypeId =
-            button.dataset.relationshipTypeId;
+    if (!relationshipTypeId) {
+      console.error("RelationshipType proposal discard: ID missing.");
 
-
-        if (!relationshipTypeId) {
-
-            console.error(
-                "RelationshipType proposal discard: ID missing."
-            );
-
-            return;
-        }
-
-
-        const csrfToken =
-            getCsrfToken();
-
-
-        if (!csrfToken) {
-
-            console.error(
-                "RelationshipType proposal discard: CSRF unavailable."
-            );
-
-            return;
-        }
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const data =
-                await postForm(
-                    window.location.href,
-                    csrfToken,
-                    {
-                        action:
-                            "discard_relationship_type_proposal",
-
-                        relationship_type_id:
-                            relationshipTypeId
-                    }
-                );
-
-
-            if (!data.success) {
-
-                throw new Error(
-                    data.error
-                    || "Unable to discard relationship type proposal."
-                );
-
-            }
-
-
-            window.location.reload();
-
-        } catch (error) {
-
-            console.error(
-                "RelationshipType proposal discard failed:",
-                error
-            );
-
-            button.disabled =
-                false;
-
-        }
-
+      return;
     }
 
+    const csrfToken = getCsrfToken();
 
-    /* ============================================================
+    if (!csrfToken) {
+      console.error("RelationshipType proposal discard: CSRF unavailable.");
+
+      return;
+    }
+
+    button.disabled = true;
+
+    try {
+      const data = await postForm(window.location.href, csrfToken, {
+        action: "discard_relationship_type_proposal",
+
+        relationship_type_id: relationshipTypeId,
+      });
+
+      if (!data.success) {
+        throw new Error(
+          data.error || "Unable to discard relationship type proposal.",
+        );
+      }
+
+      window.location.reload();
+    } catch (error) {
+      console.error("RelationshipType proposal discard failed:", error);
+
+      button.disabled = false;
+    }
+  }
+
+  /* ============================================================
        RelationshipType rules
        ============================================================ */
 
-    function collectRuleValues(
-        editor
-    ) {
+  function collectRuleValues(editor) {
+    return {
+      subject_type_id: editor.querySelector('[name="subject_type_id"]').value,
 
-        return {
+      object_type_id: editor.querySelector('[name="object_type_id"]').value,
 
-            subject_type_id:
-                editor.querySelector(
-                    '[name="subject_type_id"]'
-                ).value,
+      subject_minimum: editor.querySelector('[name="subject_minimum"]').value,
 
-            object_type_id:
-                editor.querySelector(
-                    '[name="object_type_id"]'
-                ).value,
+      subject_maximum: editor.querySelector('[name="subject_maximum"]').value,
 
-            subject_minimum:
-                editor.querySelector(
-                    '[name="subject_minimum"]'
-                ).value,
+      subject_required: editor.querySelector('[name="subject_required"]')
+        .checked
+        ? "on"
+        : "",
 
-            subject_maximum:
-                editor.querySelector(
-                    '[name="subject_maximum"]'
-                ).value,
+      object_minimum: editor.querySelector('[name="object_minimum"]').value,
 
-            subject_required:
-                editor.querySelector(
-                    '[name="subject_required"]'
-                ).checked
-                    ? "on"
-                    : "",
+      object_maximum: editor.querySelector('[name="object_maximum"]').value,
 
-            object_minimum:
-                editor.querySelector(
-                    '[name="object_minimum"]'
-                ).value,
+      object_required: editor.querySelector('[name="object_required"]').checked
+        ? "on"
+        : "",
+    };
+  }
 
-            object_maximum:
-                editor.querySelector(
-                    '[name="object_maximum"]'
-                ).value,
+  function openRule(rule) {
+    const editor = rule.querySelector("[data-rule-editor]");
 
-            object_required:
-                editor.querySelector(
-                    '[name="object_required"]'
-                ).checked
-                    ? "on"
-                    : ""
-
-        };
-
+    if (!editor) {
+      return;
     }
 
+    editor.hidden = false;
 
-    function openRule(
-        rule
-    ) {
+    const firstInput = editor.querySelector("input, select");
 
-        const editor =
-            rule.querySelector(
-                "[data-rule-editor]"
-            );
+    if (firstInput) {
+      firstInput.focus();
+    }
+  }
 
+  function closeRule(rule) {
+    const editor = rule.querySelector("[data-rule-editor]");
 
-        if (!editor) {
-            return;
-        }
-
-
-        editor.hidden =
-            false;
-
-
-        const firstInput =
-            editor.querySelector(
-                "input, select"
-            );
-
-
-        if (firstInput) {
-            firstInput.focus();
-        }
-
+    if (!editor) {
+      return;
     }
 
+    editor.hidden = true;
 
-    function closeRule(
-        rule
-    ) {
+    clearElementError(editor.querySelector("[data-rule-error]"));
+  }
 
-        const editor =
-            rule.querySelector(
-                "[data-rule-editor]"
-            );
+  async function saveRule(root, button) {
+    const rule = button.closest(".model-relationship-rule");
 
-
-        if (!editor) {
-            return;
-        }
-
-
-        editor.hidden =
-            true;
-
-
-        clearElementError(
-            editor.querySelector(
-                "[data-rule-error]"
-            )
-        );
-
+    if (!rule) {
+      return;
     }
 
+    const ruleId = rule.dataset.ruleId;
 
-    async function saveRule(
-        root,
-        button
-    ) {
+    const editor = rule.querySelector("[data-rule-editor]");
 
-        const rule =
-            button.closest(
-                ".model-relationship-rule"
-            );
-
-
-        if (!rule) {
-            return;
-        }
-
-
-        const ruleId =
-            rule.dataset.ruleId;
-
-
-        const editor =
-            rule.querySelector(
-                "[data-rule-editor]"
-            );
-
-
-        if (
-            !ruleId
-            || !editor
-        ) {
-            return;
-        }
-
-
-        const error =
-            editor.querySelector(
-                "[data-rule-error]"
-            );
-
-
-        const csrfToken =
-            getCsrfToken();
-
-
-        if (!csrfToken) {
-
-            showElementError(
-                error,
-                "Unable to save: CSRF token unavailable."
-            );
-
-            return;
-        }
-
-
-        clearElementError(
-            error
-        );
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const values =
-                collectRuleValues(
-                    editor
-                );
-
-
-            values.action =
-                "save_rule";
-
-
-            values.rule_id =
-                ruleId;
-
-
-            await postForm(
-                root.dataset.updateUrl,
-                csrfToken,
-                values
-            );
-
-
-            window.location.reload();
-
-        } catch (errorValue) {
-
-            showElementError(
-                error,
-                errorValue.message
-            );
-
-            button.disabled =
-                false;
-
-        }
-
+    if (!ruleId || !editor) {
+      return;
     }
 
+    const error = editor.querySelector("[data-rule-error]");
 
-    async function discardRule(
-        root,
-        button
-    ) {
+    const csrfToken = getCsrfToken();
 
-        const ruleId =
-            button.dataset.ruleId;
+    if (!csrfToken) {
+      showElementError(error, "Unable to save: CSRF token unavailable.");
 
-
-        if (!ruleId) {
-            return;
-        }
-
-
-        const csrfToken =
-            getCsrfToken();
-
-
-        if (!csrfToken) {
-
-            console.error(
-                "Rule discard: CSRF unavailable."
-            );
-
-            return;
-        }
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            await postForm(
-                root.dataset.updateUrl,
-                csrfToken,
-                {
-                    action:
-                        "discard_rule",
-
-                    rule_id:
-                        ruleId
-                }
-            );
-
-
-            window.location.reload();
-
-        } catch (error) {
-
-            console.error(
-                "Rule discard failed:",
-                error
-            );
-
-            button.disabled =
-                false;
-
-        }
-
+      return;
     }
 
+    clearElementError(error);
 
-    function openNewRule(
-        root
-    ) {
+    button.disabled = true;
 
-        const editor =
-            root.querySelector(
-                "[data-new-rule-editor]"
-            );
+    try {
+      const values = collectRuleValues(editor);
 
+      values.action = "save_rule";
 
-        if (!editor) {
-            return;
-        }
+      values.rule_id = ruleId;
 
+      await postForm(root.dataset.updateUrl, csrfToken, values);
 
-        editor.hidden =
-            false;
+      window.location.reload();
+    } catch (errorValue) {
+      showElementError(error, errorValue.message);
 
+      button.disabled = false;
+    }
+  }
 
-        const firstInput =
-            editor.querySelector(
-                "[data-new-rule-subject]"
-            );
+  async function discardRule(root, button) {
+    const ruleId = button.dataset.ruleId;
 
-
-        if (firstInput) {
-            firstInput.focus();
-        }
-
+    if (!ruleId) {
+      return;
     }
 
+    const csrfToken = getCsrfToken();
 
-    function closeNewRule(
-        root
-    ) {
+    if (!csrfToken) {
+      console.error("Rule discard: CSRF unavailable.");
 
-        const editor =
-            root.querySelector(
-                "[data-new-rule-editor]"
-            );
-
-
-        if (!editor) {
-            return;
-        }
-
-
-        editor.hidden =
-            true;
-
-
-        clearElementError(
-            editor.querySelector(
-                "[data-new-rule-error]"
-            )
-        );
-
-        clearNewRuleForm(
-            editor
-        );
-
+      return;
     }
 
+    button.disabled = true;
 
-    async function saveNewRule(
-        root,
-        button
-    ) {
+    try {
+      await postForm(root.dataset.updateUrl, csrfToken, {
+        action: "discard_rule",
 
-        const editor =
-            root.querySelector(
-                "[data-new-rule-editor]"
-            );
+        rule_id: ruleId,
+      });
 
+      window.location.reload();
+    } catch (error) {
+      console.error("Rule discard failed:", error);
 
-        if (!editor) {
-            return;
-        }
+      button.disabled = false;
+    }
+  }
 
+  function openNewRule(root) {
+    const editor = root.querySelector("[data-new-rule-editor]");
 
-        const error =
-            editor.querySelector(
-                "[data-new-rule-error]"
-            );
-
-
-        const csrfToken =
-            getCsrfToken();
-
-
-        if (!csrfToken) {
-
-            showElementError(
-                error,
-                "Unable to save: CSRF token unavailable."
-            );
-
-            return;
-        }
-
-
-        clearElementError(
-            error
-        );
-
-
-        button.disabled =
-            true;
-
-
-        try {
-
-            const values =
-                collectRuleValues(
-                    editor
-                );
-
-
-            values.action =
-                "create_rule";
-
-
-            await postForm(
-                root.dataset.updateUrl,
-                csrfToken,
-                values
-            );
-
-
-            window.location.reload();
-
-        } catch (errorValue) {
-
-            showElementError(
-                error,
-                errorValue.message
-            );
-
-            button.disabled =
-                false;
-
-        }
-
+    if (!editor) {
+      return;
     }
 
+    editor.hidden = false;
 
-    function clearNewRuleForm(
-        editor
-    ) {
+    const firstInput = editor.querySelector("[data-new-rule-subject]");
 
-        editor.querySelectorAll(
-            "input, select"
-        ).forEach(
-            function (input) {
+    if (firstInput) {
+      firstInput.focus();
+    }
+  }
 
-                if (
-                    input.type ===
-                    "checkbox"
-                ) {
+  function closeNewRule(root) {
+    const editor = root.querySelector("[data-new-rule-editor]");
 
-                    input.checked =
-                        false;
-
-                } else if (
-                    input.name === "subject_minimum"
-                    || input.name === "object_minimum"
-                ) {
-
-                    input.value =
-                        "0";
-
-                } else {
-
-                    input.value =
-                        "";
-
-                }
-
-            }
-        );
-
+    if (!editor) {
+      return;
     }
 
+    editor.hidden = true;
 
-    /* ============================================================
+    clearElementError(editor.querySelector("[data-new-rule-error]"));
+
+    clearNewRuleForm(editor);
+  }
+
+  async function saveNewRule(root, button) {
+    const editor = root.querySelector("[data-new-rule-editor]");
+
+    if (!editor) {
+      return;
+    }
+
+    const error = editor.querySelector("[data-new-rule-error]");
+
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+      showElementError(error, "Unable to save: CSRF token unavailable.");
+
+      return;
+    }
+
+    clearElementError(error);
+
+    button.disabled = true;
+
+    try {
+      const values = collectRuleValues(editor);
+
+      values.action = "create_rule";
+
+      await postForm(root.dataset.updateUrl, csrfToken, values);
+
+      window.location.reload();
+    } catch (errorValue) {
+      showElementError(error, errorValue.message);
+
+      button.disabled = false;
+    }
+  }
+
+  function clearNewRuleForm(editor) {
+    editor.querySelectorAll("input, select").forEach(function (input) {
+      if (input.type === "checkbox") {
+        input.checked = false;
+      } else if (
+        input.name === "subject_minimum" ||
+        input.name === "object_minimum"
+      ) {
+        input.value = "0";
+      } else {
+        input.value = "";
+      }
+    });
+  }
+
+  /* ============================================================
        Request
        ============================================================ */
 
-    async function postForm(
-        url,
-        csrfToken,
-        values
-    ) {
-
-        if (!csrfToken) {
-
-            throw new Error(
-                "CSRF token unavailable."
-            );
-
-        }
-
-
-        const response =
-            await fetch(
-                url,
-                {
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "X-CSRFToken":
-                            csrfToken,
-
-                        "Content-Type":
-                            "application/x-www-form-urlencoded; charset=UTF-8",
-
-                        "X-Requested-With":
-                            "XMLHttpRequest"
-
-                    },
-
-                    body:
-                        new URLSearchParams(
-                            values
-                        )
-                }
-            );
-
-
-        const contentType =
-            response.headers.get(
-                "content-type"
-            )
-            || "";
-
-
-        if (
-            !contentType.includes(
-                "application/json"
-            )
-        ) {
-
-            throw new Error(
-                `Unexpected server response (${response.status}).`
-            );
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !response.ok
-            || !data.success
-        ) {
-
-            let message =
-                data.error;
-
-
-            if (
-                !message
-                && data.errors
-            ) {
-
-                message =
-                    Object.entries(
-                        data.errors
-                    )
-                    .map(
-                        function (
-                            [
-                                field,
-                                error
-                            ]
-                        ) {
-
-                            return `${field}: ${error}`;
-
-                        }
-                    )
-                    .join(
-                        " "
-                    );
-
-            }
-
-
-            throw new Error(
-                message
-                || "The proposed change could not be saved."
-            );
-
-        }
-
-
-        return data;
-
+  async function postForm(url, csrfToken, values) {
+    if (!csrfToken) {
+      throw new Error("CSRF token unavailable.");
     }
 
+    const response = await fetch(url, {
+      method: "POST",
 
-    /* ============================================================
+      headers: {
+        "X-CSRFToken": csrfToken,
+
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+
+        "X-Requested-With": "XMLHttpRequest",
+      },
+
+      body: new URLSearchParams(values),
+    });
+
+    const contentType = response.headers.get("content-type") || "";
+
+    if (!contentType.includes("application/json")) {
+      throw new Error(`Unexpected server response (${response.status}).`);
+    }
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      let message = data.error;
+
+      if (!message && data.errors) {
+        message = Object.entries(data.errors)
+          .map(function ([field, error]) {
+            return `${field}: ${error}`;
+          })
+          .join(" ");
+      }
+
+      throw new Error(message || "The proposed change could not be saved.");
+    }
+
+    return data;
+  }
+
+  /* ============================================================
        Error helpers
        ============================================================ */
 
-    function showFieldError(
-        field,
-        message
-    ) {
+  function showFieldError(field, message) {
+    const element = field.querySelector("[data-proposal-error]");
 
-        const element =
-            field.querySelector(
-                "[data-proposal-error]"
-            );
+    if (!element) {
+      console.error(message);
 
-
-        if (!element) {
-
-            console.error(
-                message
-            );
-
-            return;
-
-        }
-
-
-        element.textContent =
-            message;
-
-        element.hidden =
-            false;
-
+      return;
     }
 
+    element.textContent = message;
 
-    function clearFieldError(
-        field
-    ) {
+    element.hidden = false;
+  }
 
-        clearElementError(
-            field.querySelector(
-                "[data-proposal-error]"
-            )
-        );
+  function clearFieldError(field) {
+    clearElementError(field.querySelector("[data-proposal-error]"));
+  }
 
+  function showAttributeError(attribute, error) {
+    const element = attribute.querySelector("[data-attribute-error]");
+
+    if (!element) {
+      console.error(error.message);
+
+      return;
     }
 
+    element.textContent = error.message;
 
-    function showAttributeError(
-        attribute,
-        error
-    ) {
+    element.hidden = false;
+  }
 
-        const element =
-            attribute.querySelector(
-                "[data-attribute-error]"
-            );
+  function showElementError(element, message) {
+    if (!element) {
+      console.error(message);
 
-
-        if (!element) {
-
-            console.error(
-                error.message
-            );
-
-            return;
-
-        }
-
-
-        element.textContent =
-            error.message;
-
-        element.hidden =
-            false;
-
+      return;
     }
 
+    element.textContent = message;
 
-    function showElementError(
-        element,
-        message
-    ) {
+    element.hidden = false;
+  }
 
-        if (!element) {
-
-            console.error(
-                message
-            );
-
-            return;
-
-        }
-
-
-        element.textContent =
-            message;
-
-        element.hidden =
-            false;
-
+  function clearElementError(element) {
+    if (!element) {
+      return;
     }
 
+    element.textContent = "";
 
-    function clearElementError(
-        element
-    ) {
+    element.hidden = true;
+  }
 
-        if (!element) {
-            return;
-        }
+  function clearAttributeError(attribute) {
+    clearElementError(attribute.querySelector("[data-attribute-error]"));
+  }
 
-
-        element.textContent =
-            "";
-
-        element.hidden =
-            true;
-
+  function normaliseValue(value) {
+    if (value === null || value === undefined) {
+      return "";
     }
 
-
-    function clearAttributeError(
-        attribute
-    ) {
-
-        clearElementError(
-            attribute.querySelector(
-                "[data-attribute-error]"
-            )
-        );
-
-    }
-
-
-    function normaliseValue(
-        value
-    ) {
-
-        if (
-            value === null
-            || value === undefined
-        ) {
-            return "";
-        }
-
-
-        return String(
-            value
-        );
-
-    }
-
+    return String(value);
+  }
 });
-

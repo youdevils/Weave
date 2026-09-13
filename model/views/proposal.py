@@ -249,11 +249,6 @@ def proposal(request, model_id):
         "all",
     )
 
-    source_filter = request.GET.get(
-        "source",
-        "all",
-    )
-
     if review_filter == "reviewed":
 
         changes = changes.filter(review_status=(ProposalChange.ReviewStatus.REVIEWED))
@@ -270,15 +265,6 @@ def proposal(request, model_id):
 
         changes = changes.filter(
             operation=operation_filter,
-        )
-
-    if source_filter in {
-        ProposalChange.Source.USER,
-        ProposalChange.Source.AI,
-    }:
-
-        changes = changes.filter(
-            source=source_filter,
         )
 
     # -------------------------------------------------------------
@@ -375,9 +361,24 @@ def proposal(request, model_id):
     # database from the template.
     change_list = list(changes)
 
-    # Resolve all parent objects in one presentation-layer operation.
+    # Resolve all parent and target objects in one presentation-layer
+    # operation, plus a fallback lookup for proposal-only CREATEs that
+    # don't exist in the canonical database yet.
     parents = ProposalReviewService.resolve_parents(
         change_list,
+    )
+
+    targets = ProposalReviewService.resolve_targets(
+        change_list,
+    )
+
+    create_lookup = ProposalReviewService.build_create_lookup(
+        change_list,
+    )
+
+    object_type_names = ProposalReviewService.resolve_object_type_names(
+        change_list,
+        create_lookup,
     )
 
     # Attach presentation metadata to each change.
@@ -387,9 +388,17 @@ def proposal(request, model_id):
             change,
         )
 
+        change.review_target = ProposalReviewService.change_target(
+            change,
+            targets,
+            create_lookup,
+            object_type_names,
+        )
+
         change.review_parent = ProposalReviewService.change_parent_context(
             change,
             parents,
+            create_lookup,
         )
 
     group_by = request.GET.get(
@@ -402,7 +411,6 @@ def proposal(request, model_id):
         "target",
         "parent",
         "operation",
-        "source",
     }
 
     if group_by not in valid_groupings:
@@ -451,10 +459,6 @@ def proposal(request, model_id):
 
                 key = change.operation
 
-            elif group_by == "source":
-
-                key = change.source
-
             else:
 
                 key = change.target_type
@@ -490,10 +494,6 @@ def proposal(request, model_id):
             elif group_by == "operation":
 
                 label = grouped_changes[0].get_operation_display()
-
-            elif group_by == "source":
-
-                label = grouped_changes[0].get_source_display()
 
             else:
 
@@ -531,7 +531,6 @@ def proposal(request, model_id):
             "search": search,
             "review_filter": review_filter,
             "operation_filter": operation_filter,
-            "source_filter": source_filter,
             "target_filter": target_filter,
             "group_by": group_by,
             "sort": sort,

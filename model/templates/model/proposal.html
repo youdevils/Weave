@@ -211,36 +211,6 @@
 
 
                     <select
-                        name="source"
-                        class="form-select form-select-sm"
-                        aria-label="Source"
-                    >
-
-                        <option
-                            value="all"
-                            {% if source_filter == "all" %}selected{% endif %}
-                        >
-                            All sources
-                        </option>
-
-                        <option
-                            value="user"
-                            {% if source_filter == "user" %}selected{% endif %}
-                        >
-                            User
-                        </option>
-
-                        <option
-                            value="ai"
-                            {% if source_filter == "ai" %}selected{% endif %}
-                        >
-                            AI
-                        </option>
-
-                    </select>
-
-
-                    <select
                         name="target"
                         class="form-select form-select-sm"
                         aria-label="Target type"
@@ -277,7 +247,7 @@
                             value="target"
                             {% if group_by == "target" %}selected{% endif %}
                         >
-                            Group: Object type
+                            Group: Target type
                         </option>
 
                         <option
@@ -292,13 +262,6 @@
                             {% if group_by == "operation" %}selected{% endif %}
                         >
                             Group: Operation
-                        </option>
-
-                        <option
-                            value="source"
-                            {% if group_by == "source" %}selected{% endif %}
-                        >
-                            Group: Source
                         </option>
 
                         <option
@@ -472,8 +435,17 @@
                                         <div class="model-proposal-change-content">
 
                                             <div class="model-proposal-change-title">
-                                                {{ change.review_label }}
+                                                {{ change.review_target.label }}
                                             </div>
+
+
+                                            {% if change.review_label %}
+
+                                                <div class="model-proposal-change-detail">
+                                                    {{ change.review_label }}
+                                                </div>
+
+                                            {% endif %}
 
 
                                             {% if change.after.field %}
@@ -488,7 +460,7 @@
 
                                                         <span class="model-proposal-change-value-text">
 
-                                                            {% if change.before.value %}
+                                                            {% if change.before.value is not None %}
 
                                                                 {{ change.before.value }}
 
@@ -518,7 +490,7 @@
 
                                                         <span class="model-proposal-change-value-text">
 
-                                                            {% if change.after.value %}
+                                                            {% if change.after.value is not None %}
 
                                                                 {{ change.after.value }}
 
@@ -533,46 +505,6 @@
                                                         </span>
 
                                                     </div>
-
-                                                </div>
-
-                                            {% elif change.operation == "create" %}
-
-                                                <div class="model-proposal-change-detail">
-
-                                                    {% if change.after.name %}
-
-                                                        {{ change.after.name }}
-
-                                                    {% elif change.after.key %}
-
-                                                        {{ change.after.key }}
-
-                                                    {% else %}
-
-                                                        New {{ change.target_type }}
-
-                                                    {% endif %}
-
-                                                </div>
-
-                                            {% elif change.operation == "delete" %}
-
-                                                <div class="model-proposal-change-detail">
-
-                                                    {% if change.before.name %}
-
-                                                        {{ change.before.name }}
-
-                                                    {% elif change.before.key %}
-
-                                                        {{ change.before.key }}
-
-                                                    {% else %}
-
-                                                        {{ change.target_type }}
-
-                                                    {% endif %}
 
                                                 </div>
 
@@ -625,7 +557,10 @@
                                         </div>
 
 
-                                        <div class="model-proposal-change-actions">
+                                        <div
+                                            class="model-proposal-change-actions"
+                                            data-change-id="{{ change.id }}"
+                                        >
 
                                             {% if change.review_status == "reviewed" %}
 
@@ -657,6 +592,29 @@
                                             >
                                                 Discard
                                             </button>
+
+
+                                            <div class="model-proposal-discard-confirm">
+
+                                                <span class="model-proposal-discard-confirm-text">
+                                                    Discard this change?
+                                                </span>
+
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-danger model-proposal-discard-confirm-yes"
+                                                >
+                                                    Discard
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-secondary model-proposal-discard-confirm-no"
+                                                >
+                                                    Cancel
+                                                </button>
+
+                                            </div>
 
                                         </div>
 
