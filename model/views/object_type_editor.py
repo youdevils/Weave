@@ -61,10 +61,11 @@ def _object_type_create_change(
     )
 
 
-def _object_type_canonical_values(
+def _object_type_effective_values(
     object_type,
+    proposal,
 ):
-    return {
+    values = {
         "name": object_type.name,
         "key": object_type.key,
         "description": object_type.description,
@@ -72,27 +73,12 @@ def _object_type_canonical_values(
         "is_active": object_type.is_active,
     }
 
+    if not proposal:
+        return values
 
-def _proposed_only_object_type(
-    object_type_id,
-    proposal,
-):
-    create_change = _object_type_create_change(
-        object_type_id,
-        proposal,
-    )
-
-    if create_change is None:
-        return None
-
-    values = dict(
-        create_change.after or {},
-    )
-
-    # Apply any subsequent updates to the CREATE payload.
     for change in proposal.changes.filter(
         target_type="ObjectType",
-        target_id=object_type_id,
+        target_id=object_type.id,
         operation=ProposalChange.Operation.UPDATE,
     ).order_by("created_at"):
 
@@ -109,15 +95,7 @@ def _proposed_only_object_type(
         ):
             values[field] = after["value"]
 
-    return SimpleNamespace(
-        id=object_type_id,
-        model_id=create_change.parent_id,
-        name=values.get("name", ""),
-        key=values.get("key", ""),
-        description=values.get("description", ""),
-        sort_order=values.get("sort_order", 0),
-        is_active=values.get("is_active", True),
-    )
+    return values
 
 
 def _object_type_proposed_fields(
@@ -2226,19 +2204,10 @@ def object_type_editor(
         # The object_type came from the working-model context, so its
         # values already represent canonical state plus any working
         # proposal changes.
-        effective_values = {
-            field: getattr(
-                object_type,
-                field,
-            )
-            for field in (
-                "name",
-                "key",
-                "description",
-                "sort_order",
-                "is_active",
-            )
-        }
+        effective_values = _object_type_effective_values(
+            object_type,
+            proposal,
+        )
 
     return _render_editor(
         request=request,
