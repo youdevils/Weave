@@ -836,7 +836,7 @@
                                     </div>
 
 
-                                    <div class="model-editor-field">
+                                    <div class="model-editor-field" data-default-value-section>
 
                                         <label>
                                             Default value
@@ -844,9 +844,44 @@
 
                                         <input
                                             type="text"
-                                            name="attribute_default_value"
-                                            value="{{ attribute.proposed_values.default_value|default:'' }}"
                                             class="form-control"
+                                            data-default-value-text
+                                            value="{{ attribute.proposed_values.default_value|default:'' }}"
+                                            {% if attribute.proposed_values.data_type != "text" %}hidden{% endif %}
+                                        >
+
+                                        <input
+                                            type="number"
+                                            class="form-control"
+                                            data-default-value-number
+                                            value="{{ attribute.proposed_values.default_value|default:'' }}"
+                                            {% if attribute.proposed_values.data_type != "number" %}hidden{% endif %}
+                                        >
+
+                                        <select
+                                            class="form-select"
+                                            data-default-value-boolean
+                                            {% if attribute.proposed_values.data_type != "boolean" %}hidden{% endif %}
+                                        >
+                                            <option value="" {% if attribute.proposed_values.default_value is None %}selected{% endif %}>Not set</option>
+                                            <option value="true" {% if attribute.proposed_values.default_value == True %}selected{% endif %}>Yes</option>
+                                            <option value="false" {% if attribute.proposed_values.default_value == False %}selected{% endif %}>No</option>
+                                        </select>
+
+                                        <input
+                                            type="date"
+                                            class="form-control"
+                                            data-default-value-date
+                                            value="{{ attribute.proposed_values.default_value|default:'' }}"
+                                            {% if attribute.proposed_values.data_type != "date" %}hidden{% endif %}
+                                        >
+
+                                        <input
+                                            type="datetime-local"
+                                            class="form-control"
+                                            data-default-value-datetime
+                                            value="{{ attribute.proposed_values.default_value|default:'' }}"
+                                            {% if attribute.proposed_values.data_type != "datetime" %}hidden{% endif %}
                                         >
 
                                     </div>
@@ -1082,7 +1117,7 @@
                                 </div>
 
 
-                                <div class="model-editor-field">
+                                <div class="model-editor-field" data-default-value-section>
 
                                     <label>
                                         Default value
@@ -1090,8 +1125,39 @@
 
                                     <input
                                         type="text"
-                                        name="attribute_default_value"
                                         class="form-control"
+                                        data-default-value-text
+                                    >
+
+                                    <input
+                                        type="number"
+                                        class="form-control"
+                                        data-default-value-number
+                                        hidden
+                                    >
+
+                                    <select
+                                        class="form-select"
+                                        data-default-value-boolean
+                                        hidden
+                                    >
+                                        <option value="" selected>Not set</option>
+                                        <option value="true">Yes</option>
+                                        <option value="false">No</option>
+                                    </select>
+
+                                    <input
+                                        type="date"
+                                        class="form-control"
+                                        data-default-value-date
+                                        hidden
+                                    >
+
+                                    <input
+                                        type="datetime-local"
+                                        class="form-control"
+                                        data-default-value-datetime
+                                        hidden
                                     >
 
                                 </div>

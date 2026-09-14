@@ -285,3 +285,228 @@ class ObjectTypeAttributeChoiceConfigTests(TestCase):
                 target_type="AttributeDefinition", target_id=attribute.id, after__field="config",
             ).exists()
         )
+
+
+class ObjectTypeAttributeDefaultValueTests(TestCase):
+    """
+    The Default value control is datatype-aware; changing a Data Type
+    goes through the existing per-field proposal/discard machinery.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.workspace = Workspace.objects.create(name="Test Workspace")
+
+        cls.user = CustomUser.objects.create_user(
+            email="user@example.com",
+            password="test-password",
+        )
+
+        WorkspaceMember.objects.create(
+            workspace=cls.workspace,
+            user=cls.user,
+            role=WorkspaceMember.Role.OWNER,
+        )
+
+        cls.model = Model.objects.create(
+            workspace=cls.workspace,
+            name="Test Model",
+            revision=1,
+        )
+
+        cls.object_type = ObjectType.objects.create(
+            model=cls.model,
+            name="Application",
+            key="application",
+            is_active=True,
+        )
+
+    def setUp(self):
+        self.client.force_login(self.user)
+
+    def edit_url(self):
+        return reverse(
+            "model:object_type_edit",
+            args=[self.model.id, self.object_type.id],
+        )
+
+    def test_text_default_value_on_create(self):
+        response = self.client.post(
+            self.edit_url(),
+            {
+                "action": "create_attribute",
+                "attribute_name": "Owner",
+                "attribute_key": "owner",
+                "attribute_data_type": "text",
+                "attribute_default_value": "Finance Tech",
+            },
+        )
+
+        self.assertTrue(response.json()["success"])
+        change = ProposalChange.objects.get(target_type="AttributeDefinition")
+        self.assertEqual(change.after["default_value"], "Finance Tech")
+
+    def test_number_default_value_on_create(self):
+        response = self.client.post(
+            self.edit_url(),
+            {
+                "action": "create_attribute",
+                "attribute_name": "Cost",
+                "attribute_key": "cost",
+                "attribute_data_type": "number",
+                "attribute_default_value": "42",
+            },
+        )
+
+        self.assertTrue(response.json()["success"])
+        change = ProposalChange.objects.get(target_type="AttributeDefinition")
+        self.assertEqual(change.after["default_value"], 42)
+
+    def test_boolean_default_value_true_on_create(self):
+        response = self.client.post(
+            self.edit_url(),
+            {
+                "action": "create_attribute",
+                "attribute_name": "Certified",
+                "attribute_key": "certified",
+                "attribute_data_type": "boolean",
+                "attribute_default_value": "true",
+            },
+        )
+
+        self.assertTrue(response.json()["success"])
+        change = ProposalChange.objects.get(target_type="AttributeDefinition")
+        self.assertIs(change.after["default_value"], True)
+
+    def test_boolean_default_value_not_set_on_create(self):
+        response = self.client.post(
+            self.edit_url(),
+            {
+                "action": "create_attribute",
+                "attribute_name": "Certified",
+                "attribute_key": "certified",
+                "attribute_data_type": "boolean",
+                "attribute_default_value": "",
+            },
+        )
+
+        self.assertTrue(response.json()["success"])
+        change = ProposalChange.objects.get(target_type="AttributeDefinition")
+        self.assertIsNone(change.after["default_value"])
+
+    def test_date_default_value_on_create(self):
+        response = self.client.post(
+            self.edit_url(),
+            {
+                "action": "create_attribute",
+                "attribute_name": "Launch date",
+                "attribute_key": "launch_date",
+                "attribute_data_type": "date",
+                "attribute_default_value": "2024-01-15",
+            },
+        )
+
+        self.assertTrue(response.json()["success"])
+        change = ProposalChange.objects.get(target_type="AttributeDefinition")
+        self.assertEqual(change.after["default_value"], "2024-01-15")
+
+    def test_datetime_default_value_on_create(self):
+        response = self.client.post(
+            self.edit_url(),
+            {
+                "action": "create_attribute",
+                "attribute_name": "Go live",
+                "attribute_key": "go_live",
+                "attribute_data_type": "datetime",
+                "attribute_default_value": "2024-01-15T09:30",
+            },
+        )
+
+        self.assertTrue(response.json()["success"])
+        change = ProposalChange.objects.get(target_type="AttributeDefinition")
+        self.assertEqual(change.after["default_value"], "2024-01-15T09:30")
+
+    def test_data_type_change_on_existing_attribute_creates_proposal_change(self):
+        attribute = AttributeDefinition.objects.create(
+            object_type=self.object_type,
+            name="Status",
+            key="status",
+            data_type=AttributeDefinition.DataType.TEXT,
+            is_active=True,
+        )
+
+        response = self.client.post(
+            self.edit_url(),
+            {
+                "action": "save_attribute",
+                "attribute_id": str(attribute.id),
+                "attribute_name": "Status",
+                "attribute_key": "status",
+                "attribute_data_type": "choice",
+                "attribute_choices": json.dumps(["Proposed", "Approved", "Live"]),
+            },
+        )
+
+        self.assertTrue(response.json()["success"])
+
+        change = ProposalChange.objects.get(
+            target_type="AttributeDefinition", target_id=attribute.id, after__field="data_type",
+        )
+        self.assertEqual(change.after["value"], "choice")
+
+        attribute.refresh_from_db()
+        self.assertEqual(attribute.data_type, AttributeDefinition.DataType.TEXT)
+
+    def test_choice_to_text_discard_restores_original_data_type_choices_and_default(self):
+        attribute = AttributeDefinition.objects.create(
+            object_type=self.object_type,
+            name="Status",
+            key="status",
+            data_type=AttributeDefinition.DataType.CHOICE,
+            config={"choices": ["Proposed", "Approved", "Live"]},
+            default_value="Proposed",
+            is_active=True,
+        )
+
+        save_response = self.client.post(
+            self.edit_url(),
+            {
+                "action": "save_attribute",
+                "attribute_id": str(attribute.id),
+                "attribute_name": "Status",
+                "attribute_key": "status",
+                "attribute_data_type": "text",
+                "attribute_default_value": "New default",
+            },
+        )
+        self.assertTrue(save_response.json()["success"])
+
+        self.assertTrue(
+            ProposalChange.objects.filter(
+                target_type="AttributeDefinition", target_id=attribute.id, after__field="data_type",
+            ).exists()
+        )
+
+        discard_response = self.client.post(
+            self.edit_url(),
+            {"action": "discard_attribute", "attribute_id": str(attribute.id)},
+        )
+        self.assertTrue(discard_response.json()["success"])
+
+        self.assertFalse(
+            ProposalChange.objects.filter(
+                target_type="AttributeDefinition", target_id=attribute.id,
+            ).exists()
+        )
+
+        get_response = self.client.get(self.edit_url())
+        status_attribute = next(
+            a for a in get_response.context["attributes"] if a.key == "status"
+        )
+
+        self.assertEqual(status_attribute.proposed_values["data_type"], "choice")
+        self.assertEqual(
+            status_attribute.proposed_values["config"]["choices"],
+            ["Proposed", "Approved", "Live"],
+        )
+        self.assertEqual(status_attribute.proposed_values["default_value"], "Proposed")

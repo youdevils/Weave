@@ -447,6 +447,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     setChoiceSectionVisibility(dataTypeInput);
+    updateDefaultValueVisibility(dataTypeInput);
   });
 
   /* ============================================================
@@ -1335,7 +1336,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       attribute_description: read("attribute_description", ""),
 
-      attribute_default_value: read("attribute_default_value", ""),
+      attribute_default_value: readDefaultValue(editor),
 
       attribute_sort_order: read("attribute_sort_order", "0"),
 
@@ -1405,6 +1406,85 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (section) {
       section.hidden = dataTypeInput.value !== "choice";
+    }
+  }
+
+  /* ============================================================
+       Default value — datatype-aware control switching
+       ============================================================ */
+
+  const DEFAULT_VALUE_SELECTORS = {
+    text: "[data-default-value-text]",
+    number: "[data-default-value-number]",
+    boolean: "[data-default-value-boolean]",
+    date: "[data-default-value-date]",
+    datetime: "[data-default-value-datetime]",
+  };
+
+  function getDefaultValueSection(scopeEl) {
+    const fields = scopeEl.closest(".model-editor-fields");
+
+    return fields ? fields.querySelector("[data-default-value-section]") : null;
+  }
+
+  function getActiveDefaultValueControl(section, dataType) {
+    const selector = DEFAULT_VALUE_SELECTORS[dataType];
+
+    return section && selector ? section.querySelector(selector) : null;
+  }
+
+  function updateDefaultValueVisibility(dataTypeInput) {
+    const section = getDefaultValueSection(dataTypeInput);
+
+    if (!section) {
+      return;
+    }
+
+    Object.values(DEFAULT_VALUE_SELECTORS).forEach(function (selector) {
+      const el = section.querySelector(selector);
+
+      if (el) {
+        el.hidden = true;
+      }
+    });
+
+    const active = getActiveDefaultValueControl(section, dataTypeInput.value);
+
+    section.hidden = !active;
+
+    if (active) {
+      active.hidden = false;
+    }
+  }
+
+  function readDefaultValue(editor) {
+    const dataTypeInput = editor.querySelector('[name="attribute_data_type"]');
+
+    const dataType = dataTypeInput ? dataTypeInput.value : "text";
+
+    const section = editor.querySelector("[data-default-value-section]");
+
+    const active = getActiveDefaultValueControl(section, dataType);
+
+    return active ? active.value : "";
+  }
+
+  function writeDefaultValue(attribute, values) {
+    const section = attribute.querySelector("[data-default-value-section]");
+
+    const active = getActiveDefaultValueControl(section, values.data_type);
+
+    if (!active) {
+      return;
+    }
+
+    if (active.matches("[data-default-value-boolean]")) {
+      const normalised = normaliseValue(values.default_value);
+
+      active.value =
+        normalised === "true" || normalised === "false" ? normalised : "";
+    } else {
+      writeInputValue(active, values.default_value);
     }
   }
 
@@ -1621,8 +1701,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const description = input("attribute_description");
 
-    const defaultValue = input("attribute_default_value");
-
     const sortOrder = input("attribute_sort_order");
 
     const required = input("attribute_required");
@@ -1636,8 +1714,6 @@ document.addEventListener("DOMContentLoaded", function () {
     writeInputValue(dataType, values.data_type);
 
     writeInputValue(description, values.description);
-
-    writeInputValue(defaultValue, values.default_value);
 
     writeInputValue(sortOrder, values.sort_order);
 
@@ -1703,6 +1779,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (dataType) {
       setChoiceSectionVisibility(dataType);
+      updateDefaultValueVisibility(dataType);
+      writeDefaultValue(attribute, values);
     }
 
     const choiceSection = attribute.querySelector("[data-choice-section]");
