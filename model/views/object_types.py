@@ -5,6 +5,7 @@ from django.shortcuts import render
 from model.models.proposal import ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.views.common_context import get_model_context
+from model.views.data_context import discard_relationships_referencing_object
 
 
 @login_required
@@ -68,24 +69,24 @@ def object_types(
 
         # -------------------------------------------------------------
         # If this ObjectType is itself proposed as CREATE, also remove
-        # any proposed child attributes belonging to it.
+        # any proposed child attributes/objects belonging to it (and,
+        # transitively, any proposed Relationship referencing one of
+        # those discarded Objects).
         # -------------------------------------------------------------
 
         is_created = object_type_changes.filter(
             operation=ProposalChange.Operation.CREATE,
         ).exists()
 
-        child_target_ids = set()
+        discarded = {}
 
         if is_created:
-            child_changes = proposal.changes.filter(
+            discarded = ProposalService.discard_children(
+                proposal=proposal,
                 parent_type="ObjectType",
                 parent_id=object_type_id,
+                child_target_types={"AttributeDefinition", "Object"},
             )
-
-            for change in child_changes:
-                if change.target_type == "AttributeDefinition":
-                    child_target_ids.add(change.target_id)
 
         # -------------------------------------------------------------
         # Discard ObjectType proposal.
@@ -97,16 +98,8 @@ def object_types(
             target_id=object_type_id,
         )
 
-        # -------------------------------------------------------------
-        # Discard proposed child attributes.
-        # -------------------------------------------------------------
-
-        for target_id in child_target_ids:
-            ProposalService.discard_change(
-                proposal=proposal,
-                target_type="AttributeDefinition",
-                target_id=target_id,
-            )
+        for discarded_object_id in discarded.get("Object", set()):
+            discard_relationships_referencing_object(proposal, discarded_object_id)
 
         return JsonResponse(
             {

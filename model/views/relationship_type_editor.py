@@ -1,3 +1,4 @@
+import json
 import uuid
 from types import SimpleNamespace
 
@@ -34,6 +35,7 @@ ATTRIBUTE_PROPERTY_FIELDS = {
     "nullable",
     "default_value",
     "sort_order",
+    "config",
 }
 
 ATTRIBUTE_LIFECYCLE_FIELD = "is_active"
@@ -58,6 +60,9 @@ RULE_FIELDS = {
 def _serialize_value(value):
     if isinstance(value, bool):
         return "true" if value else "false"
+
+    if isinstance(value, (dict, list)):
+        return json.dumps(value)
 
     if value is None:
         return ""
@@ -207,6 +212,7 @@ def _attribute_canonical_values(attribute):
         "nullable": attribute.nullable,
         "default_value": attribute.default_value,
         "sort_order": attribute.sort_order,
+        "config": attribute.config or {},
         "is_active": attribute.is_active,
     }
 
@@ -336,6 +342,7 @@ def _attribute_proposal_values(
             "nullable": values.get("nullable", False),
             "default_value": values.get("default_value"),
             "sort_order": values.get("sort_order", 0),
+            "config": values.get("config") or {},
             "is_active": values.get("is_active", True),
         },
         True,
@@ -503,6 +510,7 @@ def _build_attribute_view_objects(
                             "sort_order",
                             0,
                         ),
+                        "config": values.get("config") or {},
                         "is_active": values.get(
                             "is_active",
                             True,
@@ -1034,6 +1042,29 @@ def _coerce_default_value(
     return raw_value
 
 
+def _coerce_choices(
+    raw_json,
+):
+    """
+    Decode the JSON-encoded attribute_choices POST field into a
+    cleaned list of non-blank strings.
+    """
+
+    if not raw_json:
+        return []
+
+    try:
+        parsed = json.loads(raw_json)
+
+    except (TypeError, ValueError):
+        raise ValueError("Allowed values could not be read.")
+
+    if not isinstance(parsed, list) or not all(isinstance(item, str) for item in parsed):
+        raise ValueError("Allowed values must be a list of text options.")
+
+    return [item.strip() for item in parsed if item.strip()]
+
+
 def _coerce_attribute_properties(
     request,
     existing_values,
@@ -1133,6 +1164,48 @@ def _coerce_attribute_properties(
         sort_order = 0
         errors["sort_order"] = "Sort order must be a whole number."
 
+    # -------------------------------------------------------------
+    # Choice configuration
+    #
+    # data_type is not edited in place elsewhere in this workflow (a
+    # different datatype means deleting/recreating the attribute), so
+    # this only ever branches on the currently submitted data_type —
+    # it never reacts to a datatype transition.
+    # -------------------------------------------------------------
+
+    config = {}
+
+    if data_type == AttributeDefinition.DataType.CHOICE:
+
+        if "attribute_choices" not in request.POST:
+            # Defensive fallback only — the JS always sends this field
+            # for save_attribute/create_attribute. Never treat
+            # "missing" as "user cleared the list": preserve whatever
+            # this attribute's current effective config already is.
+            config = existing_values.get("config") or {}
+
+        else:
+
+            try:
+                choices = _coerce_choices(
+                    request.POST.get("attribute_choices", ""),
+                )
+
+            except ValueError as exc:
+                choices = []
+                errors["choices"] = str(exc)
+
+            else:
+
+                if not choices:
+                    errors["choices"] = "Add at least one allowed value."
+
+                elif len(choices) != len(set(choices)):
+                    errors["choices"] = "Allowed values must be unique."
+
+                else:
+                    config = {"choices": choices}
+
     return {
         "name": name,
         "key": key,
@@ -1142,6 +1215,7 @@ def _coerce_attribute_properties(
         "nullable": nullable,
         "default_value": default_value,
         "sort_order": sort_order,
+        "config": config,
     }, errors
 
 
@@ -1982,6 +2056,7 @@ def relationship_type_editor(
                 "nullable": False,
                 "default_value": None,
                 "sort_order": 0,
+                "config": {},
             },
         )
 

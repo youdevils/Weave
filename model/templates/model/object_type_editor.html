@@ -960,6 +960,61 @@
                                     </div>
 
 
+                                    <!-- ALLOWED VALUES (Choice only) -->
+
+                                    <div
+                                        class="model-editor-field"
+                                        data-choice-section
+                                        {% if attribute.proposed_values.data_type != "choice" %}hidden{% endif %}
+                                    >
+
+                                        <label>Allowed values</label>
+
+                                        <div class="model-choice-list" data-choice-list>
+
+                                            {% for choice in attribute.proposed_values.config.choices %}
+
+                                                <div class="model-choice-row" data-choice-row>
+
+                                                    <input
+                                                        type="text"
+                                                        class="form-control"
+                                                        data-choice-input
+                                                        value="{{ choice }}"
+                                                    >
+
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-sm btn-outline-secondary"
+                                                        data-remove-choice
+                                                    >
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+
+                                                </div>
+
+                                            {% endfor %}
+
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-secondary"
+                                            data-add-choice
+                                        >
+                                            <i class="bi bi-plus-lg"></i>
+                                            Add option
+                                        </button>
+
+                                        <div
+                                            class="model-editor-field-error"
+                                            data-choice-error
+                                            hidden
+                                        ></div>
+
+                                    </div>
+
+
                                     <!-- DESCRIPTION -->
 
                                     <div class="model-editor-field">
@@ -1233,6 +1288,7 @@
                                         id="new-attribute-data-type"
                                         name="attribute_data_type"
                                         class="form-select"
+                                        data-attribute-data-type-input
                                     >
 
                                         {% for value, label in attribute_data_types %}
@@ -1249,6 +1305,26 @@
                                         {% endfor %}
 
                                     </select>
+
+                                </div>
+
+
+                                <div class="model-editor-field" data-choice-section hidden>
+
+                                    <label>Allowed values</label>
+
+                                    <div class="model-choice-list" data-choice-list></div>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        data-add-choice
+                                    >
+                                        <i class="bi bi-plus-lg"></i>
+                                        Add option
+                                    </button>
+
+                                    <div class="model-editor-field-error" data-choice-error hidden></div>
 
                                 </div>
 

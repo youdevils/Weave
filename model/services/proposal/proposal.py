@@ -203,6 +203,49 @@ class ProposalService:
 
         return result
 
+    @staticmethod
+    @transaction.atomic
+    def discard_children(
+        *,
+        proposal,
+        parent_type,
+        parent_id,
+        child_target_types,
+    ):
+        """
+        Discard every change addressed to a child of (parent_type,
+        parent_id), restricted to child_target_types. Used when a
+        proposal-only parent (e.g. an ObjectType/RelationshipType
+        CREATE) is discarded, so its downstream proposal-only children
+        don't become dangling references in the working proposal.
+
+        Returns {target_type: {target_id, ...}} so a caller can chain
+        a further, non-parent/child-shaped cascade (e.g. discarding a
+        Relationship that references a just-discarded Object, which
+        isn't addressed via parent_type/parent_id).
+        """
+
+        child_changes = proposal.changes.filter(
+            parent_type=parent_type,
+            parent_id=parent_id,
+            target_type__in=child_target_types,
+        )
+
+        target_ids_by_type = {}
+
+        for change in child_changes:
+            target_ids_by_type.setdefault(change.target_type, set()).add(change.target_id)
+
+        for target_type, target_ids in target_ids_by_type.items():
+            for target_id in target_ids:
+                ProposalService.discard_change(
+                    proposal=proposal,
+                    target_type=target_type,
+                    target_id=target_id,
+                )
+
+        return target_ids_by_type
+
     # -----------------------------------------------------------------
     # Proposal lifecycle
     # -----------------------------------------------------------------

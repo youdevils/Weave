@@ -3,23 +3,24 @@ from types import SimpleNamespace
 
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 
 from model.models.object import Object
 from model.models.proposal import ProposalChange
 from model.models.relationship import Relationship
-from model.models.relationship_type import RelationshipType
-from model.models.relationship_type_rule import RelationshipTypeRule
 from model.services.proposal.proposal import ProposalService
 from model.services.validation.attributes import validate_attribute_value
 from model.views.common_context import get_model_context
 from model.views.data_context import (
     ATTRIBUTE_FIELD_PREFIX,
     attribute_field_name,
+    build_proposed_only_objects,
     build_relationship_attribute_definitions,
     coerce_attribute_value,
+    object_create_change,
     relationship_create_change,
     relationship_effective_values,
+    resolve_working_relationship_type,
 )
 
 
@@ -33,6 +34,37 @@ def _serialize_value(value):
     return str(value)
 
 
+def _resolve_relationship_endpoint(object_id, proposal):
+    """
+    Resolve a Relationship endpoint by id alone: canonical Object
+    first, else a proposal-only Object CREATE change in the same
+    proposal. Used only for display (.name) and building the
+    data_object_edit URL (.object_type_id) — full nested ObjectType
+    resolution isn't needed here.
+    """
+
+    if not object_id:
+        return None
+
+    obj = Object.objects.filter(id=object_id).select_related("object_type").first()
+
+    if obj is not None:
+        return obj
+
+    create_change = object_create_change(object_id, proposal)
+
+    if create_change is None:
+        return None
+
+    after = create_change.after or {}
+
+    return SimpleNamespace(
+        id=create_change.target_id,
+        name=after.get("name", ""),
+        object_type_id=create_change.parent_id,
+    )
+
+
 def _get_working_relationship(
     model,
     relationship_type,
@@ -42,7 +74,7 @@ def _get_working_relationship(
     relationship = Relationship.objects.filter(
         id=relationship_id,
         model=model,
-        relationship_type=relationship_type,
+        relationship_type_id=relationship_type.id,
     ).select_related("subject", "object").first()
 
     if relationship is not None:
@@ -58,8 +90,8 @@ def _get_working_relationship(
 
     after = create_change.after or {}
 
-    subject = Object.objects.filter(id=after.get("subject_id")).first()
-    obj = Object.objects.filter(id=after.get("object_id")).first()
+    subject = _resolve_relationship_endpoint(after.get("subject_id"), proposal)
+    obj = _resolve_relationship_endpoint(after.get("object_id"), proposal)
 
     proposed = SimpleNamespace(
         id=create_change.target_id,
@@ -116,31 +148,94 @@ def _decorate_for_edit(
     return definitions
 
 
-def _allowed_endpoint_choices(relationship_type, model):
-    rules = list(
-        RelationshipTypeRule.objects.filter(
-            relationship_type=relationship_type,
-        ).select_related("subject_type", "object_type")
+def _endpoint_candidates(type_ids, object_type_lookup, model, proposal):
+    """
+    Uniform candidate list (SimpleNamespace) for one side of the
+    relationship picker: canonical Objects (active, of an allowed
+    type) plus proposal-only CREATE Objects of the same allowed
+    types. Every item exposes .id/.name/.object_type_id/.object_type
+    (a working ObjectType item from context["object_types"], reused
+    by reference across every candidate of the same type so
+    {% regroup %} groups canonical and proposed candidates under one
+    header, not two).
+    """
+
+    candidates = []
+
+    canonical = (
+        Object.objects.filter(model=model, object_type_id__in=type_ids, is_active=True)
+        .select_related("object_type")
+        .order_by("object_type__name", "name")
     )
 
+    for obj in canonical:
+        working_type = object_type_lookup.get(str(obj.object_type_id), obj.object_type)
+        candidates.append(
+            SimpleNamespace(
+                id=obj.id,
+                name=obj.name,
+                object_type_id=obj.object_type_id,
+                object_type=working_type,
+            )
+        )
+
+    for type_id in type_ids:
+        working_type = object_type_lookup.get(str(type_id))
+        if working_type is None:
+            continue
+        for proposed in build_proposed_only_objects(working_type, proposal):
+            candidates.append(
+                SimpleNamespace(
+                    id=proposed.id,
+                    name=proposed.name,
+                    object_type_id=proposed.object_type_id,
+                    object_type=working_type,
+                )
+            )
+
+    candidates.sort(key=lambda item: (item.object_type.name, item.name))
+    return candidates
+
+
+def _allowed_endpoint_choices(relationship_type, model, proposal, object_type_lookup):
+    """
+    Sources rules from relationship_type.rules — already the
+    effective, proposal-inclusive rule list built by
+    common_context._build_working_relationship_types /
+    _build_working_relationship_rules[_for_proposed_type] — instead of
+    a fresh canonical RelationshipTypeRule query, so pending rule
+    CREATEs (including under a proposal-only RelationshipType) are
+    respected with zero extra queries.
+    """
+
+    rules = relationship_type.rules
+
+    # Rule endpoint type ids come from real UUID model fields for a
+    # canonical rule but as JSON-stored strings for a proposal-only
+    # CREATE rule (see common_context._extract_created_rule_values) —
+    # normalise to strings throughout so canonical/proposal-only rules
+    # and canonical/proposal-only Object candidates compare correctly.
+    allowed_pairs = {
+        (str(rule.subject_type_id), str(rule.object_type_id)) for rule in rules
+    }
     subject_type_ids = {rule.subject_type_id for rule in rules}
     object_type_ids = {rule.object_type_id for rule in rules}
 
-    allowed_pairs = {(rule.subject_type_id, rule.object_type_id) for rule in rules}
+    subject_choices = _endpoint_candidates(subject_type_ids, object_type_lookup, model, proposal)
+    object_choices = _endpoint_candidates(object_type_ids, object_type_lookup, model, proposal)
 
-    subjects = Object.objects.filter(
-        model=model,
-        object_type_id__in=subject_type_ids,
-        is_active=True,
-    ).select_related("object_type").order_by("object_type__name", "name")
+    return subject_choices, object_choices, allowed_pairs
 
-    objects = Object.objects.filter(
-        model=model,
-        object_type_id__in=object_type_ids,
-        is_active=True,
-    ).select_related("object_type").order_by("object_type__name", "name")
 
-    return subjects, objects, allowed_pairs
+def _find_candidate(candidates, candidate_id):
+    if not candidate_id:
+        return None
+
+    for candidate in candidates:
+        if str(candidate.id) == str(candidate_id):
+            return candidate
+
+    return None
 
 
 @login_required
@@ -158,11 +253,12 @@ def data_relationship_editor(
     model = context["model"]
     proposal = context["my_working_proposal"]
 
-    relationship_type = get_object_or_404(
-        RelationshipType,
-        id=relationship_type_id,
-        model=model,
-    )
+    relationship_type = resolve_working_relationship_type(context, relationship_type_id)
+
+    if relationship_type is None:
+        raise Http404("Relationship type not found.")
+
+    object_type_lookup = {str(ot.id): ot for ot in context["object_types"]}
 
     relationship = None
     proposal_only = False
@@ -502,6 +598,8 @@ def data_relationship_editor(
         subject_choices, object_choices, allowed_pairs = _allowed_endpoint_choices(
             relationship_type,
             model,
+            proposal,
+            object_type_lookup,
         )
 
         subject_id = request.POST.get("subject_id", "")
@@ -509,8 +607,8 @@ def data_relationship_editor(
 
         errors = {}
 
-        subject = subject_choices.filter(id=subject_id).first() if subject_id else None
-        obj = object_choices.filter(id=object_id).first() if object_id else None
+        subject = _find_candidate(subject_choices, subject_id)
+        obj = _find_candidate(object_choices, object_id)
 
         if not subject:
             errors["subject_id"] = "Choose a subject."
@@ -521,7 +619,7 @@ def data_relationship_editor(
         if (
             subject
             and obj
-            and (subject.object_type_id, obj.object_type_id) not in allowed_pairs
+            and (str(subject.object_type_id), str(obj.object_type_id)) not in allowed_pairs
         ):
             errors["object_id"] = (
                 "This combination of types is not permitted by the "
@@ -633,6 +731,8 @@ def data_relationship_editor(
         subject_choices, object_choices, _allowed_pairs = _allowed_endpoint_choices(
             relationship_type,
             model,
+            proposal,
+            object_type_lookup,
         )
 
         return render(

@@ -282,6 +282,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /*
      * ----------------------------------------------------
+     * Choice attribute — allowed values
+     * ----------------------------------------------------
+     */
+
+    const addChoiceButton = event.target.closest("[data-add-choice]");
+
+    if (addChoiceButton) {
+      const section = addChoiceButton.closest("[data-choice-section]");
+
+      if (section) {
+        addChoiceRow(section);
+      }
+
+      return;
+    }
+
+    const removeChoiceButton = event.target.closest("[data-remove-choice]");
+
+    if (removeChoiceButton) {
+      const row = removeChoiceButton.closest("[data-choice-row]");
+
+      if (row) {
+        row.remove();
+      }
+
+      return;
+    }
+
+    /*
+     * ----------------------------------------------------
      * Attribute lifecycle
      * ----------------------------------------------------
      */
@@ -401,6 +431,22 @@ document.addEventListener("DOMContentLoaded", function () {
     if (saveNewRuleButton) {
       saveNewRule(root, saveNewRuleButton);
     }
+  });
+
+  /* ============================================================
+       Choice attribute — show/hide "Allowed values" on data type
+       ============================================================ */
+
+  document.addEventListener("change", function (event) {
+    const dataTypeInput = event.target.closest(
+      "[data-attribute-data-type-input]",
+    );
+
+    if (!dataTypeInput) {
+      return;
+    }
+
+    setChoiceSectionVisibility(dataTypeInput);
   });
 
   /* ============================================================
@@ -1296,7 +1342,70 @@ document.addEventListener("DOMContentLoaded", function () {
       attribute_required: checked("attribute_required"),
 
       attribute_nullable: checked("attribute_nullable"),
+
+      attribute_choices: JSON.stringify(collectChoiceValues(editor)),
     };
+  }
+
+  function collectChoiceValues(editor) {
+    return Array.from(editor.querySelectorAll("[data-choice-input]"))
+      .map(function (input) {
+        return input.value.trim();
+      })
+      .filter(function (value) {
+        return value.length > 0;
+      });
+  }
+
+  function addChoiceRow(section, value) {
+    const list = section.querySelector("[data-choice-list]");
+
+    if (!list) {
+      return;
+    }
+
+    const row = document.createElement("div");
+
+    row.className = "model-choice-row";
+    row.setAttribute("data-choice-row", "");
+
+    const input = document.createElement("input");
+
+    input.type = "text";
+    input.className = "form-control";
+    input.setAttribute("data-choice-input", "");
+    input.value = value || "";
+
+    const removeButton = document.createElement("button");
+
+    removeButton.type = "button";
+    removeButton.className = "btn btn-sm btn-outline-secondary";
+    removeButton.setAttribute("data-remove-choice", "");
+
+    const icon = document.createElement("i");
+
+    icon.className = "bi bi-x-lg";
+
+    removeButton.appendChild(icon);
+
+    row.appendChild(input);
+    row.appendChild(removeButton);
+
+    list.appendChild(row);
+
+    input.focus();
+  }
+
+  function setChoiceSectionVisibility(dataTypeInput) {
+    const fields = dataTypeInput.closest(".model-editor-fields");
+
+    const section = fields
+      ? fields.querySelector("[data-choice-section]")
+      : null;
+
+    if (section) {
+      section.hidden = dataTypeInput.value !== "choice";
+    }
   }
 
   async function saveAttribute(root, button) {
@@ -1590,6 +1699,34 @@ document.addEventListener("DOMContentLoaded", function () {
       descriptionDisplay.textContent = values.description || "";
 
       descriptionDisplay.hidden = !values.description;
+    }
+
+    if (dataType) {
+      setChoiceSectionVisibility(dataType);
+    }
+
+    const choiceSection = attribute.querySelector("[data-choice-section]");
+
+    if (choiceSection) {
+      const list = choiceSection.querySelector("[data-choice-list]");
+
+      if (list) {
+        list.innerHTML = "";
+      }
+
+      let choices = [];
+
+      try {
+        const config = JSON.parse(values.config || "{}");
+
+        choices = Array.isArray(config.choices) ? config.choices : [];
+      } catch (error) {
+        choices = [];
+      }
+
+      choices.forEach(function (choice) {
+        addChoiceRow(choiceSection, choice);
+      });
     }
   }
 

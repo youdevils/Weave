@@ -68,34 +68,24 @@ def relationship_types(
 
         # -------------------------------------------------------------
         # If this RelationshipType itself is proposed as CREATE, also
-        # remove proposed child attributes and rules.
+        # remove proposed child attributes, rules, and relationships.
         # -------------------------------------------------------------
 
         is_created = relationship_type_changes.filter(
             operation=ProposalChange.Operation.CREATE,
         ).exists()
 
-        child_attribute_ids = set()
-        child_rule_ids = set()
-
         if is_created:
-
-            child_changes = proposal.changes.filter(
+            ProposalService.discard_children(
+                proposal=proposal,
                 parent_type="RelationshipType",
                 parent_id=relationship_type_id,
+                child_target_types={
+                    "AttributeDefinition",
+                    "RelationshipTypeRule",
+                    "Relationship",
+                },
             )
-
-            for change in child_changes:
-
-                if change.target_type == "AttributeDefinition":
-                    child_attribute_ids.add(
-                        change.target_id,
-                    )
-
-                elif change.target_type == "RelationshipTypeRule":
-                    child_rule_ids.add(
-                        change.target_id,
-                    )
 
         # -------------------------------------------------------------
         # Discard RelationshipType proposal.
@@ -106,30 +96,6 @@ def relationship_types(
             target_type="RelationshipType",
             target_id=relationship_type_id,
         )
-
-        # -------------------------------------------------------------
-        # Discard proposed child attributes.
-        # -------------------------------------------------------------
-
-        for target_id in child_attribute_ids:
-
-            ProposalService.discard_change(
-                proposal=proposal,
-                target_type="AttributeDefinition",
-                target_id=target_id,
-            )
-
-        # -------------------------------------------------------------
-        # Discard proposed child rules.
-        # -------------------------------------------------------------
-
-        for target_id in child_rule_ids:
-
-            ProposalService.discard_change(
-                proposal=proposal,
-                target_type="RelationshipTypeRule",
-                target_id=target_id,
-            )
 
         return JsonResponse(
             {

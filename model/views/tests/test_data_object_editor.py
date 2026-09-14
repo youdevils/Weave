@@ -1,3 +1,5 @@
+import uuid
+
 from django.test import TestCase
 from django.urls import reverse
 
@@ -7,6 +9,7 @@ from model.models.model import Model
 from model.models.object import Object
 from model.models.object_type import ObjectType
 from model.models.proposal import Proposal, ProposalChange
+from model.services.proposal.proposal import ProposalService
 from model.services.proposal.review import ProposalReviewService
 from workspace.models import Workspace, WorkspaceMember
 
@@ -327,3 +330,212 @@ class ReviewPageVisibilityTests(DataObjectEditorTestCase):
         target = ProposalReviewService.change_target(change, targets, create_lookup, {})
 
         self.assertEqual(target["label"], "SAP S/4HANA")
+
+
+class ProposalOnlyObjectTypeEditorTests(TestCase):
+    """
+    The Object record editor must resolve for a proposal-only (CREATE)
+    ObjectType, and attribute editing against it must round-trip.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.workspace = Workspace.objects.create(name="Test Workspace")
+
+        cls.user = CustomUser.objects.create_user(
+            email="user@example.com",
+            password="test-password",
+        )
+
+        WorkspaceMember.objects.create(
+            workspace=cls.workspace,
+            user=cls.user,
+            role=WorkspaceMember.Role.OWNER,
+        )
+
+        cls.model = Model.objects.create(
+            workspace=cls.workspace,
+            name="Test Model",
+            revision=1,
+        )
+
+    def setUp(self):
+        self.client.force_login(self.user)
+
+    def test_editor_opens_and_attribute_editing_round_trips_for_proposal_only_object_type(self):
+        proposal = ProposalService.get_or_create_working(self.model, self.user)
+
+        object_type_id = uuid.uuid4()
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="ObjectType",
+            target_id=object_type_id,
+            parent_type="Model",
+            parent_id=self.model.id,
+            before=None,
+            after={
+                "name": "Vendor", "key": "vendor", "description": "",
+                "sort_order": 0, "is_active": True,
+            },
+        )
+
+        create_response = self.client.get(
+            reverse("model:data_object_create", args=[self.model.id, object_type_id]),
+        )
+        self.assertEqual(create_response.status_code, 200)
+
+        post_response = self.client.post(
+            reverse("model:data_object_create", args=[self.model.id, object_type_id]),
+            {"name": "Salesforce", "description": ""},
+        )
+        self.assertEqual(post_response.status_code, 302)
+
+        object_change = proposal.changes.get(target_type="Object")
+
+        edit_response = self.client.get(
+            reverse(
+                "model:data_object_edit",
+                args=[self.model.id, object_type_id, object_change.target_id],
+            ),
+        )
+        self.assertEqual(edit_response.status_code, 200)
+        self.assertEqual(ObjectType.objects.count(), 0)
+        self.assertEqual(Object.objects.count(), 0)
+
+
+class ChoiceAttributeInDataEditorTests(TestCase):
+    """
+    A CHOICE AttributeDefinition's allowed values, configured in the
+    ontology editor, must be presented by the Data editor — for both a
+    proposal-only attribute and a canonical attribute with a pending
+    config UPDATE (the case data_context.py's overlay fix exists for).
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.workspace = Workspace.objects.create(name="Test Workspace")
+
+        cls.user = CustomUser.objects.create_user(
+            email="user@example.com",
+            password="test-password",
+        )
+
+        WorkspaceMember.objects.create(
+            workspace=cls.workspace,
+            user=cls.user,
+            role=WorkspaceMember.Role.OWNER,
+        )
+
+        cls.model = Model.objects.create(
+            workspace=cls.workspace,
+            name="Test Model",
+            revision=1,
+        )
+
+        cls.object_type = ObjectType.objects.create(
+            model=cls.model, name="Application", key="application", is_active=True,
+        )
+
+    def setUp(self):
+        self.client.force_login(self.user)
+
+    def test_proposal_only_choice_attribute_options_render_in_data_create_form(self):
+        proposal = ProposalService.get_or_create_working(self.model, self.user)
+
+        attribute_id = uuid.uuid4()
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="AttributeDefinition",
+            target_id=attribute_id,
+            parent_type="ObjectType",
+            parent_id=self.object_type.id,
+            before=None,
+            after={
+                "name": "Status", "key": "status", "data_type": "choice",
+                "description": "", "required": False, "nullable": True,
+                "default_value": None, "sort_order": 0,
+                "config": {"choices": ["Proposed", "Approved", "Live"]},
+                "is_active": True,
+            },
+        )
+
+        response = self.client.get(
+            reverse("model:data_object_create", args=[self.model.id, self.object_type.id]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        status_attribute = next(
+            a for a in response.context["attribute_definitions"] if a.key == "status"
+        )
+        self.assertEqual(status_attribute.choices, ["Proposed", "Approved", "Live"])
+        self.assertContains(response, "Approved")
+
+    def test_canonical_attribute_with_pending_config_update_renders_in_data_editor(self):
+        """
+        Regression test for the data_context.py overlay fix: without
+        it, a pending config UPDATE on an already-canonical attribute
+        never reaches the Data layer.
+        """
+
+        attribute = AttributeDefinition.objects.create(
+            object_type=self.object_type,
+            name="Status",
+            key="status",
+            data_type=AttributeDefinition.DataType.TEXT,
+            is_active=True,
+        )
+
+        proposal = ProposalService.get_or_create_working(self.model, self.user)
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="AttributeDefinition",
+            target_id=attribute.id,
+            parent_type="ObjectType",
+            parent_id=self.object_type.id,
+            field="data_type",
+            before={"field": "data_type", "value": "text"},
+            after={"field": "data_type", "value": "choice"},
+        )
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="AttributeDefinition",
+            target_id=attribute.id,
+            parent_type="ObjectType",
+            parent_id=self.object_type.id,
+            field="config",
+            before={"field": "config", "value": {}},
+            after={"field": "config", "value": {"choices": ["Low", "High"]}},
+        )
+
+        obj = Object.objects.create(
+            model=self.model, object_type=self.object_type, name="SAP S/4HANA",
+        )
+
+        response = self.client.get(
+            reverse(
+                "model:data_object_edit",
+                args=[self.model.id, self.object_type.id, obj.id],
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        status_attribute = next(
+            a for a in response.context["attribute_definitions"] if a.key == "status"
+        )
+        self.assertEqual(status_attribute.data_type, "choice")
+        self.assertEqual(status_attribute.choices, ["Low", "High"])
+        self.assertContains(response, "Low")
+
+        # Canonical AttributeDefinition remains unchanged.
+        attribute.refresh_from_db()
+        self.assertEqual(attribute.data_type, AttributeDefinition.DataType.TEXT)
+        self.assertEqual(attribute.config, {})

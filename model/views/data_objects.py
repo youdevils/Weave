@@ -1,17 +1,18 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.http import Http404, JsonResponse
+from django.shortcuts import render
 
 from model.models.object import Object
-from model.models.object_type import ObjectType
 from model.services.proposal.proposal import ProposalService
 from model.views.common_context import get_model_context
 from model.views.data_context import (
     build_object_attribute_definitions,
     build_proposed_only_objects,
     build_working_objects,
+    discard_relationships_referencing_object,
+    resolve_working_object_type,
 )
 
 PAGE_SIZE = 25
@@ -78,11 +79,10 @@ def data_objects(
     model = context["model"]
     proposal = context["my_working_proposal"]
 
-    object_type = get_object_or_404(
-        ObjectType,
-        id=object_type_id,
-        model=model,
-    )
+    object_type = resolve_working_object_type(context, object_type_id)
+
+    if object_type is None:
+        raise Http404("Object type not found.")
 
     # -------------------------------------------------------------
     # Discard a proposal-only (CREATE) record from the pending list
@@ -122,6 +122,8 @@ def data_objects(
             target_id=object_id,
         )
 
+        discard_relationships_referencing_object(proposal, object_id)
+
         return JsonResponse({"success": True})
 
     # -------------------------------------------------------------
@@ -135,7 +137,7 @@ def data_objects(
 
     queryset = Object.objects.filter(
         model=model,
-        object_type=object_type,
+        object_type_id=object_type.id,
     )
 
     if search:

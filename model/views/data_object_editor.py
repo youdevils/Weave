@@ -3,10 +3,9 @@ from types import SimpleNamespace
 
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 
 from model.models.object import Object
-from model.models.object_type import ObjectType
 from model.models.proposal import ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.services.validation.attributes import validate_attribute_value
@@ -18,6 +17,7 @@ from model.views.data_context import (
     coerce_attribute_value,
     object_create_change,
     object_effective_values,
+    resolve_working_object_type,
 )
 
 OBJECT_PROPERTY_FIELDS = {
@@ -52,7 +52,7 @@ def _get_working_object(
     obj = Object.objects.filter(
         id=object_id,
         model=model,
-        object_type=object_type,
+        object_type_id=object_type.id,
     ).first()
 
     if obj is not None:
@@ -160,11 +160,10 @@ def data_object_editor(
     model = context["model"]
     proposal = context["my_working_proposal"]
 
-    object_type = get_object_or_404(
-        ObjectType,
-        id=object_type_id,
-        model=model,
-    )
+    object_type = resolve_working_object_type(context, object_type_id)
+
+    if object_type is None:
+        raise Http404("Object type not found.")
 
     obj = None
     proposal_only = False

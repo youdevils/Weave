@@ -1127,6 +1127,31 @@
     font-weight: 500;
 }
 
+/* =========================================================
+   Choice attribute — allowed values editor
+   ========================================================= */
+
+.model-choice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.model-choice-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.model-choice-row .form-control {
+    flex: 1 1 auto;
+}
+
+.model-choice-row .btn {
+    flex: 0 0 auto;
+}
+
 .model-attribute-editor-status {
     display: flex;
     align-items: center;

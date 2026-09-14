@@ -1,17 +1,17 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.http import Http404, JsonResponse
+from django.shortcuts import render
 
 from model.models.relationship import Relationship
-from model.models.relationship_type import RelationshipType
 from model.services.proposal.proposal import ProposalService
 from model.views.common_context import get_model_context
 from model.views.data_context import (
     build_proposed_only_relationships,
     build_relationship_attribute_definitions,
     build_working_relationships,
+    resolve_working_relationship_type,
 )
 
 PAGE_SIZE = 25
@@ -80,11 +80,10 @@ def data_relationships(
     model = context["model"]
     proposal = context["my_working_proposal"]
 
-    relationship_type = get_object_or_404(
-        RelationshipType,
-        id=relationship_type_id,
-        model=model,
-    )
+    relationship_type = resolve_working_relationship_type(context, relationship_type_id)
+
+    if relationship_type is None:
+        raise Http404("Relationship type not found.")
 
     # -------------------------------------------------------------
     # Discard a proposal-only (CREATE) relationship
@@ -137,7 +136,7 @@ def data_relationships(
 
     queryset = Relationship.objects.filter(
         model=model,
-        relationship_type=relationship_type,
+        relationship_type_id=relationship_type.id,
     ).select_related(
         "subject",
         "object",

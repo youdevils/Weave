@@ -4,6 +4,46 @@ from model.models.attribute_definition import AttributeDefinition
 from model.models.object import Object
 from model.models.proposal import ProposalChange
 from model.models.relationship import Relationship
+from model.services.proposal.proposal import ProposalService
+
+# =====================================================================
+# Working-type resolution
+#
+# Mirrors object_type_editor.py's private _get_working_object_type
+# (kept as a separate small copy here rather than imported, consistent
+# with this module's existing per-concern duplication of small
+# resolver helpers such as object_create_change/relationship_create_change).
+# Resolves an ObjectType/RelationshipType from the effective,
+# proposal-inclusive context collections built by common_context.py,
+# so a Data page can be opened for a type that only exists as a
+# proposal CREATE change.
+# =====================================================================
+
+
+def resolve_working_object_type(context, object_type_id):
+    if not object_type_id:
+        return None
+
+    object_type_id = str(object_type_id)
+
+    for candidate in context.get("object_types", []):
+        if str(candidate.id) == object_type_id:
+            return candidate
+
+    return None
+
+
+def resolve_working_relationship_type(context, relationship_type_id):
+    if not relationship_type_id:
+        return None
+
+    relationship_type_id = str(relationship_type_id)
+
+    for candidate in context.get("relationship_types", []):
+        if str(candidate.id) == relationship_type_id:
+            return candidate
+
+    return None
 
 # =====================================================================
 # Shared helpers
@@ -135,6 +175,42 @@ def _build_attribute_definitions(
 
     canonical_ids = {str(definition.id) for definition in definitions}
 
+    # -------------------------------------------------------------
+    # Overlay pending UPDATEs onto canonical definitions (in-memory
+    # only — never saved), mirroring the effective-value overlay
+    # pattern already used for ObjectType/RelationshipType in
+    # common_context.py. Without this, a pending edit to an
+    # already-canonical attribute (e.g. configuring Choice values)
+    # would never reach the Data layer.
+    # -------------------------------------------------------------
+
+    if proposal and definitions:
+
+        update_changes = proposal.changes.filter(
+            target_type="AttributeDefinition",
+            target_id__in=[definition.id for definition in definitions],
+            operation=ProposalChange.Operation.UPDATE,
+        ).order_by(
+            "created_at",
+        )
+
+        changes_by_target = {}
+
+        for change in update_changes:
+            changes_by_target.setdefault(str(change.target_id), []).append(change)
+
+        editable_fields = {
+            "name", "key", "data_type", "description", "required",
+            "nullable", "default_value", "sort_order", "config", "is_active",
+        }
+
+        for definition in definitions:
+            for change in changes_by_target.get(str(definition.id), []):
+                after = change.after or {}
+                field = after.get("field")
+                if field in editable_fields and "value" in after:
+                    setattr(definition, field, after["value"])
+
     if proposal:
 
         create_changes = proposal.changes.filter(
@@ -196,7 +272,7 @@ def build_object_attribute_definitions(
 ):
     return _build_attribute_definitions(
         proposal,
-        AttributeDefinition.objects.filter(object_type=object_type),
+        AttributeDefinition.objects.filter(object_type_id=object_type.id),
         parent_type="ObjectType",
         parent_id=object_type.id,
     )
@@ -208,7 +284,7 @@ def build_relationship_attribute_definitions(
 ):
     return _build_attribute_definitions(
         proposal,
-        AttributeDefinition.objects.filter(relationship_type=relationship_type),
+        AttributeDefinition.objects.filter(relationship_type_id=relationship_type.id),
         parent_type="RelationshipType",
         parent_id=relationship_type.id,
     )
@@ -350,7 +426,7 @@ def build_proposed_only_objects(
 
     canonical_ids = set(
         Object.objects.filter(
-            object_type=object_type,
+            object_type_id=object_type.id,
         ).values_list(
             "id",
             flat=True,
@@ -468,11 +544,14 @@ def relationship_create_change(
     )
 
 
-def resolve_object_names(ids):
+def resolve_object_names(ids, proposal=None):
     """
     Batch-resolve Object names for display, used to label a
     proposal-only Relationship CREATE's subject_id/object_id (stored
-    as raw string UUIDs in the change payload).
+    as raw string UUIDs in the change payload). Falls back to scanning
+    the proposal's own Object CREATE changes for any id that isn't
+    canonical yet, so a Relationship endpoint that is itself only a
+    proposal-only Object never displays as "Unknown".
     """
 
     ids = {str(value) for value in ids if value}
@@ -480,12 +559,26 @@ def resolve_object_names(ids):
     if not ids:
         return {}
 
-    return {
+    names = {
         str(object_id): name
         for object_id, name in Object.objects.filter(
             id__in=ids,
         ).values_list("id", "name")
     }
+
+    missing_ids = ids - set(names)
+
+    if missing_ids and proposal:
+
+        for change in proposal.changes.filter(
+            target_type="Object",
+            operation=ProposalChange.Operation.CREATE,
+            target_id__in=missing_ids,
+        ):
+            after = change.after or {}
+            names[str(change.target_id)] = after.get("name") or "Untitled"
+
+    return names
 
 
 def build_working_relationships(
@@ -535,7 +628,7 @@ def build_proposed_only_relationships(
 
     canonical_ids = set(
         Relationship.objects.filter(
-            relationship_type=relationship_type,
+            relationship_type_id=relationship_type.id,
         ).values_list(
             "id",
             flat=True,
@@ -558,7 +651,7 @@ def build_proposed_only_relationships(
         subject_object_ids.append(after.get("subject_id"))
         subject_object_ids.append(after.get("object_id"))
 
-    names = resolve_object_names(subject_object_ids)
+    names = resolve_object_names(subject_object_ids, proposal)
 
     for change in create_changes:
 
@@ -589,3 +682,47 @@ def build_proposed_only_relationships(
         )
 
     return items
+
+
+# =====================================================================
+# Discard cascade — Object -> Relationship
+#
+# A Relationship addresses its endpoints via after["subject_id"]/
+# after["object_id"] in its own CREATE payload, not via parent_type/
+# parent_id (that addresses the RelationshipType) — so this cascade
+# has a different shape than the parent/child cascade used elsewhere
+# for ObjectType->{AttributeDefinition,Object} and
+# RelationshipType->{AttributeDefinition,RelationshipTypeRule,Relationship}.
+# =====================================================================
+
+
+def discard_relationships_referencing_object(proposal, object_id):
+    """
+    Discard any proposal-only (CREATE) Relationship whose subject_id
+    or object_id references the given Object id, so discarding a
+    proposal-only Object doesn't leave a dangling Relationship
+    pointing at it.
+    """
+
+    if not proposal:
+        return
+
+    object_id = str(object_id)
+
+    target_ids = set()
+
+    for change in proposal.changes.filter(
+        target_type="Relationship",
+        operation=ProposalChange.Operation.CREATE,
+    ):
+        after = change.after or {}
+
+        if str(after.get("subject_id")) == object_id or str(after.get("object_id")) == object_id:
+            target_ids.add(change.target_id)
+
+    for target_id in target_ids:
+        ProposalService.discard_change(
+            proposal=proposal,
+            target_type="Relationship",
+            target_id=target_id,
+        )

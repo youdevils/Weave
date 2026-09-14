@@ -1,3 +1,5 @@
+import uuid
+
 from django.test import TestCase
 from django.urls import reverse
 
@@ -8,6 +10,8 @@ from model.models.object import Object
 from model.models.object_type import ObjectType
 from model.services.proposal.proposal import ProposalService
 from model.models.proposal import ProposalChange
+from model.models.relationship import Relationship
+from model.models.relationship_type import RelationshipType
 from workspace.models import Workspace, WorkspaceMember
 
 
@@ -165,8 +169,6 @@ class DataObjectsIndexViewTests(TestCase):
     def test_pending_create_record_appears_separately_from_table(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
 
-        import uuid
-
         new_id = uuid.uuid4()
 
         ProposalService.record_change(
@@ -198,3 +200,216 @@ class DataObjectsIndexViewTests(TestCase):
             Object.objects.filter(model=self.model).count(),
             0,
         )
+
+
+class DataProposalOnlyObjectTypeTests(TestCase):
+    """
+    A proposal-only (CREATE) ObjectType must be usable as a Data type:
+    its Data pages must resolve, and Objects can be created under it,
+    all without any canonical ObjectType/Object row ever existing.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.workspace = Workspace.objects.create(name="Test Workspace")
+
+        cls.user = CustomUser.objects.create_user(
+            email="user@example.com",
+            password="test-password",
+        )
+
+        WorkspaceMember.objects.create(
+            workspace=cls.workspace,
+            user=cls.user,
+            role=WorkspaceMember.Role.OWNER,
+        )
+
+        cls.model = Model.objects.create(
+            workspace=cls.workspace,
+            name="Test Model",
+            revision=1,
+        )
+
+    def setUp(self):
+        self.client.force_login(self.user)
+
+    def _create_proposed_object_type(self):
+        proposal = ProposalService.get_or_create_working(self.model, self.user)
+
+        object_type_id = uuid.uuid4()
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="ObjectType",
+            target_id=object_type_id,
+            parent_type="Model",
+            parent_id=self.model.id,
+            before=None,
+            after={
+                "name": "Vendor",
+                "key": "vendor",
+                "description": "",
+                "sort_order": 0,
+                "is_active": True,
+            },
+        )
+
+        return proposal, object_type_id
+
+    def test_data_object_types_picker_resolves(self):
+        self._create_proposed_object_type()
+
+        response = self.client.get(
+            reverse("model:data_object_types", args=[self.model.id]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Vendor")
+        self.assertEqual(ObjectType.objects.count(), 0)
+
+    def test_data_objects_index_resolves_for_proposal_only_type(self):
+        _proposal, object_type_id = self._create_proposed_object_type()
+
+        response = self.client.get(
+            reverse("model:data_objects", args=[self.model.id, object_type_id]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(ObjectType.objects.count(), 0)
+
+    def test_create_object_under_proposal_only_object_type_stays_proposal_only(self):
+        _proposal, object_type_id = self._create_proposed_object_type()
+
+        response = self.client.post(
+            reverse("model:data_object_create", args=[self.model.id, object_type_id]),
+            {"name": "Salesforce", "description": ""},
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        index_response = self.client.get(
+            reverse("model:data_objects", args=[self.model.id, object_type_id]),
+        )
+
+        self.assertEqual(len(index_response.context["pending_rows"]), 1)
+        self.assertEqual(index_response.context["pending_rows"][0].name, "Salesforce")
+
+        self.assertEqual(ObjectType.objects.count(), 0)
+        self.assertEqual(Object.objects.count(), 0)
+
+    def test_discard_proposal_only_object_type_cascades_to_object(self):
+        proposal, object_type_id = self._create_proposed_object_type()
+
+        self.client.post(
+            reverse("model:data_object_create", args=[self.model.id, object_type_id]),
+            {"name": "Salesforce", "description": ""},
+        )
+
+        response = self.client.post(
+            reverse("model:object_types", args=[self.model.id]),
+            {
+                "action": "discard_object_type_proposal",
+                "object_type_id": str(object_type_id),
+            },
+        )
+
+        self.assertTrue(response.json()["success"])
+
+        self.assertFalse(proposal.changes.filter(target_type="ObjectType").exists())
+        self.assertFalse(proposal.changes.filter(target_type="Object").exists())
+
+        # The Data page for the now-fully-discarded type is gone.
+        not_found_response = self.client.get(
+            reverse("model:data_objects", args=[self.model.id, object_type_id]),
+        )
+        self.assertEqual(not_found_response.status_code, 404)
+
+
+class DataObjectRelationshipDiscardCascadeTests(TestCase):
+    """
+    Discarding a proposal-only Object must not leave a usable
+    proposed Relationship referring to an unavailable proposed Object.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.workspace = Workspace.objects.create(name="Test Workspace")
+
+        cls.user = CustomUser.objects.create_user(
+            email="user@example.com",
+            password="test-password",
+        )
+
+        WorkspaceMember.objects.create(
+            workspace=cls.workspace,
+            user=cls.user,
+            role=WorkspaceMember.Role.OWNER,
+        )
+
+        cls.model = Model.objects.create(
+            workspace=cls.workspace,
+            name="Test Model",
+            revision=1,
+        )
+
+        cls.process_type = ObjectType.objects.create(
+            model=cls.model, name="Process", key="process", is_active=True,
+        )
+        cls.app_type = ObjectType.objects.create(
+            model=cls.model, name="Application", key="application", is_active=True,
+        )
+        cls.uses_type = RelationshipType.objects.create(
+            model=cls.model, name="Uses", key="uses", is_active=True,
+        )
+        cls.finance = Object.objects.create(
+            model=cls.model, object_type=cls.process_type, name="Finance Reporting",
+        )
+
+    def setUp(self):
+        self.client.force_login(self.user)
+
+    def test_discard_proposal_only_object_cascades_to_relationship(self):
+        proposal = ProposalService.get_or_create_working(self.model, self.user)
+
+        object_id = uuid.uuid4()
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="Object",
+            target_id=object_id,
+            parent_type="ObjectType",
+            parent_id=self.app_type.id,
+            before=None,
+            after={"name": "Power BI", "description": "", "is_active": True, "attributes": {}},
+        )
+
+        relationship_id = uuid.uuid4()
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="Relationship",
+            target_id=relationship_id,
+            parent_type="RelationshipType",
+            parent_id=self.uses_type.id,
+            before=None,
+            after={
+                "subject_id": str(self.finance.id),
+                "object_id": str(object_id),
+                "is_active": True,
+                "attributes": {},
+            },
+        )
+
+        response = self.client.post(
+            reverse("model:data_objects", args=[self.model.id, self.app_type.id]),
+            {"action": "discard_object_proposal", "object_id": str(object_id)},
+        )
+
+        self.assertTrue(response.json()["success"])
+
+        self.assertFalse(proposal.changes.filter(target_type="Object").exists())
+        self.assertFalse(proposal.changes.filter(target_type="Relationship").exists())
+        self.assertEqual(Relationship.objects.count(), 0)

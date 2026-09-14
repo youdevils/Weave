@@ -1,3 +1,5 @@
+import uuid
+
 from django.test import TestCase
 
 from model.models.model import Model
@@ -538,4 +540,107 @@ class ProposalServiceTests(TestCase):
 
         self.assertIsNotNone(
             proposal.submitted_at,
+        )
+
+
+class DiscardChildrenTests(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.workspace = Workspace.objects.create(name="Test Workspace")
+
+        cls.user = CustomUser.objects.create_user(
+            email="discard-children@example.com",
+            password="test-password",
+        )
+
+        cls.model = Model.objects.create(
+            workspace=cls.workspace,
+            name="Test Model",
+            revision=1,
+        )
+
+    def setUp(self):
+        self.proposal = ProposalService.get_or_create_working(self.model, self.user)
+
+    def _record(self, target_type, target_id, parent_type=None, parent_id=None):
+        ProposalService.record_change(
+            proposal=self.proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type=target_type,
+            target_id=target_id,
+            parent_type=parent_type or "",
+            parent_id=parent_id,
+            before=None,
+            after={},
+        )
+
+    def test_discard_children_discards_only_matching_child_target_types(self):
+
+        object_type_id = uuid.uuid4()
+        attribute_id = uuid.uuid4()
+        object_id = uuid.uuid4()
+
+        self._record("ObjectType", object_type_id, "Model", self.model.id)
+        self._record("AttributeDefinition", attribute_id, "ObjectType", object_type_id)
+        self._record("Object", object_id, "ObjectType", object_type_id)
+
+        discarded = ProposalService.discard_children(
+            proposal=self.proposal,
+            parent_type="ObjectType",
+            parent_id=object_type_id,
+            child_target_types={"AttributeDefinition", "Object"},
+        )
+
+        self.assertEqual(discarded, {"AttributeDefinition": {attribute_id}, "Object": {object_id}})
+
+        self.assertFalse(self.proposal.changes.filter(target_type="AttributeDefinition").exists())
+        self.assertFalse(self.proposal.changes.filter(target_type="Object").exists())
+
+        # The parent itself is untouched by discard_children.
+        self.assertTrue(self.proposal.changes.filter(target_type="ObjectType").exists())
+
+    def test_discard_children_leaves_unrelated_children_untouched(self):
+
+        object_type_id = uuid.uuid4()
+        other_object_type_id = uuid.uuid4()
+        attribute_id = uuid.uuid4()
+        unrelated_attribute_id = uuid.uuid4()
+
+        self._record("AttributeDefinition", attribute_id, "ObjectType", object_type_id)
+        self._record("AttributeDefinition", unrelated_attribute_id, "ObjectType", other_object_type_id)
+
+        ProposalService.discard_children(
+            proposal=self.proposal,
+            parent_type="ObjectType",
+            parent_id=object_type_id,
+            child_target_types={"AttributeDefinition"},
+        )
+
+        self.assertFalse(
+            self.proposal.changes.filter(target_id=attribute_id).exists()
+        )
+        self.assertTrue(
+            self.proposal.changes.filter(target_id=unrelated_attribute_id).exists()
+        )
+
+    def test_discard_children_returns_discarded_ids_by_type(self):
+
+        relationship_type_id = uuid.uuid4()
+        rule_id = uuid.uuid4()
+        relationship_id = uuid.uuid4()
+
+        self._record("RelationshipTypeRule", rule_id, "RelationshipType", relationship_type_id)
+        self._record("Relationship", relationship_id, "RelationshipType", relationship_type_id)
+
+        discarded = ProposalService.discard_children(
+            proposal=self.proposal,
+            parent_type="RelationshipType",
+            parent_id=relationship_type_id,
+            child_target_types={"AttributeDefinition", "RelationshipTypeRule", "Relationship"},
+        )
+
+        self.assertEqual(
+            discarded,
+            {"RelationshipTypeRule": {rule_id}, "Relationship": {relationship_id}},
         )
