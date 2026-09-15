@@ -12,8 +12,10 @@ class Proposal(models.Model):
 
     class Status(models.TextChoices):
         WORKING = "working", "Working"
-        PROPOSED = "proposed", "Proposed"
-        APPROVED = "approved", "Approved"
+        QUEUED = "queued", "Queued"
+        PROCESSING = "processing", "Processing"
+        FAILED = "failed", "Failed"
+        COMPLETED = "completed", "Completed"
 
     class ValidationStatus(models.TextChoices):
         NOT_VALIDATED = "not_validated", "Not validated"
@@ -82,13 +84,11 @@ class Proposal(models.Model):
         blank=True,
     )
 
-    approved_at = models.DateTimeField(
-        null=True,
-        blank=True,
-    )
-
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["model", "status"]),
+        ]
 
     def __str__(self):
         return self.title or f"Proposal for {self.model.name}"

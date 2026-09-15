@@ -22,6 +22,8 @@ def validate_object(obj: Object) -> ValidationResult:
                     f"ObjectType '{obj.object_type.name}' does not belong "
                     f"to the same Model as the Object."
                 ),
+                target_type="Object",
+                target_id=obj.id,
             )
         )
 
@@ -35,6 +37,10 @@ def validate_object(obj: Object) -> ValidationResult:
         attributes=obj.attributes or {},
         definitions=definitions,
     )
+
+    for issue in attribute_result.issues:
+        issue.target_type = "Object"
+        issue.target_id = obj.id
 
     issues.extend(attribute_result.issues)
 

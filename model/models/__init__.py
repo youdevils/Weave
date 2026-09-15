@@ -6,3 +6,4 @@ from .relationship_type_rule import RelationshipTypeRule
 from .object import Object
 from .relationship import Relationship
 from .proposal import Proposal, ProposalChange
+from .proposal_submission_result import ProposalSubmissionResult, ProposalValidationError

@@ -4,6 +4,7 @@ from django.test import TestCase
 
 from model.models.model import Model
 from model.models.proposal import Proposal, ProposalChange
+from model.services.proposal import submission
 from model.services.proposal.proposal import ProposalService
 from workspace.models import Workspace
 from account.models import CustomUser
@@ -72,6 +73,22 @@ class ProposalServiceTests(TestCase):
             1,
         )
 
+    def test_get_or_create_working_reuses_failed_proposal(self):
+        first = ProposalService.get_or_create_working(
+            self.model,
+            self.user,
+        )
+
+        first.status = Proposal.Status.FAILED
+        first.save(update_fields=["status"])
+
+        second = ProposalService.get_or_create_working(
+            self.model,
+            self.user,
+        )
+
+        self.assertEqual(first.id, second.id)
+
     # ---------------------------------------------------------
     # Recording changes
     # ---------------------------------------------------------
@@ -85,13 +102,16 @@ class ProposalServiceTests(TestCase):
         change = ProposalService.record_change(
             proposal=proposal,
             operation=ProposalChange.Operation.UPDATE,
-            target_type="model",
+            target_type="Model",
             target_id=self.model.id,
+            field="description",
             before={
-                "description": "Original description",
+                "field": "description",
+                "value": "Original description",
             },
             after={
-                "description": "Proposed description",
+                "field": "description",
+                "value": "Proposed description",
             },
         )
 
@@ -101,18 +121,20 @@ class ProposalServiceTests(TestCase):
             change.operation,
             ProposalChange.Operation.UPDATE,
         )
-        self.assertEqual(change.target_type, "model")
+        self.assertEqual(change.target_type, "Model")
         self.assertEqual(change.target_id, self.model.id)
         self.assertEqual(
             change.before,
             {
-                "description": "Original description",
+                "field": "description",
+                "value": "Original description",
             },
         )
         self.assertEqual(
             change.after,
             {
-                "description": "Proposed description",
+                "field": "description",
+                "value": "Proposed description",
             },
         )
 
@@ -125,26 +147,32 @@ class ProposalServiceTests(TestCase):
         first = ProposalService.record_change(
             proposal=proposal,
             operation=ProposalChange.Operation.UPDATE,
-            target_type="model",
+            target_type="Model",
             target_id=self.model.id,
+            field="description",
             before={
-                "description": "Original description",
+                "field": "description",
+                "value": "Original description",
             },
             after={
-                "description": "First proposal",
+                "field": "description",
+                "value": "First proposal",
             },
         )
 
         second = ProposalService.record_change(
             proposal=proposal,
             operation=ProposalChange.Operation.UPDATE,
-            target_type="model",
+            target_type="Model",
             target_id=self.model.id,
+            field="description",
             before={
-                "description": "Original description",
+                "field": "description",
+                "value": "Original description",
             },
             after={
-                "description": "Second proposal",
+                "field": "description",
+                "value": "Second proposal",
             },
         )
 
@@ -153,7 +181,7 @@ class ProposalServiceTests(TestCase):
         self.assertEqual(
             ProposalChange.objects.filter(
                 proposal=proposal,
-                target_type="model",
+                target_type="Model",
                 target_id=self.model.id,
             ).count(),
             1,
@@ -164,7 +192,8 @@ class ProposalServiceTests(TestCase):
         self.assertEqual(
             second.after,
             {
-                "description": "Second proposal",
+                "field": "description",
+                "value": "Second proposal",
             },
         )
 
@@ -181,13 +210,16 @@ class ProposalServiceTests(TestCase):
         ProposalService.record_change(
             proposal=proposal,
             operation=ProposalChange.Operation.UPDATE,
-            target_type="model",
+            target_type="Model",
             target_id=self.model.id,
+            field="description",
             before={
-                "description": "Original description",
+                "field": "description",
+                "value": "Original description",
             },
             after={
-                "description": "Proposed description",
+                "field": "description",
+                "value": "Proposed description",
             },
         )
 
@@ -216,27 +248,31 @@ class ProposalServiceTests(TestCase):
         ProposalService.record_change(
             proposal=proposal,
             operation=ProposalChange.Operation.UPDATE,
-            target_type="model",
+            target_type="Model",
             target_id=self.model.id,
+            field="description",
             before={
-                "description": "Original description",
+                "field": "description",
+                "value": "Original description",
             },
             after={
-                "description": "Proposed description",
+                "field": "description",
+                "value": "Proposed description",
             },
         )
 
         result = ProposalService.discard_change(
             proposal=proposal,
-            target_type="model",
+            target_type="Model",
             target_id=self.model.id,
+            field="description",
         )
 
         self.assertEqual(result[0], 1)
 
         self.assertFalse(
             proposal.changes.filter(
-                target_type="model",
+                target_type="Model",
                 target_id=self.model.id,
             ).exists()
         )
@@ -270,13 +306,16 @@ class ProposalServiceTests(TestCase):
         ProposalService.record_change(
             proposal=proposal,
             operation=ProposalChange.Operation.UPDATE,
-            target_type="model",
+            target_type="Model",
             target_id=self.model.id,
+            field="description",
             before={
-                "description": "Original description",
+                "field": "description",
+                "value": "Original description",
             },
             after={
-                "description": "Proposed description",
+                "field": "description",
+                "value": "Proposed description",
             },
         )
 
@@ -311,13 +350,16 @@ class ProposalServiceTests(TestCase):
         ProposalService.record_change(
             proposal=proposal,
             operation=ProposalChange.Operation.UPDATE,
-            target_type="model",
+            target_type="Model",
             target_id=self.model.id,
+            field="description",
             before={
-                "description": "Original description",
+                "field": "description",
+                "value": "Original description",
             },
             after={
-                "description": "Proposed description",
+                "field": "description",
+                "value": "Proposed description",
             },
         )
 
@@ -339,7 +381,7 @@ class ProposalServiceTests(TestCase):
     # Submission
     # ---------------------------------------------------------
 
-    def test_submit_moves_working_proposal_to_proposed(self):
+    def test_submit_moves_working_proposal_to_queued(self):
         proposal = ProposalService.get_or_create_working(
             self.model,
             self.user,
@@ -348,13 +390,16 @@ class ProposalServiceTests(TestCase):
         ProposalService.record_change(
             proposal=proposal,
             operation=ProposalChange.Operation.UPDATE,
-            target_type="model",
+            target_type="Model",
             target_id=self.model.id,
+            field="description",
             before={
-                "description": "Original description",
+                "field": "description",
+                "value": "Original description",
             },
             after={
-                "description": "Proposed description",
+                "field": "description",
+                "value": "Proposed description",
             },
         )
 
@@ -364,40 +409,34 @@ class ProposalServiceTests(TestCase):
 
         self.assertEqual(
             proposal.status,
-            Proposal.Status.PROPOSED,
+            Proposal.Status.QUEUED,
         )
 
         self.assertIsNotNone(
             proposal.submitted_at,
         )
 
-    # ---------------------------------------------------------
-    # Lifecycle protection
-    # ---------------------------------------------------------
-
-    def test_proposed_proposal_cannot_record_change(self):
+    def test_submit_requires_at_least_one_change(self):
         proposal = ProposalService.get_or_create_working(
             self.model,
             self.user,
         )
 
-        ProposalService.submit(proposal)
-
         with self.assertRaises(ValueError):
-            ProposalService.record_change(
-                proposal=proposal,
-                operation=ProposalChange.Operation.UPDATE,
-                target_type="model",
-                target_id=self.model.id,
-                before={
-                    "description": "Original description",
-                },
-                after={
-                    "description": "Another description",
-                },
-            )
+            ProposalService.submit(proposal)
 
-    def test_proposed_proposal_cannot_discard_change(self):
+        proposal.refresh_from_db()
+
+        self.assertEqual(
+            proposal.status,
+            Proposal.Status.WORKING,
+        )
+
+    # ---------------------------------------------------------
+    # Lifecycle protection
+    # ---------------------------------------------------------
+
+    def test_queued_proposal_cannot_record_change(self):
         proposal = ProposalService.get_or_create_working(
             self.model,
             self.user,
@@ -406,14 +445,40 @@ class ProposalServiceTests(TestCase):
         ProposalService.record_change(
             proposal=proposal,
             operation=ProposalChange.Operation.UPDATE,
-            target_type="model",
+            target_type="Model",
             target_id=self.model.id,
-            before={
-                "description": "Original description",
-            },
-            after={
-                "description": "Proposed description",
-            },
+            field="description",
+            before={"field": "description", "value": "Original description"},
+            after={"field": "description", "value": "Proposed description"},
+        )
+
+        ProposalService.submit(proposal)
+
+        with self.assertRaises(ValueError):
+            ProposalService.record_change(
+                proposal=proposal,
+                operation=ProposalChange.Operation.UPDATE,
+                target_type="Model",
+                target_id=self.model.id,
+                field="description",
+                before={"field": "description", "value": "Original description"},
+                after={"field": "description", "value": "Another description"},
+            )
+
+    def test_queued_proposal_cannot_discard_change(self):
+        proposal = ProposalService.get_or_create_working(
+            self.model,
+            self.user,
+        )
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="Model",
+            target_id=self.model.id,
+            field="description",
+            before={"field": "description", "value": "Original description"},
+            after={"field": "description", "value": "Proposed description"},
         )
 
         ProposalService.submit(proposal)
@@ -421,14 +486,25 @@ class ProposalServiceTests(TestCase):
         with self.assertRaises(ValueError):
             ProposalService.discard_change(
                 proposal=proposal,
-                target_type="model",
+                target_type="Model",
                 target_id=self.model.id,
+                field="description",
             )
 
-    def test_proposed_proposal_cannot_be_abandoned(self):
+    def test_queued_proposal_cannot_be_abandoned(self):
         proposal = ProposalService.get_or_create_working(
             self.model,
             self.user,
+        )
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="Model",
+            target_id=self.model.id,
+            field="description",
+            before={"field": "description", "value": "Original description"},
+            after={"field": "description", "value": "Proposed description"},
         )
 
         ProposalService.submit(proposal)
@@ -440,13 +516,53 @@ class ProposalServiceTests(TestCase):
 
         self.assertEqual(
             proposal.status,
-            Proposal.Status.PROPOSED,
+            Proposal.Status.QUEUED,
         )
+
+    def test_processing_proposal_cannot_record_change(self):
+        proposal = ProposalService.get_or_create_working(
+            self.model,
+            self.user,
+        )
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="Model",
+            target_id=self.model.id,
+            field="description",
+            before={"field": "description", "value": "Original description"},
+            after={"field": "description", "value": "Proposed description"},
+        )
+
+        proposal.status = Proposal.Status.PROCESSING
+        proposal.save(update_fields=["status"])
+
+        with self.assertRaises(ValueError):
+            ProposalService.record_change(
+                proposal=proposal,
+                operation=ProposalChange.Operation.UPDATE,
+                target_type="Model",
+                target_id=self.model.id,
+                field="description",
+                before={"field": "description", "value": "Original description"},
+                after={"field": "description", "value": "Another description"},
+            )
 
     def test_working_proposal_can_be_submitted_only_once(self):
         proposal = ProposalService.get_or_create_working(
             self.model,
             self.user,
+        )
+
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="Model",
+            target_id=self.model.id,
+            field="description",
+            before={"field": "description", "value": "Original description"},
+            after={"field": "description", "value": "Proposed description"},
         )
 
         ProposalService.submit(proposal)
@@ -455,92 +571,96 @@ class ProposalServiceTests(TestCase):
             ProposalService.submit(proposal)
 
     # ---------------------------------------------------------
-    # Working proposal after validation failure
+    # Failed proposals stay editable and resubmittable
     # ---------------------------------------------------------
 
-    def test_working_proposal_can_be_modified_after_returning_to_working(self):
+    def test_failed_proposal_can_be_edited_and_resubmitted_on_same_instance(self):
         proposal = ProposalService.get_or_create_working(
             self.model,
             self.user,
         )
 
+        proposal_id = proposal.id
+
+        # A field that doesn't exist on Model -- guaranteed to be
+        # caught during apply and fail validation.
         ProposalService.record_change(
             proposal=proposal,
             operation=ProposalChange.Operation.UPDATE,
-            target_type="model",
+            target_type="Model",
             target_id=self.model.id,
-            before={
-                "description": "Original description",
-            },
-            after={
-                "description": "First proposal",
-            },
+            field="not_a_real_field",
+            before={"field": "not_a_real_field", "value": "x"},
+            after={"field": "not_a_real_field", "value": "y"},
         )
 
         ProposalService.submit(proposal)
 
-        # Simulate validation failure returning the proposal
-        # to working state. ValidationService will own this
-        # behaviour once implemented.
-        proposal.status = Proposal.Status.WORKING
-        proposal.save(update_fields=["status"])
+        claimed = submission.claim_next(self.model.id)
+        self.assertEqual(claimed.id, proposal.id)
+
+        submission.process(proposal.id)
+
+        proposal.refresh_from_db()
+
+        self.assertEqual(proposal.status, Proposal.Status.FAILED)
+        self.assertEqual(proposal.id, proposal_id)
+
+        first_result = proposal.submission_result
+        self.assertEqual(
+            first_result.outcome,
+            first_result.Outcome.VALIDATION_FAILED,
+        )
+        self.assertTrue(first_result.errors.exists())
+
+        # Correct the proposal: discard the bad change, add a good one.
+        ProposalService.discard_change(
+            proposal=proposal,
+            target_type="Model",
+            target_id=self.model.id,
+            field="not_a_real_field",
+        )
 
         ProposalService.record_change(
             proposal=proposal,
             operation=ProposalChange.Operation.UPDATE,
-            target_type="model",
+            target_type="Model",
             target_id=self.model.id,
-            before={
-                "description": "Original description",
-            },
-            after={
-                "description": "Corrected proposal",
-            },
+            field="description",
+            before={"field": "description", "value": "Original description"},
+            after={"field": "description", "value": "Corrected description"},
         )
 
-        proposal.refresh_from_db()
-
-        self.assertEqual(
-            proposal.status,
-            Proposal.Status.WORKING,
-        )
-
-        change = proposal.changes.get(
-            target_type="model",
-            target_id=self.model.id,
-        )
-
-        self.assertEqual(
-            change.after,
-            {
-                "description": "Corrected proposal",
-            },
-        )
-
-    def test_working_proposal_can_be_resubmitted_after_validation_failure(self):
-        proposal = ProposalService.get_or_create_working(
-            self.model,
-            self.user,
-        )
-
-        ProposalService.submit(proposal)
-
-        # Simulate validation failure.
-        proposal.status = Proposal.Status.WORKING
-        proposal.save(update_fields=["status"])
-
+        # Resubmit -- same Proposal row, not a new one.
         ProposalService.submit(proposal)
 
         proposal.refresh_from_db()
+        self.assertEqual(proposal.id, proposal_id)
+        self.assertEqual(proposal.status, Proposal.Status.QUEUED)
 
         self.assertEqual(
-            proposal.status,
-            Proposal.Status.PROPOSED,
+            Proposal.objects.filter(model=self.model, created_by=self.user).count(),
+            1,
         )
 
-        self.assertIsNotNone(
-            proposal.submitted_at,
-        )
+        claimed_again = submission.claim_next(self.model.id)
+        self.assertEqual(claimed_again.id, proposal.id)
+
+        submission.process(proposal.id)
+
+        proposal.refresh_from_db()
+        self.model.refresh_from_db()
+
+        self.assertEqual(proposal.status, Proposal.Status.COMPLETED)
+        self.assertEqual(self.model.description, "Corrected description")
+        self.assertEqual(self.model.revision, 4)
+
+        # The previous failure result was replaced, not accumulated.
+        proposal.submission_result.refresh_from_db()
+        second_result = proposal.submission_result
+        self.assertEqual(second_result.id, first_result.id)
+        self.assertEqual(second_result.outcome, second_result.Outcome.SUCCESS)
+        self.assertFalse(second_result.errors.exists())
 
 
 class DiscardChildrenTests(TestCase):

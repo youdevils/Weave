@@ -25,6 +25,8 @@ def validate_relationship(
                     f"'{relationship.relationship_type.name}' does not "
                     "belong to the same Model as the Relationship."
                 ),
+                target_type="Relationship",
+                target_id=relationship.id,
             )
         )
 
@@ -37,6 +39,8 @@ def validate_relationship(
                     f"Subject Object '{relationship.subject.name}' does not "
                     "belong to the same Model as the Relationship."
                 ),
+                target_type="Relationship",
+                target_id=relationship.id,
             )
         )
 
@@ -49,6 +53,8 @@ def validate_relationship(
                     f"Object '{relationship.object.name}' does not belong "
                     "to the same Model as the Relationship."
                 ),
+                target_type="Relationship",
+                target_id=relationship.id,
             )
         )
 
@@ -79,6 +85,8 @@ def validate_relationship(
                         f"'{relationship.object.object_type.name}' "
                         "as the object."
                     ),
+                    target_type="Relationship",
+                    target_id=relationship.id,
                 )
             )
 
@@ -92,6 +100,10 @@ def validate_relationship(
         attributes=relationship.attributes or {},
         definitions=definitions,
     )
+
+    for issue in attribute_result.issues:
+        issue.target_type = "Relationship"
+        issue.target_id = relationship.id
 
     issues.extend(attribute_result.issues)
 

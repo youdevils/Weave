@@ -86,6 +86,8 @@ def validate_cardinality(
                             f"relationship to a "
                             f"'{rule.object_type.name}'."
                         ),
+                        target_type="Object",
+                        target_id=subject.id,
                     )
                 )
 
@@ -100,6 +102,8 @@ def validate_cardinality(
                             f"relationship(s), but the minimum is "
                             f"{rule.object_minimum}."
                         ),
+                        target_type="Object",
+                        target_id=subject.id,
                     )
                 )
 
@@ -114,6 +118,8 @@ def validate_cardinality(
                             f"relationship(s), but the maximum is "
                             f"{rule.object_maximum}."
                         ),
+                        target_type="Object",
+                        target_id=subject.id,
                     )
                 )
 
@@ -145,6 +151,8 @@ def validate_cardinality(
                             f"relationship from a "
                             f"'{rule.subject_type.name}'."
                         ),
+                        target_type="Object",
+                        target_id=object_.id,
                     )
                 )
 
@@ -160,6 +168,8 @@ def validate_cardinality(
                             f"'{rule.subject_type.name}', but the minimum "
                             f"is {rule.subject_minimum}."
                         ),
+                        target_type="Object",
+                        target_id=object_.id,
                     )
                 )
 
@@ -175,6 +185,8 @@ def validate_cardinality(
                             f"'{rule.subject_type.name}', but the maximum "
                             f"is {rule.subject_maximum}."
                         ),
+                        target_type="Object",
+                        target_id=object_.id,
                     )
                 )
 

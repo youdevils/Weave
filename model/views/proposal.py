@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from model.models.proposal import ProposalChange
+from model.models.proposal import Proposal, ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.views.common_context import get_model_context
 
@@ -52,6 +52,20 @@ def proposal(request, model_id):
         action = request.POST.get("action")
 
         # ---------------------------------------------------------
+        # A queued/processing/completed proposal is locked: none of
+        # the actions below may mutate it.
+        # ---------------------------------------------------------
+
+        if working_proposal.status not in (
+            Proposal.Status.WORKING,
+            Proposal.Status.FAILED,
+        ):
+            return JsonResponse(
+                {"error": "This proposal is locked and cannot be modified."},
+                status=400,
+            )
+
+        # ---------------------------------------------------------
         # Discard a single change
         # ---------------------------------------------------------
 
@@ -71,12 +85,18 @@ def proposal(request, model_id):
 
             field_name = change.after.get("field") if change.after else None
 
-            ProposalService.discard_change(
-                proposal=working_proposal,
-                target_type=change.target_type,
-                target_id=change.target_id,
-                field=field_name,
-            )
+            try:
+                ProposalService.discard_change(
+                    proposal=working_proposal,
+                    target_type=change.target_type,
+                    target_id=change.target_id,
+                    field=field_name,
+                )
+            except ValueError as exc:
+                return JsonResponse(
+                    {"error": str(exc)},
+                    status=400,
+                )
 
             return JsonResponse(
                 {

@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -188,6 +189,14 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "Pacific/Auckland"
+
+# ------------------------------------------------------------------------------------
+# PROPOSAL SUBMISSION PIPELINE
+# ------------------------------------------------------------------------------------
+
+# How long a proposal may sit in PROCESSING before it's treated as
+# orphaned (its worker died) and reclaimed by the next queue check.
+PROPOSAL_PROCESSING_STUCK_THRESHOLD = timedelta(minutes=15)
 
 # ------------------------------------------------------------------------------------
 # DEFAULT AUTO FIELD

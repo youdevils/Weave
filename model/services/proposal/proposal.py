@@ -20,7 +20,10 @@ class ProposalService:
                 model=model,
                 created_by=user,
                 source=Proposal.Source.USER,
-                status=Proposal.Status.WORKING,
+                status__in=(
+                    Proposal.Status.WORKING,
+                    Proposal.Status.FAILED,
+                ),
             )
             .first()
         )
@@ -100,8 +103,11 @@ class ProposalService:
         parent_id=None,
     ):
 
-        if proposal.status != Proposal.Status.WORKING:
-            raise ValueError("Changes can only be recorded against a working proposal.")
+        if proposal.status not in (
+            Proposal.Status.WORKING,
+            Proposal.Status.FAILED,
+        ):
+            raise ValueError("Changes can only be recorded against an editable proposal.")
 
         source = (
             ProposalChange.Source.AI
@@ -183,8 +189,11 @@ class ProposalService:
         field=None,
     ):
 
-        if proposal.status != Proposal.Status.WORKING:
-            raise ValueError("Changes can only be discarded from a working proposal.")
+        if proposal.status not in (
+            Proposal.Status.WORKING,
+            Proposal.Status.FAILED,
+        ):
+            raise ValueError("Changes can only be discarded from an editable proposal.")
 
         changes = proposal.changes.filter(
             target_type=target_type,
@@ -254,8 +263,11 @@ class ProposalService:
     @transaction.atomic
     def abandon(proposal):
 
-        if proposal.status != Proposal.Status.WORKING:
-            raise ValueError("Only working proposals can be abandoned.")
+        if proposal.status not in (
+            Proposal.Status.WORKING,
+            Proposal.Status.FAILED,
+        ):
+            raise ValueError("Only editable proposals can be abandoned.")
 
         proposal.delete()
 
@@ -263,13 +275,16 @@ class ProposalService:
     @transaction.atomic
     def submit(proposal):
 
-        if proposal.status != Proposal.Status.WORKING:
-            raise ValueError("Only working proposals can be submitted.")
+        if proposal.status not in (
+            Proposal.Status.WORKING,
+            Proposal.Status.FAILED,
+        ):
+            raise ValueError("Only editable proposals can be submitted.")
 
         if not proposal.changes.exists():
             raise ValueError("A proposal must contain at least one change.")
 
-        proposal.status = Proposal.Status.PROPOSED
+        proposal.status = Proposal.Status.QUEUED
         proposal.submitted_at = timezone.now()
 
         proposal.save(
@@ -279,5 +294,12 @@ class ProposalService:
                 "updated_at",
             ]
         )
+
+        def _dispatch():
+            from model.tasks.proposal_tasks import process_next_for_model
+
+            process_next_for_model.delay(str(proposal.model_id))
+
+        transaction.on_commit(_dispatch)
 
         return proposal

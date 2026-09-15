@@ -7,6 +7,8 @@ from .models import (
     ObjectType,
     Proposal,
     ProposalChange,
+    ProposalSubmissionResult,
+    ProposalValidationError,
     Relationship,
     RelationshipType,
     RelationshipTypeRule,
@@ -185,7 +187,6 @@ class ProposalAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "submitted_at",
-        "approved_at",
     )
 
 
@@ -216,4 +217,55 @@ class ProposalChangeAdmin(admin.ModelAdmin):
         "id",
         "created_at",
         "updated_at",
+    )
+
+
+@admin.register(ProposalSubmissionResult)
+class ProposalSubmissionResultAdmin(admin.ModelAdmin):
+    list_display = (
+        "proposal",
+        "outcome",
+        "before_revision",
+        "after_revision",
+        "created_at",
+    )
+
+    list_filter = ("outcome",)
+
+    search_fields = (
+        "proposal__title",
+        "message",
+    )
+
+    readonly_fields = (
+        "id",
+        "created_at",
+        "updated_at",
+    )
+
+
+@admin.register(ProposalValidationError)
+class ProposalValidationErrorAdmin(admin.ModelAdmin):
+    list_display = (
+        "result",
+        "code",
+        "severity",
+        "target_type",
+        "target_id",
+        "change",
+    )
+
+    list_filter = (
+        "severity",
+        "target_type",
+    )
+
+    search_fields = (
+        "code",
+        "message",
+    )
+
+    readonly_fields = (
+        "id",
+        "created_at",
     )

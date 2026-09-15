@@ -1,3 +1,4 @@
+import uuid
 from dataclasses import dataclass
 
 
@@ -6,6 +7,8 @@ class ValidationIssue:
     code: str
     message: str
     field: str | None = None
+    target_type: str | None = None
+    target_id: uuid.UUID | None = None
 
 
 @dataclass
