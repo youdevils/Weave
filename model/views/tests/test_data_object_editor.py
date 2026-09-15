@@ -11,6 +11,7 @@ from model.models.object_type import ObjectType
 from model.models.proposal import Proposal, ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.services.proposal.review import ProposalReviewService
+from model.views.tests.proposal_test_utils import activate_proposal
 from workspace.models import Workspace, WorkspaceMember
 
 
@@ -111,7 +112,9 @@ class CreateObjectTests(DataObjectEditorTestCase):
         self.assertEqual(Object.objects.filter(model=self.model).count(), 0)
 
         # It appears in the existing proposal review page.
-        review_response = self.client.get(reverse("model:proposal", args=[self.model.id]))
+        review_response = self.client.get(
+            reverse("model:proposal", args=[self.model.id, proposal.id])
+        )
         self.assertContains(review_response, "SAP S/4HANA")
 
     def test_create_missing_required_name_is_rejected(self):
@@ -310,7 +313,8 @@ class ReviewPageVisibilityTests(DataObjectEditorTestCase):
 
         self.client.post(self.edit_url(obj.id), {"field": "name", "value": "Renamed App"})
 
-        response = self.client.get(reverse("model:proposal", args=[self.model.id]))
+        proposal = self.working_proposal()
+        response = self.client.get(reverse("model:proposal", args=[self.model.id, proposal.id]))
 
         self.assertContains(response, "Renamed App")
 
@@ -330,6 +334,34 @@ class ReviewPageVisibilityTests(DataObjectEditorTestCase):
         target = ProposalReviewService.change_target(change, targets, create_lookup, {})
 
         self.assertEqual(target["label"], "SAP S/4HANA")
+
+
+class DataObjectEditorProposalCapTests(DataObjectEditorTestCase):
+    """
+    The implicit auto-create-on-edit path must respect the live
+    proposal cap just like the explicit "+ New proposal" action.
+    """
+
+    def test_create_is_rejected_once_the_live_proposal_cap_is_reached(self):
+        for _ in range(5):
+            Proposal.objects.create(
+                model=self.model,
+                created_by=self.user,
+                status=Proposal.Status.WORKING,
+            )
+
+        response = self.client.post(
+            self.create_url(),
+            {"name": "Should not be created", "description": ""},
+        )
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(
+            Proposal.objects.filter(model=self.model, created_by=self.user).count(),
+            5,
+        )
+        self.assertFalse(Object.objects.filter(model=self.model).exists())
+        self.assertFalse(ProposalChange.objects.filter(target_type="Object").exists())
 
 
 class ProposalOnlyObjectTypeEditorTests(TestCase):
@@ -364,6 +396,7 @@ class ProposalOnlyObjectTypeEditorTests(TestCase):
 
     def test_editor_opens_and_attribute_editing_round_trips_for_proposal_only_object_type(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         object_type_id = uuid.uuid4()
 
@@ -443,6 +476,7 @@ class ChoiceAttributeInDataEditorTests(TestCase):
 
     def test_proposal_only_choice_attribute_options_render_in_data_create_form(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         attribute_id = uuid.uuid4()
 
@@ -491,6 +525,7 @@ class ChoiceAttributeInDataEditorTests(TestCase):
         )
 
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         ProposalService.record_change(
             proposal=proposal,

@@ -244,6 +244,70 @@ class RelationshipTypeAttributeChoiceConfigTests(TestCase):
         )
 
 
+class RelationshipTypeEditorProposalCapTests(TestCase):
+    """
+    The implicit auto-create-on-edit path must respect the live
+    proposal cap just like the explicit "+ New proposal" action.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.workspace = Workspace.objects.create(name="Test Workspace")
+
+        cls.user = CustomUser.objects.create_user(
+            email="user@example.com",
+            password="test-password",
+        )
+
+        WorkspaceMember.objects.create(
+            workspace=cls.workspace,
+            user=cls.user,
+            role=WorkspaceMember.Role.OWNER,
+        )
+
+        cls.model = Model.objects.create(
+            workspace=cls.workspace,
+            name="Test Model",
+            revision=1,
+        )
+
+        cls.relationship_type = RelationshipType.objects.create(
+            model=cls.model,
+            name="Uses",
+            key="uses",
+            is_active=True,
+        )
+
+    def setUp(self):
+        self.client.force_login(self.user)
+
+    def edit_url(self):
+        return reverse(
+            "model:relationship_type_edit",
+            args=[self.model.id, self.relationship_type.id],
+        )
+
+    def test_edit_is_rejected_once_the_live_proposal_cap_is_reached(self):
+        for _ in range(5):
+            Proposal.objects.create(
+                model=self.model,
+                created_by=self.user,
+                status=Proposal.Status.WORKING,
+            )
+
+        response = self.client.post(
+            self.edit_url(),
+            {"field": "description", "value": "Should not be recorded"},
+        )
+
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(response.json()["success"])
+        self.assertEqual(
+            Proposal.objects.filter(model=self.model, created_by=self.user).count(),
+            5,
+        )
+
+
 class RelationshipTypeAttributeDefaultValueTests(TestCase):
     """
     The Default value control is datatype-aware; changing a Data Type

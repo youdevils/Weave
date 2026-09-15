@@ -12,6 +12,7 @@ from model.services.proposal.proposal import ProposalService
 from model.models.proposal import ProposalChange
 from model.models.relationship import Relationship
 from model.models.relationship_type import RelationshipType
+from model.views.tests.proposal_test_utils import activate_proposal
 from workspace.models import Workspace, WorkspaceMember
 
 
@@ -168,6 +169,7 @@ class DataObjectsIndexViewTests(TestCase):
 
     def test_pending_create_record_appears_separately_from_table(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         new_id = uuid.uuid4()
 
@@ -235,6 +237,7 @@ class DataProposalOnlyObjectTypeTests(TestCase):
 
     def _create_proposed_object_type(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         object_type_id = uuid.uuid4()
 
@@ -371,6 +374,7 @@ class DataObjectRelationshipDiscardCascadeTests(TestCase):
 
     def test_discard_proposal_only_object_cascades_to_relationship(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         object_id = uuid.uuid4()
 

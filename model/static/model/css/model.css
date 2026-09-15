@@ -2310,3 +2310,215 @@
         gap: 12px;
     }
 }
+
+/* =========================================================
+   Proposal sidebar list
+   ========================================================= */
+
+.model-nav-proposal {
+    align-items: flex-start;
+    min-height: 44px;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+}
+
+.model-nav-proposal-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.model-nav-proposal-title {
+    overflow: hidden;
+    color: var(--model-text);
+    font-size: 0.85rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.model-nav-proposal-meta {
+    color: var(--model-text-muted);
+    font-size: 0.7rem;
+}
+
+.model-nav-proposal::before {
+    content: "";
+    flex: 0 0 auto;
+    align-self: center;
+    width: 7px;
+    height: 7px;
+    margin-right: 0.55rem;
+    border-radius: 50%;
+    background: var(--model-text-muted);
+}
+
+.model-nav-proposal-status-failed::before {
+    background: #c0392b;
+}
+
+.model-nav-proposal-status-queued::before,
+.model-nav-proposal-status-processing::before {
+    background: #b8860b;
+}
+
+.model-nav-proposal-status-completed::before {
+    background: #2f855a;
+}
+
+.model-nav-empty {
+    padding: 0.45rem 0.75rem;
+    color: var(--model-text-muted);
+    font-size: 0.8rem;
+}
+
+.model-nav-new-proposal {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    margin-top: 0.15rem;
+    border: 0;
+    background: transparent;
+    color: var(--model-text-secondary);
+    font-size: 0.85rem;
+    text-align: left;
+}
+
+.model-nav-new-proposal:hover {
+    background: #e9ecef;
+    color: var(--model-text);
+}
+
+/* =========================================================
+   Proposal review page — lifecycle states
+   ========================================================= */
+
+.model-proposal-title-edit {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.model-proposal-rename-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 0.375rem;
+    background: transparent;
+    color: var(--model-text-muted);
+}
+
+.model-proposal-rename-btn:hover {
+    background: #e9ecef;
+    color: var(--model-text);
+}
+
+.model-proposal-title-input {
+    max-width: 320px;
+}
+
+.model-proposal-status-working .model-proposal-status-dot {
+    background: #b8860b;
+}
+
+.model-proposal-status-failed .model-proposal-status-dot {
+    background: #c0392b;
+}
+
+.model-proposal-status-queued .model-proposal-status-dot,
+.model-proposal-status-processing .model-proposal-status-dot {
+    background: #6c757d;
+}
+
+.model-proposal-status-completed .model-proposal-status-dot {
+    background: #2f855a;
+}
+
+.model-proposal-result {
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid #f1c1b8;
+    border-radius: 0.5rem;
+    background: #fdf1ef;
+}
+
+.model-proposal-result-icon {
+    margin-bottom: 0.35rem;
+    color: #c0392b;
+    font-size: 1.1rem;
+}
+
+.model-proposal-result-title {
+    margin-bottom: 0.25rem;
+    color: #7a2b1f;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.model-proposal-result-description {
+    color: #8a4a3e;
+    font-size: 0.82rem;
+}
+
+.model-proposal-result-errors {
+    margin: 0.5rem 0 0;
+    padding-left: 1.1rem;
+    color: #8a4a3e;
+    font-size: 0.8rem;
+}
+
+.model-proposal-change-errors {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-top: 0.5rem;
+}
+
+.model-proposal-change-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.35rem;
+    color: #c0392b;
+    font-size: 0.75rem;
+}
+
+.model-proposal-danger-zone {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--model-border-light);
+}
+
+.model-proposal-abandon-confirm {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+
+.model-proposal-abandon-confirm.is-confirming {
+    display: flex;
+}
+
+.model-proposal-abandon-confirm-text {
+    color: var(--model-text-muted);
+    font-size: 0.78rem;
+}
+
+.model-proposal-queued-state .model-empty-state-icon,
+.model-proposal-processing-state .model-empty-state-icon {
+    color: #b8860b;
+}
+
+.model-proposal-success-state .model-empty-state-icon {
+    color: #2f855a;
+}
+
+.model-proposal-acknowledged-note {
+    margin: 0.75rem 0 0;
+    color: var(--model-text-muted);
+    font-size: 0.82rem;
+}

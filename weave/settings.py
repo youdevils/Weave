@@ -198,6 +198,11 @@ CELERY_TIMEZONE = "Pacific/Auckland"
 # orphaned (its worker died) and reclaimed by the next queue check.
 PROPOSAL_PROCESSING_STUCK_THRESHOLD = timedelta(minutes=15)
 
+# Hard cap on how many proposals a single user may have "live"
+# (WORKING/FAILED/QUEUED/PROCESSING, or COMPLETED-but-unacknowledged)
+# against one Model at a time.
+PROPOSAL_MAX_LIVE_PER_MODEL = 5
+
 # ------------------------------------------------------------------------------------
 # DEFAULT AUTO FIELD
 # ------------------------------------------------------------------------------------

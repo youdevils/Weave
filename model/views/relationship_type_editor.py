@@ -11,6 +11,7 @@ from model.models.relationship_type import RelationshipType
 from model.models.relationship_type_rule import RelationshipTypeRule
 from model.models.proposal import ProposalChange
 from model.services.proposal.proposal import ProposalService
+from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
 
 # =====================================================================
@@ -80,13 +81,6 @@ def _coerce_boolean(value, label):
         return False
 
     raise ValueError(f"{label} must be true or false.")
-
-
-def _working_proposal(model, user):
-    return ProposalService.get_or_create_working(
-        model=model,
-        user=user,
-    )
 
 
 # =====================================================================
@@ -1392,7 +1386,7 @@ def relationship_type_editor(
     )
 
     model = context["model"]
-    proposal = context["my_working_proposal"]
+    proposal = context["active_proposal"]
 
     working_object_types = context.get(
         "object_types",
@@ -1465,10 +1459,13 @@ def relationship_type_editor(
             )
 
         if proposal is None:
-            proposal = _working_proposal(
+            proposal, error_response = get_or_create_active_proposal(
+                request,
                 model,
                 request.user,
             )
+            if error_response is not None:
+                return error_response
 
         if proposal_only:
 
@@ -1836,10 +1833,13 @@ def relationship_type_editor(
                         )
 
         if proposal is None:
-            proposal = _working_proposal(
+            proposal, error_response = get_or_create_active_proposal(
+                request,
                 model,
                 request.user,
             )
+            if error_response is not None:
+                return error_response
 
         if proposal_only:
 
@@ -1994,10 +1994,14 @@ def relationship_type_editor(
                 errors=errors,
             )
 
-        proposal = proposal or _working_proposal(
-            model,
-            request.user,
-        )
+        if proposal is None:
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
+            )
+            if error_response is not None:
+                return error_response
 
         relationship_type_uuid = uuid.uuid4()
 
@@ -2040,10 +2044,13 @@ def relationship_type_editor(
             )
 
         if proposal is None:
-            proposal = _working_proposal(
+            proposal, error_response = get_or_create_active_proposal(
+                request,
                 model,
                 request.user,
             )
+            if error_response is not None:
+                return error_response
 
         submitted_values, errors = _coerce_attribute_properties(
             request,
@@ -2250,10 +2257,13 @@ def relationship_type_editor(
             )
 
         if proposal is None:
-            proposal = _working_proposal(
+            proposal, error_response = get_or_create_active_proposal(
+                request,
                 model,
                 request.user,
             )
+            if error_response is not None:
+                return error_response
 
         if attribute_created:
 
@@ -2596,10 +2606,13 @@ def relationship_type_editor(
             )
 
         if proposal is None:
-            proposal = _working_proposal(
+            proposal, error_response = get_or_create_active_proposal(
+                request,
                 model,
                 request.user,
             )
+            if error_response is not None:
+                return error_response
 
         if attribute_created:
 
@@ -2733,10 +2746,14 @@ def relationship_type_editor(
                 status=404,
             )
 
-        proposal = proposal or _working_proposal(
-            model,
-            request.user,
-        )
+        if proposal is None:
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
+            )
+            if error_response is not None:
+                return error_response
 
         try:
             values = _coerce_rule_values(
@@ -2861,10 +2878,14 @@ def relationship_type_editor(
                 status=400,
             )
 
-        proposal = proposal or _working_proposal(
-            model,
-            request.user,
-        )
+        if proposal is None:
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
+            )
+            if error_response is not None:
+                return error_response
 
         canonical_rule = RelationshipTypeRule.objects.filter(
             id=rule_uuid,

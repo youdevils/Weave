@@ -7,7 +7,11 @@ from model.models.model import Model
 from model.models.object_type import ObjectType
 from model.models.relationship_type import RelationshipType
 from model.models.relationship_type_rule import RelationshipTypeRule
-from model.models.proposal import Proposal, ProposalChange
+from model.models.proposal import ProposalChange
+from model.views.active_proposal import (
+    live_proposals_queryset,
+    resolve_active_proposal,
+)
 
 # =====================================================================
 # Shared proposal helpers
@@ -1045,38 +1049,24 @@ def get_model_context(
     )
 
     # =================================================================
-    # Working proposals
+    # Active proposal (session-scoped, read-only resolution) and the
+    # sidebar's live proposal list
     # =================================================================
 
-    my_working_proposal = (
-        Proposal.objects.filter(
-            model=model,
-            created_by=request.user,
-            source=Proposal.Source.USER,
-            status=Proposal.Status.WORKING,
-        )
-        .prefetch_related(
-            "changes",
-        )
-        .first()
+    active_proposal = resolve_active_proposal(
+        request,
+        model,
+        request.user,
     )
 
-    ai_working_proposal = (
-        Proposal.objects.filter(
-            model=model,
-            created_by=request.user,
-            source=Proposal.Source.AI,
-            status=Proposal.Status.WORKING,
-        )
-        .prefetch_related(
-            "changes",
-        )
-        .first()
+    proposals = list(
+        live_proposals_queryset(model, request.user)
+        .prefetch_related("changes")
+        .order_by("-created_at")
     )
 
-    my_change_count = my_working_proposal.changes.count() if my_working_proposal else 0
-
-    ai_change_count = ai_working_proposal.changes.count() if ai_working_proposal else 0
+    for p in proposals:
+        p.change_count = p.changes.count()
 
     # =================================================================
     # Canonical model collections
@@ -1102,7 +1092,7 @@ def get_model_context(
 
     working_object_types = _build_working_object_types(
         canonical_object_types,
-        my_working_proposal,
+        active_proposal,
     )
 
     object_type_lookup = _working_object_type_lookup(
@@ -1115,7 +1105,7 @@ def get_model_context(
 
     working_relationship_types = _build_working_relationship_types(
         canonical_relationship_types,
-        my_working_proposal,
+        active_proposal,
         object_type_lookup,
     )
 
@@ -1125,7 +1115,7 @@ def get_model_context(
 
     working_model_values, working_model_proposed_fields = _build_working_model_values(
         model,
-        my_working_proposal,
+        active_proposal,
     )
 
     # =================================================================
@@ -1152,8 +1142,6 @@ def get_model_context(
         # -------------------------------------------------------------
         # Proposal state
         # -------------------------------------------------------------
-        "my_working_proposal": my_working_proposal,
-        "my_change_count": my_change_count,
-        "ai_working_proposal": ai_working_proposal,
-        "ai_change_count": ai_change_count,
+        "active_proposal": active_proposal,
+        "proposals": proposals,
     }

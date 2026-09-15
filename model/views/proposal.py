@@ -1,17 +1,76 @@
 from collections import defaultdict
-from model.services.proposal.review import ProposalReviewService
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
 
 from model.models.proposal import Proposal, ProposalChange
 from model.services.proposal.proposal import ProposalService
+from model.services.proposal.review import ProposalReviewService
+from model.views.active_proposal import (
+    clear_active_proposal_id,
+    get_or_create_active_proposal,
+    set_active_proposal_id,
+)
 from model.views.common_context import get_model_context
+
+EDITABLE_STATUSES = (
+    Proposal.Status.WORKING,
+    Proposal.Status.FAILED,
+)
 
 
 @login_required
-def proposal(request, model_id):
+def proposal_create(request, model_id):
+    """
+    POST-only. Creates a brand-new WORKING proposal and makes it
+    active immediately ("+ New proposal" in the sidebar). Subject to
+    the same live-proposal cap as the implicit auto-create path.
+    """
+
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "error": "Method not allowed."},
+            status=405,
+        )
+
+    context = get_model_context(
+        request,
+        model_id,
+    )
+
+    model = context["model"]
+
+    # Force creation of a NEW proposal even if one is already active:
+    # clear the session pointer first so get_or_create_active_proposal
+    # can't just resolve the existing one.
+    clear_active_proposal_id(request, model.id)
+
+    new_proposal, error_response = get_or_create_active_proposal(
+        request,
+        model,
+        request.user,
+    )
+
+    if error_response is not None:
+        return error_response
+
+    return JsonResponse(
+        {
+            "success": True,
+            "redirect_url": reverse(
+                "model:proposal",
+                args=[model.id, new_proposal.id],
+            ),
+        }
+    )
+
+
+@login_required
+def proposal(request, model_id, proposal_id=None):
 
     # -------------------------------------------------------------
     # Common model context
@@ -24,18 +83,67 @@ def proposal(request, model_id):
 
     model = context["model"]
 
-    proposal_source = request.GET.get(
-        "proposal_source",
-        "user",
+    # -------------------------------------------------------------
+    # No proposal specified: resolve to the active one, else the
+    # most recently touched live proposal, else render the empty
+    # workspace state directly.
+    # -------------------------------------------------------------
+
+    if proposal_id is None:
+
+        active = context["active_proposal"]
+
+        if active is not None:
+            return redirect(
+                "model:proposal",
+                model_id=model.id,
+                proposal_id=active.id,
+            )
+
+        proposals = context["proposals"]
+
+        if proposals:
+            return redirect(
+                "model:proposal",
+                model_id=model.id,
+                proposal_id=proposals[0].id,
+            )
+
+        context.update(
+            {
+                "proposal": None,
+                "changes": [],
+                "change_groups": [],
+                "reviewed_count": 0,
+                "unreviewed_count": 0,
+                "total_count": 0,
+            }
+        )
+
+        return render(
+            request,
+            "model/proposal.html",
+            context,
+        )
+
+    target_proposal = get_object_or_404(
+        Proposal,
+        id=proposal_id,
+        model=model,
+        created_by=request.user,
     )
 
-    if proposal_source == "ai":
-        working_proposal = context["ai_working_proposal"]
-        proposal_label = "AI suggestions"
-    else:
-        proposal_source = "user"
-        working_proposal = context["my_working_proposal"]
-        proposal_label = "My changes"
+    is_editable = target_proposal.status in EDITABLE_STATUSES
+
+    # -------------------------------------------------------------
+    # Selecting an editable proposal makes it active. There is no
+    # separate "set active" workflow -- viewing IS selecting for a
+    # WORKING/FAILED proposal. Read-only statuses never become the
+    # active editing target.
+    # -------------------------------------------------------------
+
+    if is_editable:
+        set_active_proposal_id(request, model.id, target_proposal.id)
 
     # -------------------------------------------------------------
     # POST actions
@@ -43,23 +151,141 @@ def proposal(request, model_id):
 
     if request.method == "POST":
 
-        if not working_proposal:
-            return JsonResponse(
-                {"error": "No working proposal exists."},
-                status=400,
-            )
-
         action = request.POST.get("action")
 
-        # ---------------------------------------------------------
-        # A queued/processing/completed proposal is locked: none of
-        # the actions below may mutate it.
-        # ---------------------------------------------------------
+        # -----------------------------------------------------------
+        # Rename -- allowed in any status, including read-only ones
+        # (the review page's naming control is not gated on
+        # editability).
+        # -----------------------------------------------------------
 
-        if working_proposal.status not in (
-            Proposal.Status.WORKING,
-            Proposal.Status.FAILED,
-        ):
+        if action == "rename":
+
+            title = request.POST.get("title", "").strip()[:200]
+
+            target_proposal.title = title
+
+            target_proposal.save(
+                update_fields=[
+                    "title",
+                    "updated_at",
+                ]
+            )
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "title": target_proposal.title,
+                }
+            )
+
+        # -----------------------------------------------------------
+        # Acknowledge -- only valid once COMPLETED
+        # -----------------------------------------------------------
+
+        if action == "acknowledge":
+
+            if target_proposal.status != Proposal.Status.COMPLETED:
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": "Only a completed proposal can be acknowledged.",
+                    },
+                    status=400,
+                )
+
+            if target_proposal.acknowledged_at is None:
+
+                target_proposal.acknowledged_at = timezone.now()
+
+                target_proposal.save(
+                    update_fields=[
+                        "acknowledged_at",
+                        "updated_at",
+                    ]
+                )
+
+            clear_active_proposal_id(request, model.id)
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "redirect_url": reverse(
+                        "model:proposal_list",
+                        args=[model.id],
+                    ),
+                }
+            )
+
+        # -----------------------------------------------------------
+        # Abandon -- only valid on an editable proposal
+        # -----------------------------------------------------------
+
+        if action == "abandon":
+
+            if not is_editable:
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": "Only an editable proposal can be deleted.",
+                    },
+                    status=400,
+                )
+
+            try:
+                ProposalService.abandon(target_proposal)
+            except ValueError as exc:
+                return JsonResponse(
+                    {"success": False, "error": str(exc)},
+                    status=400,
+                )
+
+            clear_active_proposal_id(request, model.id)
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "redirect_url": reverse(
+                        "model:proposal_list",
+                        args=[model.id],
+                    ),
+                }
+            )
+
+        # -----------------------------------------------------------
+        # Submit ("Validate & Commit") -- only valid on an editable
+        # proposal. Queues the proposal for the Celery pipeline and
+        # returns immediately -- the page does not wait for
+        # processing to finish.
+        # -----------------------------------------------------------
+
+        if action == "submit":
+
+            if not is_editable:
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": "This proposal is locked and cannot be submitted.",
+                    },
+                    status=400,
+                )
+
+            try:
+                ProposalService.submit(target_proposal)
+            except ValueError as exc:
+                return JsonResponse(
+                    {"success": False, "error": str(exc)},
+                    status=400,
+                )
+
+            return JsonResponse({"success": True})
+
+        # -----------------------------------------------------------
+        # Everything else (discard/review/unreview/review_all/
+        # unreview_all) requires an editable proposal, same as today.
+        # -----------------------------------------------------------
+
+        if not is_editable:
             return JsonResponse(
                 {"error": "This proposal is locked and cannot be modified."},
                 status=400,
@@ -73,7 +299,7 @@ def proposal(request, model_id):
 
             change_id = request.POST.get("change_id")
 
-            change = working_proposal.changes.filter(
+            change = target_proposal.changes.filter(
                 id=change_id,
             ).first()
 
@@ -87,7 +313,7 @@ def proposal(request, model_id):
 
             try:
                 ProposalService.discard_change(
-                    proposal=working_proposal,
+                    proposal=target_proposal,
                     target_type=change.target_type,
                     target_id=change.target_id,
                     field=field_name,
@@ -113,7 +339,7 @@ def proposal(request, model_id):
 
             change_id = request.POST.get("change_id")
 
-            change = working_proposal.changes.filter(
+            change = target_proposal.changes.filter(
                 id=change_id,
             ).first()
 
@@ -148,7 +374,7 @@ def proposal(request, model_id):
 
             change_id = request.POST.get("change_id")
 
-            change = working_proposal.changes.filter(
+            change = target_proposal.changes.filter(
                 id=change_id,
             ).first()
 
@@ -181,7 +407,7 @@ def proposal(request, model_id):
 
         if action == "review_all":
 
-            working_proposal.changes.filter(
+            target_proposal.changes.filter(
                 review_status=(ProposalChange.ReviewStatus.UNREVIEWED),
             ).update(
                 review_status=(ProposalChange.ReviewStatus.REVIEWED),
@@ -195,7 +421,7 @@ def proposal(request, model_id):
 
         if action == "unreview_all":
 
-            working_proposal.changes.filter(
+            target_proposal.changes.filter(
                 review_status=(ProposalChange.ReviewStatus.REVIEWED),
             ).update(
                 review_status=(ProposalChange.ReviewStatus.UNREVIEWED),
@@ -209,19 +435,41 @@ def proposal(request, model_id):
         )
 
     # -------------------------------------------------------------
-    # No working proposal / no changes
+    # GET: fetch the latest submission result (if any) up front, so
+    # both the read-only branches and the WORKING/FAILED branch below
+    # can use it.
     # -------------------------------------------------------------
 
-    if not working_proposal:
+    submission_result = getattr(target_proposal, "submission_result", None)
+
+    validation_errors_by_change = {}
+    unlinked_validation_errors = []
+
+    if submission_result is not None:
+
+        for err in submission_result.errors.select_related("change").all():
+
+            if err.change_id:
+                validation_errors_by_change.setdefault(err.change_id, []).append(err)
+            else:
+                unlinked_validation_errors.append(err)
+
+    # -------------------------------------------------------------
+    # QUEUED / PROCESSING: fixed read-only summary states, no
+    # search/filter/sort/group machinery.
+    # -------------------------------------------------------------
+
+    if target_proposal.status in (
+        Proposal.Status.QUEUED,
+        Proposal.Status.PROCESSING,
+    ):
 
         context.update(
             {
-                "proposal": None,
+                "proposal": target_proposal,
                 "changes": [],
                 "change_groups": [],
-                "reviewed_count": 0,
-                "unreviewed_count": 0,
-                "total_count": 0,
+                "total_count": target_proposal.changes.count(),
             }
         )
 
@@ -232,10 +480,36 @@ def proposal(request, model_id):
         )
 
     # -------------------------------------------------------------
+    # COMPLETED: fixed read-only success state.
+    # -------------------------------------------------------------
+
+    if target_proposal.status == Proposal.Status.COMPLETED:
+
+        context.update(
+            {
+                "proposal": target_proposal,
+                "submission_result": submission_result,
+                "changes": [],
+                "change_groups": [],
+                "total_count": target_proposal.changes.count(),
+            }
+        )
+
+        return render(
+            request,
+            "model/proposal.html",
+            context,
+        )
+
+    # -------------------------------------------------------------
+    # WORKING / FAILED: the full review-table experience.
+    # -------------------------------------------------------------
+
+    # -------------------------------------------------------------
     # Base queryset
     # -------------------------------------------------------------
 
-    changes = working_proposal.changes.all().order_by("created_at")
+    changes = target_proposal.changes.all().order_by("created_at")
 
     # -------------------------------------------------------------
     # Search
@@ -349,7 +623,7 @@ def proposal(request, model_id):
     # than the filtered queryset.
     # -------------------------------------------------------------
 
-    proposal_changes = working_proposal.changes.all()
+    proposal_changes = target_proposal.changes.all()
 
     total_count = proposal_changes.count()
 
@@ -364,7 +638,7 @@ def proposal(request, model_id):
     # -------------------------------------------------------------
 
     target_types = (
-        working_proposal.changes.values_list(
+        target_proposal.changes.values_list(
             "target_type",
             flat=True,
         )
@@ -425,6 +699,11 @@ def proposal(request, model_id):
             change,
             parents,
             create_lookup,
+        )
+
+        change.review_validation_errors = validation_errors_by_change.get(
+            change.id,
+            [],
         )
 
     group_by = request.GET.get(
@@ -549,9 +828,9 @@ def proposal(request, model_id):
 
     context.update(
         {
-            "proposal": working_proposal,
-            "proposal_source": proposal_source,
-            "proposal_label": proposal_label,
+            "proposal": target_proposal,
+            "submission_result": submission_result,
+            "unlinked_validation_errors": unlinked_validation_errors,
             "changes": change_list,
             "change_groups": change_groups,
             "search": search,

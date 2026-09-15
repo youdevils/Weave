@@ -13,6 +13,7 @@ from model.models.relationship import Relationship
 from model.models.relationship_type import RelationshipType
 from model.models.relationship_type_rule import RelationshipTypeRule
 from model.services.proposal.proposal import ProposalService
+from model.views.tests.proposal_test_utils import activate_proposal
 from workspace.models import Workspace, WorkspaceMember
 
 
@@ -141,6 +142,7 @@ class DataRelationshipsIndexViewTests(TestCase):
         )
 
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         ProposalService.record_change(
             proposal=proposal,
@@ -169,6 +171,7 @@ class DataRelationshipsIndexViewTests(TestCase):
 
     def test_pending_relationship_with_proposal_only_endpoint_does_not_show_unknown(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         power_bi_id = uuid.uuid4()
 
@@ -258,6 +261,7 @@ class DataProposalOnlyRelationshipTypeTests(TestCase):
 
     def _create_proposed_relationship_type_with_rule(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         relationship_type_id = uuid.uuid4()
 

@@ -318,45 +318,55 @@
         <div class="model-nav-section">
 
             <div class="model-nav-section-label">
-                Changes
+                Proposals
             </div>
 
-            <a
-                href="{% url 'model:proposal' model.id %}"
-                class="
-                    model-nav-item
-                    {% if request.resolver_match.url_name == 'proposal' and request.GET.proposal_source != 'ai' %}
-                        active
-                    {% endif %}
-                "
-            >
-                <span>My changes</span>
+            {% for p in proposals %}
 
-                {% if my_change_count > 0 %}
-                    <span class="model-nav-count">
-                        {{ my_change_count }}
+                <a
+                    href="{% url 'model:proposal' model.id p.id %}"
+                    class="
+                        model-nav-item
+                        model-nav-proposal
+                        model-nav-proposal-status-{{ p.status }}
+                        {% if active_proposal and p.id == active_proposal.id %}
+                            active
+                        {% endif %}
+                    "
+                >
+                    <span class="model-nav-proposal-main">
+                        <span class="model-nav-proposal-title">
+                            {{ p.title|default:"Untitled proposal" }}
+                        </span>
+                        <span class="model-nav-proposal-meta">
+                            {{ p.get_source_display }} &middot; {{ p.get_status_display }}
+                        </span>
                     </span>
-                {% endif %}
-            </a>
 
-
-            <a
-                href="{% url 'model:proposal' model.id %}?proposal_source=ai"
-                class="
-                    model-nav-item
-                    {% if request.resolver_match.url_name == 'proposal' and request.GET.proposal_source == 'ai' %}
-                        active
+                    {% if p.change_count > 0 %}
+                        <span class="model-nav-count">
+                            {{ p.change_count }}
+                        </span>
                     {% endif %}
-                "
-            >
-                <span>AI suggestions</span>
+                </a>
 
-                {% if ai_change_count > 0 %}
-                    <span class="model-nav-count">
-                        {{ ai_change_count }}
-                    </span>
-                {% endif %}
-            </a>
+            {% empty %}
+
+                <div class="model-nav-empty">
+                    No open proposals
+                </div>
+
+            {% endfor %}
+
+            <button
+                type="button"
+                class="model-nav-item model-nav-new-proposal"
+                id="model-new-proposal-btn"
+                data-create-url="{% url 'model:proposal_create' model.id %}"
+            >
+                <i class="bi bi-plus-lg"></i>
+                New proposal
+            </button>
 
         </div>
 

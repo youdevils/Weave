@@ -84,6 +84,11 @@ class Proposal(models.Model):
         blank=True,
     )
 
+    acknowledged_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         ordering = ["-created_at"]
         indexes = [

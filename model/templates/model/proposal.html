@@ -3,7 +3,7 @@
 
 {% block model_content %}
 
-<div class="model-proposal">
+<div class="model-proposal" data-proposal-status="{{ proposal.status }}">
 
     <div class="model-page-header">
 
@@ -13,13 +13,39 @@
                 Changes
             </div>
 
-            <h1 class="model-page-title">
-                {% if proposal %}
-                    {{ proposal.title|default:"Model changes" }}
-                {% else %}
+            {% if proposal %}
+
+                <div class="model-proposal-title-edit">
+
+                    <h1 class="model-page-title model-proposal-title-display">
+                        {{ proposal.title|default:"Untitled proposal" }}
+                    </h1>
+
+                    <button
+                        type="button"
+                        class="model-proposal-rename-btn"
+                        aria-label="Rename proposal"
+                    >
+                        <i class="bi bi-pencil"></i>
+                    </button>
+
+                    <input
+                        type="text"
+                        class="model-proposal-title-input form-control form-control-sm"
+                        style="display:none"
+                        value="{{ proposal.title }}"
+                        maxlength="200"
+                    >
+
+                </div>
+
+            {% else %}
+
+                <h1 class="model-page-title">
                     No open changes
-                {% endif %}
-            </h1>
+                </h1>
+
+            {% endif %}
 
             {% if proposal %}
 
@@ -41,9 +67,9 @@
 
         {% if proposal %}
 
-            <div class="model-proposal-status">
+            <div class="model-proposal-status model-proposal-status-{{ proposal.status }}">
                 <span class="model-proposal-status-dot"></span>
-                Working
+                {{ proposal.get_status_display }}
             </div>
 
         {% endif %}
@@ -52,6 +78,55 @@
 
 
     {% if proposal %}
+
+    {% if proposal.status == "working" or proposal.status == "failed" %}
+
+        {% if proposal.status == "failed" %}
+
+            <section class="model-proposal-result model-proposal-result-failed">
+
+                <div class="model-proposal-result-icon">
+                    <i class="bi bi-exclamation-octagon"></i>
+                </div>
+
+                {% if submission_result.outcome == "system_error" %}
+
+                    <div class="model-proposal-result-title">
+                        Something went wrong
+                    </div>
+
+                    <div class="model-proposal-result-description">
+                        {{ submission_result.message }}
+                    </div>
+
+                {% else %}
+
+                    <div class="model-proposal-result-title">
+                        Validation failed
+                    </div>
+
+                    <div class="model-proposal-result-description">
+                        Correct or discard the flagged changes below,
+                        then submit again.
+                    </div>
+
+                    {% if unlinked_validation_errors %}
+
+                        <ul class="model-proposal-result-errors">
+
+                            {% for err in unlinked_validation_errors %}
+                                <li>{{ err.message }}</li>
+                            {% endfor %}
+
+                        </ul>
+
+                    {% endif %}
+
+                {% endif %}
+
+            </section>
+
+        {% endif %}
 
         <div class="model-proposal-summary">
 
@@ -510,6 +585,24 @@
 
                                             {% endif %}
 
+
+                                            {% if change.review_validation_errors %}
+
+                                                <div class="model-proposal-change-errors">
+
+                                                    {% for err in change.review_validation_errors %}
+
+                                                        <div class="model-proposal-change-error">
+                                                            <i class="bi bi-exclamation-triangle"></i>
+                                                            {{ err.message }}
+                                                        </div>
+
+                                                    {% endfor %}
+
+                                                </div>
+
+                                            {% endif %}
+
                                         </div>
 
 
@@ -673,7 +766,7 @@
                         </div>
 
                         <a
-                            href="{% url 'model:proposal' model.id %}"
+                            href="{% url 'model:proposal' model.id proposal.id %}"
                             class="btn btn-outline-secondary"
                         >
                             Clear filters
@@ -720,15 +813,132 @@
 
                 <button
                     type="button"
-                    class="btn btn-primary"
+                    class="btn btn-primary model-proposal-submit"
                     {% if unreviewed_count %}disabled{% endif %}
                 >
-                    Submit proposal
+                    Validate &amp; Commit
                 </button>
 
             </div>
 
         {% endif %}
+
+
+        <div class="model-proposal-danger-zone">
+
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-danger model-proposal-abandon"
+            >
+                Delete proposal
+            </button>
+
+            <div class="model-proposal-abandon-confirm">
+
+                <span class="model-proposal-abandon-confirm-text">
+                    Delete this proposal and all its staged changes?
+                </span>
+
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger model-proposal-abandon-confirm-yes"
+                >
+                    Delete
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary model-proposal-abandon-confirm-no"
+                >
+                    Cancel
+                </button>
+
+            </div>
+
+        </div>
+
+    {% elif proposal.status == "queued" %}
+
+        <div class="model-empty-state model-proposal-queued-state">
+
+            <div class="model-empty-state-icon">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+
+            <div class="model-empty-state-title">
+                Queued for processing
+            </div>
+
+            <div class="model-empty-state-description">
+                This proposal has {{ total_count }} change{{ total_count|pluralize }}
+                and is waiting to be validated and committed. Refresh
+                this page to check for updates.
+            </div>
+
+        </div>
+
+    {% elif proposal.status == "processing" %}
+
+        <div class="model-empty-state model-proposal-processing-state">
+
+            <div class="model-empty-state-icon">
+                <i class="bi bi-arrow-repeat"></i>
+            </div>
+
+            <div class="model-empty-state-title">
+                Being processed
+            </div>
+
+            <div class="model-empty-state-description">
+                This proposal is currently being validated and
+                committed. Refresh this page to check for updates.
+            </div>
+
+        </div>
+
+    {% elif proposal.status == "completed" %}
+
+        <div class="model-empty-state model-proposal-success-state">
+
+            <div class="model-empty-state-icon">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+
+            <div class="model-empty-state-title">
+                Committed successfully
+            </div>
+
+            <div class="model-empty-state-description">
+
+                {% if submission_result %}
+                    Model revision {{ submission_result.before_revision }}
+                    &rarr; {{ submission_result.after_revision }}.
+                {% endif %}
+
+                {{ total_count }} change{{ total_count|pluralize }} applied.
+
+            </div>
+
+            {% if not proposal.acknowledged_at %}
+
+                <button
+                    type="button"
+                    class="btn btn-primary model-proposal-acknowledge"
+                >
+                    Acknowledge
+                </button>
+
+            {% else %}
+
+                <p class="model-proposal-acknowledged-note">
+                    Acknowledged {{ proposal.acknowledged_at|date:"j M Y, g:i a" }}.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
 
     {% else %}
 

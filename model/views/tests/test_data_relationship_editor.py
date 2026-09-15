@@ -13,6 +13,7 @@ from model.models.relationship import Relationship
 from model.models.relationship_type import RelationshipType
 from model.models.relationship_type_rule import RelationshipTypeRule
 from model.services.proposal.proposal import ProposalService
+from model.views.tests.proposal_test_utils import activate_proposal
 from workspace.models import Workspace, WorkspaceMember
 
 
@@ -126,7 +127,9 @@ class CreateRelationshipTests(DataRelationshipEditorTestCase):
 
         self.assertEqual(Relationship.objects.filter(model=self.model).count(), 0)
 
-        review_response = self.client.get(reverse("model:proposal", args=[self.model.id]))
+        review_response = self.client.get(
+            reverse("model:proposal", args=[self.model.id, proposal.id])
+        )
         self.assertContains(review_response, "Finance Reporting")
 
     def test_create_rejects_endpoint_pair_not_permitted_by_rule(self):
@@ -150,6 +153,40 @@ class CreateRelationshipTests(DataRelationshipEditorTestCase):
         self.assertContains(response, "Choose a subject.")
         self.assertContains(response, "Choose an object.")
         self.assertFalse(ProposalChange.objects.filter(target_type="Relationship").exists())
+
+
+class DataRelationshipEditorProposalCapTests(DataRelationshipEditorTestCase):
+    """
+    The implicit auto-create-on-edit path must respect the live
+    proposal cap just like the explicit "+ New proposal" action.
+    """
+
+    def test_create_is_rejected_once_the_live_proposal_cap_is_reached(self):
+        for _ in range(5):
+            Proposal.objects.create(
+                model=self.model,
+                created_by=self.user,
+                status=Proposal.Status.WORKING,
+            )
+
+        response = self.client.post(
+            self.create_url(),
+            {
+                "subject_id": str(self.finance.id),
+                "object_id": str(self.power_bi.id),
+                "attr_criticality": "High",
+            },
+        )
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(
+            Proposal.objects.filter(model=self.model, created_by=self.user).count(),
+            5,
+        )
+        self.assertFalse(Relationship.objects.filter(model=self.model).exists())
+        self.assertFalse(
+            ProposalChange.objects.filter(target_type="Relationship").exists()
+        )
 
 
 class UpdateRelationshipTests(DataRelationshipEditorTestCase):
@@ -288,6 +325,7 @@ class ProposalOnlyEndpointTests(DataRelationshipEditorTestCase):
 
     def test_create_form_allowed_endpoints_include_proposal_only_object(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         new_app_id = uuid.uuid4()
 
@@ -321,6 +359,7 @@ class ProposalOnlyEndpointTests(DataRelationshipEditorTestCase):
 
     def test_relationship_endpoint_that_is_itself_proposal_only_object_renders(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         new_app_id = uuid.uuid4()
 
@@ -400,6 +439,7 @@ class ProposalOnlyRelationshipTypeEditorTests(TestCase):
 
     def test_editor_opens_for_proposal_only_relationship_type(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         relationship_type_id = uuid.uuid4()
 
@@ -435,6 +475,7 @@ class ChoiceAttributeInDataEditorTests(DataRelationshipEditorTestCase):
 
     def test_proposal_only_choice_attribute_options_render_in_data_create_form(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         attribute_id = uuid.uuid4()
 
@@ -467,6 +508,7 @@ class ChoiceAttributeInDataEditorTests(DataRelationshipEditorTestCase):
 
     def test_canonical_attribute_with_pending_config_update_renders_in_data_editor(self):
         proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
 
         ProposalService.record_change(
             proposal=proposal,

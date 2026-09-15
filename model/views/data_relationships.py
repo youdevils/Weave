@@ -4,6 +4,7 @@ from django.db.models import Count, Q
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 
+from model.models.proposal import Proposal
 from model.models.relationship import Relationship
 from model.services.proposal.proposal import ProposalService
 from model.views.common_context import get_model_context
@@ -78,7 +79,7 @@ def data_relationships(
     )
 
     model = context["model"]
-    proposal = context["my_working_proposal"]
+    proposal = context["active_proposal"]
 
     relationship_type = resolve_working_relationship_type(context, relationship_type_id)
 
@@ -105,6 +106,15 @@ def data_relationships(
         if proposal is None:
             return JsonResponse(
                 {"success": False, "error": "There is no working proposal to discard."},
+                status=400,
+            )
+
+        if proposal.status not in (
+            Proposal.Status.WORKING,
+            Proposal.Status.FAILED,
+        ):
+            return JsonResponse(
+                {"success": False, "error": "This proposal is locked and cannot be modified."},
                 status=400,
             )
 

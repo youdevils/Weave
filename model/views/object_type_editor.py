@@ -10,6 +10,7 @@ from model.models.attribute_definition import AttributeDefinition
 from model.models.object_type import ObjectType
 from model.models.proposal import ProposalChange
 from model.services.proposal.proposal import ProposalService
+from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
 
 # =====================================================================
@@ -1028,7 +1029,7 @@ def object_type_editor(
     )
 
     model = context["model"]
-    proposal = context["my_working_proposal"]
+    proposal = context["active_proposal"]
 
     object_type = None
     proposal_only = False
@@ -1092,10 +1093,13 @@ def object_type_editor(
             )
 
         if proposal is None:
-            proposal = ProposalService.get_or_create_working(
-                model=model,
-                user=request.user,
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
             )
+            if error_response is not None:
+                return error_response
 
         if proposal_only:
 
@@ -1343,10 +1347,13 @@ def object_type_editor(
             )
 
         if proposal is None:
-            proposal = ProposalService.get_or_create_working(
-                model=model,
-                user=request.user,
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
             )
+            if error_response is not None:
+                return error_response
 
         if attribute_created:
 
@@ -1481,10 +1488,13 @@ def object_type_editor(
             )
 
         if proposal is None:
-            proposal = ProposalService.get_or_create_working(
-                model=model,
-                user=request.user,
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
             )
+            if error_response is not None:
+                return error_response
 
         submitted_values, errors = _coerce_attribute_properties(
             request,
@@ -1691,10 +1701,13 @@ def object_type_editor(
             )
 
         if proposal is None:
-            proposal = ProposalService.get_or_create_working(
-                model=model,
-                user=request.user,
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
             )
+            if error_response is not None:
+                return error_response
 
         if attribute_created:
 
@@ -2072,10 +2085,13 @@ def object_type_editor(
             )
 
         if proposal is None:
-            proposal = ProposalService.get_or_create_working(
-                model=model,
-                user=request.user,
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
             )
+            if error_response is not None:
+                return error_response
 
         if proposal_only:
 
@@ -2233,10 +2249,13 @@ def object_type_editor(
             )
 
         if proposal is None:
-            proposal = ProposalService.get_or_create_working(
-                model=model,
-                user=request.user,
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
             )
+            if error_response is not None:
+                return error_response
 
         object_type_uuid = uuid.uuid4()
 

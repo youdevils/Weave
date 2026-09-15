@@ -9,6 +9,7 @@ from model.models.object import Object
 from model.models.proposal import ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.services.validation.attributes import validate_attribute_value
+from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
 from model.views.data_context import (
     ATTRIBUTE_FIELD_PREFIX,
@@ -158,7 +159,7 @@ def data_object_editor(
     )
 
     model = context["model"]
-    proposal = context["my_working_proposal"]
+    proposal = context["active_proposal"]
 
     object_type = resolve_working_object_type(context, object_type_id)
 
@@ -211,10 +212,13 @@ def data_object_editor(
         desired_active = desired == "true"
 
         if proposal is None:
-            proposal = ProposalService.get_or_create_working(
-                model=model,
-                user=request.user,
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
             )
+            if error_response is not None:
+                return error_response
 
         if proposal_only:
 
@@ -450,10 +454,13 @@ def data_object_editor(
                 )
 
         if proposal is None:
-            proposal = ProposalService.get_or_create_working(
-                model=model,
-                user=request.user,
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
             )
+            if error_response is not None:
+                return error_response
 
         if proposal_only:
 
@@ -613,10 +620,13 @@ def data_object_editor(
             )
 
         if proposal is None:
-            proposal = ProposalService.get_or_create_working(
-                model=model,
-                user=request.user,
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
             )
+            if error_response is not None:
+                return error_response
 
         object_uuid = uuid.uuid4()
 

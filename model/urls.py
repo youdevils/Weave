@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views.overview import overview
-from .views.proposal import proposal
+from .views.proposal import proposal, proposal_create
 from .views.object_types import object_types
 from .views.object_type_editor import object_type_editor
 from .views.relationship_types import relationship_types
@@ -25,10 +25,20 @@ urlpatterns = [
         name="overview",
     ),
     # ================================================================
-    # Proposal review
+    # Proposals
     # ================================================================
     path(
-        "<uuid:model_id>/proposal/",
+        "<uuid:model_id>/proposals/",
+        proposal,
+        name="proposal_list",
+    ),
+    path(
+        "<uuid:model_id>/proposals/new/",
+        proposal_create,
+        name="proposal_create",
+    ),
+    path(
+        "<uuid:model_id>/proposals/<uuid:proposal_id>/",
         proposal,
         name="proposal",
     ),

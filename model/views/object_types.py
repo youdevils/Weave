@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from model.models.proposal import ProposalChange
+from model.models.proposal import Proposal, ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.views.common_context import get_model_context
 from model.views.data_context import discard_relationships_referencing_object
@@ -18,7 +18,7 @@ def object_types(
         model_id,
     )
 
-    proposal = context["my_working_proposal"]
+    proposal = context["active_proposal"]
 
     # =================================================================
     # Discard an ObjectType proposal
@@ -47,6 +47,18 @@ def object_types(
                 {
                     "success": False,
                     "error": "There is no working proposal to discard.",
+                },
+                status=400,
+            )
+
+        if proposal.status not in (
+            Proposal.Status.WORKING,
+            Proposal.Status.FAILED,
+        ):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "This proposal is locked and cannot be modified.",
                 },
                 status=400,
             )

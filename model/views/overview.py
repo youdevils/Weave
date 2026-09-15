@@ -4,6 +4,7 @@ from django.shortcuts import render
 
 from model.models.proposal import ProposalChange
 from model.services.proposal.proposal import ProposalService
+from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
 
 EDITABLE_FIELDS = {
@@ -76,7 +77,7 @@ def overview(
     )
 
     model = context["model"]
-    proposal = context["my_working_proposal"]
+    proposal = context["active_proposal"]
 
     # =================================================================
     # POST - proposal-aware Model field editing
@@ -189,13 +190,17 @@ def overview(
             )
 
         # -------------------------------------------------------------
-        # Create/retrieve the user's working proposal.
+        # Create/retrieve the user's active proposal.
         # -------------------------------------------------------------
 
-        proposal = ProposalService.get_or_create_working(
-            model=model,
-            user=request.user,
+        proposal, error_response = get_or_create_active_proposal(
+            request,
+            model,
+            request.user,
         )
+
+        if error_response is not None:
+            return error_response
 
         change = ProposalService.record_change(
             proposal=proposal,

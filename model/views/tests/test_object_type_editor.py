@@ -287,6 +287,89 @@ class ObjectTypeAttributeChoiceConfigTests(TestCase):
         )
 
 
+class ObjectTypeEditorProposalCapTests(TestCase):
+    """
+    The implicit auto-create-on-edit path must respect the live
+    proposal cap just like the explicit "+ New proposal" action --
+    it's the highest-regression-risk piece of the multi-proposal
+    refactor since it now runs on every editor write path.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.workspace = Workspace.objects.create(name="Test Workspace")
+
+        cls.user = CustomUser.objects.create_user(
+            email="user@example.com",
+            password="test-password",
+        )
+
+        WorkspaceMember.objects.create(
+            workspace=cls.workspace,
+            user=cls.user,
+            role=WorkspaceMember.Role.OWNER,
+        )
+
+        cls.model = Model.objects.create(
+            workspace=cls.workspace,
+            name="Test Model",
+            revision=1,
+        )
+
+        cls.object_type = ObjectType.objects.create(
+            model=cls.model,
+            name="Application",
+            key="application",
+            is_active=True,
+        )
+
+    def setUp(self):
+        self.client.force_login(self.user)
+
+    def edit_url(self):
+        return reverse(
+            "model:object_type_edit",
+            args=[self.model.id, self.object_type.id],
+        )
+
+    def test_edit_with_no_active_proposal_auto_creates_one(self):
+        response = self.client.post(
+            self.edit_url(),
+            {"field": "description", "value": "A new description"},
+        )
+
+        self.assertTrue(response.json()["success"])
+        self.assertEqual(
+            Proposal.objects.filter(model=self.model, created_by=self.user).count(),
+            1,
+        )
+
+    def test_edit_is_rejected_once_the_live_proposal_cap_is_reached(self):
+        for _ in range(5):
+            Proposal.objects.create(
+                model=self.model,
+                created_by=self.user,
+                status=Proposal.Status.WORKING,
+            )
+
+        # Fresh session -- no active proposal pointer -- yet 5 live
+        # proposals already exist for this (model, user).
+        response = self.client.post(
+            self.edit_url(),
+            {"field": "description", "value": "Should not be recorded"},
+        )
+
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(response.json()["success"])
+        self.assertEqual(
+            Proposal.objects.filter(model=self.model, created_by=self.user).count(),
+            5,
+        )
+        self.assertFalse(
+            ProposalChange.objects.filter(after__field="description").exists()
+        )
+
+
 class ObjectTypeAttributeDefaultValueTests(TestCase):
     """
     The Default value control is datatype-aware; changing a Data Type
