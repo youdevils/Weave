@@ -52,43 +52,24 @@ services:
     restart: unless-stopped
 
 
-  # celery_worker:
-  #   build:
-  #     context: .
-  #   command: celery -A weave worker -l info --concurrency=4
-  #   volumes:
-  #     - /c/Users/Leon/Documents/Weave:/app
-  #   env_file:
-  #     - .env.dev
-  #   environment:
-  #     DJANGO_ENV: dev
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_started
-  #     web:
-  #       condition: service_started
-  #   restart: unless-stopped
-
-  # celery_beat:
-  #   build:
-  #     context: .
-  #   command: celery -A weave beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-  #   volumes:
-  #     - /c/Users/Leon/Documents/Weave:/app
-  #   env_file:
-  #     - .env.dev
-  #   environment:
-  #     DJANGO_ENV: dev
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_started
-  #     web:
-  #       condition: service_started
-  #   restart: unless-stopped
+  celery_worker:
+    container_name: DEV_weave_celery_worker
+    build:
+      context: .
+    command: celery -A weave worker -l info --concurrency=4
+    volumes:
+      - /c/Users/Leon/Documents/Weave:/app
+    env_file:
+      - .env.dev
+    environment:
+      DJANGO_ENV: dev
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
 
 volumes:
   dev-db-data:

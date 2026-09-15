@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     "workspace",
     # Third Party
     "rest_framework",
-    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -183,12 +182,12 @@ LOCALE_PATHS = [
 # CELERY
 # ------------------------------------------------------------------------------------
 
-# CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
-# CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
-# CELERY_ACCEPT_CONTENT = ["json"]
-# CELERY_TASK_SERIALIZER = "json"
-# CELERY_RESULT_SERIALIZER = "json"
-# CELERY_TIMEZONE = "Pacific/Auckland"
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "Pacific/Auckland"
 
 # ------------------------------------------------------------------------------------
 # DEFAULT AUTO FIELD
