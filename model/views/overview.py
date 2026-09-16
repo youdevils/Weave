@@ -6,13 +6,32 @@ from model.models.proposal import ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
+from model.views.sidebar import with_updated_sidebar
 
 EDITABLE_FIELDS = {
+    "name",
     "description",
     "purpose",
     "scope",
     "exclusions",
 }
+
+
+def _validate_model_field(
+    field,
+    value,
+):
+    if field == "name":
+
+        if not value:
+            return "Name is required."
+
+        if len(value) > 200:
+            return "Name cannot exceed 200 characters."
+
+        return None
+
+    return None
 
 
 def _get_working_model_values(
@@ -27,6 +46,7 @@ def _get_working_model_values(
     """
 
     values = {
+        "name": model.name,
         "description": model.description,
         "purpose": model.purpose,
         "scope": model.scope,
@@ -63,6 +83,7 @@ def _get_working_model_values(
 
 
 @login_required
+@with_updated_sidebar
 def overview(
     request,
     model_id,
@@ -159,6 +180,21 @@ def overview(
                 status=400,
             )
 
+        validation_error = _validate_model_field(
+            field_name,
+            value,
+        )
+
+        if validation_error:
+
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": validation_error,
+                },
+                status=400,
+            )
+
         canonical_value = getattr(
             model,
             field_name,
@@ -246,6 +282,8 @@ def overview(
 
     context.update(
         {
+            "name_value": working_values["name"],
+            "name_proposed": ("name" in proposed_fields),
             "description_value": working_values["description"],
             "description_proposed": ("description" in proposed_fields),
             "purpose_value": working_values["purpose"],

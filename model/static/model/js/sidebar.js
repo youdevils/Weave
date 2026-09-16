@@ -1,44 +1,52 @@
-document.addEventListener("DOMContentLoaded", function () {
-  /*
-   * ---------------------------------------------------------
-   * Model navigation
-   * ---------------------------------------------------------
-   *
-   * This file owns model sidebar navigation only.
-   * It must not contain model overview editing behaviour.
-   * ---------------------------------------------------------
-   */
+/*
+ * ---------------------------------------------------------
+ * Model navigation
+ * ---------------------------------------------------------
+ *
+ * This file owns model sidebar navigation only.
+ * It must not contain model overview editing behaviour.
+ *
+ * Click handling is delegated to `document` (rather than bound to
+ * each `.model-nav-toggle` at load time) because the sidebar markup
+ * can be replaced wholesale after a proposal-editing AJAX save
+ * (see model_editing.js's `postForm`), which would otherwise leave
+ * freshly-inserted toggles without listeners.
+ * ---------------------------------------------------------
+ */
 
-  document.querySelectorAll(".model-nav-toggle").forEach(function (toggle) {
-    toggle.addEventListener("click", function () {
-      const group = toggle.closest(".model-nav-group");
+document.addEventListener("click", function (event) {
+  const toggle = event.target.closest(".model-nav-toggle");
 
-      if (!group) {
-        return;
-      }
+  if (!toggle) {
+    return;
+  }
 
-      const children = group.querySelector(".model-nav-children");
+  const container = toggle.closest(".model-nav-group, .model-nav-section");
 
-      if (!children) {
-        return;
-      }
+  if (!container) {
+    return;
+  }
 
-      const parentLabel = group.querySelector(".model-nav-parent span");
+  const children = container.querySelector(":scope > .model-nav-children");
 
-      const sectionName = parentLabel
-        ? parentLabel.textContent.trim()
-        : "section";
+  if (!children) {
+    return;
+  }
 
-      const expanded = toggle.getAttribute("aria-expanded") === "true";
+  const label = container.querySelector(
+    ".model-nav-parent span, .model-nav-section-label",
+  );
 
-      toggle.setAttribute("aria-expanded", expanded ? "false" : "true");
+  const sectionName = label ? label.textContent.trim() : "section";
 
-      toggle.setAttribute(
-        "aria-label",
-        expanded ? `Expand ${sectionName}` : `Collapse ${sectionName}`,
-      );
+  const expanded = toggle.getAttribute("aria-expanded") === "true";
 
-      children.classList.toggle("collapsed", expanded);
-    });
-  });
+  toggle.setAttribute("aria-expanded", expanded ? "false" : "true");
+
+  toggle.setAttribute(
+    "aria-label",
+    expanded ? `Expand ${sectionName}` : `Collapse ${sectionName}`,
+  );
+
+  children.classList.toggle("collapsed", expanded);
 });

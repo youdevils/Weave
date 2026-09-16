@@ -12,6 +12,7 @@ from model.services.proposal.proposal import ProposalService
 from model.services.validation.attributes import validate_attribute_value
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
+from model.views.sidebar import with_updated_sidebar
 from model.views.data_context import (
     ATTRIBUTE_FIELD_PREFIX,
     attribute_field_name,
@@ -240,6 +241,7 @@ def _find_candidate(candidates, candidate_id):
 
 
 @login_required
+@with_updated_sidebar
 def data_relationship_editor(
     request,
     model_id,

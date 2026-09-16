@@ -145,7 +145,7 @@
                             href="{% url 'workspace:index' %}"
                         >
                             <i class="bi bi-grid me-1" aria-hidden="true"></i>
-                            Workspace
+                            {% block workspace_breadcrumb %}Workspace{% endblock %}
                         </a>
 
                     </li>

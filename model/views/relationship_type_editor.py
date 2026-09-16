@@ -13,6 +13,7 @@ from model.models.proposal import ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
+from model.views.sidebar import with_updated_sidebar
 
 # =====================================================================
 # Field definitions
@@ -1343,6 +1344,7 @@ def _render_editor(
 
 
 @login_required
+@with_updated_sidebar
 def relationship_type_editor(
     request,
     model_id,

@@ -16,6 +16,7 @@ from model.views.active_proposal import (
     set_active_proposal_id,
 )
 from model.views.common_context import get_model_context
+from model.views.sidebar import with_updated_sidebar
 
 EDITABLE_STATUSES = (
     Proposal.Status.WORKING,
@@ -24,6 +25,7 @@ EDITABLE_STATUSES = (
 
 
 @login_required
+@with_updated_sidebar
 def proposal_create(request, model_id):
     """
     POST-only. Creates a brand-new WORKING proposal and makes it

@@ -6,9 +6,11 @@ from model.models.proposal import Proposal, ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.views.common_context import get_model_context
 from model.views.data_context import discard_relationships_referencing_object
+from model.views.sidebar import with_updated_sidebar
 
 
 @login_required
+@with_updated_sidebar
 def object_types(
     request,
     model_id,

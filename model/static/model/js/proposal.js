@@ -9,40 +9,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // -------------------------------------------------------------
   // "+ New proposal" -- lives in the sidebar, which renders on every
-  // model page, so this handler must be wired up unconditionally
-  // (not gated behind the .model-proposal guard below).
+  // model page (and can be replaced wholesale after a proposal-
+  // editing AJAX save, see model_editing.js's `postForm`), so this
+  // is delegated to `document` rather than bound to the button
+  // directly, and wired up unconditionally (not gated behind the
+  // .model-proposal guard below).
   // -------------------------------------------------------------
 
-  const newProposalBtn = document.getElementById("model-new-proposal-btn");
+  document.addEventListener("click", async (event) => {
+    const newProposalBtn = event.target.closest("#model-new-proposal-btn");
 
-  if (newProposalBtn) {
-    newProposalBtn.addEventListener("click", async () => {
-      newProposalBtn.disabled = true;
+    if (!newProposalBtn) {
+      return;
+    }
 
-      try {
-        const response = await fetch(newProposalBtn.dataset.createUrl, {
-          method: "POST",
-          headers: {
-            "X-CSRFToken": getCsrfToken(),
-            "X-Requested-With": "XMLHttpRequest",
-          },
-        });
+    newProposalBtn.disabled = true;
 
-        const data = await response.json();
+    try {
+      const response = await fetch(newProposalBtn.dataset.createUrl, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCsrfToken(),
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      });
 
-        if (data.success) {
-          window.location.href = data.redirect_url;
-        } else {
-          window.alert(data.error || "Could not create a new proposal.");
-          newProposalBtn.disabled = false;
-        }
-      } catch (error) {
-        console.error("New proposal failed:", error);
-        window.alert("Could not create a new proposal. Please try again.");
+      const data = await response.json();
+
+      if (data.success) {
+        window.location.href = data.redirect_url;
+      } else {
+        window.alert(data.error || "Could not create a new proposal.");
         newProposalBtn.disabled = false;
       }
-    });
-  }
+    } catch (error) {
+      console.error("New proposal failed:", error);
+      window.alert("Could not create a new proposal. Please try again.");
+      newProposalBtn.disabled = false;
+    }
+  });
 
   const proposal = document.querySelector(".model-proposal");
 

@@ -15,6 +15,7 @@ from model.views.data_context import (
     discard_relationships_referencing_object,
     resolve_working_object_type,
 )
+from model.views.sidebar import with_updated_sidebar
 
 PAGE_SIZE = 25
 
@@ -67,6 +68,7 @@ def data_object_types(
 
 
 @login_required
+@with_updated_sidebar
 def data_objects(
     request,
     model_id,

@@ -14,6 +14,7 @@ from model.views.data_context import (
     build_working_relationships,
     resolve_working_relationship_type,
 )
+from model.views.sidebar import with_updated_sidebar
 
 PAGE_SIZE = 25
 
@@ -68,6 +69,7 @@ def data_relationship_types(
 
 
 @login_required
+@with_updated_sidebar
 def data_relationships(
     request,
     model_id,

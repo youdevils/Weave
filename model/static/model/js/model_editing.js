@@ -2320,7 +2320,43 @@ document.addEventListener("DOMContentLoaded", function () {
       throw new Error(message || "The proposed change could not be saved.");
     }
 
+    applySidebarHtml(data.sidebar_html);
+
     return data;
+  }
+
+  /* ============================================================
+       Sidebar refresh
+       ============================================================
+
+       The server attaches a freshly-rendered `_sidebar.html` fragment
+       (built from the same get_model_context() source of truth used
+       for a full page load) to every successful proposal-editing
+       response. Swapping it in keeps the sidebar's proposal list,
+       change counts, and section state current without a page
+       reload and without any separate proposal state tracked here.
+       ============================================================ */
+
+  function applySidebarHtml(html) {
+    if (!html) {
+      return;
+    }
+
+    const current = document.querySelector(".model-sidebar");
+
+    if (!current) {
+      return;
+    }
+
+    const wrapper = document.createElement("div");
+
+    wrapper.innerHTML = html.trim();
+
+    const next = wrapper.querySelector(".model-sidebar");
+
+    if (next) {
+      current.replaceWith(next);
+    }
   }
 
   /* ============================================================

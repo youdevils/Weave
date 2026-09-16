@@ -1,3 +1,4 @@
+{% with active_url_name=request.resolver_match.url_name %}
 
 <aside class="model-sidebar">
 
@@ -10,366 +11,565 @@
 
     <nav class="model-navigation">
 
-        <div class="model-nav-section">
-
-            <div class="model-nav-section-label">
-                Model
-            </div>
-
-            <a
-                href="{% url 'model:overview' model.id %}"
-                class="
-                    model-nav-item
-                    {% if request.resolver_match.url_name == 'overview' %}
-                        active
-                    {% endif %}
-                "
-            >
-                <span>Overview</span>
-            </a>
-
-        </div>
-
+        <!-- ================================================================
+             UNDERSTAND
+             ================================================================ -->
 
         <div class="model-nav-section">
 
-            <div class="model-nav-section-label">
-                Ontology
-            </div>
+            <div class="model-nav-section-row">
 
-            <div class="model-nav-group">
+                <button
+                    type="button"
+                    class="model-nav-section-label"
+                >
+                    Understand
+                </button>
 
-                <div class="model-nav-parent-row">
-
-                    <a
-                        href="{% url 'model:object_types' model.id %}"
-                        class="
-                                model-nav-item
-                                model-nav-parent
-                                {% if request.resolver_match.url_name == 'object_types' or request.resolver_match.url_name == 'object_type_edit' %}
-                                    active
-                                {% endif %}
-                            "
-                    >
-                        <span>Object Types</span>
-
-                        <span class="model-nav-count">
-                            {{ object_types|length }}
-                        </span>
-                    </a>
-
-                    <button
-                        type="button"
-                        class="model-nav-toggle"
-                        aria-expanded="true"
-                        aria-label="Collapse object types"
-                    >
-                        <i class="bi bi-chevron-down"></i>
-                    </button>
-
-                </div>
-
-                <div class="model-nav-children">
-
-                    {% for object_type in object_types|slice:":10" %}
-
-                        <a
-                            href="{% url 'model:object_type_edit' model.id object_type.id %}"
-                            class="
-                                    model-nav-child
-                                    {% if request.resolver_match.url_name == 'object_type_edit' and request.resolver_match.kwargs.object_type_id|stringformat:'s' == object_type.id|stringformat:'s' %}
-                                        active
-                                    {% endif %}
-                                "
-                        >
-                            <span>{{ object_type.name }}</span>
-                        </a>
-
-                    {% endfor %}
-
-                    {% if object_types|length > 10 %}
-
-                        <a
-                            href="#"
-                            class="model-nav-more"
-                        >
-                            View all {{ object_types|length }} →
-                        </a>
-
-                    {% endif %}
-
-                </div>
+                <button
+                    type="button"
+                    class="model-nav-toggle"
+                    aria-expanded="{% if active_url_name == 'overview' %}true{% else %}false{% endif %}"
+                    aria-label="{% if active_url_name == 'overview' %}Collapse{% else %}Expand{% endif %} Understand"
+                >
+                    <i class="bi bi-chevron-down"></i>
+                </button>
 
             </div>
 
-
-            <div class="model-nav-group">
-
-                <div class="model-nav-parent-row">
-
-                    <a
-                        href="{% url 'model:relationship_types' model.id %}"
-                        class="
-                                model-nav-item
-                                model-nav-parent
-                                {% if request.resolver_match.url_name == 'relationship_types' or request.resolver_match.url_name == 'relationship_type_edit' %}
-                                    active
-                                {% endif %}
-                            "
-                    >
-                        <span>Relationship Types</span>
-
-                        <span class="model-nav-count">
-                            {{ relationship_types|length }}
-                        </span>
-                    </a>
-
-                    <button
-                        type="button"
-                        class="model-nav-toggle"
-                        aria-expanded="true"
-                        aria-label="Collapse relationships"
-                    >
-                        <i class="bi bi-chevron-down"></i>
-                    </button>
-
-                </div>
-
-                <div class="model-nav-children">
-
-                    {% for relationship_type in relationship_types|slice:":10" %}
-
-                        <a
-                            href="{% url 'model:relationship_type_edit' model.id relationship_type.id %}"
-                            class="
-                                    model-nav-child
-                                    {% if request.resolver_match.url_name == 'relationship_type_edit' and request.resolver_match.kwargs.relationship_type_id|stringformat:'s' == relationship_type.id|stringformat:'s' %}
-                                        active
-                                    {% endif %}
-                                "
-                        >
-                            <span>{{ relationship_type.name }}</span>
-                        </a>
-
-                    {% endfor %}
-
-                    {% if relationship_types|length > 10 %}
-
-                        <a
-                            href="#"
-                            class="model-nav-more"
-                        >
-                            View all {{ relationship_types|length }} →
-                        </a>
-
-                    {% endif %}
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="model-nav-section">
-
-            <div class="model-nav-section-label">
-                Data
-            </div>
-
-            <div class="model-nav-group">
-
-                <div class="model-nav-parent-row">
-
-                    <a
-                        href="{% url 'model:data_object_types' model.id %}"
-                        class="
-                                model-nav-item
-                                model-nav-parent
-                                {% if request.resolver_match.url_name == 'data_object_types' or request.resolver_match.url_name == 'data_objects' or request.resolver_match.url_name == 'data_object_create' or request.resolver_match.url_name == 'data_object_edit' %}
-                                    active
-                                {% endif %}
-                            "
-                    >
-                        <span>Objects</span>
-
-                        <span class="model-nav-count">
-                            {{ object_types|length }}
-                        </span>
-                    </a>
-
-                    <button
-                        type="button"
-                        class="model-nav-toggle"
-                        aria-expanded="true"
-                        aria-label="Collapse data objects"
-                    >
-                        <i class="bi bi-chevron-down"></i>
-                    </button>
-
-                </div>
-
-                <div class="model-nav-children">
-
-                    {% for object_type in object_types|slice:":10" %}
-
-                        <a
-                            href="{% url 'model:data_objects' model.id object_type.id %}"
-                            class="
-                                    model-nav-child
-                                    {% if request.resolver_match.url_name == 'data_objects' or request.resolver_match.url_name == 'data_object_create' or request.resolver_match.url_name == 'data_object_edit' %}
-                                        {% if request.resolver_match.kwargs.object_type_id|stringformat:'s' == object_type.id|stringformat:'s' %}
-                                            active
-                                        {% endif %}
-                                    {% endif %}
-                                "
-                        >
-                            <span>{{ object_type.name }}</span>
-                        </a>
-
-                    {% endfor %}
-
-                    {% if object_types|length > 10 %}
-
-                        <a
-                            href="{% url 'model:data_object_types' model.id %}"
-                            class="model-nav-more"
-                        >
-                            View all {{ object_types|length }} →
-                        </a>
-
-                    {% endif %}
-
-                </div>
-
-            </div>
-
-
-            <div class="model-nav-group">
-
-                <div class="model-nav-parent-row">
-
-                    <a
-                        href="{% url 'model:data_relationship_types' model.id %}"
-                        class="
-                                model-nav-item
-                                model-nav-parent
-                                {% if request.resolver_match.url_name == 'data_relationship_types' or request.resolver_match.url_name == 'data_relationships' or request.resolver_match.url_name == 'data_relationship_create' or request.resolver_match.url_name == 'data_relationship_edit' %}
-                                    active
-                                {% endif %}
-                            "
-                    >
-                        <span>Relationships</span>
-
-                        <span class="model-nav-count">
-                            {{ relationship_types|length }}
-                        </span>
-                    </a>
-
-                    <button
-                        type="button"
-                        class="model-nav-toggle"
-                        aria-expanded="true"
-                        aria-label="Collapse data relationships"
-                    >
-                        <i class="bi bi-chevron-down"></i>
-                    </button>
-
-                </div>
-
-                <div class="model-nav-children">
-
-                    {% for relationship_type in relationship_types|slice:":10" %}
-
-                        <a
-                            href="{% url 'model:data_relationships' model.id relationship_type.id %}"
-                            class="
-                                    model-nav-child
-                                    {% if request.resolver_match.url_name == 'data_relationships' or request.resolver_match.url_name == 'data_relationship_create' or request.resolver_match.url_name == 'data_relationship_edit' %}
-                                        {% if request.resolver_match.kwargs.relationship_type_id|stringformat:'s' == relationship_type.id|stringformat:'s' %}
-                                            active
-                                        {% endif %}
-                                    {% endif %}
-                                "
-                        >
-                            <span>{{ relationship_type.name }}</span>
-                        </a>
-
-                    {% endfor %}
-
-                    {% if relationship_types|length > 10 %}
-
-                        <a
-                            href="{% url 'model:data_relationship_types' model.id %}"
-                            class="model-nav-more"
-                        >
-                            View all {{ relationship_types|length }} →
-                        </a>
-
-                    {% endif %}
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="model-nav-section">
-
-            <div class="model-nav-section-label">
-                Proposals
-            </div>
-
-            {% for p in proposals %}
+            <div class="model-nav-children{% if active_url_name == 'overview' %}{% else %} collapsed{% endif %}">
 
                 <a
-                    href="{% url 'model:proposal' model.id p.id %}"
+                    href="{% url 'model:overview' model.id %}"
                     class="
                         model-nav-item
-                        model-nav-proposal
-                        model-nav-proposal-status-{{ p.status }}
-                        {% if active_proposal and p.id == active_proposal.id %}
+                        {% if active_url_name == 'overview' %}
                             active
                         {% endif %}
                     "
                 >
-                    <span class="model-nav-proposal-main">
-                        <span class="model-nav-proposal-title">
-                            {{ p.title|default:"Untitled proposal" }}
-                        </span>
-                        <span class="model-nav-proposal-meta">
-                            {{ p.get_source_display }} &middot; {{ p.get_status_display }}
-                        </span>
-                    </span>
-
-                    {% if p.change_count > 0 %}
-                        <span class="model-nav-count">
-                            {{ p.change_count }}
-                        </span>
-                    {% endif %}
+                    <span>Overview</span>
                 </a>
 
-            {% empty %}
+                <a
+                    href="#"
+                    class="model-nav-item"
+                >
+                    <span>Explore</span>
+                </a>
 
-                <div class="model-nav-empty">
-                    No open proposals
+                <a
+                    href="#"
+                    class="model-nav-item"
+                >
+                    <span>Assets</span>
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================
+             DEFINE
+             ================================================================ -->
+
+        <div class="model-nav-section">
+
+            <div class="model-nav-section-row">
+
+                <button
+                    type="button"
+                    class="model-nav-section-label"
+                >
+                    Define
+                </button>
+
+                <button
+                    type="button"
+                    class="model-nav-toggle"
+                    aria-expanded="{% if active_url_name == 'object_types' or active_url_name == 'object_type_edit' or active_url_name == 'object_type_create' or active_url_name == 'relationship_types' or active_url_name == 'relationship_type_edit' or active_url_name == 'relationship_type_create' %}true{% else %}false{% endif %}"
+                    aria-label="{% if active_url_name == 'object_types' or active_url_name == 'object_type_edit' or active_url_name == 'object_type_create' or active_url_name == 'relationship_types' or active_url_name == 'relationship_type_edit' or active_url_name == 'relationship_type_create' %}Collapse{% else %}Expand{% endif %} Define"
+                >
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+
+            </div>
+
+            <div class="model-nav-children{% if active_url_name == 'object_types' or active_url_name == 'object_type_edit' or active_url_name == 'object_type_create' or active_url_name == 'relationship_types' or active_url_name == 'relationship_type_edit' or active_url_name == 'relationship_type_create' %}{% else %} collapsed{% endif %}">
+
+                <div class="model-nav-group">
+
+                    <div class="model-nav-parent-row">
+
+                        <a
+                            href="{% url 'model:object_types' model.id %}"
+                            class="
+                                    model-nav-item
+                                    model-nav-parent
+                                    {% if active_url_name == 'object_types' or active_url_name == 'object_type_edit' or active_url_name == 'object_type_create' %}
+                                        active
+                                    {% endif %}
+                                "
+                        >
+                            <span>Object Types</span>
+
+                            <span class="model-nav-count">
+                                {{ object_types|length }}
+                            </span>
+                        </a>
+
+                        <button
+                            type="button"
+                            class="model-nav-toggle"
+                            aria-expanded="true"
+                            aria-label="Collapse object types"
+                        >
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+
+                    </div>
+
+                    <div class="model-nav-children">
+
+                        {% for object_type in object_types|slice:":10" %}
+
+                            <a
+                                href="{% url 'model:object_type_edit' model.id object_type.id %}"
+                                class="
+                                        model-nav-child
+                                        {% if active_url_name == 'object_type_edit' and request.resolver_match.kwargs.object_type_id|stringformat:'s' == object_type.id|stringformat:'s' %}
+                                            active
+                                        {% endif %}
+                                    "
+                            >
+                                <span>{{ object_type.name }}</span>
+                            </a>
+
+                        {% endfor %}
+
+                        {% if object_types|length > 10 %}
+
+                            <a
+                                href="#"
+                                class="model-nav-more"
+                            >
+                                View all {{ object_types|length }} →
+                            </a>
+
+                        {% endif %}
+
+                    </div>
+
                 </div>
 
-            {% endfor %}
 
-            <button
-                type="button"
-                class="model-nav-item model-nav-new-proposal"
-                id="model-new-proposal-btn"
-                data-create-url="{% url 'model:proposal_create' model.id %}"
-            >
-                <i class="bi bi-plus-lg"></i>
-                New proposal
-            </button>
+                <div class="model-nav-group">
+
+                    <div class="model-nav-parent-row">
+
+                        <a
+                            href="{% url 'model:relationship_types' model.id %}"
+                            class="
+                                    model-nav-item
+                                    model-nav-parent
+                                    {% if active_url_name == 'relationship_types' or active_url_name == 'relationship_type_edit' or active_url_name == 'relationship_type_create' %}
+                                        active
+                                    {% endif %}
+                                "
+                        >
+                            <span>Relationship Types</span>
+
+                            <span class="model-nav-count">
+                                {{ relationship_types|length }}
+                            </span>
+                        </a>
+
+                        <button
+                            type="button"
+                            class="model-nav-toggle"
+                            aria-expanded="true"
+                            aria-label="Collapse relationships"
+                        >
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+
+                    </div>
+
+                    <div class="model-nav-children">
+
+                        {% for relationship_type in relationship_types|slice:":10" %}
+
+                            <a
+                                href="{% url 'model:relationship_type_edit' model.id relationship_type.id %}"
+                                class="
+                                        model-nav-child
+                                        {% if active_url_name == 'relationship_type_edit' and request.resolver_match.kwargs.relationship_type_id|stringformat:'s' == relationship_type.id|stringformat:'s' %}
+                                            active
+                                        {% endif %}
+                                    "
+                            >
+                                <span>{{ relationship_type.name }}</span>
+                            </a>
+
+                        {% endfor %}
+
+                        {% if relationship_types|length > 10 %}
+
+                            <a
+                                href="#"
+                                class="model-nav-more"
+                            >
+                                View all {{ relationship_types|length }} →
+                            </a>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================
+             DATA
+             ================================================================ -->
+
+        <div class="model-nav-section">
+
+            <div class="model-nav-section-row">
+
+                <button
+                    type="button"
+                    class="model-nav-section-label"
+                >
+                    Data
+                </button>
+
+                <button
+                    type="button"
+                    class="model-nav-toggle"
+                    aria-expanded="{% if active_url_name == 'data_object_types' or active_url_name == 'data_objects' or active_url_name == 'data_object_create' or active_url_name == 'data_object_edit' or active_url_name == 'data_relationship_types' or active_url_name == 'data_relationships' or active_url_name == 'data_relationship_create' or active_url_name == 'data_relationship_edit' %}true{% else %}false{% endif %}"
+                    aria-label="{% if active_url_name == 'data_object_types' or active_url_name == 'data_objects' or active_url_name == 'data_object_create' or active_url_name == 'data_object_edit' or active_url_name == 'data_relationship_types' or active_url_name == 'data_relationships' or active_url_name == 'data_relationship_create' or active_url_name == 'data_relationship_edit' %}Collapse{% else %}Expand{% endif %} Data"
+                >
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+
+            </div>
+
+            <div class="model-nav-children{% if active_url_name == 'data_object_types' or active_url_name == 'data_objects' or active_url_name == 'data_object_create' or active_url_name == 'data_object_edit' or active_url_name == 'data_relationship_types' or active_url_name == 'data_relationships' or active_url_name == 'data_relationship_create' or active_url_name == 'data_relationship_edit' %}{% else %} collapsed{% endif %}">
+
+                <div class="model-nav-group">
+
+                    <div class="model-nav-parent-row">
+
+                        <a
+                            href="{% url 'model:data_object_types' model.id %}"
+                            class="
+                                    model-nav-item
+                                    model-nav-parent
+                                    {% if active_url_name == 'data_object_types' or active_url_name == 'data_objects' or active_url_name == 'data_object_create' or active_url_name == 'data_object_edit' %}
+                                        active
+                                    {% endif %}
+                                "
+                        >
+                            <span>Objects</span>
+
+                            <span class="model-nav-count">
+                                {{ object_types|length }}
+                            </span>
+                        </a>
+
+                        <button
+                            type="button"
+                            class="model-nav-toggle"
+                            aria-expanded="true"
+                            aria-label="Collapse data objects"
+                        >
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+
+                    </div>
+
+                    <div class="model-nav-children">
+
+                        {% for object_type in object_types|slice:":10" %}
+
+                            <a
+                                href="{% url 'model:data_objects' model.id object_type.id %}"
+                                class="
+                                        model-nav-child
+                                        {% if active_url_name == 'data_objects' or active_url_name == 'data_object_create' or active_url_name == 'data_object_edit' %}
+                                            {% if request.resolver_match.kwargs.object_type_id|stringformat:'s' == object_type.id|stringformat:'s' %}
+                                                active
+                                            {% endif %}
+                                        {% endif %}
+                                    "
+                            >
+                                <span>{{ object_type.name }}</span>
+                            </a>
+
+                        {% endfor %}
+
+                        {% if object_types|length > 10 %}
+
+                            <a
+                                href="{% url 'model:data_object_types' model.id %}"
+                                class="model-nav-more"
+                            >
+                                View all {{ object_types|length }} →
+                            </a>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="model-nav-group">
+
+                    <div class="model-nav-parent-row">
+
+                        <a
+                            href="{% url 'model:data_relationship_types' model.id %}"
+                            class="
+                                    model-nav-item
+                                    model-nav-parent
+                                    {% if active_url_name == 'data_relationship_types' or active_url_name == 'data_relationships' or active_url_name == 'data_relationship_create' or active_url_name == 'data_relationship_edit' %}
+                                        active
+                                    {% endif %}
+                                "
+                        >
+                            <span>Relationships</span>
+
+                            <span class="model-nav-count">
+                                {{ relationship_types|length }}
+                            </span>
+                        </a>
+
+                        <button
+                            type="button"
+                            class="model-nav-toggle"
+                            aria-expanded="true"
+                            aria-label="Collapse data relationships"
+                        >
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+
+                    </div>
+
+                    <div class="model-nav-children">
+
+                        {% for relationship_type in relationship_types|slice:":10" %}
+
+                            <a
+                                href="{% url 'model:data_relationships' model.id relationship_type.id %}"
+                                class="
+                                        model-nav-child
+                                        {% if active_url_name == 'data_relationships' or active_url_name == 'data_relationship_create' or active_url_name == 'data_relationship_edit' %}
+                                            {% if request.resolver_match.kwargs.relationship_type_id|stringformat:'s' == relationship_type.id|stringformat:'s' %}
+                                                active
+                                            {% endif %}
+                                        {% endif %}
+                                    "
+                            >
+                                <span>{{ relationship_type.name }}</span>
+                            </a>
+
+                        {% endfor %}
+
+                        {% if relationship_types|length > 10 %}
+
+                            <a
+                                href="{% url 'model:data_relationship_types' model.id %}"
+                                class="model-nav-more"
+                            >
+                                View all {{ relationship_types|length }} →
+                            </a>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================
+             GOVERN
+             ================================================================ -->
+
+        <div class="model-nav-section">
+
+            <div class="model-nav-section-row">
+
+                <button
+                    type="button"
+                    class="model-nav-section-label"
+                >
+                    Govern
+                </button>
+
+                <button
+                    type="button"
+                    class="model-nav-toggle"
+                    aria-expanded="{% if active_url_name == 'proposal_list' or active_url_name == 'proposal' or active_url_name == 'proposal_create' %}true{% else %}false{% endif %}"
+                    aria-label="{% if active_url_name == 'proposal_list' or active_url_name == 'proposal' or active_url_name == 'proposal_create' %}Collapse{% else %}Expand{% endif %} Govern"
+                >
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+
+            </div>
+
+            <div class="model-nav-children{% if active_url_name == 'proposal_list' or active_url_name == 'proposal' or active_url_name == 'proposal_create' %}{% else %} collapsed{% endif %}">
+
+                <div class="model-nav-group">
+
+                    <div class="model-nav-parent-row">
+
+                        <a
+                            href="{% url 'model:proposal_list' model.id %}"
+                            class="
+                                    model-nav-item
+                                    model-nav-parent
+                                    {% if active_url_name == 'proposal_list' or active_url_name == 'proposal' or active_url_name == 'proposal_create' %}
+                                        active
+                                    {% endif %}
+                                "
+                        >
+                            <span>Proposals</span>
+
+                            {% if proposals|length > 0 %}
+                                <span class="model-nav-count">
+                                    {{ proposals|length }}
+                                </span>
+                            {% endif %}
+                        </a>
+
+                        <button
+                            type="button"
+                            class="model-nav-toggle"
+                            aria-expanded="true"
+                            aria-label="Collapse proposals"
+                        >
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+
+                    </div>
+
+                    <div class="model-nav-children">
+
+                        {% for p in proposals %}
+
+                            <a
+                                href="{% url 'model:proposal' model.id p.id %}"
+                                class="
+                                    model-nav-item
+                                    model-nav-proposal
+                                    model-nav-proposal-status-{{ p.status }}
+                                    {% if active_proposal and p.id == active_proposal.id %}
+                                        active
+                                    {% endif %}
+                                "
+                            >
+                                <span class="model-nav-proposal-main">
+                                    <span class="model-nav-proposal-title">
+                                        {{ p.title|default:"Untitled proposal" }}
+                                    </span>
+                                    <span class="model-nav-proposal-meta">
+                                        {{ p.get_source_display }} &middot; {{ p.get_status_display }}
+                                    </span>
+                                </span>
+
+                                {% if p.change_count > 0 %}
+                                    <span class="model-nav-count">
+                                        {{ p.change_count }}
+                                    </span>
+                                {% endif %}
+                            </a>
+
+                        {% empty %}
+
+                            <div class="model-nav-empty">
+                                No open proposals
+                            </div>
+
+                        {% endfor %}
+
+                        <button
+                            type="button"
+                            class="model-nav-item model-nav-new-proposal"
+                            id="model-new-proposal-btn"
+                            data-create-url="{% url 'model:proposal_create' model.id %}"
+                        >
+                            <i class="bi bi-plus-lg"></i>
+                            New proposal
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================================================
+             PUBLISHING
+             ================================================================ -->
+
+        <div class="model-nav-section">
+
+            <div class="model-nav-section-row">
+
+                <button
+                    type="button"
+                    class="model-nav-section-label"
+                >
+                    Publishing
+                </button>
+
+                <button
+                    type="button"
+                    class="model-nav-toggle"
+                    aria-expanded="false"
+                    aria-label="Expand Publishing"
+                >
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+
+            </div>
+
+            <div class="model-nav-children collapsed">
+
+                <a
+                    href="#"
+                    class="model-nav-item"
+                >
+                    <span>Publish</span>
+                </a>
+
+                <a
+                    href="#"
+                    class="model-nav-item"
+                >
+                    <span>Publications</span>
+                </a>
+
+            </div>
 
         </div>
 
     </nav>
 
 </aside>
+
+{% endwith %}

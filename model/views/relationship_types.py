@@ -5,9 +5,11 @@ from django.shortcuts import render
 from model.models.proposal import Proposal, ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.views.common_context import get_model_context
+from model.views.sidebar import with_updated_sidebar
 
 
 @login_required
+@with_updated_sidebar
 def relationship_types(
     request,
     model_id,
