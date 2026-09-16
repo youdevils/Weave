@@ -46,10 +46,8 @@ RULE_FIELDS = {
     "object_type_id",
     "subject_minimum",
     "subject_maximum",
-    "subject_required",
     "object_minimum",
     "object_maximum",
-    "object_required",
 }
 
 
@@ -554,10 +552,8 @@ def _rule_canonical_values(rule):
         "object_type_id": rule.object_type_id,
         "subject_minimum": rule.subject_minimum,
         "subject_maximum": rule.subject_maximum,
-        "subject_required": rule.subject_required,
         "object_minimum": rule.object_minimum,
         "object_maximum": rule.object_maximum,
-        "object_required": rule.object_required,
     }
 
 
@@ -663,10 +659,8 @@ def _rule_view_object(
         ),
         subject_minimum=values["subject_minimum"],
         subject_maximum=values["subject_maximum"],
-        subject_required=values["subject_required"],
         object_minimum=values["object_minimum"],
         object_maximum=values["object_maximum"],
-        object_required=values["object_required"],
         is_proposed=_rule_is_proposed(
             rule.id,
             proposal,
@@ -704,20 +698,12 @@ def _rule_create_values(change):
         "subject_maximum": after.get(
             "subject_maximum",
         ),
-        "subject_required": after.get(
-            "subject_required",
-            False,
-        ),
         "object_minimum": after.get(
             "object_minimum",
             0,
         ),
         "object_maximum": after.get(
             "object_maximum",
-        ),
-        "object_required": after.get(
-            "object_required",
-            False,
         ),
     }
 
@@ -832,10 +818,8 @@ def _build_rule_view_objects(
                     ),
                     subject_minimum=values["subject_minimum"],
                     subject_maximum=values["subject_maximum"],
-                    subject_required=values["subject_required"],
                     object_minimum=values["object_minimum"],
                     object_maximum=values["object_maximum"],
-                    object_required=values["object_required"],
                     is_proposed=True,
                     is_created=True,
                     is_deleted=False,
@@ -932,20 +916,6 @@ def _coerce_rule_values(
         allow_blank=True,
     )
 
-    subject_required = (
-        request.POST.get(
-            "subject_required",
-        )
-        == "on"
-    )
-
-    object_required = (
-        request.POST.get(
-            "object_required",
-        )
-        == "on"
-    )
-
     if subject_maximum is not None and subject_minimum > subject_maximum:
         raise ValueError("Subject minimum cannot be greater than subject maximum.")
 
@@ -957,10 +927,8 @@ def _coerce_rule_values(
         "object_type_id": object_type_id,
         "subject_minimum": subject_minimum,
         "subject_maximum": subject_maximum,
-        "subject_required": subject_required,
         "object_minimum": object_minimum,
         "object_maximum": object_maximum,
-        "object_required": object_required,
     }
 
 

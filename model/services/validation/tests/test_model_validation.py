@@ -102,7 +102,7 @@ class ModelValidationTests(TestCase):
             relationship_type=self.member_of,
             subject_type=self.person_type,
             object_type=self.team_type,
-            object_required=True,
+            object_minimum=1,
         )
 
         Object.objects.create(
@@ -113,7 +113,7 @@ class ModelValidationTests(TestCase):
 
         self.assertFalse(result.valid)
         codes = {issue.code for issue in result.issues}
-        self.assertIn("object_required", codes)
+        self.assertIn("object_cardinality_minimum", codes)
 
     def test_structurally_invalid_attribute_definition_is_reported(self):
         AttributeDefinition.objects.create(

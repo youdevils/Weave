@@ -1301,46 +1301,6 @@
     max-width: 700px;
 }
 
-/* ---------------------------------------------------------
-   Rule checkboxes
-   --------------------------------------------------------- */
-
-.model-relationship-rule .model-editor-checkboxes,
-[data-new-rule-editor] .model-editor-checkboxes {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-    padding-top: 0.75rem;
-}
-
-.model-relationship-rule .model-editor-checkboxes .form-check,
-[data-new-rule-editor] .model-editor-checkboxes .form-check {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    width: auto;
-    margin: 0;
-    padding: 0;
-}
-
-.model-relationship-rule .model-editor-checkboxes .form-check-input,
-[data-new-rule-editor] .model-editor-checkboxes .form-check-input {
-    flex: 0 0 auto;
-    width: 1rem;
-    height: 1rem;
-    margin: 0;
-}
-
-.model-relationship-rule .model-editor-checkboxes .form-check-label,
-[data-new-rule-editor] .model-editor-checkboxes .form-check-label {
-    width: auto;
-    margin: 0;
-    color: var(--model-text-secondary);
-    font-size: 0.77rem;
-    font-weight: 500;
-}
-
 /* =========================================================
    Editor empty state / footer / form controls
    ========================================================= */

@@ -453,10 +453,8 @@ def _rule_canonical_values(
         "object_type_id": rule.object_type_id,
         "subject_minimum": rule.subject_minimum,
         "subject_maximum": rule.subject_maximum,
-        "subject_required": rule.subject_required,
         "object_minimum": rule.object_minimum,
         "object_maximum": rule.object_maximum,
-        "object_required": rule.object_required,
     }
 
 
@@ -554,10 +552,8 @@ def _rule_working_item(
         object_type=object_type,
         subject_minimum=values["subject_minimum"],
         subject_maximum=values["subject_maximum"],
-        subject_required=values["subject_required"],
         object_minimum=values["object_minimum"],
         object_maximum=values["object_maximum"],
-        object_required=values["object_required"],
         is_proposed=_rule_is_proposed(
             rule,
             proposal,
@@ -613,20 +609,12 @@ def _extract_created_rule_values(
         "subject_maximum": after.get(
             "subject_maximum",
         ),
-        "subject_required": after.get(
-            "subject_required",
-            False,
-        ),
         "object_minimum": after.get(
             "object_minimum",
             0,
         ),
         "object_maximum": after.get(
             "object_maximum",
-        ),
-        "object_required": after.get(
-            "object_required",
-            False,
         ),
     }
 
@@ -713,10 +701,8 @@ def _build_working_relationship_rules(
                     object_type=object_type,
                     subject_minimum=values["subject_minimum"],
                     subject_maximum=values["subject_maximum"],
-                    subject_required=values["subject_required"],
                     object_minimum=values["object_minimum"],
                     object_maximum=values["object_maximum"],
-                    object_required=values["object_required"],
                     is_proposed=True,
                     is_created=True,
                     is_deleted=False,
@@ -954,10 +940,8 @@ def _build_working_relationship_rules_for_proposed_type(
                 object_type=object_type,
                 subject_minimum=values["subject_minimum"],
                 subject_maximum=values["subject_maximum"],
-                subject_required=values["subject_required"],
                 object_minimum=values["object_minimum"],
                 object_maximum=values["object_maximum"],
-                object_required=values["object_required"],
                 is_proposed=True,
                 is_created=True,
                 is_deleted=False,

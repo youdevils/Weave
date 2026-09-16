@@ -76,10 +76,8 @@ class CardinalityValidationTests(TestCase):
             object_type=cls.system_type,
             subject_minimum=0,
             subject_maximum=None,
-            subject_required=False,
             object_minimum=0,
             object_maximum=None,
-            object_required=False,
         )
 
         # Process must have exactly one Team.
@@ -95,10 +93,8 @@ class CardinalityValidationTests(TestCase):
             object_type=cls.team_type,
             subject_minimum=0,
             subject_maximum=None,
-            subject_required=False,
             object_minimum=1,
             object_maximum=1,
-            object_required=True,
         )
 
         # -----------------------------------------------------
@@ -165,6 +161,39 @@ class CardinalityValidationTests(TestCase):
         self.assertTrue(result.valid)
         self.assertEqual(result.issues, [])
 
+    def test_rule_with_no_relationships_does_not_fail_when_minimum_is_zero(self):
+        """
+        The mere existence of a RelationshipTypeRule must never reject
+        an Object on its own -- only an explicit cardinality minimum
+        (e.g. subject_minimum/object_minimum >= 1) can require that at
+        least one relationship exists. `implements_rule` has zero
+        relationships of its type recorded anywhere in this model, and
+        both of its minimums are 0 (the default), so it must not
+        produce any issue for either the Process or System objects --
+        the Owned By relationships below are only present to satisfy
+        that unrelated rule's own minimum so the model as a whole is
+        valid.
+        """
+
+        Relationship.objects.create(
+            model=self.model,
+            relationship_type=self.owned_by,
+            subject=self.process,
+            object=self.team,
+        )
+
+        Relationship.objects.create(
+            model=self.model,
+            relationship_type=self.owned_by,
+            subject=self.process_2,
+            object=self.team,
+        )
+
+        result = validate_cardinality(self.model)
+
+        self.assertTrue(result.valid)
+        self.assertEqual(result.issues, [])
+
     # ---------------------------------------------------------
     # Object minimum
     # ---------------------------------------------------------
@@ -175,11 +204,6 @@ class CardinalityValidationTests(TestCase):
         self.assertFalse(result.valid)
 
         issue_codes = [issue.code for issue in result.issues]
-
-        self.assertIn(
-            "object_required",
-            issue_codes,
-        )
 
         self.assertIn(
             "object_cardinality_minimum",
@@ -247,7 +271,6 @@ class CardinalityValidationTests(TestCase):
 
     def test_subject_minimum_is_enforced(self):
         self.owned_by_rule.subject_minimum = 1
-        self.owned_by_rule.subject_required = True
         self.owned_by_rule.save()
 
         # Team has a Process.
@@ -266,18 +289,12 @@ class CardinalityValidationTests(TestCase):
         issue_codes = [issue.code for issue in result.issues]
 
         self.assertIn(
-            "subject_required",
-            issue_codes,
-        )
-
-        self.assertIn(
             "subject_cardinality_minimum",
             issue_codes,
         )
 
     def test_subject_minimum_is_satisfied(self):
         self.owned_by_rule.subject_minimum = 1
-        self.owned_by_rule.subject_required = True
         self.owned_by_rule.save()
 
         Relationship.objects.create(
@@ -450,11 +467,6 @@ class CardinalityValidationTests(TestCase):
         self.assertFalse(result.valid)
 
         self.assertIn(
-            "object_required",
-            [issue.code for issue in result.issues],
-        )
-
-        self.assertIn(
             "object_cardinality_minimum",
             [issue.code for issue in result.issues],
         )
@@ -484,7 +496,7 @@ class CardinalityValidationTests(TestCase):
         self.assertFalse(result.valid)
 
         self.assertIn(
-            "object_required",
+            "object_cardinality_minimum",
             [issue.code for issue in result.issues],
         )
 
@@ -549,7 +561,7 @@ class CardinalityValidationTests(TestCase):
         self.assertFalse(result.valid)
 
         self.assertIn(
-            "object_required",
+            "object_cardinality_minimum",
             [issue.code for issue in result.issues],
         )
 
@@ -559,7 +571,6 @@ class CardinalityValidationTests(TestCase):
 
     def test_multiple_cardinality_errors_are_returned(self):
         self.owned_by_rule.subject_minimum = 1
-        self.owned_by_rule.subject_required = True
         self.owned_by_rule.subject_maximum = 1
         self.owned_by_rule.save()
 
@@ -570,17 +581,7 @@ class CardinalityValidationTests(TestCase):
         issue_codes = [issue.code for issue in result.issues]
 
         self.assertIn(
-            "object_required",
-            issue_codes,
-        )
-
-        self.assertIn(
             "object_cardinality_minimum",
-            issue_codes,
-        )
-
-        self.assertIn(
-            "subject_required",
             issue_codes,
         )
 

@@ -75,22 +75,6 @@ def validate_cardinality(
         for subject in subjects:
             count = object_counts[subject.id]
 
-            if rule.object_required and count == 0:
-                issues.append(
-                    ValidationIssue(
-                        code="object_required",
-                        field="object",
-                        message=(
-                            f"Object '{subject.name}' must have at least "
-                            f"one '{rule.relationship_type.name}' "
-                            f"relationship to a "
-                            f"'{rule.object_type.name}'."
-                        ),
-                        target_type="Object",
-                        target_id=subject.id,
-                    )
-                )
-
             if count < rule.object_minimum:
                 issues.append(
                     ValidationIssue(
@@ -139,22 +123,6 @@ def validate_cardinality(
 
         for object_ in objects:
             count = subject_counts[object_.id]
-
-            if rule.subject_required and count == 0:
-                issues.append(
-                    ValidationIssue(
-                        code="subject_required",
-                        field="subject",
-                        message=(
-                            f"Object '{object_.name}' must have at least "
-                            f"one '{rule.relationship_type.name}' "
-                            f"relationship from a "
-                            f"'{rule.subject_type.name}'."
-                        ),
-                        target_type="Object",
-                        target_id=object_.id,
-                    )
-                )
 
             if count < rule.subject_minimum:
                 issues.append(

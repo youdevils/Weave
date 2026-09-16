@@ -2082,18 +2082,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
       subject_maximum: editor.querySelector('[name="subject_maximum"]').value,
 
-      subject_required: editor.querySelector('[name="subject_required"]')
-        .checked
-        ? "on"
-        : "",
-
       object_minimum: editor.querySelector('[name="object_minimum"]').value,
 
       object_maximum: editor.querySelector('[name="object_maximum"]').value,
-
-      object_required: editor.querySelector('[name="object_required"]').checked
-        ? "on"
-        : "",
     };
   }
 

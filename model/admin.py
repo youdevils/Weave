@@ -102,15 +102,8 @@ class RelationshipTypeRuleAdmin(admin.ModelAdmin):
         "object_type",
         "subject_minimum",
         "subject_maximum",
-        "subject_required",
         "object_minimum",
         "object_maximum",
-        "object_required",
-    )
-
-    list_filter = (
-        "subject_required",
-        "object_required",
     )
 
     search_fields = (

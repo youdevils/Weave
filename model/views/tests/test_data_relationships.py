@@ -290,8 +290,8 @@ class DataProposalOnlyRelationshipTypeTests(TestCase):
             after={
                 "subject_type_id": str(self.process_type.id),
                 "object_type_id": str(self.app_type.id),
-                "subject_minimum": 0, "subject_maximum": None, "subject_required": False,
-                "object_minimum": 0, "object_maximum": None, "object_required": False,
+                "subject_minimum": 0, "subject_maximum": None,
+                "object_minimum": 0, "object_maximum": None,
             },
         )
 

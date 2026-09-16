@@ -42,10 +42,6 @@ class RelationshipTypeRule(models.Model):
         blank=True,
     )
 
-    subject_required = models.BooleanField(
-        default=False,
-    )
-
     # ---------------------------------------------------------
     # Object cardinality
     # ---------------------------------------------------------
@@ -57,10 +53,6 @@ class RelationshipTypeRule(models.Model):
     object_maximum = models.PositiveIntegerField(
         null=True,
         blank=True,
-    )
-
-    object_required = models.BooleanField(
-        default=False,
     )
 
     # ---------------------------------------------------------
