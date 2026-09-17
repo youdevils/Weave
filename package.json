@@ -1,0 +1,13 @@
+{
+  "name": "weave",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Root package.json for Weave's frontend dependencies (currently: vis-network, used by the viewer app's WeaveViewer wrapper).",
+  "scripts": {
+    "test": "node --test \"viewer/jstests/*.test.js\""
+  },
+  "dependencies": {
+    "vis-network": "10.1.2"
+  }
+}

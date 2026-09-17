@@ -7,6 +7,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # path("", include(("website.urls", "website"), namespace="website")),
     path("model/", include(("model.urls", "model"), namespace="model")),
+    path("viewer/", include(("viewer.urls", "viewer"), namespace="viewer")),
     path("", include(("workspace.urls", "workspace"), namespace="workspace")),
     # path("api/", include(("api.urls", "api"), namespace="api")),
 ]

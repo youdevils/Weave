@@ -1,0 +1,20 @@
+Package: vis-network
+Version: 10.1.2 (pinned in the root package.json)
+
+Files:
+  vis-network.min.js  <- standalone/umd/vis-network.min.js
+  vis-network.min.css <- styles/vis-network.min.css
+
+Source: fetched from https://cdn.jsdelivr.net/npm/vis-network@10.1.2/ as a
+one-time vendoring step on a machine without a local Node.js/npm install
+available. jsdelivr serves the exact files published to the npm registry for
+this package version (confirmed via the file's own header: "@version
+10.1.2").
+
+To re-vendor after a version bump (once Node is available):
+  npm install --save-exact vis-network@<new-version>
+  copy node_modules/vis-network/standalone/umd/vis-network.min.js -> vis-network.min.js
+  copy node_modules/vis-network/styles/vis-network.min.css        -> vis-network.min.css
+
+No build pipeline copies these automatically — this is a manual, documented
+step, consistent with the viewer app not depending on a bundler.

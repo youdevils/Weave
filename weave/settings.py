@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "api",
     "ingestion",
     "publication",
+    "viewer",
     "workspace",
     # Third Party
     "rest_framework",
