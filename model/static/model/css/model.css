@@ -497,6 +497,83 @@
 }
 
 /* =========================================================
+   Ontology graph
+   ========================================================= */
+
+.model-overview-ontology {
+    margin-top: 1.75rem;
+}
+
+.model-ontology-graph-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.6rem;
+}
+
+.model-ontology-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.1rem;
+}
+
+.model-ontology-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--model-text-muted);
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.model-ontology-legend-item i {
+    font-size: 0.78rem;
+}
+
+.model-ontology-legend-swatch {
+    display: inline-block;
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 3px;
+}
+
+.model-ontology-legend-swatch-node {
+    background: #edf2ff;
+    border: 1.5px solid #4c6ef5;
+}
+
+.model-ontology-legend-swatch-edge {
+    width: 1.1rem;
+    height: 0;
+    border-radius: 0;
+    border-top: 2px solid #495057;
+}
+
+.model-ontology-legend-swatch-proposed {
+    width: 1.1rem;
+    height: 0;
+    border-radius: 0;
+    border-top: 2px dashed #f08c00;
+}
+
+.model-ontology-reset-button {
+    flex: 0 0 auto;
+}
+
+.model-ontology-graph-canvas {
+    width: 100%;
+    height: 65vh;
+    min-height: 420px;
+    max-height: 760px;
+    border: 1px solid var(--model-border);
+    border-radius: 10px;
+    background: var(--model-surface);
+}
+
+/* =========================================================
    Object Types index
    ========================================================= */
 
@@ -2141,6 +2218,16 @@
 
     .model-structure-card {
         width: 100%;
+    }
+
+    .model-ontology-graph-panel {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .model-ontology-graph-canvas {
+        height: 55vh;
+        min-height: 320px;
     }
 }
 

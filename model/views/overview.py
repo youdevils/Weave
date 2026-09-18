@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 
 from model.models.proposal import ProposalChange
+from model.services.ontology_graph.compiler import compile_ontology_graph
 from model.services.proposal.proposal import ProposalService
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
@@ -280,8 +281,14 @@ def overview(
         proposal,
     )
 
+    ontology_payload = compile_ontology_graph(
+        model,
+        proposal,
+    ).to_dict()
+
     context.update(
         {
+            "ontology_payload": ontology_payload,
             "name_value": working_values["name"],
             "name_proposed": ("name" in proposed_fields),
             "description_value": working_values["description"],
