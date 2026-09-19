@@ -107,6 +107,87 @@ test("translateNode never spreads style.extra into the translated object", () =>
   assert.ok(!JSON.stringify(translated).includes("should-not-appear"));
 });
 
+test("translateNode passes an image through for image-based nodes", () => {
+  const node = {
+    id: "n1",
+    type_key: "type.a",
+    label: "Node 1",
+    style: { shape: "circularImage", image: "data:image/svg+xml;charset=utf-8,%3Csvg%2F%3E" },
+  };
+
+  const translated = translateNode(node);
+
+  assert.equal(translated.shape, "circularImage");
+  assert.equal(translated.image, "data:image/svg+xml;charset=utf-8,%3Csvg%2F%3E");
+});
+
+test("translateNode omits image when absent", () => {
+  const translated = translateNode({ id: "n1", type_key: "type.a", label: "Node 1", style: { shape: "box" } });
+
+  assert.ok(!("image" in translated));
+});
+
+test("translateNode leaves a normal-weight label and font untouched", () => {
+  const node = {
+    id: "n1",
+    type_key: "type.a",
+    label: "Plain <label>",
+    style: { font: { color: "#212529", size: 14, face: "Arial, Helvetica, sans-serif" } },
+  };
+
+  const translated = translateNode(node);
+
+  assert.equal(translated.label, "Plain <label>");
+  assert.deepEqual(translated.font, { color: "#212529", size: 14, face: "Arial, Helvetica, sans-serif" });
+});
+
+test("translateNode renders bold as an html-multi label and never passes weight to vis-network", () => {
+  const node = {
+    id: "n1",
+    type_key: "type.a",
+    label: "Fish & <Chips>",
+    style: { font: { color: "#212529", size: 14, weight: "bold" } },
+  };
+
+  const translated = translateNode(node);
+
+  assert.equal(translated.label, "<b>Fish &amp; &lt;Chips&gt;</b>");
+  assert.equal(translated.font.multi, "html");
+  assert.equal(translated.font.color, "#212529");
+  assert.equal(translated.font.size, 14);
+  assert.ok(!("weight" in translated.font));
+});
+
+test("translateNode treats an explicit normal weight like no weight", () => {
+  const translated = translateNode({
+    id: "n1",
+    type_key: "type.a",
+    label: "Node 1",
+    style: { font: { size: 12, weight: "normal" } },
+  });
+
+  assert.equal(translated.label, "Node 1");
+  assert.deepEqual(translated.font, { size: 12 });
+});
+
+test("translateEdge is unaffected by font weight handling", () => {
+  const edge = {
+    id: "e1",
+    relationship_type_key: "rel.a",
+    source: "n1",
+    target: "n2",
+    label: "relates to",
+    style: { font: { color: "#495057", size: 11, face: "Arial" }, dashes: [8, 6], arrows: "to, from" },
+  };
+
+  const translated = translateEdge(edge);
+
+  assert.equal(translated.label, "relates to");
+  assert.deepEqual(translated.font, { color: "#495057", size: 11, face: "Arial" });
+  assert.deepEqual(translated.dashes, [8, 6]);
+  assert.equal(translated.arrows, "to, from");
+});
+
 test("translateEdge maps source/target to from/to and only present style fields", () => {
   const edge = {
     id: "e1",

@@ -314,7 +314,10 @@
 
         <div class="model-ontology-graph-panel">
 
-            <div class="model-ontology-legend">
+            <div
+                class="model-ontology-legend"
+                style="--legend-node-background: {{ ontology_legend.node_background }}; --legend-node-border: {{ ontology_legend.node_border }}; --legend-edge: {{ ontology_legend.edge_colour }}; --legend-proposed: {{ ontology_legend.proposed_colour }};"
+            >
 
                 <span class="model-ontology-legend-item">
                     <span class="model-ontology-legend-swatch model-ontology-legend-swatch-node"></span>
@@ -354,6 +357,7 @@
         <div
             id="model-ontology-graph"
             class="model-ontology-graph-canvas"
+            style="background: {{ canvas_background }};"
         ></div>
 
     </section>

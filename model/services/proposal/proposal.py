@@ -2,6 +2,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from model.models.proposal import Proposal, ProposalChange
+from model.services.appearance import AppearanceService
 
 
 class ProposalService:
@@ -205,10 +206,19 @@ class ProposalService:
                 after__field=field,
             )
 
+        discarded_type_create = changes.filter(
+            operation=ProposalChange.Operation.CREATE,
+            target_type__in=("ObjectType", "RelationshipType"),
+        ).exists()
+
         result = changes.delete()
 
         if result[0] > 0:
             ProposalService.reset_validation(proposal)
+
+        if discarded_type_create:
+            # A proposed-only type is gone: drop any style saved against it.
+            AppearanceService.prune(proposal.model)
 
         return result
 
@@ -269,7 +279,11 @@ class ProposalService:
         ):
             raise ValueError("Only editable proposals can be abandoned.")
 
+        model = proposal.model
         proposal.delete()
+
+        # Styles saved against types only this proposal introduced are now orphaned.
+        AppearanceService.prune(model)
 
     @staticmethod
     @transaction.atomic

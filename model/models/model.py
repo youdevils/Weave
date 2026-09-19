@@ -48,5 +48,13 @@ class Model(models.Model):
         default=1,
     )
 
+    # Visual customisation document. Its structure is private to
+    # model.services.appearance.AppearanceService; nothing else reads or
+    # writes its keys. Not governed by the Proposal system.
+    appearance = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
     def __str__(self):
         return self.name

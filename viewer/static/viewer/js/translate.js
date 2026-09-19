@@ -78,6 +78,26 @@ export function assertValidPayload(payload) {
   }
 }
 
+function escapeHtml(text) {
+  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/**
+ * vis-network cannot bold a plain label, only markup inside a `multi` label.
+ * So a Weave `font.weight: "bold"` becomes an html-multi font plus a <b>-wrapped,
+ * escaped label; `weight` itself is never passed on to vis-network.
+ */
+function translateNodeFont(font, label) {
+  const { weight, ...visFont } = font;
+  if (weight !== "bold") {
+    return { font: visFont, label };
+  }
+  return {
+    font: { ...visFont, multi: "html" },
+    label: `<b>${escapeHtml(label)}</b>`,
+  };
+}
+
 export function translateNode(node) {
   const style = node.style || {};
   const translated = {
@@ -96,8 +116,13 @@ export function translateNode(node) {
     if (style.border != null) translated.color.border = style.border;
   }
   if (style.border_width != null) translated.borderWidth = style.border_width;
-  if (style.font && Object.keys(style.font).length > 0) translated.font = style.font;
+  if (style.font && Object.keys(style.font).length > 0) {
+    const { font, label } = translateNodeFont(style.font, node.label);
+    translated.label = label;
+    if (Object.keys(font).length > 0) translated.font = font;
+  }
   if (style.size != null) translated.size = style.size;
+  if (style.image != null) translated.image = style.image;
 
   return translated;
 }

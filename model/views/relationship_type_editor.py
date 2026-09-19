@@ -10,6 +10,7 @@ from model.models.attribute_definition import AttributeDefinition
 from model.models.relationship_type import RelationshipType
 from model.models.relationship_type_rule import RelationshipTypeRule
 from model.models.proposal import ProposalChange
+from model.services.appearance import RELATIONSHIP_TYPE, AppearanceService
 from model.services.proposal.proposal import ProposalService
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
@@ -1327,6 +1328,12 @@ def _render_editor(
                 errors,
             ),
             "proposal_update_url": request.path,
+            # Style saves directly (never via the proposal); works for proposed-only types too.
+            "appearance_form": (
+                AppearanceService.type_form(model, RELATIONSHIP_TYPE, relationship_type.id)
+                if relationship_type
+                else None
+            ),
             "attribute_data_types": (AttributeDefinition.DataType.choices),
         }
     )

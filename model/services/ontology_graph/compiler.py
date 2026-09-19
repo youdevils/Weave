@@ -21,14 +21,14 @@ from model.models.model import Model
 from model.models.object_type import ObjectType
 from model.models.proposal import Proposal
 from model.models.relationship_type import RelationshipType
+from model.services.appearance import AppearanceService
+from model.services.appearance.viewer_adapter import edge_style, node_style
 from model.views.common_context import (
     _build_working_object_types,
     _build_working_relationship_types,
     _working_object_type_lookup,
 )
 from viewer.contracts import (
-    EdgeStyle,
-    NodeStyle,
     SCHEMA_VERSION,
     TypeMetadata,
     LayoutConfig,
@@ -41,49 +41,24 @@ from viewer.contracts import (
     ViewerPayload,
 )
 
-# ------------------------------------------------------------------------------------
-# Restrained, opinionated visual language — reuses the accent colours already
-# established by viewer.services.sample_payload rather than inventing a new palette.
-# ------------------------------------------------------------------------------------
-
 NODE_TYPE_KEY = "object_type"
 EDGE_TYPE_KEY = "relationship_type"
-
-_CANONICAL_NODE_STYLE = {"shape": "box", "background": "#EDF2FF", "border": "#4C6EF5", "border_width": 1.5}
-_PROPOSED_NODE_STYLE = {"shape": "box", "background": "#FFF3BF", "border": "#F08C00", "border_width": 1.5}
-_NODE_FONT = {"color": "#212529", "size": 14}
-
-_CANONICAL_EDGE_COLOUR = "#495057"
-_PROPOSED_EDGE_COLOUR = "#F08C00"
-_EDGE_FONT = {"color": "#495057", "size": 11}
-
-
-def _node_style(is_proposed: bool) -> NodeStyle:
-    base = _PROPOSED_NODE_STYLE if is_proposed else _CANONICAL_NODE_STYLE
-    return NodeStyle(
-        shape=base["shape"],
-        background=base["background"],
-        border=base["border"],
-        border_width=base["border_width"],
-        font=dict(_NODE_FONT),
-    )
-
-
-def _edge_style(is_proposed: bool) -> EdgeStyle:
-    return EdgeStyle(
-        colour=_PROPOSED_EDGE_COLOUR if is_proposed else _CANONICAL_EDGE_COLOUR,
-        width=1.5,
-        dashes=True if is_proposed else None,
-        arrows="to",
-        font=dict(_EDGE_FONT),
-    )
 
 
 def compile_ontology_graph(
     model: Model,
     proposal: Proposal | None = None,
 ) -> ViewerPayload:
-    """Compile the effective ontology (canonical + active proposal overlay) of a Model."""
+    """
+    Compile the effective ontology (canonical + active proposal overlay) of a Model.
+
+    Visual styling is not decided here: each node and edge takes its type's
+    resolved appearance from the shared appearance service, so the ontology
+    and any other graph of this model share one visual identity. Only the
+    proposal-overlay cue is applied on top, by the shared viewer adapter.
+    """
+
+    appearance = AppearanceService.resolver(model)
 
     canonical_object_types = ObjectType.objects.filter(model=model).order_by("sort_order", "name")
     canonical_relationship_types = RelationshipType.objects.filter(model=model).order_by("sort_order", "name")
@@ -111,7 +86,10 @@ def compile_ontology_graph(
                 "is_proposed": object_type.is_proposed,
                 "is_created": object_type.is_created,
             },
-            style=_node_style(object_type.is_proposed),
+            style=node_style(
+                appearance.object_type(object_type.id),
+                is_proposed=object_type.is_proposed,
+            ),
         )
         for object_type in active_object_types
     ]
@@ -124,6 +102,10 @@ def compile_ontology_graph(
             continue
 
         for rule in relationship_type.rules:
+
+            # A proposed rename/update of the type is as visible as a proposed rule.
+            is_proposed = relationship_type.is_proposed or rule.is_proposed
+            type_appearance = appearance.relationship_type(relationship_type.id)
 
             source_id = str(rule.subject_type_id)
             target_id = str(rule.object_type_id)
@@ -144,10 +126,10 @@ def compile_ontology_graph(
                         "subject_maximum": rule.subject_maximum,
                         "object_minimum": rule.object_minimum,
                         "object_maximum": rule.object_maximum,
-                        "is_proposed": rule.is_proposed,
+                        "is_proposed": is_proposed,
                         "is_created": rule.is_created,
                     },
-                    style=_edge_style(rule.is_proposed),
+                    style=edge_style(type_appearance, is_proposed=is_proposed),
                 )
             )
 
@@ -167,6 +149,9 @@ def compile_ontology_graph(
                 solver="forceAtlas2Based",
                 stabilisation=StabilisationConfig(enabled=True, fit=True),
             ),
+            # Host-page concern (the viewer does not interpret ``extra``): the
+            # page applies this to its own container.
+            extra={"canvas_background": appearance.theme.canvas_background},
         ),
         node_types=[TypeMetadata(key=NODE_TYPE_KEY, label="Object Type")],
         edge_types=[TypeMetadata(key=EDGE_TYPE_KEY, label="Relationship Type")],

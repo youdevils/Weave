@@ -1,6 +1,8 @@
 
 {% extends "model/model_base.html" %}
 
+{% load static %}
+
 {% block model_content %}
 
 <div class="model-object-type-editor">
@@ -673,6 +675,37 @@
 
                 </div>
 
+
+            </section>
+
+
+            <!-- ========================================================
+                 APPEARANCE
+                 Direct save: visual style is not part of the proposal system.
+                 ======================================================== -->
+
+            <section class="model-editor-section model-appearance-section">
+
+                <div class="model-editor-section-header">
+
+                    <div>
+
+                        <h2>Appearance</h2>
+
+                        <p>
+                            The visual identity of this object type, shared by the ontology and every data view.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                {% url 'model:object_type_appearance' model.id object_type.id as appearance_endpoint %}
+                {% include "model/_appearance_controls.html" with groups=appearance_form.groups endpoint=appearance_endpoint initial_id="appearance-object-type" inherited_label="Inherited" preview_kind="object_type" reset_all_label="Reset to model defaults" %}
+
+                <p class="appearance-section-note">
+                    Style changes save immediately and are not part of a proposal.
+                </p>
 
             </section>
 
@@ -1728,3 +1761,9 @@
 
 {% endblock %}
 
+{% block extra_js %}
+{{ block.super }}
+{% if appearance_form %}
+<script type="module" src="{% static 'model/js/appearance/appearance-boot.js' %}"></script>
+{% endif %}
+{% endblock %}

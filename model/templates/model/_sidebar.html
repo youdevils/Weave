@@ -29,15 +29,15 @@
                 <button
                     type="button"
                     class="model-nav-toggle"
-                    aria-expanded="{% if active_url_name == 'overview' %}true{% else %}false{% endif %}"
-                    aria-label="{% if active_url_name == 'overview' %}Collapse{% else %}Expand{% endif %} Understand"
+                    aria-expanded="{% if active_url_name == 'overview' or active_url_name == 'customise' %}true{% else %}false{% endif %}"
+                    aria-label="{% if active_url_name == 'overview' or active_url_name == 'customise' %}Collapse{% else %}Expand{% endif %} Understand"
                 >
                     <i class="bi bi-chevron-down"></i>
                 </button>
 
             </div>
 
-            <div class="model-nav-children{% if active_url_name == 'overview' %}{% else %} collapsed{% endif %}">
+            <div class="model-nav-children{% if active_url_name == 'overview' or active_url_name == 'customise' %}{% else %} collapsed{% endif %}">
 
                 <a
                     href="{% url 'model:overview' model.id %}"
@@ -63,6 +63,18 @@
                     class="model-nav-item"
                 >
                     <span>Assets</span>
+                </a>
+
+                <a
+                    href="{% url 'model:customise' model.id %}"
+                    class="
+                        model-nav-item
+                        {% if active_url_name == 'customise' %}
+                            active
+                        {% endif %}
+                    "
+                >
+                    <span>Customise</span>
                 </a>
 
             </div>

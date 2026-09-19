@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 
 from model.models.proposal import ProposalChange
+from model.services.appearance import AppearanceService
 from model.services.ontology_graph.compiler import compile_ontology_graph
 from model.services.proposal.proposal import ProposalService
 from model.views.active_proposal import get_or_create_active_proposal
@@ -289,6 +290,8 @@ def overview(
     context.update(
         {
             "ontology_payload": ontology_payload,
+            "ontology_legend": AppearanceService.legend(model),
+            "canvas_background": AppearanceService.resolve_theme(model).canvas_background,
             "name_value": working_values["name"],
             "name_proposed": ("name" in proposed_fields),
             "description_value": working_values["description"],

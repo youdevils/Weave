@@ -1,0 +1,100 @@
+{% comment %}
+Shared appearance controls: used by the Customise page and by both type editors,
+so all three render and behave identically.
+
+Expects:
+  groups          list of field groups from AppearanceService (customisation_form / type_form)
+  endpoint        URL that saves one change (direct save, never a proposal)
+  initial_id      unique id for the embedded initial state (json_script)
+Optional:
+  scope           "theme" | "object" | "relationship" (Customise page only)
+  inherited_label text shown when a field is not overridden (default "Default")
+  preview_kind    "object_type" | "relationship_type" to show a small preview
+  reset_all_label label for a button that clears every override in this form
+{% endcomment %}
+<div
+    class="appearance-form"
+    data-appearance-form
+    data-endpoint="{{ endpoint }}"
+    data-scope="{{ scope }}"
+    data-inherited-label="{{ inherited_label|default:'Default' }}"
+>
+    {% csrf_token %}
+
+    {% if preview_kind == "object_type" %}
+    <div class="appearance-preview" data-appearance-preview data-kind="object_type" aria-hidden="true">
+        <div class="appearance-preview-node" data-preview-node data-shape="box">
+            <span class="appearance-preview-icon" data-preview-icon hidden></span>
+            <span>Sample</span>
+        </div>
+    </div>
+    {% elif preview_kind == "relationship_type" %}
+    <div class="appearance-preview" data-appearance-preview data-kind="relationship_type" aria-hidden="true">
+        <span class="appearance-preview-label" data-preview-label>relates to</span>
+        <div class="appearance-preview-line" data-preview-line data-arrows="to"></div>
+    </div>
+    {% endif %}
+
+    {% for group in groups %}
+    <fieldset class="appearance-group">
+        <legend>{{ group.label }}</legend>
+        <div class="appearance-fields">
+            {% for field in group.fields %}
+            <div
+                class="appearance-field"
+                data-appearance-field="{{ field.key }}"
+                data-overridden="{% if field.overridden %}true{% else %}false{% endif %}"
+            >
+                <label for="{{ initial_id }}-{{ field.key }}">{{ field.label }}</label>
+                <div class="appearance-control-row">
+                    {% if field.control == "color" %}
+                    <input
+                        type="color"
+                        id="{{ initial_id }}-{{ field.key }}"
+                        class="appearance-color"
+                        data-appearance-control
+                        value="{{ field.value }}"
+                    >
+                    {% elif field.control == "number" %}
+                    <input
+                        type="number"
+                        id="{{ initial_id }}-{{ field.key }}"
+                        class="form-control form-control-sm appearance-number"
+                        data-appearance-control
+                        value="{{ field.value }}"
+                        {% if field.min is not None %}min="{{ field.min }}"{% endif %}
+                        {% if field.max is not None %}max="{{ field.max }}"{% endif %}
+                        {% if field.step is not None %}step="{{ field.step }}"{% endif %}
+                    >
+                    {% else %}
+                    <select
+                        id="{{ initial_id }}-{{ field.key }}"
+                        class="form-select form-select-sm appearance-select"
+                        data-appearance-control
+                    >
+                        {% if field.control == "icon" %}<option value="" {% if not field.value %}selected{% endif %}>None</option>{% endif %}
+                        {% for choice in field.choices %}
+                        <option value="{{ choice.value }}" {% if choice.value == field.value %}selected{% endif %}>{{ choice.label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% endif %}
+                    <span class="appearance-state" data-appearance-state>{% if field.overridden %}Customised{% else %}{{ inherited_label|default:"Default" }}{% endif %}</span>
+                    <button type="button" class="appearance-reset" data-appearance-reset {% if not field.overridden %}hidden{% endif %}>Reset</button>
+                </div>
+                {% if field.help %}<div class="appearance-help">{{ field.help }}</div>{% endif %}
+                <div class="appearance-help" data-appearance-note hidden></div>
+            </div>
+            {% endfor %}
+        </div>
+    </fieldset>
+    {% endfor %}
+
+    <div class="appearance-footer">
+        <span class="appearance-status" data-appearance-status role="status"></span>
+        {% if reset_all_label %}
+        <button type="button" class="appearance-reset-all" data-appearance-reset-all>{{ reset_all_label }}</button>
+        {% endif %}
+    </div>
+
+    {{ groups|json_script:initial_id }}
+</div>

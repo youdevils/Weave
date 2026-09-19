@@ -541,22 +541,22 @@
 }
 
 .model-ontology-legend-swatch-node {
-    background: #edf2ff;
-    border: 1.5px solid #4c6ef5;
+    background: var(--legend-node-background, #edf2ff);
+    border: 1.5px solid var(--legend-node-border, #4c6ef5);
 }
 
 .model-ontology-legend-swatch-edge {
     width: 1.1rem;
     height: 0;
     border-radius: 0;
-    border-top: 2px solid #495057;
+    border-top: 2px solid var(--legend-edge, #495057);
 }
 
 .model-ontology-legend-swatch-proposed {
     width: 1.1rem;
     height: 0;
     border-radius: 0;
-    border-top: 2px dashed #f08c00;
+    border-top: 2px dashed var(--legend-proposed, #f08c00);
 }
 
 .model-ontology-reset-button {
@@ -571,6 +571,279 @@
     border: 1px solid var(--model-border);
     border-radius: 10px;
     background: var(--model-surface);
+}
+
+/* =========================================================
+   Appearance (shared by Customise page and type editors)
+   ========================================================= */
+
+.appearance-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+.appearance-group {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.appearance-group > legend {
+    float: none;
+    width: auto;
+    margin: 0 0 0.5rem;
+    padding: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--model-text-muted);
+}
+
+.appearance-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 0.9rem 1.25rem;
+}
+
+.appearance-field label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--model-text);
+}
+
+.appearance-control-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.appearance-color {
+    width: 2.6rem;
+    height: 2rem;
+    padding: 0.15rem;
+    border: 1px solid var(--model-border);
+    border-radius: 6px;
+    background: var(--model-surface);
+    cursor: pointer;
+}
+
+.appearance-number {
+    max-width: 6rem;
+}
+
+.appearance-select {
+    max-width: 14rem;
+}
+
+.appearance-state {
+    font-size: 0.75rem;
+    color: var(--model-text-muted);
+}
+
+.appearance-field[data-overridden="true"] .appearance-state {
+    color: var(--model-text);
+    font-weight: 600;
+}
+
+.appearance-reset,
+.appearance-reset-all {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 0.75rem;
+    color: var(--model-text-secondary);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.appearance-reset:hover,
+.appearance-reset-all:hover {
+    color: var(--model-text);
+}
+
+.appearance-help {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--model-text-muted);
+}
+
+.appearance-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 1.25rem;
+}
+
+.appearance-status {
+    font-size: 0.8rem;
+    color: var(--model-text-muted);
+}
+
+.appearance-status[data-state="error"] {
+    color: var(--model-danger);
+}
+
+.appearance-section-note {
+    margin: 0.75rem 0 0;
+    font-size: 0.78rem;
+    color: var(--model-text-muted);
+}
+
+.appearance-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 5rem;
+    padding: 0.75rem;
+    border: 1px dashed var(--model-border);
+    border-radius: 8px;
+    background: var(--model-surface-subtle);
+}
+
+.appearance-preview-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    border-style: solid;
+    border-radius: 6px;
+}
+
+.appearance-preview-node[data-shape="ellipse"],
+.appearance-preview-node[data-shape="circle"],
+.appearance-preview-node[data-shape="dot"],
+.appearance-preview-node[data-shape="icon"] {
+    border-radius: 999px;
+}
+
+.appearance-preview-node[data-shape="diamond"] {
+    border-radius: 2px;
+}
+
+.appearance-preview-node[data-shape="database"] {
+    border-radius: 14px / 8px;
+}
+
+.appearance-preview-node[data-shape="triangle"],
+.appearance-preview-node[data-shape="hexagon"],
+.appearance-preview-node[data-shape="star"] {
+    border-radius: 999px 999px 4px 4px;
+}
+
+.appearance-preview-node[data-shape="square"] {
+    border-radius: 0;
+}
+
+.appearance-preview-icon {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+}
+
+.appearance-preview {
+    gap: 0.75rem;
+}
+
+.appearance-preview-line {
+    position: relative;
+    width: 9rem;
+    height: 0;
+    border-top: 2px solid #495057;
+}
+
+.appearance-preview-line[data-arrows="to"]::after,
+.appearance-preview-line[data-arrows="both"]::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    top: -6px;
+    border-left: 9px solid currentColor;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+}
+
+.appearance-preview-line[data-arrows="from"]::before,
+.appearance-preview-line[data-arrows="both"]::before {
+    content: "";
+    position: absolute;
+    left: -1px;
+    top: -6px;
+    border-right: 9px solid currentColor;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+}
+
+.appearance-preview-label {
+    font-size: 0.75rem;
+}
+
+.model-appearance-section .appearance-preview {
+    margin-bottom: 1rem;
+}
+
+.model-customise-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 1.75rem;
+    align-items: start;
+}
+
+.model-customise-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.model-customise-scope h2 {
+    margin: 0 0 0.15rem;
+    font-size: 1.05rem;
+}
+
+.model-customise-scope > p {
+    margin: 0 0 0.85rem;
+    font-size: 0.85rem;
+    color: var(--model-text-secondary);
+}
+
+.model-customise-preview-title {
+    margin: 0 0 0.6rem;
+    font-size: 1.05rem;
+}
+
+.model-customise-preview {
+    position: sticky;
+    top: 1rem;
+}
+
+.model-customise-preview .model-ontology-graph-canvas {
+    height: 60vh;
+}
+
+.model-customise-reset {
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--model-border-light);
+}
+
+.model-customise-reset p {
+    margin: 0.4rem 0 0;
+    font-size: 0.78rem;
+    color: var(--model-text-muted);
+}
+
+@media (max-width: 1100px) {
+    .model-customise-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .model-customise-preview {
+        position: static;
+    }
 }
 
 /* =========================================================

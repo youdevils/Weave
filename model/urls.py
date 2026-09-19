@@ -1,6 +1,8 @@
 from django.urls import path
 
 from .views.overview import overview
+from .views.customise import customise
+from .views.appearance import type_appearance
 from .views.proposal import proposal, proposal_create
 from .views.object_types import object_types
 from .views.object_type_editor import object_type_editor
@@ -23,6 +25,14 @@ urlpatterns = [
         "<uuid:model_id>/",
         overview,
         name="overview",
+    ),
+    # ================================================================
+    # Customise (model-wide visual language; direct save, no proposals)
+    # ================================================================
+    path(
+        "<uuid:model_id>/customise/",
+        customise,
+        name="customise",
     ),
     # ================================================================
     # Proposals
@@ -60,6 +70,12 @@ urlpatterns = [
         object_type_editor,
         name="object_type_edit",
     ),
+    path(
+        "<uuid:model_id>/object-types/<uuid:type_id>/appearance/",
+        type_appearance,
+        {"kind": "object_type"},
+        name="object_type_appearance",
+    ),
     # ================================================================
     # Relationship Types
     # ================================================================
@@ -77,6 +93,12 @@ urlpatterns = [
         "<uuid:model_id>/relationship-types/<uuid:relationship_type_id>/",
         relationship_type_editor,
         name="relationship_type_edit",
+    ),
+    path(
+        "<uuid:model_id>/relationship-types/<uuid:type_id>/appearance/",
+        type_appearance,
+        {"kind": "relationship_type"},
+        name="relationship_type_appearance",
     ),
     # ================================================================
     # Data — Objects

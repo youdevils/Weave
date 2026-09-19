@@ -11,6 +11,7 @@ from model.models.proposal_submission_result import (
     ProposalSubmissionResult,
     ProposalValidationError,
 )
+from model.services.appearance import AppearanceService
 from model.services.proposal.review import ProposalReviewService
 from model.services.validation.model_validation import validate_model
 from model.services.validation.result import ValidationIssue
@@ -548,6 +549,10 @@ def process(proposal_id):
             proposal.status = Proposal.Status.COMPLETED
             proposal.validation_status = Proposal.ValidationStatus.VALID
             proposal.save(update_fields=["status", "validation_status", "updated_at"])
+
+            # Types deleted by this proposal no longer need their style; types it
+            # created keep theirs (same UUID, now canonical).
+            AppearanceService.prune(model)
 
             _store_result(
                 proposal,

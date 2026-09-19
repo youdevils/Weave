@@ -187,3 +187,23 @@ class StyleContractTests(SimpleTestCase):
 
         self.assertIn("colour", style.to_dict())
         self.assertNotIn("color", style.to_dict())
+
+    def test_node_style_image_is_optional_and_round_trips(self):
+        self.assertIsNone(NodeStyle().image)
+
+        payload = _make_valid_payload()
+        payload.nodes[0].style.image = "data:image/svg+xml;charset=utf-8,%3Csvg%3E%3C%2Fsvg%3E"
+        payload.nodes[0].style.shape = "circularImage"
+
+        restored = ViewerPayload.from_dict(payload.to_dict())
+
+        self.assertEqual(restored.nodes[0].style.image, payload.nodes[0].style.image)
+        self.assertIsNone(restored.nodes[1].style.image)
+        self.assertEqual(validate_payload(restored), [])
+
+    def test_payload_without_image_key_still_loads(self):
+        data = _make_valid_payload().to_dict()
+        for node in data["nodes"]:
+            node["style"].pop("image", None)
+
+        self.assertEqual(validate_payload(ViewerPayload.from_dict(data)), [])

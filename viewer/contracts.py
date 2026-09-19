@@ -44,6 +44,8 @@ class NodeStyle:
     border_width: float | None = None
     font: dict[str, Any] = field(default_factory=dict)
     size: float | None = None
+    # A URL or data URI drawn inside the node (rendered as a circular image).
+    image: str | None = None
     extra: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -246,6 +248,7 @@ class ViewerPayload:
                     border_width=(node.get("style") or {}).get("border_width"),
                     font=dict((node.get("style") or {}).get("font") or {}),
                     size=(node.get("style") or {}).get("size"),
+                    image=(node.get("style") or {}).get("image"),
                     extra=dict((node.get("style") or {}).get("extra") or {}),
                 ),
             )

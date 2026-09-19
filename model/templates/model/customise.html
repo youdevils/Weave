@@ -1,0 +1,151 @@
+{% extends "model/model_base.html" %}
+
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link
+    rel="stylesheet"
+    href="{% static 'viewer/vendor/vis-network/vis-network.min.css' %}"
+>
+{% endblock %}
+
+{% block model_content %}
+
+<div class="model-customise">
+
+    <div class="model-page-header">
+
+        <div>
+
+            <div class="model-page-eyebrow">Understand</div>
+
+            <h1 class="model-page-title">Customise</h1>
+
+            <p class="model-page-description">
+                Set the visual language of this model. These settings apply everywhere
+                the model is drawn, and each type can override them from its own editor.
+                Changes save immediately and are not part of a proposal.
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="model-customise-layout">
+
+        <div class="model-customise-controls">
+
+            {% for scope in appearance_form.scopes %}
+            <section class="model-customise-scope">
+
+                <h2>{{ scope.title }}</h2>
+                <p>{{ scope.description }}</p>
+
+                {% url 'model:customise' model.id as customise_endpoint %}
+                {% with initial_id="appearance-"|add:scope.scope %}
+                {% include "model/_appearance_controls.html" with groups=scope.groups endpoint=customise_endpoint scope=scope.scope initial_id=initial_id inherited_label="Default" %}
+                {% endwith %}
+
+            </section>
+            {% endfor %}
+
+            <div class="model-customise-reset">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    data-customise-reset-all
+                    {% if not appearance_form.has_customisation %}disabled{% endif %}
+                >
+                    Reset all to Weave defaults
+                </button>
+
+                <p>
+                    Resets the theme and model-wide defaults only. Styles set on individual
+                    Object Types and Relationship Types are kept.
+                </p>
+
+            </div>
+
+        </div>
+
+        <aside class="model-customise-preview">
+
+            <h2 class="model-customise-preview-title">Preview</h2>
+
+            {% if not has_types %}
+            <p class="appearance-help">
+                This model has no types yet. Add an Object Type to see it drawn here.
+            </p>
+            {% endif %}
+
+            {{ ontology_payload|json_script:"model-customise-payload" }}
+
+            <div
+                id="model-customise-graph"
+                class="model-ontology-graph-canvas"
+                style="background: {{ canvas_background }};"
+            ></div>
+
+        </aside>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'viewer/vendor/vis-network/vis-network.min.js' %}"></script>
+<script type="module">
+  import { WeaveViewer } from "{% static 'viewer/js/weave-viewer.js' %}";
+  import { applyCanvasBackground, postAppearance, buildBody } from "{% static 'model/js/appearance/appearance-form.js' %}";
+  import { applyResponse } from "{% static 'model/js/appearance/appearance-boot.js' %}";
+
+  const container = document.getElementById("model-customise-graph");
+  const payload = JSON.parse(document.getElementById("model-customise-payload").textContent);
+
+  const viewer = new WeaveViewer(container);
+  viewer.create(payload);
+  viewer.fit();
+
+  // The page (not the viewer) owns its container styling: the viewer does not
+  // interpret viewer_config.extra, so the resolved background is applied here.
+  document.addEventListener("appearance:updated", (event) => {
+    const { payload: fresh, canvas_background: background } = event.detail;
+    viewer.update(fresh);
+    applyCanvasBackground(container, background);
+
+    const resetAll = document.querySelector("[data-customise-reset-all]");
+    if (resetAll) {
+      resetAll.disabled = !event.detail.form.has_customisation;
+    }
+  });
+
+  const resetAll = document.querySelector("[data-customise-reset-all]");
+  if (resetAll) {
+    resetAll.addEventListener("click", async () => {
+      const confirmed = window.confirm(
+        "Reset the theme and model-wide defaults to Weave's built-in look? " +
+        "Styles set on individual types are kept."
+      );
+      if (!confirmed) return;
+
+      const csrf = document.querySelector("input[name=csrfmiddlewaretoken]").value;
+      try {
+        const data = await postAppearance(
+          window.fetch.bind(window),
+          "{% url 'model:customise' model.id %}",
+          csrf,
+          buildBody({ action: "reset_all" }),
+        );
+        applyResponse(data);
+      } catch (error) {
+        window.alert(error.message);
+      }
+    });
+  }
+</script>
+{% endblock %}
