@@ -393,13 +393,116 @@ test("type filters show every type with counts and its resolved swatch, checked 
   const html = renderTypeFilters(facets, toggleObjectType(initialState(), "t-team"));
 
   assert.match(html, /Application/);
-  assert.match(html, /background: #EDF2FF; border-color: #4C6EF5;/);
+  // Object swatch: the resolved colours, as an SVG marker.
+  assert.match(html, /<svg class="model-explorer-swatch" data-shape="box"/);
+  assert.match(html, /fill="#EDF2FF" stroke="#4C6EF5"/);
+  // Relationship swatch: unchanged colour and line style.
   assert.match(html, /border-top-color: #495057;/);
   assert.match(html, /data-line="dashed"/);
   const app = /<input[^>]*data-id="t-app"[^>]*>/.exec(html)[0];
   const team = /<input[^>]*data-id="t-team"[^>]*>/.exec(html)[0];
   assert.match(app, /checked/);
   assert.doesNotMatch(team, /checked/);
+});
+
+// ---------------------------------------------------------------------------
+// Legend swatches: object types show their configured shape or icon
+// ---------------------------------------------------------------------------
+
+const objectFacets = (swatch) => ({
+  objectTypes: [{ id: "t", name: "Thing", isProposed: false, count: 1, swatch, attributes: [] }],
+  relationshipTypes: [],
+});
+
+const shapeSwatch = (shape) => ({ background: "#FFF3BF", border: "#F08C00", shape, icon: null, image: null });
+
+const swatchHtml = (swatch) => /<svg class="model-explorer-swatch"[\s\S]*?<\/svg>/.exec(renderTypeFilters(objectFacets(swatch), initialState()))[0];
+
+test("every curated shape gets its own marker geometry", () => {
+  const expected = {
+    box: "<rect",
+    ellipse: "<ellipse",
+    circle: "<circle",
+    database: "<path",
+    dot: "<circle",
+    square: "<rect",
+    diamond: "<polygon",
+    triangle: "<polygon",
+    hexagon: "<polygon",
+    star: "<polygon",
+  };
+  const seen = new Set();
+
+  for (const [shape, element] of Object.entries(expected)) {
+    const html = swatchHtml(shapeSwatch(shape));
+
+    assert.match(html, new RegExp(`data-shape="${shape}"`), shape);
+    assert.ok(html.includes(element), `${shape} should draw ${element}`);
+    seen.add(html.replace(/data-shape="[^"]*"|aria-label="[^"]*"/g, ""));
+  }
+  assert.equal(seen.size, 10, "each shape is visually distinct");
+});
+
+test("shape markers are drawn in the type's own fill and border colours", () => {
+  for (const shape of ["box", "hexagon", "star", "database"]) {
+    const html = swatchHtml({ background: "#112233", border: "#445566", shape, icon: null, image: null });
+
+    assert.match(html, /fill="#112233" stroke="#445566"/, shape);
+  }
+});
+
+test("a star has ten alternating points", () => {
+  const points = /points="([^"]+)"/.exec(swatchHtml(shapeSwatch("star")))[1].split(" ");
+
+  assert.equal(points.length, 10);
+});
+
+test("a configured icon is drawn as a circle in the type colours around the same glyph", () => {
+  const image = "data:image/svg+xml;charset=utf-8,%3Csvg%20stroke%3D%22%23AA0000%22%3E%3C%2Fsvg%3E";
+  const html = swatchHtml({ background: "#EDF2FF", border: "#AA0000", shape: "hexagon", icon: "database", image });
+
+  assert.match(html, /data-shape="icon" data-icon="database"/);
+  assert.match(html, /<circle[^>]*fill="#EDF2FF" stroke="#AA0000"/);
+  assert.ok(html.includes(`<image href="${image}"`));
+  assert.ok(!html.includes("<polygon"), "the icon replaces the configured shape");
+});
+
+test("an icon type without an image falls back to its shape", () => {
+  const html = swatchHtml({ background: "#EDF2FF", border: "#4C6EF5", shape: "diamond", icon: "person", image: null });
+
+  assert.match(html, /data-shape="diamond"/);
+  assert.ok(!html.includes("<image"));
+});
+
+test("an unknown shape falls back to the box marker", () => {
+  assert.match(swatchHtml(shapeSwatch("blob")), /data-shape="box"/);
+  assert.match(swatchHtml(shapeSwatch("constructor")), /data-shape="box"/);
+});
+
+test("a type without swatch data renders no marker and the row still works", () => {
+  const html = renderTypeFilters(objectFacets(null), initialState());
+
+  assert.doesNotMatch(html, /model-explorer-swatch/);
+  assert.match(html, /data-action="toggle-object-type"/);
+});
+
+test("swatch values from the server are escaped", () => {
+  const html = renderTypeFilters(
+    objectFacets({ background: HOSTILE, border: HOSTILE, shape: HOSTILE, icon: HOSTILE, image: HOSTILE }),
+    initialState(),
+  );
+
+  assertNoLiveMarkup(html);
+});
+
+test("the legend stays compact: one small marker per type, not a list of settings", () => {
+  const html = renderTypeFilters(
+    { objectTypes: [1, 2, 3].map((n) => ({ id: `t${n}`, name: `T${n}`, count: n, swatch: shapeSwatch("star"), attributes: [] })), relationshipTypes: [] },
+    initialState(),
+  );
+
+  assert.equal((html.match(/<svg /g) || []).length, 3);
+  assert.doesNotMatch(html, /Shape|Icon|Border|Fill|Size/, "no configuration details in the legend");
 });
 
 test("a hidden type stays in the panel so it can be shown again", () => {

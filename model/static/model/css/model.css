@@ -1125,26 +1125,12 @@
     color: var(--model-text-muted);
 }
 
-/* A wide chip, so it reads as a type marker and not as a second checkbox. */
+/* Type marker drawn as inline SVG (see explorer-render.js); a compact, fixed footprint. */
 .model-explorer-swatch {
     flex: 0 0 auto;
-    width: 1.15rem;
-    height: 0.7rem;
-    border: 1.5px solid;
-    border-radius: 3px;
-}
-
-.model-explorer-swatch[data-shape="ellipse"],
-.model-explorer-swatch[data-shape="circle"],
-.model-explorer-swatch[data-shape="dot"] {
-    border-radius: 50%;
-}
-
-.model-explorer-swatch[data-shape="diamond"] {
-    width: 0.8rem;
-    height: 0.8rem;
-    transform: rotate(45deg) scale(0.85);
-    border-radius: 1px;
+    width: 1.35rem;
+    height: 1.1rem;
+    overflow: visible;
 }
 
 .model-explorer-line-swatch {

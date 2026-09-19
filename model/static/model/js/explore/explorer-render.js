@@ -34,11 +34,53 @@ export function formatCardinality(minimum, maximum) {
   return `${minimum}..${maximum == null ? "*" : maximum}`;
 }
 
+// ---------------------------------------------------------------------------
+// Legend swatches
+//
+// Each type's swatch is drawn from its *resolved* appearance (the same values
+// the graph uses), as a small inline SVG so every shape keeps a correct border.
+// ---------------------------------------------------------------------------
+
+function starPoints(cx, cy, outer, inner) {
+  const points = [];
+  for (let i = 0; i < 10; i += 1) {
+    const radius = i % 2 === 0 ? outer : inner;
+    const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+    points.push(`${(cx + radius * Math.cos(angle)).toFixed(1)},${(cy + radius * Math.sin(angle)).toFixed(1)}`);
+  }
+  return points.join(" ");
+}
+
+// Geometry in a 20 x 16 box, inset so the stroke is never clipped.
+const SHAPE_GEOMETRY = {
+  box: (a) => `<rect x="1.5" y="3" width="17" height="10" rx="2" ${a}/>`,
+  ellipse: (a) => `<ellipse cx="10" cy="8" rx="8.5" ry="5.5" ${a}/>`,
+  circle: (a) => `<circle cx="10" cy="8" r="6.5" ${a}/>`,
+  database: (a) => `<path d="M2 4.5c0-1.7 3.6-3 8-3s8 1.3 8 3v7c0 1.7-3.6 3-8 3s-8-1.3-8-3z" ${a}/>`,
+  dot: (a) => `<circle cx="10" cy="8" r="4" ${a}/>`,
+  square: (a) => `<rect x="4" y="2" width="12" height="12" ${a}/>`,
+  diamond: (a) => `<polygon points="10,1 18,8 10,15 2,8" ${a}/>`,
+  triangle: (a) => `<polygon points="10,1.5 18,14 2,14" ${a}/>`,
+  hexagon: (a) => `<polygon points="5.5,2 14.5,2 19,8 14.5,14 5.5,14 1,8" ${a}/>`,
+  star: (a) => `<polygon points="${starPoints(10, 8.4, 7.6, 3.2)}" ${a}/>`,
+};
+
+function objectSwatch(data) {
+  const paint = `fill="${e(data.background)}" stroke="${e(data.border)}" stroke-width="1.5" stroke-linejoin="round"`;
+
+  // An icon replaces the shape: a circle in the type's colours around the glyph,
+  // exactly as the graph draws it.
+  if (data.icon && data.image) {
+    return `<svg class="model-explorer-swatch" data-shape="icon" data-icon="${e(data.icon)}" viewBox="0 0 20 16" role="img" aria-label="${e(data.icon)} icon"><circle cx="10" cy="8" r="7" ${paint}/><image href="${e(data.image)}" x="4.5" y="2.5" width="11" height="11"/></svg>`;
+  }
+
+  const shape = Object.hasOwn(SHAPE_GEOMETRY, data.shape) ? data.shape : "box";
+  return `<svg class="model-explorer-swatch" data-shape="${e(shape)}" viewBox="0 0 20 16" role="img" aria-label="${e(shape)}">${SHAPE_GEOMETRY[shape](paint)}</svg>`;
+}
+
 function swatch(kind, data) {
   if (!data) return "";
-  if (kind === "object") {
-    return `<span class="model-explorer-swatch" data-shape="${e(data.shape)}" style="background: ${e(data.background)}; border-color: ${e(data.border)};"></span>`;
-  }
+  if (kind === "object") return objectSwatch(data);
   return `<span class="model-explorer-line-swatch" data-line="${e(data.lineStyle)}" style="border-top-color: ${e(data.colour)};"></span>`;
 }
 

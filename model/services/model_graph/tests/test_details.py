@@ -198,6 +198,59 @@ class FacetTests(SimpleTestCase):
         self.assertEqual(person["swatch"]["shape"], "box")
         self.assertEqual(facets["relationshipTypes"][0]["swatch"], {"colour": "#495057", "lineStyle": "solid"})
 
+    def object_swatch(self, type_layer, name="Application"):
+        from model.services.appearance import AppearanceResolver, schema
+
+        document = schema.sanitise_document({"object_types": {uid(APP): type_layer}})
+        facets = build_facets(sample_dataset(), AppearanceResolver(document))
+        return next(t for t in facets["objectTypes"] if t["name"] == name)["swatch"]
+
+    def test_swatch_carries_the_configured_shape_and_no_icon_by_default(self):
+        swatch = self.object_swatch({"shape": "hexagon", "background": "#112233", "border": "#445566"})
+
+        self.assertEqual(
+            swatch,
+            {"background": "#112233", "border": "#445566", "shape": "hexagon", "icon": None, "image": None},
+        )
+
+    def test_every_curated_shape_reaches_the_swatch(self):
+        from model.services.appearance.schema import SHAPES
+
+        for shape, _label in SHAPES:
+            self.assertEqual(self.object_swatch({"shape": shape})["shape"], shape)
+
+    def test_swatch_icon_image_is_exactly_what_the_graph_node_uses(self):
+        from model.services.appearance import AppearanceResolver, schema
+        from model.services.appearance.viewer_adapter import node_style
+
+        document = schema.sanitise_document({"object_types": {uid(APP): {"icon": "database", "border": "#AA0000"}}})
+        resolver = AppearanceResolver(document)
+
+        swatch = next(
+            t for t in build_facets(sample_dataset(), resolver)["objectTypes"] if t["name"] == "Application"
+        )["swatch"]
+
+        node = node_style(resolver.object_type(uid(APP)))
+        self.assertEqual(swatch["icon"], "database")
+        self.assertEqual(swatch["image"], node.image)
+        self.assertIn("%23AA0000", swatch["image"])  # glyph is drawn in the border colour
+
+    def test_types_without_an_icon_have_no_image_even_when_others_do(self):
+        self.assertIsNone(self.object_swatch({"icon": "person"}, name="Person")["image"])
+        self.assertIsNotNone(self.object_swatch({"icon": "person"})["image"])
+
+    def test_relationship_swatch_is_unchanged(self):
+        from model.services.appearance import AppearanceResolver, schema
+
+        document = schema.sanitise_document({"relationship_types": {uid(USES): {"colour": "#c92a2a", "line_style": "dotted"}}})
+
+        facets = build_facets(sample_dataset(), AppearanceResolver(document))
+
+        uses = next(t for t in facets["relationshipTypes"] if t["name"] == "Uses")
+        self.assertEqual(uses["swatch"], {"colour": "#C92A2A", "lineStyle": "dotted"})
+        member_of = next(t for t in facets["relationshipTypes"] if t["name"] == "Member of")
+        self.assertEqual(member_of["swatch"], {"colour": "#495057", "lineStyle": "solid"})
+
     def test_facets_ignore_filters(self):
         # Facets are built from the dataset alone, so a hidden type keeps its entry.
         self.assertEqual(len(self.facets["objectTypes"]), 3)

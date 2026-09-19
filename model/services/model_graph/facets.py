@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from collections import Counter
 
+from model.services.appearance.viewer_adapter import node_style
+
 from .dataset import EffectiveDataset, is_populated
 from .query import OPERATOR_BY_DATA_TYPE
 
@@ -39,7 +41,16 @@ def _object_swatch(appearance, type_id):
     if appearance is None:
         return None
     resolved = appearance.object_type(type_id)
-    return {"background": resolved.background, "border": resolved.border, "shape": resolved.shape}
+    # The icon image comes from the same adapter the graph uses, so the legend
+    # glyph (and its colour) can never drift from what a node actually shows.
+    style = node_style(resolved)
+    return {
+        "background": resolved.background,
+        "border": resolved.border,
+        "shape": resolved.shape,
+        "icon": resolved.icon,
+        "image": style.image,
+    }
 
 
 def _relationship_swatch(appearance, type_id):

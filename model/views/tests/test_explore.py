@@ -209,6 +209,48 @@ class PageTests(ExploreViewTestCase):
         self.assertTrue(response.context["explorer_bootstrap"]["hasProposal"])
         self.assertContains(response, "including your active proposal")
 
+    def test_legend_swatches_match_the_graph_nodes_for_shape_and_icon(self):
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "shape", "hexagon")
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.team_type.id, "icon", "organisation")
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.team_type.id, "border", "#AA0000")
+
+        bootstrap = self.client.get(self.page_url()).context["explorer_bootstrap"]
+
+        swatches = {t["id"]: t["swatch"] for t in bootstrap["facets"]["objectTypes"]}
+        nodes = {n["data"]["object_type_id"]: n["style"] for n in bootstrap["graph"]["payload"]["nodes"]}
+
+        person, team = str(self.person_type.id), str(self.team_type.id)
+        # Shape types: the legend shape is the node shape and there is no image.
+        self.assertEqual(swatches[person]["shape"], "hexagon")
+        self.assertEqual(swatches[person]["shape"], nodes[person]["shape"])
+        self.assertIsNone(swatches[person]["image"])
+        # Icon types: the legend shows the same glyph the node draws, in the same colours.
+        self.assertEqual(swatches[team]["icon"], "organisation")
+        self.assertEqual(nodes[team]["shape"], "circularImage")
+        self.assertEqual(swatches[team]["image"], nodes[team]["image"])
+        for key in ("background", "border"):
+            self.assertEqual(swatches[team][key], nodes[team][key])
+
+    def test_legend_keeps_relationship_colour_and_line_style(self):
+        AppearanceService.set_type_style(self.model, "relationship_type", self.member_of.id, "colour", "#c92a2a")
+        AppearanceService.set_type_style(self.model, "relationship_type", self.member_of.id, "line_style", "dashed")
+
+        bootstrap = self.client.get(self.page_url()).context["explorer_bootstrap"]
+
+        (member_of,) = bootstrap["facets"]["relationshipTypes"]
+        self.assertEqual(member_of["swatch"], {"colour": "#C92A2A", "lineStyle": "dashed"})
+
+    def test_proposed_change_legend_item_is_only_present_with_an_active_proposal(self):
+        self.assertNotContains(self.client.get(self.page_url()), "Proposed change")
+
+        proposal = self.working_proposal()
+        self.propose_object(proposal, self.person_type.id, "Draft")
+        activate_proposal(self.client, self.model.id, proposal)
+
+        response = self.client.get(self.page_url())
+        self.assertContains(response, "Proposed change")
+        self.assertContains(response, "model-ontology-legend-swatch-proposed")
+
     def test_page_reflects_model_customisation(self):
         AppearanceService.update_customisation(self.model, "theme", "canvas_background", "#101010")
 
