@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 class AttributeSpec:
     key: str
     name: str
-    data_type: str  # text | number | boolean | date | datetime | choice
+    data_type: str  # text | number | boolean | date | datetime | choice | url
     choices: tuple[str, ...] = ()
 
 

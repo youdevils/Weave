@@ -91,6 +91,28 @@ class RelationshipTypeAttributeChoiceConfigTests(TestCase):
         )
         self.assertContains(get_response, "Medium")
 
+    def test_create_url_attribute_is_recorded_with_url_datatype(self):
+        response = self.client.post(
+            self.edit_url(),
+            {
+                "action": "create_attribute",
+                "attribute_name": "Charter",
+                "attribute_key": "charter",
+                "attribute_data_type": "url",
+            },
+        )
+
+        self.assertTrue(response.json()["success"])
+
+        change = ProposalChange.objects.get(
+            target_type="AttributeDefinition", operation=ProposalChange.Operation.CREATE,
+        )
+        self.assertEqual(change.after["data_type"], "url")
+        self.assertEqual(change.after["config"], {})
+
+        page = self.client.get(self.edit_url())
+        self.assertContains(page, 'value="url"')
+
     def test_edit_existing_attribute_choice_values_records_config_update(self):
         attribute = AttributeDefinition.objects.create(
             relationship_type=self.relationship_type,

@@ -205,6 +205,30 @@ class ObjectTypeAttributeChoiceConfigTests(TestCase):
             ).exists()
         )
 
+    def test_create_url_attribute_is_recorded_with_url_datatype(self):
+        response = self.client.post(
+            self.edit_url(),
+            {
+                "action": "create_attribute",
+                "attribute_name": "Website",
+                "attribute_key": "website",
+                "attribute_data_type": "url",
+                "attribute_default_value": "not validated as a url",
+            },
+        )
+
+        self.assertTrue(response.json()["success"])
+
+        change = ProposalChange.objects.get(
+            target_type="AttributeDefinition", operation=ProposalChange.Operation.CREATE,
+        )
+        self.assertEqual(change.after["data_type"], "url")
+        self.assertEqual(change.after["config"], {})
+        self.assertEqual(change.after["default_value"], "not validated as a url")
+
+        page = self.client.get(self.edit_url())
+        self.assertContains(page, 'value="url"')
+
     def test_editing_unrelated_field_preserves_existing_choice_values(self):
         """
         Guardrail: editing another attribute property must not clear an

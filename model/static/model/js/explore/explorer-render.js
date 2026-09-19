@@ -146,13 +146,53 @@ export function renderDetailsError(message) {
     </div>`;
 }
 
+/**
+ * The href for a URL attribute value, or null when it must not become a link.
+ *
+ * This is presentation safety, not validation: a model may store any string in
+ * a ``url`` attribute, but only absolute http(s) URLs are ever rendered as
+ * clickable. Anything else (``javascript:``, ``data:``, relative or malformed
+ * values) is shown as plain text. Parsing first means leading whitespace or
+ * control characters cannot smuggle a scheme past the check.
+ */
+export function safeUrlHref(value) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  let parsed;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return null;
+  }
+  // The stored value is the link target, not the parser's normalised form.
+  return parsed.protocol === "http:" || parsed.protocol === "https:" ? trimmed : null;
+}
+
+function renderUrlValue(display) {
+  const href = safeUrlHref(display);
+  if (!href) return e(display);
+  return `<a class="model-explorer-url" href="${e(href)}" target="_blank" rel="noopener noreferrer nofollow">${e(display)}</a>`;
+}
+
+// The one place an attribute's datatype decides how its value is presented.
+// Anything not listed is shown as plain escaped text.
+const VALUE_RENDERERS = {
+  url: renderUrlValue,
+};
+
+function renderAttributeValue(attribute) {
+  if (!attribute.display) return "Not set";
+  const render = Object.hasOwn(VALUE_RENDERERS, attribute.dataType) ? VALUE_RENDERERS[attribute.dataType] : e;
+  return render(attribute.display);
+}
+
 function renderAttributes(attributes) {
   const rows = attributes
     .map(
       (a) => `
         <div class="model-explorer-attribute">
           <dt>${e(a.label)}</dt>
-          <dd${a.display ? "" : ' class="model-explorer-muted"'}>${a.display ? e(a.display) : "Not set"}</dd>
+          <dd${a.display ? "" : ' class="model-explorer-muted"'}>${renderAttributeValue(a)}</dd>
         </div>`,
     )
     .join("");
@@ -180,7 +220,7 @@ function renderObjectDetails(details) {
         .map((item) => {
           const arrow = item.direction === "outgoing" ? "&rarr;" : "&larr;";
           const attributes = item.attributes.length
-            ? `<span class="model-explorer-muted"> (${item.attributes.map((a) => `${e(a.label)}: ${e(a.display)}`).join(", ")})</span>`
+            ? `<span class="model-explorer-muted"> (${item.attributes.map((a) => `${e(a.label)}: ${renderAttributeValue(a)}`).join(", ")})</span>`
             : "";
           const faded = item.inView === false ? " model-explorer-faded" : "";
           return `

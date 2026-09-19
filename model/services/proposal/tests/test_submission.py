@@ -4,9 +4,14 @@ from unittest.mock import patch
 from django.test import TestCase
 
 from account.models import CustomUser
+from model.models.attribute_definition import AttributeDefinition
 from model.models.model import Model
+from model.models.object import Object
 from model.models.object_type import ObjectType
 from model.models.proposal import Proposal, ProposalChange
+from model.models.relationship import Relationship
+from model.models.relationship_type import RelationshipType
+from model.models.relationship_type_rule import RelationshipTypeRule
 from model.services.proposal import submission
 from model.services.proposal.proposal import ProposalService
 from workspace.models import Workspace
@@ -415,3 +420,327 @@ class QueueDrainDispatchTests(SubmissionTestCase):
         # i.e. execute=True only ran callbacks from transactions that
         # actually committed within the captured block.
         mock_delay.assert_called_once_with(str(model.id))
+
+
+class AttributeUpdateApplyTests(SubmissionTestCase):
+    """
+    "attributes.<key>" UPDATE changes replace one key inside an Object's /
+    Relationship's `attributes` JSON. Value rules stay with validate_model.
+    """
+
+    def setUp(self):
+        self.model = self._new_model(revision=1)
+
+        self.person_type = ObjectType.objects.create(
+            model=self.model, name="Person", key="person"
+        )
+        self.team_type = ObjectType.objects.create(
+            model=self.model, name="Team", key="team"
+        )
+        self.member_of = RelationshipType.objects.create(
+            model=self.model, name="Member of", key="member_of"
+        )
+        RelationshipTypeRule.objects.create(
+            relationship_type=self.member_of,
+            subject_type=self.person_type,
+            object_type=self.team_type,
+        )
+
+        DataType = AttributeDefinition.DataType
+        self.definitions = {}
+        for key, data_type, extra in (
+            ("owner", DataType.TEXT, {}),
+            ("website", DataType.URL, {}),
+            ("grade", DataType.NUMBER, {}),
+            ("nickname", DataType.TEXT, {"nullable": True}),
+        ):
+            self.definitions[key] = AttributeDefinition.objects.create(
+                object_type=self.person_type,
+                name=key.title(),
+                key=key,
+                data_type=data_type,
+                **extra,
+            )
+
+        self.since = AttributeDefinition.objects.create(
+            relationship_type=self.member_of,
+            name="Since",
+            key="since",
+            data_type=DataType.DATE,
+        )
+        self.charter = AttributeDefinition.objects.create(
+            relationship_type=self.member_of,
+            name="Charter",
+            key="charter",
+            data_type=DataType.URL,
+        )
+
+        self.alice = Object.objects.create(
+            model=self.model,
+            object_type=self.person_type,
+            name="Alice",
+            attributes={"owner": "Ops", "website": "https://example.com", "grade": 3},
+        )
+        self.ops = Object.objects.create(
+            model=self.model, object_type=self.team_type, name="Ops"
+        )
+        self.membership = Relationship.objects.create(
+            model=self.model,
+            relationship_type=self.member_of,
+            subject=self.alice,
+            object=self.ops,
+            attributes={"since": "2020-01-01", "charter": "https://example.com/c"},
+        )
+
+        self.proposal = ProposalService.get_or_create_working(self.model, self.user)
+
+    # -- helpers -------------------------------------------------------------
+
+    def _update(self, target_type, target_id, field, value, canonical=None):
+        return ProposalService.record_change(
+            proposal=self.proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type=target_type,
+            target_id=target_id,
+            parent_type="ObjectType" if target_type == "Object" else "RelationshipType",
+            parent_id=(
+                self.person_type.id if target_type == "Object" else self.member_of.id
+            ),
+            field=field,
+            before={"field": field, "value": canonical},
+            after={"field": field, "value": value},
+        )
+
+    def _attr(self, key, value, target_id=None):
+        return self._update("Object", target_id or self.alice.id, f"attributes.{key}", value)
+
+    def _run(self):
+        ProposalService.submit(self.proposal)
+        submission.process(submission.claim_next(self.model.id).id)
+        self.proposal.refresh_from_db()
+        self.model.refresh_from_db()
+        self.alice.refresh_from_db()
+        self.membership.refresh_from_db()
+
+    def _codes(self):
+        return sorted(e.code for e in self.proposal.submission_result.errors.all())
+
+    # -- applying ------------------------------------------------------------
+
+    def test_object_attribute_update_is_applied(self):
+        self._attr("owner", "Platform")
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.COMPLETED)
+        self.assertEqual(self.model.revision, 2)
+        self.assertEqual(self.alice.attributes["owner"], "Platform")
+
+    def test_relationship_attribute_update_is_applied(self):
+        self._update("Relationship", self.membership.id, "attributes.since", "2021-05-06")
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.COMPLETED)
+        self.assertEqual(self.membership.attributes["since"], "2021-05-06")
+
+    def test_unrelated_attributes_are_preserved(self):
+        self._attr("owner", "Platform")
+        self._run()
+
+        self.assertEqual(
+            self.alice.attributes,
+            {"owner": "Platform", "website": "https://example.com", "grade": 3},
+        )
+        self.assertIs(type(self.alice.attributes), dict)
+
+    def test_relationship_update_preserves_other_relationship_attributes(self):
+        self._update("Relationship", self.membership.id, "attributes.since", "2022-02-02")
+        self._run()
+
+        self.assertEqual(
+            self.membership.attributes,
+            {"since": "2022-02-02", "charter": "https://example.com/c"},
+        )
+
+    def test_multiple_updates_on_one_target_including_a_new_optional_key(self):
+        self._attr("owner", "Platform")
+        self._attr("grade", 5)
+        self._attr("nickname", "Al")
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.COMPLETED)
+        self.assertEqual(
+            self.alice.attributes,
+            {
+                "owner": "Platform",
+                "website": "https://example.com",
+                "grade": 5,
+                "nickname": "Al",
+            },
+        )
+
+    def test_null_is_stored_when_the_attribute_is_nullable(self):
+        self.alice.attributes = {**self.alice.attributes, "nickname": "Al"}
+        self.alice.save()
+
+        self._attr("nickname", None)
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.COMPLETED)
+        self.assertIn("nickname", self.alice.attributes)
+        self.assertIsNone(self.alice.attributes["nickname"])
+
+    def test_null_is_rejected_by_validation_when_not_nullable(self):
+        self._attr("owner", None)
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.FAILED)
+        self.assertEqual(self._codes(), ["null_not_allowed"])
+        self.assertEqual(self.alice.attributes["owner"], "Ops")
+
+    def test_url_attribute_updates_without_url_format_validation(self):
+        for value in ("https://example.org/new", "not a url", "javascript:alert(1)"):
+            with self.subTest(value=value):
+                proposal = ProposalService.get_or_create_working(self.model, self.user)
+                self.proposal = proposal
+                self._attr("website", value)
+                self._update("Relationship", self.membership.id, "attributes.charter", value)
+                self._run()
+
+                self.assertEqual(proposal.status, Proposal.Status.COMPLETED)
+                self.assertEqual(self.alice.attributes["website"], value)
+                self.assertEqual(self.membership.attributes["charter"], value)
+
+    # -- failures ------------------------------------------------------------
+
+    def test_unknown_attribute_key_is_a_validation_issue_not_a_system_error(self):
+        change = self._attr("no_such_key", "x")
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.FAILED)
+        result = self.proposal.submission_result
+        self.assertEqual(result.outcome, result.Outcome.VALIDATION_FAILED)
+        self.assertEqual(self._codes(), ["unknown_attribute"])
+
+        (error,) = result.errors.all()
+        self.assertEqual(error.change_id, change.id)
+        self.assertEqual(error.field, "no_such_key")
+        self.assertNotIn("Unrecognised", error.message)
+        self.assertNotIn("no_such_key", self.alice.attributes)
+
+    def test_attribute_of_another_type_is_unknown_for_this_target(self):
+        # "since" is defined on the relationship type, not on Person.
+        self._attr("since", "2020-01-01")
+        self._run()
+
+        self.assertEqual(self._codes(), ["unknown_attribute"])
+        self.assertNotIn("since", self.alice.attributes)
+
+    def test_relationship_unknown_attribute_key(self):
+        self._update("Relationship", self.membership.id, "attributes.owner", "x")
+        self._run()
+
+        self.assertEqual(self._codes(), ["unknown_attribute"])
+        self.assertNotIn("owner", self.membership.attributes)
+
+    def test_missing_target_is_reported(self):
+        self._attr("owner", "x", target_id=uuid.uuid4())
+        self._run()
+
+        self.assertEqual(self._codes(), ["target_not_found"])
+
+    def test_invalid_value_errors_are_attributed_to_their_own_change(self):
+        good = self._attr("owner", "Platform")
+        bad = self._attr("grade", "not-a-number")
+        self._run()
+
+        self.assertEqual(self._codes(), ["invalid_attribute_type"])
+        (error,) = self.proposal.submission_result.errors.all()
+        self.assertEqual(error.change_id, bad.id)
+        self.assertNotEqual(error.change_id, good.id)
+
+    def test_failed_proposal_rolls_back_every_canonical_change(self):
+        self._attr("owner", "Platform")
+        self._update("Relationship", self.membership.id, "attributes.since", "2030-01-01")
+        self._update("Object", self.alice.id, "name", "Renamed")
+        self._attr("no_such_key", "x")
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.FAILED)
+        self.assertEqual(self.model.revision, 1)
+        self.assertEqual(self.alice.name, "Alice")
+        self.assertEqual(self.alice.attributes["owner"], "Ops")
+        self.assertEqual(self.membership.attributes["since"], "2020-01-01")
+
+    # -- unchanged behaviour ---------------------------------------------------
+
+    def test_direct_field_updates_are_unchanged(self):
+        self._update("Object", self.alice.id, "name", "Alicia")
+        self._update("Object", self.alice.id, "description", "Lead")
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.COMPLETED)
+        self.assertEqual(self.alice.name, "Alicia")
+        self.assertEqual(self.alice.description, "Lead")
+        self.assertEqual(self.alice.attributes["owner"], "Ops")
+
+    def test_unknown_direct_field_still_reports_unrecognised_field(self):
+        self._update("Object", self.alice.id, "not_a_field", "x")
+        self._run()
+
+        self.assertEqual(self._codes(), ["invalid_change"])
+        (error,) = self.proposal.submission_result.errors.all()
+        self.assertIn("Unrecognised Object field 'not_a_field'", error.message)
+
+    # -- proposal-only data ----------------------------------------------------
+
+    def test_proposed_attribute_definition_and_proposal_created_object(self):
+        website_id = uuid.uuid4()
+        ProposalService.record_change(
+            proposal=self.proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="AttributeDefinition",
+            target_id=website_id,
+            parent_type="ObjectType",
+            parent_id=self.team_type.id,
+            before=None,
+            after={
+                "name": "Homepage",
+                "key": "homepage",
+                "data_type": "url",
+                "description": "",
+                "required": False,
+                "nullable": False,
+                "default_value": None,
+                "sort_order": 0,
+                "config": {},
+                "is_active": True,
+            },
+        )
+        # An existing Team gets a value for the proposed definition.
+        self._update("Object", self.ops.id, "attributes.homepage", "https://example.com/ops")
+        # A proposal-created Object carries its attributes on its CREATE change.
+        new_id = uuid.uuid4()
+        ProposalService.record_change(
+            proposal=self.proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="Object",
+            target_id=new_id,
+            parent_type="ObjectType",
+            parent_id=self.person_type.id,
+            before=None,
+            after={
+                "name": "Bob",
+                "description": "",
+                "is_active": True,
+                "attributes": {"owner": "Ops", "website": "still not validated"},
+            },
+        )
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.COMPLETED)
+        self.ops.refresh_from_db()
+        self.assertEqual(self.ops.attributes, {"homepage": "https://example.com/ops"})
+        self.assertEqual(
+            Object.objects.get(id=new_id).attributes,
+            {"owner": "Ops", "website": "still not validated"},
+        )

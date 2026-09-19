@@ -105,6 +105,44 @@ class CanonicalLoadingTests(ModelGraphTestCase):
         (status,) = dataset.object_type(self.person_type.id).attributes
         self.assertEqual((status.key, status.data_type, status.choices), ("status", "choice", ("Active", "Left")))
 
+    def test_url_datatype_is_carried_into_the_spec_and_details_next_to_the_value(self):
+        from model.services.model_graph.details import object_details
+
+        AttributeDefinition.objects.create(
+            object_type=self.person_type, name="Website", key="website", data_type=AttributeDefinition.DataType.URL
+        )
+        AttributeDefinition.objects.create(
+            object_type=self.person_type, name="Notes", key="notes", data_type=AttributeDefinition.DataType.TEXT
+        )
+        alice = self.make_object(
+            self.person_type, "Alice", attributes={"website": "https://example.com/a", "notes": "https://example.com/b"}
+        )
+
+        dataset = load_effective_dataset(self.model)
+
+        specs = {spec.key: spec.data_type for spec in dataset.object_type(self.person_type.id).attributes}
+        self.assertEqual(specs["website"], "url")
+        self.assertEqual(specs["notes"], "text")
+
+        by_key = {a["key"]: a for a in object_details(dataset, alice.id)["attributes"]}
+        self.assertEqual((by_key["website"]["dataType"], by_key["website"]["value"]), ("url", "https://example.com/a"))
+        self.assertEqual((by_key["notes"]["dataType"], by_key["notes"]["value"]), ("text", "https://example.com/b"))
+
+    def test_url_datatype_is_carried_for_relationship_attributes(self):
+        from model.services.model_graph.details import relationship_details
+
+        AttributeDefinition.objects.create(
+            relationship_type=self.member_of, name="Charter", key="charter", data_type=AttributeDefinition.DataType.URL
+        )
+        alice = self.make_object(self.person_type, "Alice")
+        ops = self.make_object(self.team_type, "Ops")
+        membership = self.make_relationship(alice, ops, attributes={"charter": "https://example.com/charter"})
+
+        details = relationship_details(load_effective_dataset(self.model), membership.id)
+
+        (charter,) = details["attributes"]
+        self.assertEqual((charter["dataType"], charter["value"]), ("url", "https://example.com/charter"))
+
     def test_inactive_attribute_definitions_are_excluded(self):
         self.status_attribute.is_active = False
         self.status_attribute.save()
@@ -244,6 +282,23 @@ class ProposalOverlayTests(ModelGraphTestCase):
         dataset = load_effective_dataset(self.model, proposal)
 
         self.assertEqual(dataset.relationship(relationship_id).target_id, str(draft_id))
+
+    def test_proposed_url_attribute_definition_keeps_its_datatype(self):
+        proposal = self.working_proposal()
+        self.add_change(
+            proposal,
+            operation=Op.CREATE,
+            target_type="AttributeDefinition",
+            target_id=uuid.uuid4(),
+            parent_type="ObjectType",
+            parent_id=self.person_type.id,
+            after={"name": "Website", "key": "website", "data_type": "url", "is_active": True},
+        )
+
+        dataset = load_effective_dataset(self.model, proposal)
+
+        specs = {spec.key: spec.data_type for spec in dataset.object_type(self.person_type.id).attributes}
+        self.assertEqual(specs["website"], "url")
 
     def test_proposed_object_of_a_proposed_type(self):
         proposal = self.working_proposal()

@@ -15,6 +15,7 @@ from model.services.appearance import AppearanceService
 from model.services.proposal.review import ProposalReviewService
 from model.services.validation.model_validation import validate_model
 from model.services.validation.result import ValidationIssue
+from model.views.data_context import ATTRIBUTE_FIELD_PREFIX
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,10 @@ _DELETE_ORDER = tuple(reversed(_CREATE_UPDATE_ORDER))
 
 # Types whose (model, key) must be unique.
 _KEY_UNIQUE_TYPES = ("ObjectType", "RelationshipType")
+
+# Types whose instance attribute values live in a nested `attributes`
+# JSON blob and are addressed by "attributes.<key>" field paths.
+_ATTRIBUTE_HOST_TYPES = ("Object", "Relationship")
 
 
 class _ValidationFailed(Exception):
@@ -222,6 +227,67 @@ def _apply_model_field_update(model, change, issues, model_fields_changed):
     model_fields_changed.add(field)
 
 
+def _apply_attribute_update(instance, change, target_type, issues):
+    """
+    Apply an "attributes.<key>" UPDATE by replacing that one key inside the
+    instance's `attributes` JSON, leaving every other key untouched. Mirrors
+    the overlay in model.views.data_context.apply_field_updates: the value
+    (including None) is stored as-is and the key is never removed.
+
+    Only checks that the key is defined for the instance's type; whether the
+    value is acceptable stays with validate_model. Problems are reported as
+    issues and skip the write, so nothing is partially applied.
+    """
+
+    after = change.after or {}
+    key = after["field"][len(ATTRIBUTE_FIELD_PREFIX):]
+
+    def issue(code, message, field=None):
+        issues.append(
+            ValidationIssue(
+                code=code,
+                field=field,
+                message=message,
+                target_type=target_type,
+                target_id=change.target_id,
+            )
+        )
+
+    if not key:
+        issue("invalid_change", f"Unrecognised {target_type} field '{after['field']}'.")
+        return
+
+    if "value" not in after:
+        issue("invalid_change", f"No value given for attribute '{key}'.", field=key)
+        return
+
+    if target_type == "Object":
+        definitions = instance.object_type.attribute_definitions
+    else:
+        definitions = instance.relationship_type.relationship_definitions
+
+    if not definitions.filter(key=key).exists():
+        issue(
+            "unknown_attribute",
+            f"Attribute '{key}' is not defined for this type.",
+            field=key,
+        )
+        return
+
+    current = instance.attributes if instance.attributes is not None else {}
+
+    if not isinstance(current, dict):
+        issue(
+            "invalid_change",
+            f"{target_type} attributes are not a JSON object.",
+            field=key,
+        )
+        return
+
+    instance.attributes = {**current, key: after["value"]}
+    instance.save(update_fields=["attributes", "updated_at"])
+
+
 def _apply_create_or_update(model, change, target_type, issues, proposal_deleted_ids):
     model_cls = MODEL_MAP[target_type]
 
@@ -266,6 +332,14 @@ def _apply_create_or_update(model, change, target_type, issues, proposal_deleted
 
     after = change.after or {}
     field = after.get("field")
+
+    if (
+        target_type in _ATTRIBUTE_HOST_TYPES
+        and isinstance(field, str)
+        and field.startswith(ATTRIBUTE_FIELD_PREFIX)
+    ):
+        _apply_attribute_update(instance, change, target_type, issues)
+        return
 
     if not field or not hasattr(instance, field):
         issues.append(
@@ -398,10 +472,17 @@ def _match_change(issue, by_target):
         return candidates[0]
 
     if issue.field:
-        for change in candidates:
-            after = change.after or {}
-            if after.get("field") == issue.field:
-                return change
+        # Attribute issues carry the bare attribute key, while the change
+        # addresses it as "attributes.<key>".
+        wanted = [issue.field]
+        if issue.target_type in _ATTRIBUTE_HOST_TYPES:
+            wanted.insert(0, f"{ATTRIBUTE_FIELD_PREFIX}{issue.field}")
+
+        for field in wanted:
+            for change in candidates:
+                after = change.after or {}
+                if after.get("field") == field:
+                    return change
 
     for change in candidates:
         if change.operation in (

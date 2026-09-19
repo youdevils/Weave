@@ -14,6 +14,7 @@ import {
   renderResults,
   renderSelectionChip,
   renderTypeFilters,
+  safeUrlHref,
 } from "../static/model/js/explore/explorer-render.js";
 import { initialState, toggleObjectType } from "../static/model/js/explore/explorer-state.js";
 
@@ -549,4 +550,127 @@ test("with no filterable attributes the builder says so", () => {
   const html = renderFilterBuilder({ objectTypes: [{ id: "t", name: "Team", attributes: [] }], relationshipTypes: [] }, {});
 
   assert.match(html, /No filterable attributes/);
+});
+
+// ---------------------------------------------------------------------------
+// URL attributes: the definition's datatype (not the value) decides the link
+// ---------------------------------------------------------------------------
+
+const LINK = "https://example.com/docs?a=1&b=2#top";
+
+const urlAttribute = (over = {}) => ({ key: "site", label: "Website", dataType: "url", value: LINK, display: LINK, ...over });
+
+const relationshipWith = (attributes) => ({
+  kind: "relationship",
+  id: "rel1",
+  type: { id: "r1", name: "Uses" },
+  source: ref({ id: "s", name: "Ops", typeName: "Team" }),
+  target: ref({ id: "t", name: "Web Portal", typeName: "Application" }),
+  attributes,
+  validFrom: null,
+  validTo: null,
+  cardinality: null,
+  isProposed: false,
+  inView: true,
+});
+
+test("a url attribute renders as a safe link to exactly the stored value", () => {
+  const html = renderDetails(objectDetails({ attributes: [urlAttribute()] }));
+
+  assert.match(html, /<a class="model-explorer-url" href="https:\/\/example\.com\/docs\?a=1&amp;b=2#top" target="_blank" rel="noopener noreferrer nofollow">/);
+  assert.match(html, />https:\/\/example\.com\/docs\?a=1&amp;b=2#top<\/a>/);
+});
+
+test("a bare origin keeps its stored form as the link target (no normalised trailing slash)", () => {
+  const html = renderDetails(objectDetails({ attributes: [urlAttribute({ display: "https://example.com" })] }));
+
+  assert.match(html, /href="https:\/\/example\.com"/);
+});
+
+test("a text attribute holding the same string stays plain text", () => {
+  const html = renderDetails(objectDetails({ attributes: [urlAttribute({ dataType: "text" })] }));
+
+  assert.doesNotMatch(html, /<a /);
+  assert.match(html, /https:\/\/example\.com\/docs/);
+});
+
+test("urls are never inferred: a string attribute without a datatype is plain text", () => {
+  const html = renderDetails(objectDetails({ attributes: [{ key: "site", label: "Website", display: LINK }] }));
+
+  assert.doesNotMatch(html, /<a /);
+});
+
+for (const unsafe of [
+  "javascript:alert(1)",
+  "JavaScript:alert(1)",
+  "  javascript:alert(1)",
+  "\tjava\nscript:alert(1)",
+  "data:text/html,<script>alert(1)</script>",
+  "vbscript:msgbox(1)",
+  "file:///etc/passwd",
+  "//example.com/relative",
+  "/docs/relative",
+  "not a url",
+]) {
+  test(`an unsafe or non-http(s) url value is shown as text, never a link: ${JSON.stringify(unsafe)}`, () => {
+    assert.equal(safeUrlHref(unsafe), null);
+
+    const html = renderDetails(objectDetails({ attributes: [urlAttribute({ display: unsafe })] }));
+
+    assert.doesNotMatch(html, /<a /);
+    assert.doesNotMatch(html, /href=/);
+    assert.doesNotMatch(html, /<script/);
+  });
+}
+
+test("safeUrlHref accepts http and https only", () => {
+  assert.equal(safeUrlHref("http://example.com/a"), "http://example.com/a");
+  assert.equal(safeUrlHref("https://example.com/a"), "https://example.com/a");
+  assert.equal(safeUrlHref(" https://example.com/a "), "https://example.com/a");
+  assert.equal(safeUrlHref(null), null);
+  assert.equal(safeUrlHref(42), null);
+});
+
+test("url values and labels are escaped, so they cannot inject markup or break out of href", () => {
+  const evil = `https://example.com/"><img src=x onerror="alert('x')">`;
+  const html = renderDetails(objectDetails({ attributes: [urlAttribute({ label: HOSTILE, display: evil })] }));
+
+  assertNoLiveMarkup(html);
+  assert.match(html, /href="https:\/\/example\.com\/&quot;&gt;&lt;img/);
+});
+
+test("a very long url renders as a wrapping link inside the attribute row", () => {
+  const long = `https://example.com/${"segment/".repeat(80)}end`;
+  const html = renderDetails(objectDetails({ attributes: [urlAttribute({ display: long })] }));
+
+  assert.match(html, /<dd><a class="model-explorer-url" href="https:\/\/example\.com\/segment\//);
+  assert.ok(html.includes(`>${long}</a>`), "the full url is displayed, not truncated");
+});
+
+test("an unset url attribute shows Not set rather than an empty link", () => {
+  const html = renderDetails(objectDetails({ attributes: [urlAttribute({ value: null, display: null })] }));
+
+  assert.match(html, /Not set/);
+  assert.doesNotMatch(html, /<a class="model-explorer-url"/);
+});
+
+test("relationship details render url attributes as links too", () => {
+  const html = renderDetails(relationshipWith([urlAttribute(), { key: "note", label: "Note", dataType: "text", display: LINK }]));
+
+  assert.equal((html.match(/<a class="model-explorer-url"/g) || []).length, 1);
+  assert.match(html, /href="https:\/\/example\.com\/docs\?a=1&amp;b=2#top"/);
+});
+
+test("relationship attributes listed on an object's connections link consistently", () => {
+  const details = objectDetails();
+  details.relationships[0].items[0].attributes = [urlAttribute({ label: "Spec", display: "https://example.com/spec" })];
+  const html = renderDetails(details);
+
+  assert.match(html, /Spec: <a class="model-explorer-url" href="https:\/\/example\.com\/spec"/);
+
+  details.relationships[0].items[0].attributes = [urlAttribute({ label: "Spec", display: "javascript:alert(1)" })];
+  const unsafe = renderDetails(details);
+
+  assert.match(unsafe, /Spec: javascript:alert\(1\)/);
+  assert.doesNotMatch(unsafe, /<a class="model-explorer-url"/);
 });

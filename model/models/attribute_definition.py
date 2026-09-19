@@ -12,6 +12,7 @@ class AttributeDefinition(models.Model):
         DATE = "date", "Date"
         DATETIME = "datetime", "Date & time"
         CHOICE = "choice", "Choice"
+        URL = "url", "URL"
 
     id = models.UUIDField(
         primary_key=True,
@@ -116,6 +117,7 @@ class AttributeDefinition(models.Model):
             self.DataType.BOOLEAN,
             self.DataType.DATE,
             self.DataType.DATETIME,
+            self.DataType.URL,
         }:
             if config:
                 raise ValidationError(

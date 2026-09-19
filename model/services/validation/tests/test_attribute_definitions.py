@@ -243,6 +243,68 @@ class AttributeDefinitionTests(TestCase):
             definition.full_clean()
 
     # ---------------------------------------------------------
+    # URL datatype
+    # ---------------------------------------------------------
+
+    def test_url_is_a_supported_datatype(self):
+        self.assertIn(
+            ("url", "URL"),
+            AttributeDefinition.DataType.choices,
+        )
+        self.assertEqual(AttributeDefinition.DataType.URL, "url")
+
+    def test_url_definition_is_valid_and_round_trips(self):
+        definition = self._object_definition(
+            data_type=AttributeDefinition.DataType.URL,
+            default_value="https://example.com",
+        )
+
+        definition.full_clean()
+        definition.save()
+
+        loaded = AttributeDefinition.objects.get(pk=definition.pk)
+
+        self.assertEqual(loaded.data_type, "url")
+        self.assertEqual(loaded.default_value, "https://example.com")
+        self.assertEqual(loaded.get_data_type_display(), "URL")
+
+    def test_url_definition_is_valid_on_a_relationship_type(self):
+        self._relationship_definition(
+            data_type=AttributeDefinition.DataType.URL,
+        ).full_clean()
+
+    def test_url_definition_does_not_validate_the_default_url_value(self):
+        # Malformed URL text is still a valid string default.
+        self._object_definition(
+            data_type=AttributeDefinition.DataType.URL,
+            default_value="not a url",
+        ).full_clean()
+
+    def test_url_default_must_still_be_a_string(self):
+        definition = self._object_definition(
+            data_type=AttributeDefinition.DataType.URL,
+            default_value=42,
+        )
+
+        with self.assertRaises(Exception):
+            definition.full_clean()
+
+    def test_url_config_must_be_empty(self):
+        definition = self._object_definition(
+            data_type=AttributeDefinition.DataType.URL,
+            config={"something": True},
+        )
+
+        with self.assertRaises(Exception):
+            definition.full_clean()
+
+    def test_existing_datatypes_are_unchanged(self):
+        self.assertEqual(
+            [value for value, _label in AttributeDefinition.DataType.choices],
+            ["text", "number", "boolean", "date", "datetime", "choice", "url"],
+        )
+
+    # ---------------------------------------------------------
     # CHOICE configuration
     # ---------------------------------------------------------
 

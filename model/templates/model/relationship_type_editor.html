@@ -880,7 +880,7 @@
                                             class="form-control"
                                             data-default-value-text
                                             value="{{ attribute.proposed_values.default_value|default:'' }}"
-                                            {% if attribute.proposed_values.data_type != "text" %}hidden{% endif %}
+                                            {% if attribute.proposed_values.data_type != "text" and attribute.proposed_values.data_type != "url" %}hidden{% endif %}
                                         >
 
                                         <input

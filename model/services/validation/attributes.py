@@ -236,6 +236,22 @@ def validate_attribute_value(
         return None
 
     # ---------------------------------------------------------
+    # URL
+    #
+    # A URL is a semantic datatype stored as a plain string. Model
+    # integrity only requires that it is a string: whether it is
+    # well-formed, reachable or safe to link is not a model concern
+    # (unsafe schemes are neutralised when rendered).
+    # ---------------------------------------------------------
+
+    if definition.data_type == AttributeDefinition.DataType.URL:
+
+        if not isinstance(value, str):
+            return _type_issue(definition, field)
+
+        return None
+
+    # ---------------------------------------------------------
     # Unsupported type
     # ---------------------------------------------------------
 

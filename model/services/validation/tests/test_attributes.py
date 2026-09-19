@@ -41,6 +41,72 @@ class AttributeValidationTests(SimpleTestCase):
         self.assertTrue(result.valid)
         self.assertEqual(result.issues, [])
 
+    def test_url_attribute_accepts_any_string_value(self):
+        definition = AttributeDefinition(
+            key="website",
+            name="Website",
+            data_type=AttributeDefinition.DataType.URL,
+        )
+
+        # Model integrity only requires a string. Format, scheme and
+        # reachability are not the validator's concern.
+        for value in (
+            "https://example.com/docs",
+            "not a url",
+            "javascript:alert(1)",
+            "//relative/path",
+            "",
+        ):
+            with self.subTest(value=value):
+                self.assertIsNone(
+                    validate_attribute_value(definition, value, "website"),
+                )
+
+        result = validate_attributes({"website": "not a url"}, [definition])
+        self.assertTrue(result.valid)
+
+    def test_url_attribute_rejects_non_string_values(self):
+        definition = AttributeDefinition(
+            key="website",
+            name="Website",
+            data_type=AttributeDefinition.DataType.URL,
+        )
+
+        for value in (42, True, ["https://example.com"], {"url": "x"}):
+            with self.subTest(value=value):
+                issue = validate_attribute_value(definition, value, "website")
+                self.assertEqual(issue.code, "invalid_attribute_type")
+
+    def test_url_attribute_null_handling_follows_nullable(self):
+        strict = AttributeDefinition(
+            key="website", name="Website", data_type=AttributeDefinition.DataType.URL
+        )
+        nullable = AttributeDefinition(
+            key="website",
+            name="Website",
+            data_type=AttributeDefinition.DataType.URL,
+            nullable=True,
+        )
+
+        self.assertEqual(
+            validate_attribute_value(strict, None, "website").code,
+            "null_not_allowed",
+        )
+        self.assertIsNone(validate_attribute_value(nullable, None, "website"))
+
+    def test_text_attribute_is_unaffected_by_url_support(self):
+        definition = AttributeDefinition(
+            key="notes", name="Notes", data_type=AttributeDefinition.DataType.TEXT
+        )
+
+        self.assertIsNone(
+            validate_attribute_value(definition, "https://example.com", "notes")
+        )
+        self.assertEqual(
+            validate_attribute_value(definition, 42, "notes").code,
+            "invalid_attribute_type",
+        )
+
     def test_unknown_attribute(self):
         definitions = [
             AttributeDefinition(

@@ -1415,6 +1415,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const DEFAULT_VALUE_SELECTORS = {
     text: "[data-default-value-text]",
+    url: "[data-default-value-text]",
     number: "[data-default-value-number]",
     boolean: "[data-default-value-boolean]",
     date: "[data-default-value-date]",
@@ -1844,6 +1845,8 @@ document.addEventListener("DOMContentLoaded", function () {
       datetime: "Date & time",
 
       choice: "Choice",
+
+      url: "URL",
     };
 
     return labels[value] || value || "";

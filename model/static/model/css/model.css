@@ -1199,8 +1199,14 @@
 
 .model-explorer-attribute dd {
     margin: 0;
+    min-width: 0;
     text-align: right;
     overflow-wrap: anywhere;
+}
+
+.model-explorer-url {
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .model-explorer-muted {

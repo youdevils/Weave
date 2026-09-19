@@ -42,6 +42,32 @@ class ObjectDetailsTests(SimpleTestCase):
         self.assertEqual(by_key["critical"]["display"], "Yes")
         self.assertEqual(billing["critical"]["display"], "No")
 
+    def test_url_attribute_keeps_its_datatype_and_stays_distinct_from_text(self):
+        from model.services.model_graph.dataset import EffectiveDataset
+
+        from .builders import obj, object_type, rel, relationship_type, spec
+
+        link = "https://example.com/docs"
+        dataset = EffectiveDataset(
+            object_types=[object_type(1, "Doc", [spec("website", "url"), spec("notes", "text")])],
+            relationship_types=[relationship_type(2, "Cites", attributes=[spec("source", "url")])],
+            objects=[
+                obj(10, 1, "A", {"website": link, "notes": link}),
+                obj(11, 1, "B"),
+            ],
+            relationships=[rel(20, 2, 10, 11, {"source": link})],
+        )
+
+        by_key = {a["key"]: a for a in object_details(dataset, uid(10))["attributes"]}
+        self.assertEqual((by_key["website"]["dataType"], by_key["website"]["value"], by_key["website"]["display"]), ("url", link, link))
+        self.assertEqual(by_key["notes"]["dataType"], "text")
+
+        (source,) = relationship_details(dataset, uid(20))["attributes"]
+        self.assertEqual((source["dataType"], source["value"]), ("url", link))
+
+        (inline,) = object_details(dataset, uid(10))["relationships"][0]["items"][0]["attributes"]
+        self.assertEqual(inline["dataType"], "url")
+
     def test_relationships_are_grouped_by_type_with_direction(self):
         details = object_details(self.dataset, uid(OPS))
 
