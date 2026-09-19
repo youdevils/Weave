@@ -114,6 +114,12 @@ export function translateNode(node) {
     translated.color = {};
     if (style.background != null) translated.color.background = style.background;
     if (style.border != null) translated.color.border = style.border;
+    // vis-network recolours a selected/hovered node with its own blue by default,
+    // which would override the item's semantic colours. Selection and hover keep
+    // the item's colours; emphasis comes from border width and item states.
+    const own = { ...translated.color };
+    translated.color.highlight = { ...own };
+    translated.color.hover = { ...own };
   }
   if (style.border_width != null) translated.borderWidth = style.border_width;
   if (style.font && Object.keys(style.font).length > 0) {
@@ -147,6 +153,74 @@ export function translateEdge(edge) {
   if (style.font && Object.keys(style.font).length > 0) translated.font = style.font;
 
   return translated;
+}
+
+// ----------------------------------------------------------------------------
+// Interaction states
+//
+// A generic, renderer-facing vocabulary for "how does this item relate to what
+// the user is looking at": selected, related (to the selection) or dimmed. The
+// states never redefine an item's semantic colours or shape: they are derived
+// from the item's own base translation (heavier border, lower opacity, faded
+// label), so they are always reversible by re-deriving from that base.
+//
+// Both functions return the *complete* set of state-affected keys, including
+// for the default state, because a DataSet.update() merges: a key that a state
+// set earlier must be explicitly reset, not merely omitted.
+// ----------------------------------------------------------------------------
+
+export const ITEM_STATES = Object.freeze(["selected", "related", "dimmed"]);
+
+const DIMMED_ITEM_OPACITY = 0.18;
+const DIMMED_LABEL_ALPHA = 0.22;
+const VIS_DEFAULT_BORDER_WIDTH = 1;
+const VIS_DEFAULT_EDGE_WIDTH = 1;
+
+/** "#RGB"/"#RRGGBB" -> "rgba(r,g,b,alpha)"; any other colour is returned unchanged. */
+export function withAlpha(colour, alpha) {
+  if (typeof colour !== "string") return colour;
+  const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(colour.trim());
+  if (!match) return colour;
+  let hex = match[1];
+  if (hex.length === 3) hex = hex.split("").map((c) => c + c).join("");
+  const channel = (i) => parseInt(hex.slice(i, i + 2), 16);
+  return `rgba(${channel(0)}, ${channel(2)}, ${channel(4)}, ${alpha})`;
+}
+
+function fadedFont(font) {
+  return font && font.color ? { ...font, color: withAlpha(font.color, DIMMED_LABEL_ALPHA) } : font;
+}
+
+export function applyNodeState(base, state) {
+  const borderWidth = base.borderWidth ?? VIS_DEFAULT_BORDER_WIDTH;
+  const item = { ...base, opacity: 1, borderWidth, shadow: false };
+
+  if (state === "selected") {
+    item.borderWidth = borderWidth + 2;
+    item.shadow = { enabled: true, color: "rgba(0, 0, 0, 0.35)", size: 14, x: 0, y: 2 };
+  } else if (state === "related") {
+    item.borderWidth = borderWidth + 1;
+  } else if (state === "dimmed") {
+    item.opacity = DIMMED_ITEM_OPACITY;
+    if (base.font) item.font = fadedFont(base.font);
+  }
+  return item;
+}
+
+export function applyEdgeState(base, state) {
+  const width = base.width ?? VIS_DEFAULT_EDGE_WIDTH;
+  // null (not undefined) resets a key vis-network was given earlier to its default.
+  const item = { ...base, width, color: base.color ?? null };
+
+  if (state === "selected") {
+    item.width = width + 2;
+  } else if (state === "related") {
+    item.width = width + 1;
+  } else if (state === "dimmed") {
+    item.color = { color: base.color, opacity: DIMMED_ITEM_OPACITY, inherit: false };
+    if (base.font) item.font = fadedFont(base.font);
+  }
+  return item;
 }
 
 export function translateViewerConfig(config) {

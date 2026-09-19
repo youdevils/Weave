@@ -295,6 +295,37 @@ def build_relationship_attribute_definitions(
 # =====================================================================
 
 
+def apply_field_updates(
+    values,
+    changes,
+):
+    """
+    Apply field-level UPDATE changes, in order, onto an effective-values
+    dict (mutated and returned). "attributes.<key>" fields overlay into
+    the nested `attributes` dict; other fields overlay only if they are
+    already a top-level key of `values`. Shared by the per-record
+    overlays below and by callers that have pre-fetched a proposal's
+    changes in bulk (e.g. the model graph loader), so there is exactly
+    one implementation of the overlay rules.
+    """
+
+    for change in changes:
+
+        after = change.after or {}
+        field = after.get("field")
+
+        if not field or "value" not in after:
+            continue
+
+        if field.startswith(ATTRIBUTE_FIELD_PREFIX):
+            key = field[len(ATTRIBUTE_FIELD_PREFIX):]
+            values["attributes"][key] = after["value"]
+        elif field in values:
+            values[field] = after["value"]
+
+    return values
+
+
 def _canonical_object_values(obj):
     return {
         "name": obj.name,
@@ -316,28 +347,15 @@ def object_effective_values(
     addressing convention.
     """
 
-    values = _canonical_object_values(obj)
-
-    for change in _proposal_changes(
-        proposal,
-        target_type="Object",
-        target_id=obj.id,
-        operation=ProposalChange.Operation.UPDATE,
-    ):
-
-        after = change.after or {}
-        field = after.get("field")
-
-        if not field or "value" not in after:
-            continue
-
-        if field.startswith(ATTRIBUTE_FIELD_PREFIX):
-            key = field[len(ATTRIBUTE_FIELD_PREFIX):]
-            values["attributes"][key] = after["value"]
-        elif field in values:
-            values[field] = after["value"]
-
-    return values
+    return apply_field_updates(
+        _canonical_object_values(obj),
+        _proposal_changes(
+            proposal,
+            target_type="Object",
+            target_id=obj.id,
+            operation=ProposalChange.Operation.UPDATE,
+        ),
+    )
 
 
 def object_is_proposed(
@@ -489,28 +507,15 @@ def relationship_effective_values(
     relationship,
     proposal,
 ):
-    values = _canonical_relationship_values(relationship)
-
-    for change in _proposal_changes(
-        proposal,
-        target_type="Relationship",
-        target_id=relationship.id,
-        operation=ProposalChange.Operation.UPDATE,
-    ):
-
-        after = change.after or {}
-        field = after.get("field")
-
-        if not field or "value" not in after:
-            continue
-
-        if field.startswith(ATTRIBUTE_FIELD_PREFIX):
-            key = field[len(ATTRIBUTE_FIELD_PREFIX):]
-            values["attributes"][key] = after["value"]
-        elif field in values:
-            values[field] = after["value"]
-
-    return values
+    return apply_field_updates(
+        _canonical_relationship_values(relationship),
+        _proposal_changes(
+            proposal,
+            target_type="Relationship",
+            target_id=relationship.id,
+            operation=ProposalChange.Operation.UPDATE,
+        ),
+    )
 
 
 def relationship_is_proposed(

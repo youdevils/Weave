@@ -1,0 +1,120 @@
+{% extends "model/model_base.html" %}
+
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link
+    rel="stylesheet"
+    href="{% static 'viewer/vendor/vis-network/vis-network.min.css' %}"
+>
+{% endblock %}
+
+{% block model_content %}
+
+<div class="model-explorer" id="model-explorer">
+
+    <div class="model-page-header">
+
+        <div>
+
+            <div class="model-page-eyebrow">Understand</div>
+
+            <h1 class="model-page-title">Explore</h1>
+
+            <p class="model-page-description">
+                Find something, narrow the model to what matters, then follow its relationships.
+                This is a read-only view of the model{% if active_proposal %}, including your active proposal, whose changes appear in amber{% endif %}.
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="model-explorer-layout">
+
+        <!-- Find and narrow -->
+        <aside class="model-explorer-panel model-explorer-side" aria-label="Search and filters">
+
+            <div class="model-explorer-search">
+                <i class="bi bi-search"></i>
+                <input
+                    id="explorer-search"
+                    type="search"
+                    class="form-control"
+                    placeholder="Search objects&hellip;"
+                    aria-label="Search objects by name or attribute"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div id="explorer-results" aria-live="polite"></div>
+
+            <section class="model-explorer-filters">
+                <h3>Filters</h3>
+                <div id="explorer-type-filters"></div>
+
+                <h4>Attribute filter</h4>
+                <div id="explorer-filter-builder"></div>
+                <p id="explorer-builder-message" class="model-explorer-form-error" role="alert"></p>
+            </section>
+
+        </aside>
+
+        <!-- The graph and where we are -->
+        <section class="model-explorer-main" aria-label="Graph">
+
+            <div class="model-explorer-statebar">
+
+                <div class="model-explorer-statebar-row">
+                    <div id="explorer-counts" class="model-explorer-counts"></div>
+                    <div class="model-explorer-statebar-actions">
+                        {% if active_proposal %}
+                        <span class="model-ontology-legend-item">
+                            <span class="model-ontology-legend-swatch model-ontology-legend-swatch-proposed" style="--legend-proposed: {{ explorer_legend.proposed_colour }};"></span>
+                            Proposed change
+                        </span>
+                        {% endif %}
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-action="fit-view">Fit</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-action="reset-view">Reset view</button>
+                    </div>
+                </div>
+
+                <div id="explorer-chips" class="model-explorer-chips"></div>
+                <div id="explorer-notices"></div>
+                <p id="explorer-error" class="model-explorer-form-error" role="alert" hidden></p>
+
+            </div>
+
+            <div
+                id="model-explorer-graph"
+                class="model-ontology-graph-canvas model-explorer-canvas"
+                style="background: {{ canvas_background }};"
+            ></div>
+
+        </section>
+
+        <!-- Understand the selection -->
+        <aside id="explorer-details" class="model-explorer-panel model-explorer-detail" aria-label="Details" aria-live="polite"></aside>
+
+    </div>
+
+</div>
+
+{{ explorer_bootstrap|json_script:"model-explorer-bootstrap" }}
+
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'viewer/vendor/vis-network/vis-network.min.js' %}"></script>
+<script type="module">
+  import { WeaveViewer } from "{% static 'viewer/js/weave-viewer.js' %}";
+  import { startExplorer } from "{% static 'model/js/explore/explorer-boot.js' %}";
+
+  startExplorer({
+    WeaveViewer,
+    bootstrap: JSON.parse(document.getElementById("model-explorer-bootstrap").textContent),
+  });
+</script>
+{% endblock %}

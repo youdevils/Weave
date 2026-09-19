@@ -2,6 +2,13 @@ from django.urls import path
 
 from .views.overview import overview
 from .views.customise import customise
+from .views.explore import (
+    explore,
+    explore_graph,
+    explore_object,
+    explore_relationship,
+    explore_search,
+)
 from .views.appearance import type_appearance
 from .views.proposal import proposal, proposal_create
 from .views.object_types import object_types
@@ -25,6 +32,34 @@ urlpatterns = [
         "<uuid:model_id>/",
         overview,
         name="overview",
+    ),
+    # ================================================================
+    # Explore (read-only Model Explorer)
+    # ================================================================
+    path(
+        "<uuid:model_id>/explore/",
+        explore,
+        name="explore",
+    ),
+    path(
+        "<uuid:model_id>/explore/graph/",
+        explore_graph,
+        name="explore_graph",
+    ),
+    path(
+        "<uuid:model_id>/explore/search/",
+        explore_search,
+        name="explore_search",
+    ),
+    path(
+        "<uuid:model_id>/explore/object/<uuid:object_id>/",
+        explore_object,
+        name="explore_object",
+    ),
+    path(
+        "<uuid:model_id>/explore/relationship/<uuid:relationship_id>/",
+        explore_relationship,
+        name="explore_relationship",
     ),
     # ================================================================
     # Customise (model-wide visual language; direct save, no proposals)

@@ -13,7 +13,14 @@
  * it mutates the existing node/edge DataSets and re-applies options.
  */
 
-import { assertValidPayload, translateNode, translateEdge, translateViewerConfig } from "./translate.js";
+import {
+  applyEdgeState,
+  applyNodeState,
+  assertValidPayload,
+  translateNode,
+  translateEdge,
+  translateViewerConfig,
+} from "./translate.js";
 
 export class WeaveViewerError extends Error {}
 
@@ -29,6 +36,13 @@ export class WeaveViewer {
     this._nodesDataSet = null;
     this._edgesDataSet = null;
     this._handlers = new Map(); // eventName -> Set<handler>
+
+    // Base (state-free) translations, so an item's interaction state is always
+    // derived from its own definition and is reversible.
+    this._baseNodes = new Map();
+    this._baseEdges = new Map();
+    this._nodeStates = new Map(); // id -> "selected" | "related" | "dimmed"
+    this._edgeStates = new Map();
   }
 
   _assertActive() {
@@ -47,6 +61,11 @@ export class WeaveViewer {
     const nodes = payload.nodes.map(translateNode);
     const edges = payload.edges.map(translateEdge);
 
+    this._baseNodes = new Map(nodes.map((node) => [node.id, node]));
+    this._baseEdges = new Map(edges.map((edge) => [edge.id, edge]));
+    this._nodeStates.clear();
+    this._edgeStates.clear();
+
     this._nodesDataSet = new this._vis.DataSet(nodes);
     this._edgesDataSet = new this._vis.DataSet(edges);
 
@@ -58,18 +77,51 @@ export class WeaveViewer {
     );
   }
 
-  update(payload) {
+  /**
+   * Replace the rendered graph with a new payload without recreating the
+   * network. Interaction states set with setItemStates() survive for items
+   * that are still present.
+   *
+   * `preservePositions`: keep surviving nodes where they are instead of
+   * letting them be laid out again, so narrowing or widening a graph does not
+   * scramble what the user is looking at.
+   */
+  update(payload, { preservePositions = false } = {}) {
     this._assertActive();
     assertValidPayload(payload);
 
-    this._replaceDataSetContents(this._nodesDataSet, payload.nodes, translateNode);
-    this._replaceDataSetContents(this._edgesDataSet, payload.edges, translateEdge);
+    const positions = preservePositions ? this._network.getPositions() : {};
+
+    const nodes = payload.nodes.map(translateNode);
+    const edges = payload.edges.map(translateEdge);
+
+    this._baseNodes = new Map(nodes.map((node) => [node.id, node]));
+    this._baseEdges = new Map(edges.map((edge) => [edge.id, edge]));
+    pruneStates(this._nodeStates, this._baseNodes);
+    pruneStates(this._edgeStates, this._baseEdges);
+
+    this._replaceDataSetContents(
+      this._nodesDataSet,
+      nodes.map((node) => {
+        const state = this._nodeStates.get(node.id);
+        const stateful = state ? applyNodeState(node, state) : node;
+        const position = positions[node.id];
+        return position ? { ...stateful, x: position.x, y: position.y } : stateful;
+      }),
+    );
+    this._replaceDataSetContents(
+      this._edgesDataSet,
+      edges.map((edge) => {
+        const state = this._edgeStates.get(edge.id);
+        return state ? applyEdgeState(edge, state) : edge;
+      }),
+    );
 
     this._network.setOptions(translateViewerConfig(payload.viewer_config));
   }
 
-  _replaceDataSetContents(dataSet, items, translate) {
-    const newIds = new Set(items.map((item) => item.id));
+  _replaceDataSetContents(dataSet, translatedItems) {
+    const newIds = new Set(translatedItems.map((item) => item.id));
 
     for (const existingId of dataSet.getIds()) {
       if (!newIds.has(existingId)) {
@@ -77,13 +129,70 @@ export class WeaveViewer {
       }
     }
 
-    for (const item of items) {
+    for (const item of translatedItems) {
       // Remove-before-add (rather than DataSet.update()'s shallow merge)
       // guarantees the new entry is the complete translated representation,
       // with no leftover keys from a prior version.
       dataSet.remove(item.id);
-      dataSet.add(translate(item));
+      dataSet.add(item);
     }
+  }
+
+  /**
+   * Declaratively set how items relate to the current focus:
+   *   { nodes: { id: "selected" | "related" | "dimmed" }, edges: { ... } }
+   * Items not listed return to their normal appearance; unknown ids are
+   * ignored. States are derived from each item's base translation, never
+   * from another state, so they cannot accumulate and are fully reversible.
+   */
+  setItemStates({ nodes = {}, edges = {} } = {}) {
+    this._assertActive();
+
+    this._applyStates(this._nodesDataSet, this._baseNodes, this._nodeStates, nodes, applyNodeState);
+    this._applyStates(this._edgesDataSet, this._baseEdges, this._edgeStates, edges, applyEdgeState);
+  }
+
+  clearItemStates() {
+    this.setItemStates({});
+  }
+
+  _applyStates(dataSet, bases, current, requested, derive) {
+    const next = new Map();
+    for (const [id, state] of Object.entries(requested)) {
+      if (bases.has(id) && state) {
+        next.set(id, state);
+      }
+    }
+
+    // Only items whose state actually changes are touched.
+    const affected = new Set([...current.keys(), ...next.keys()]);
+    const updates = [];
+    for (const id of affected) {
+      if (current.get(id) !== next.get(id)) {
+        updates.push(derive(bases.get(id), next.get(id)));
+      }
+    }
+
+    current.clear();
+    for (const [id, state] of next) {
+      current.set(id, state);
+    }
+
+    if (updates.length > 0) {
+      dataSet.update(updates);
+    }
+  }
+
+  /** Ids of the nodes and edges directly connected to a node. */
+  getConnected(nodeId) {
+    this._assertActive();
+    if (this._nodesDataSet.get(nodeId) == null) {
+      return { nodes: [], edges: [] };
+    }
+    return {
+      nodes: this._network.getConnectedNodes(nodeId),
+      edges: this._network.getConnectedEdges(nodeId),
+    };
   }
 
   destroy() {
@@ -102,6 +211,10 @@ export class WeaveViewer {
     this._network = null;
     this._nodesDataSet = null;
     this._edgesDataSet = null;
+    this._baseNodes.clear();
+    this._baseEdges.clear();
+    this._nodeStates.clear();
+    this._edgeStates.clear();
   }
 
   fit(options) {
@@ -184,6 +297,14 @@ export class WeaveViewer {
       if (handlers.size === 0) {
         this._handlers.delete(eventName);
       }
+    }
+  }
+}
+
+function pruneStates(states, bases) {
+  for (const id of [...states.keys()]) {
+    if (!bases.has(id)) {
+      states.delete(id);
     }
   }
 }
