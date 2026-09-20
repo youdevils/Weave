@@ -175,7 +175,7 @@ class PageTests(ExploreViewTestCase):
         understand = html[html.index("Understand") : html.index("Define")]
         self.assertIn(f'href="{self.page_url()}"', understand)
         self.assertRegex(understand, r'model-nav-item\s+active\s+"\s*>\s*<span>Explore</span>')
-        self.assertIn('aria-expanded="true"', understand)
+        self.assertNotIn("collapsed", understand)
 
     def test_other_pages_link_to_explore_without_marking_it_active(self):
         html = self.client.get(reverse("model:overview", args=[self.model.id])).content.decode()

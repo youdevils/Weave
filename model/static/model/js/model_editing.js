@@ -2357,9 +2357,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const next = wrapper.querySelector(".model-sidebar");
 
-    if (next) {
-      current.replaceWith(next);
+    if (!next) {
+      return;
     }
+
+    // Child groups render collapsed; re-open any the user had open so an
+    // edit doesn't snap them shut. Clicking reuses sidebar.js's handler.
+    const groupToggle = (group) =>
+      group.querySelector(":scope > .model-nav-parent-row > .model-nav-toggle");
+
+    const wasOpen = Array.from(current.querySelectorAll(".model-nav-group")).map(
+      (group) => groupToggle(group)?.getAttribute("aria-expanded") === "true",
+    );
+
+    current.replaceWith(next);
+
+    next.querySelectorAll(".model-nav-group").forEach((group, index) => {
+      const toggle = groupToggle(group);
+
+      if (wasOpen[index] && toggle) {
+        toggle.click();
+      }
+    });
   }
 
   /* ============================================================

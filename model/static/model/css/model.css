@@ -88,12 +88,6 @@
     letter-spacing: 0.06em;
     text-align: left;
     text-transform: uppercase;
-    cursor: pointer;
-}
-
-.model-nav-section-label:hover {
-    background: var(--model-surface-hover);
-    color: var(--model-text);
 }
 
 .model-nav-group {

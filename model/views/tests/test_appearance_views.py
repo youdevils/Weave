@@ -285,7 +285,7 @@ class CustomisePageTests(AppearanceViewTestCase):
         understand = html[html.index("Understand") : html.index("Define")]
         self.assertLess(understand.index("Assets"), understand.index("Customise"))
         self.assertRegex(understand, r'model-nav-item\s+active\s+"\s*>\s*<span>Customise</span>')
-        self.assertIn('aria-expanded="true"', understand)
+        self.assertNotIn("collapsed", understand)
 
     def test_sidebar_link_is_present_on_other_model_pages(self):
         response = self.client.get(reverse("model:overview", args=[self.model.id]))

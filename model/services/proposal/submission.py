@@ -551,7 +551,11 @@ def claim_next(model_id):
     """
 
     with transaction.atomic():
-        model = Model.objects.select_for_update().get(id=model_id)
+        model = Model.objects.select_for_update().filter(id=model_id).first()
+
+        if model is None:
+            # Deleted since this task was dispatched.
+            return None
 
         cutoff = timezone.now() - settings.PROPOSAL_PROCESSING_STUCK_THRESHOLD
 
@@ -599,7 +603,15 @@ def process(proposal_id):
     same model blocks here until this commits or rolls back).
     """
 
-    model_id = Proposal.objects.values_list("model_id", flat=True).get(id=proposal_id)
+    model_id = (
+        Proposal.objects.filter(id=proposal_id)
+        .values_list("model_id", flat=True)
+        .first()
+    )
+
+    if model_id is None:
+        # Its model was deleted since this task was dispatched.
+        return
 
     def _dispatch_next():
         from model.tasks.proposal_tasks import process_next_for_model

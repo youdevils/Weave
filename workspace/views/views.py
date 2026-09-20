@@ -1,11 +1,16 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from model.models.model import Model
+from model.services.model_deletion import ModelDeletionBlocked, delete_model
 from model.services.model_template.loader import (
     get_template,
     instantiate_template,
 )
+from workspace.models import WorkspaceMember
 
 
 @login_required
@@ -149,3 +154,35 @@ def model_template_review(request, model_id, template_key):
             "template": template,
         },
     )
+
+
+@login_required
+@require_POST
+def delete_model_view(request, model_id):
+    # 404 for anyone outside the model's workspace, as elsewhere; being a
+    # member is not enough to destroy it, that takes the owner role.
+    membership = get_object_or_404(
+        WorkspaceMember.objects.select_related("workspace"),
+        user=request.user,
+        workspace__models__id=model_id,
+    )
+
+    if membership.role != WorkspaceMember.Role.OWNER:
+        raise PermissionDenied
+
+    model = get_object_or_404(
+        Model,
+        id=model_id,
+        workspace=membership.workspace,
+    )
+
+    name = model.name
+
+    try:
+        delete_model(model)
+    except ModelDeletionBlocked as blocked:
+        messages.error(request, str(blocked))
+    else:
+        messages.success(request, f"Model “{name}” was permanently deleted.")
+
+    return redirect("workspace:index")

@@ -744,3 +744,26 @@ class AttributeUpdateApplyTests(SubmissionTestCase):
             Object.objects.get(id=new_id).attributes,
             {"owner": "Ops", "website": "still not validated"},
         )
+
+
+class DeletedModelTaskTests(SubmissionTestCase):
+    """A task dispatched before its model was deleted must be a quiet no-op."""
+
+    def test_claim_next_for_a_deleted_model_does_nothing(self):
+        model = self._new_model()
+        model_id = model.id
+        model.delete()
+
+        self.assertIsNone(submission.claim_next(model_id))
+
+    def test_process_for_a_deleted_proposal_does_nothing(self):
+        model = self._new_model()
+        proposal, _ = self._submit_object_type_create(model, "alpha")
+        proposal_id = proposal.id
+        model.delete()
+
+        with patch("model.tasks.proposal_tasks.process_next_for_model.delay") as mock_delay:
+            with self.captureOnCommitCallbacks(execute=True):
+                submission.process(proposal_id)
+
+        mock_delay.assert_not_called()

@@ -19,25 +19,13 @@
 
             <div class="model-nav-section-row">
 
-                <button
-                    type="button"
-                    class="model-nav-section-label"
-                >
+                <div class="model-nav-section-label">
                     Understand
-                </button>
-
-                <button
-                    type="button"
-                    class="model-nav-toggle"
-                    aria-expanded="{% if active_url_name == 'overview' or active_url_name == 'explore' or active_url_name == 'customise' %}true{% else %}false{% endif %}"
-                    aria-label="{% if active_url_name == 'overview' or active_url_name == 'explore' or active_url_name == 'customise' %}Collapse{% else %}Expand{% endif %} Understand"
-                >
-                    <i class="bi bi-chevron-down"></i>
-                </button>
+                </div>
 
             </div>
 
-            <div class="model-nav-children{% if active_url_name == 'overview' or active_url_name == 'explore' or active_url_name == 'customise' %}{% else %} collapsed{% endif %}">
+            <div class="model-nav-children">
 
                 <a
                     href="{% url 'model:overview' model.id %}"
@@ -95,25 +83,13 @@
 
             <div class="model-nav-section-row">
 
-                <button
-                    type="button"
-                    class="model-nav-section-label"
-                >
-                    Define
-                </button>
-
-                <button
-                    type="button"
-                    class="model-nav-toggle"
-                    aria-expanded="{% if active_url_name == 'object_types' or active_url_name == 'object_type_edit' or active_url_name == 'object_type_create' or active_url_name == 'relationship_types' or active_url_name == 'relationship_type_edit' or active_url_name == 'relationship_type_create' %}true{% else %}false{% endif %}"
-                    aria-label="{% if active_url_name == 'object_types' or active_url_name == 'object_type_edit' or active_url_name == 'object_type_create' or active_url_name == 'relationship_types' or active_url_name == 'relationship_type_edit' or active_url_name == 'relationship_type_create' %}Collapse{% else %}Expand{% endif %} Define"
-                >
-                    <i class="bi bi-chevron-down"></i>
-                </button>
+                <div class="model-nav-section-label">
+                    Define model
+                </div>
 
             </div>
 
-            <div class="model-nav-children{% if active_url_name == 'object_types' or active_url_name == 'object_type_edit' or active_url_name == 'object_type_create' or active_url_name == 'relationship_types' or active_url_name == 'relationship_type_edit' or active_url_name == 'relationship_type_create' %}{% else %} collapsed{% endif %}">
+            <div class="model-nav-children">
 
                 <div class="model-nav-group">
 
@@ -139,15 +115,15 @@
                         <button
                             type="button"
                             class="model-nav-toggle"
-                            aria-expanded="true"
-                            aria-label="Collapse object types"
+                            aria-expanded="false"
+                            aria-label="Expand object types"
                         >
                             <i class="bi bi-chevron-down"></i>
                         </button>
 
                     </div>
 
-                    <div class="model-nav-children">
+                    <div class="model-nav-children collapsed">
 
                         {% for object_type in object_types|slice:":10" %}
 
@@ -205,15 +181,15 @@
                         <button
                             type="button"
                             class="model-nav-toggle"
-                            aria-expanded="true"
-                            aria-label="Collapse relationships"
+                            aria-expanded="false"
+                            aria-label="Expand relationships"
                         >
                             <i class="bi bi-chevron-down"></i>
                         </button>
 
                     </div>
 
-                    <div class="model-nav-children">
+                    <div class="model-nav-children collapsed">
 
                         {% for relationship_type in relationship_types|slice:":10" %}
 
@@ -259,25 +235,13 @@
 
             <div class="model-nav-section-row">
 
-                <button
-                    type="button"
-                    class="model-nav-section-label"
-                >
-                    Data
-                </button>
-
-                <button
-                    type="button"
-                    class="model-nav-toggle"
-                    aria-expanded="{% if active_url_name == 'data_object_types' or active_url_name == 'data_objects' or active_url_name == 'data_object_create' or active_url_name == 'data_object_edit' or active_url_name == 'data_relationship_types' or active_url_name == 'data_relationships' or active_url_name == 'data_relationship_create' or active_url_name == 'data_relationship_edit' %}true{% else %}false{% endif %}"
-                    aria-label="{% if active_url_name == 'data_object_types' or active_url_name == 'data_objects' or active_url_name == 'data_object_create' or active_url_name == 'data_object_edit' or active_url_name == 'data_relationship_types' or active_url_name == 'data_relationships' or active_url_name == 'data_relationship_create' or active_url_name == 'data_relationship_edit' %}Collapse{% else %}Expand{% endif %} Data"
-                >
-                    <i class="bi bi-chevron-down"></i>
-                </button>
+                <div class="model-nav-section-label">
+                    Model data
+                </div>
 
             </div>
 
-            <div class="model-nav-children{% if active_url_name == 'data_object_types' or active_url_name == 'data_objects' or active_url_name == 'data_object_create' or active_url_name == 'data_object_edit' or active_url_name == 'data_relationship_types' or active_url_name == 'data_relationships' or active_url_name == 'data_relationship_create' or active_url_name == 'data_relationship_edit' %}{% else %} collapsed{% endif %}">
+            <div class="model-nav-children">
 
                 <div class="model-nav-group">
 
@@ -303,15 +267,15 @@
                         <button
                             type="button"
                             class="model-nav-toggle"
-                            aria-expanded="true"
-                            aria-label="Collapse data objects"
+                            aria-expanded="false"
+                            aria-label="Expand data objects"
                         >
                             <i class="bi bi-chevron-down"></i>
                         </button>
 
                     </div>
 
-                    <div class="model-nav-children">
+                    <div class="model-nav-children collapsed">
 
                         {% for object_type in object_types|slice:":10" %}
 
@@ -371,15 +335,15 @@
                         <button
                             type="button"
                             class="model-nav-toggle"
-                            aria-expanded="true"
-                            aria-label="Collapse data relationships"
+                            aria-expanded="false"
+                            aria-label="Expand data relationships"
                         >
                             <i class="bi bi-chevron-down"></i>
                         </button>
 
                     </div>
 
-                    <div class="model-nav-children">
+                    <div class="model-nav-children collapsed">
 
                         {% for relationship_type in relationship_types|slice:":10" %}
 
@@ -427,25 +391,13 @@
 
             <div class="model-nav-section-row">
 
-                <button
-                    type="button"
-                    class="model-nav-section-label"
-                >
-                    Govern
-                </button>
-
-                <button
-                    type="button"
-                    class="model-nav-toggle"
-                    aria-expanded="{% if active_url_name == 'proposal_list' or active_url_name == 'proposal' or active_url_name == 'proposal_create' %}true{% else %}false{% endif %}"
-                    aria-label="{% if active_url_name == 'proposal_list' or active_url_name == 'proposal' or active_url_name == 'proposal_create' %}Collapse{% else %}Expand{% endif %} Govern"
-                >
-                    <i class="bi bi-chevron-down"></i>
-                </button>
+                <div class="model-nav-section-label">
+                    Proposals
+                </div>
 
             </div>
 
-            <div class="model-nav-children{% if active_url_name == 'proposal_list' or active_url_name == 'proposal' or active_url_name == 'proposal_create' %}{% else %} collapsed{% endif %}">
+            <div class="model-nav-children">
 
                 <div class="model-nav-group">
 
@@ -469,15 +421,6 @@
                                 </span>
                             {% endif %}
                         </a>
-
-                        <button
-                            type="button"
-                            class="model-nav-toggle"
-                            aria-expanded="true"
-                            aria-label="Collapse proposals"
-                        >
-                            <i class="bi bi-chevron-down"></i>
-                        </button>
 
                     </div>
 
@@ -547,25 +490,13 @@
 
             <div class="model-nav-section-row">
 
-                <button
-                    type="button"
-                    class="model-nav-section-label"
-                >
+                <div class="model-nav-section-label">
                     Publishing
-                </button>
-
-                <button
-                    type="button"
-                    class="model-nav-toggle"
-                    aria-expanded="false"
-                    aria-label="Expand Publishing"
-                >
-                    <i class="bi bi-chevron-down"></i>
-                </button>
+                </div>
 
             </div>
 
-            <div class="model-nav-children collapsed">
+            <div class="model-nav-children">
 
                 <a
                     href="#"

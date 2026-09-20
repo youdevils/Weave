@@ -6,6 +6,10 @@
  * This file owns model sidebar navigation only.
  * It must not contain model overview editing behaviour.
  *
+ * Only the child groups (Object Types, Relationship Types, Object,
+ * Relationships) collapse; the top-level section headings are always
+ * expanded and have no toggle.
+ *
  * Click handling is delegated to `document` (rather than bound to
  * each `.model-nav-toggle` at load time) because the sidebar markup
  * can be replaced wholesale after a proposal-editing AJAX save
@@ -21,7 +25,7 @@ document.addEventListener("click", function (event) {
     return;
   }
 
-  const container = toggle.closest(".model-nav-group, .model-nav-section");
+  const container = toggle.closest(".model-nav-group");
 
   if (!container) {
     return;
@@ -33,9 +37,7 @@ document.addEventListener("click", function (event) {
     return;
   }
 
-  const label = container.querySelector(
-    ".model-nav-parent span, .model-nav-section-label",
-  );
+  const label = container.querySelector(".model-nav-parent span");
 
   const sectionName = label ? label.textContent.trim() : "section";
 

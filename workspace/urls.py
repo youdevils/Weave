@@ -16,4 +16,9 @@ urlpatterns = [
         views.model_template_review,
         name="model_template_review",
     ),
+    path(
+        "models/<uuid:model_id>/delete",
+        views.delete_model_view,
+        name="delete_model",
+    ),
 ]
