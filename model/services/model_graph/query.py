@@ -112,13 +112,13 @@ class ExplorerQuery:
         """Returns ``(query, dropped)``; ``dropped`` lists what was discarded and why."""
         dropped: list[dict] = []
 
-        hidden_object_types = _known_ids(
+        hidden_object_types = known_ids(
             _getlist(params, "hide_objects"), dataset.object_types, "object_type", dropped
         )
-        hidden_relationship_types = _known_ids(
+        hidden_relationship_types = known_ids(
             _getlist(params, "hide_relationships"), dataset.relationship_types, "relationship_type", dropped
         )
-        include = _known_ids(_getlist(params, "include"), dataset.objects, "object", dropped)
+        include = known_ids(_getlist(params, "include"), dataset.objects, "object", dropped)
         attribute_filters = _parse_filters(_first(params, "filters"), dataset, dropped)
 
         return (
@@ -132,8 +132,50 @@ class ExplorerQuery:
             dropped,
         )
 
+    @classmethod
+    def from_state(cls, state, dataset: EffectiveDataset):
+        """
+        Same sanitising as ``from_params`` for a state document (the shape
+        ``to_state`` returns, and the Explorer client holds):
+        ``hiddenObjectTypes``, ``hiddenRelationshipTypes``, ``attributeFilters``,
+        ``include`` and an optional ``limit``. Anything other than a dict is
+        treated as an empty state; a malformed ``attributeFilters`` list is an error.
+        """
+        state = state if isinstance(state, dict) else {}
+        dropped: list[dict] = []
+
+        hidden_object_types = known_ids(
+            _as_list(state.get("hiddenObjectTypes")), dataset.object_types, "object_type", dropped
+        )
+        hidden_relationship_types = known_ids(
+            _as_list(state.get("hiddenRelationshipTypes")), dataset.relationship_types, "relationship_type", dropped
+        )
+        include = known_ids(_as_list(state.get("include")), dataset.objects, "object", dropped)
+
+        raw_filters = state.get("attributeFilters")
+        if raw_filters is not None and not isinstance(raw_filters, list):
+            raise QueryError("attributeFilters must be a list.")
+        attribute_filters = parse_filter_entries(raw_filters or [], dataset, dropped)
+
+        return (
+            cls(
+                hidden_object_types=frozenset(hidden_object_types),
+                hidden_relationship_types=frozenset(hidden_relationship_types),
+                attribute_filters=tuple(attribute_filters),
+                include=frozenset(include),
+                limit=_parse_limit(state.get("limit")),
+            ),
+            dropped,
+        )
+
 
 # -- parameter helpers ---------------------------------------------------------
+
+
+def _as_list(value) -> list:
+    if value is None:
+        return []
+    return list(value) if isinstance(value, (list, tuple)) else [value]
 
 
 def _getlist(params, key) -> list:
@@ -157,17 +199,17 @@ def _parse_limit(raw) -> int:
         return DEFAULT_LIMIT
 
 
-def _normalise_id(raw):
+def normalise_id(raw):
     try:
         return str(uuid.UUID(str(raw)))
     except (ValueError, AttributeError, TypeError):
         return None
 
 
-def _known_ids(raw_ids, known, kind, dropped) -> list[str]:
+def known_ids(raw_ids, known, kind, dropped) -> list[str]:
     kept = []
     for raw in raw_ids:
-        normalised = _normalise_id(raw)
+        normalised = normalise_id(raw)
         if normalised is None or normalised not in known:
             dropped.append({"kind": kind, "id": str(raw), "reason": "unknown"})
         elif normalised not in kept:
@@ -184,7 +226,15 @@ def _parse_filters(raw, dataset, dropped) -> list[AttributeFilter]:
         raise QueryError("filters must be valid JSON.") from None
     if not isinstance(entries, list):
         raise QueryError("filters must be a list.")
+    return parse_filter_entries(entries, dataset, dropped)
 
+
+def parse_filter_entries(entries, dataset, dropped) -> list[AttributeFilter]:
+    """
+    Sanitise a list of ``{type_id, key, op, value}`` filter documents against
+    the dataset: unknown types/attributes and invalid values are dropped and
+    reported, duplicates collapse. Shared by the Explorer and Publishing scope.
+    """
     parsed = []
     for entry in entries:
         attribute_filter = _parse_filter(entry, dataset)
@@ -198,7 +248,7 @@ def _parse_filters(raw, dataset, dropped) -> list[AttributeFilter]:
 def _parse_filter(entry, dataset) -> AttributeFilter | None:
     if not isinstance(entry, dict):
         return None
-    type_id = _normalise_id(entry.get("type_id"))
+    type_id = normalise_id(entry.get("type_id"))
     object_type = dataset.object_type(type_id) if type_id else None
     if object_type is None:
         return None

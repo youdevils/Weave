@@ -1,0 +1,172 @@
+{% extends "publication/publication_base.html" %}
+
+{% load static %}
+
+{% block publication_css %}
+<link rel="stylesheet" href="{% static 'viewer/vendor/vis-network/vis-network.min.css' %}">
+{% endblock %}
+
+{% block publication_content %}
+
+<div class="publish-page" id="publish-page">
+
+    <div class="model-page-header">
+
+        <div>
+
+            <div class="model-page-eyebrow">Publishing</div>
+
+            <h1 class="model-page-title">Publish</h1>
+
+            <p class="model-page-description">
+                Choose what to include, check the preview, then publish a read-only copy that works offline.
+                A publication is a snapshot of the model's approved content at revision
+                <strong>{{ model.revision }}</strong>; proposed changes are never included.
+            </p>
+
+        </div>
+
+        <div class="publish-actions">
+            <button type="button" class="btn btn-primary" id="publish-button" disabled>Publish and download</button>
+            <div class="publish-status" id="publish-status" aria-live="polite"></div>
+        </div>
+
+    </div>
+
+    <div id="publish-banner"></div>
+
+    <div class="publish-layout">
+
+        <!-- Configure: what is included, and how it is presented -->
+        <aside class="model-explorer-panel model-explorer-side publish-config weave-explorer" id="publish-scope" aria-label="Publication settings">
+
+            <section class="publish-section">
+                <h3>What to include</h3>
+                <p class="model-explorer-muted publish-hint">
+                    Untick a type to leave it out. Filters and starting points only ever remove content;
+                    nothing you exclude can appear in the file.
+                </p>
+
+                <div id="publish-notices"></div>
+                <div id="publish-scope-chips" class="model-explorer-chips"></div>
+
+                <div id="publish-type-filters"></div>
+
+                <h4>Only include objects where&hellip;</h4>
+                <div id="publish-filter-builder"></div>
+                <p id="publish-builder-message" class="model-explorer-form-error" role="alert"></p>
+            </section>
+
+            <section class="publish-section">
+                <h3>Starting points</h3>
+                <div class="model-explorer-search">
+                    <svg class="weave-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>
+                    <input
+                        id="publish-search"
+                        type="search"
+                        class="form-control"
+                        placeholder="Find an object&hellip;"
+                        aria-label="Find an object to use as a starting point"
+                        autocomplete="off"
+                    >
+                </div>
+                <div id="publish-results" aria-live="polite"></div>
+                <div id="publish-traversal"></div>
+            </section>
+
+            <section class="publish-section">
+                <h3>Publication details</h3>
+
+                <label class="publish-field">
+                    <span class="publish-label">Title</span>
+                    <input type="text" class="form-control form-control-sm" id="publish-title" maxlength="200" autocomplete="off">
+                </label>
+
+                <label class="publish-field">
+                    <span class="publish-label">Description <span class="model-explorer-muted">(optional)</span></span>
+                    <textarea class="form-control form-control-sm" id="publish-description" rows="2" maxlength="1000"></textarea>
+                </label>
+
+                <label class="publish-field">
+                    <span class="publish-label">Suggested file name</span>
+                    <input type="text" class="form-control form-control-sm" id="publish-filename" maxlength="120" autocomplete="off">
+                    <span class="model-explorer-muted publish-hint">Your browser decides where the file is saved.</span>
+                </label>
+
+                <div class="publish-field">
+                    <span class="publish-label">Theme colour</span>
+                    <div class="publish-colour">
+                        <input type="color" id="publish-theme-colour" aria-label="Theme colour">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="publish-theme-reset">Use the model colour</button>
+                    </div>
+                    <span class="model-explorer-muted publish-hint">Colours the header of the published file.</span>
+                </div>
+            </section>
+
+            <section class="publish-section">
+                <h3>Opening view</h3>
+                <p class="model-explorer-muted publish-hint" id="publish-opening-summary"></p>
+                <div class="publish-button-row">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="publish-opening-set">Use the preview view</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="publish-opening-clear">Reset</button>
+                </div>
+                <p class="model-explorer-muted publish-hint">
+                    Hide types, add filters or select something in the preview, then use it as the view readers open on.
+                </p>
+            </section>
+
+            <section class="publish-section publish-section-quiet">
+                <p class="model-explorer-muted publish-hint" id="publish-previous"></p>
+                <p class="model-explorer-muted publish-hint">
+                    <strong>Please note:</strong> the published file includes each item's history and evidence, including
+                    the email address of whoever proposed each change. Anyone with the file can read it.
+                </p>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="publish-clear-scope">Include the whole model again</button>
+            </section>
+
+        </aside>
+
+        <!-- Preview: the Explorer readers will get, over exactly what will be published -->
+        <div id="model-explorer" class="publish-preview weave-explorer">
+
+            <p class="publish-preview-summary" id="publish-summary" aria-live="polite"></p>
+            <p class="model-explorer-form-error" id="publish-too-large" role="alert" hidden></p>
+
+            <details class="publish-reader">
+                <summary>Reader controls (the search and filters the file will have)</summary>
+                {% include "model/_explorer_search_panel.html" %}
+            </details>
+
+            <div class="publish-preview-body">
+                {% include "model/_explorer_main.html" %}
+                {% include "model/_explorer_details.html" %}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{{ publish_bootstrap|json_script:"publish-bootstrap" }}
+{% csrf_token %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'viewer/vendor/vis-network/vis-network.min.js' %}"></script>
+<script type="module">
+  import { WeaveViewer } from "{% static 'viewer/js/weave-viewer.js' %}";
+  import { createExplorer } from "{% static 'model/js/explore/explorer-controller.js' %}";
+  import { createLocalSource } from "{% static 'model/js/explore/engine/local-source.js' %}";
+  import * as explorerState from "{% static 'model/js/explore/explorer-state.js' %}";
+  import * as explorerRender from "{% static 'model/js/explore/explorer-render.js' %}";
+  import { readFilterBuilder } from "{% static 'model/js/explore/explorer-builder.js' %}";
+  import { startPublishing } from "{% static 'publication/js/publish/publish-boot.js' %}";
+
+  startPublishing({
+    kit: { WeaveViewer, createExplorer, createLocalSource, explorerState, explorerRender, readFilterBuilder },
+    bootstrap: JSON.parse(document.getElementById("publish-bootstrap").textContent),
+  });
+</script>
+{% endblock %}

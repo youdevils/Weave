@@ -1,0 +1,59 @@
+{% with active_url_name=request.resolver_match.url_name %}
+
+<aside class="model-sidebar publication-sidebar" aria-label="Publishing">
+
+    <div class="model-sidebar-header">
+        <div class="model-sidebar-title">
+            {{ model.name }}
+        </div>
+    </div>
+
+    <nav class="model-navigation">
+
+        <div class="model-nav-section">
+
+            <div class="model-nav-section-row">
+                <div class="model-nav-section-label">
+                    Publishing
+                </div>
+            </div>
+
+            <div class="model-nav-children">
+
+                <a
+                    href="{% url 'publication:publish' model.id %}"
+                    class="model-nav-item {% if active_url_name == 'publish' %}active{% endif %}"
+                    {% if active_url_name == 'publish' %}aria-current="page"{% endif %}
+                >
+                    <span>Publish</span>
+                </a>
+
+                <a
+                    href="{% url 'publication:publication_history' model.id %}"
+                    class="model-nav-item {% if active_url_name == 'publication_history' %}active{% endif %}"
+                    {% if active_url_name == 'publication_history' %}aria-current="page"{% endif %}
+                >
+                    <span>Publishing History</span>
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="model-nav-section">
+
+            <div class="model-nav-children">
+
+                <a href="{% url 'model:overview' model.id %}" class="model-nav-item publication-back">
+                    <span>&larr; Back to Overview</span>
+                </a>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+</aside>
+
+{% endwith %}

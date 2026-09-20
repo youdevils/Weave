@@ -18,6 +18,7 @@ from model.models.relationship import Relationship
 from model.models.relationship_type import RelationshipType
 from model.models.relationship_type_rule import RelationshipTypeRule
 from model.services.model_deletion import ModelDeletionBlocked, delete_model
+from publication.models import Publication
 from workspace.models import Workspace
 
 # Every table that holds model-owned rows. Counted globally, because
@@ -35,6 +36,7 @@ OWNED_TABLES = (
     EvidenceReference,
     ProposalSubmissionResult,
     ProposalValidationError,
+    Publication,
 )
 
 
@@ -114,6 +116,16 @@ class ModelDeletionTestCase(TestCase):
             change=change,
             code="bad",
             message="Bad change.",
+        )
+
+        Publication.objects.create(
+            model=model,
+            sequence=1,
+            source_revision=model.revision,
+            title="Published",
+            filename="published.html",
+            content_digest="0" * 64,
+            published_by=self.user,
         )
 
         return model

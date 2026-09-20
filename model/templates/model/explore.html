@@ -4,6 +4,7 @@
 
 {% block extra_css %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'model/css/explorer.css' %}">
 <link
     rel="stylesheet"
     href="{% static 'viewer/vendor/vis-network/vis-network.min.css' %}"
@@ -33,69 +34,11 @@
 
     <div class="model-explorer-layout">
 
-        <!-- Find and narrow -->
-        <aside class="model-explorer-panel model-explorer-side" aria-label="Search and filters">
+        {% include "model/_explorer_search_panel.html" %}
 
-            <div class="model-explorer-search">
-                <i class="bi bi-search"></i>
-                <input
-                    id="explorer-search"
-                    type="search"
-                    class="form-control"
-                    placeholder="Search objects&hellip;"
-                    aria-label="Search objects by name or attribute"
-                    autocomplete="off"
-                >
-            </div>
+        {% include "model/_explorer_main.html" with explorer_show_proposed=active_proposal %}
 
-            <div id="explorer-results" aria-live="polite"></div>
-
-            <section class="model-explorer-filters">
-                <h3>Filters</h3>
-                <div id="explorer-type-filters"></div>
-
-                <h4>Attribute filter</h4>
-                <div id="explorer-filter-builder"></div>
-                <p id="explorer-builder-message" class="model-explorer-form-error" role="alert"></p>
-            </section>
-
-        </aside>
-
-        <!-- The graph and where we are -->
-        <section class="model-explorer-main" aria-label="Graph">
-
-            <div class="model-explorer-statebar">
-
-                <div class="model-explorer-statebar-row">
-                    <div id="explorer-counts" class="model-explorer-counts"></div>
-                    <div class="model-explorer-statebar-actions">
-                        {% if active_proposal %}
-                        <span class="model-ontology-legend-item">
-                            <span class="model-ontology-legend-swatch model-ontology-legend-swatch-proposed" style="--legend-proposed: {{ explorer_legend.proposed_colour }};"></span>
-                            Proposed change
-                        </span>
-                        {% endif %}
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-action="fit-view">Fit</button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-action="reset-view">Reset view</button>
-                    </div>
-                </div>
-
-                <div id="explorer-chips" class="model-explorer-chips"></div>
-                <div id="explorer-notices"></div>
-                <p id="explorer-error" class="model-explorer-form-error" role="alert" hidden></p>
-
-            </div>
-
-            <div
-                id="model-explorer-graph"
-                class="model-ontology-graph-canvas model-explorer-canvas"
-                style="background: {{ canvas_background }};"
-            ></div>
-
-        </section>
-
-        <!-- Understand the selection -->
-        <aside id="explorer-details" class="model-explorer-panel model-explorer-detail" aria-label="Details" aria-live="polite"></aside>
+        {% include "model/_explorer_details.html" %}
 
     </div>
 

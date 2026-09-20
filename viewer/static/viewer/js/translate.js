@@ -78,7 +78,7 @@ export function assertValidPayload(payload) {
   }
 }
 
-function escapeHtml(text) {
+function escapeLabelHtml(text) {
   return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
@@ -94,7 +94,7 @@ function translateNodeFont(font, label) {
   }
   return {
     font: { ...visFont, multi: "html" },
-    label: `<b>${escapeHtml(label)}</b>`,
+    label: `<b>${escapeLabelHtml(label)}</b>`,
   };
 }
 

@@ -1,0 +1,27 @@
+{# Find and narrow: search box, type filters, attribute-filter builder. Shared by the live Explorer and the portable file. #}
+<aside class="model-explorer-panel model-explorer-side" aria-label="Search and filters">
+
+    <div class="model-explorer-search">
+        <svg class="weave-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>
+        <input
+            id="explorer-search"
+            type="search"
+            class="form-control"
+            placeholder="Search objects&hellip;"
+            aria-label="Search objects by name or attribute"
+            autocomplete="off"
+        >
+    </div>
+
+    <div id="explorer-results" aria-live="polite"></div>
+
+    <section class="model-explorer-filters">
+        <h3>Filters</h3>
+        <div id="explorer-type-filters"></div>
+
+        <h4>Attribute filter</h4>
+        <div id="explorer-filter-builder"></div>
+        <p id="explorer-builder-message" class="model-explorer-form-error" role="alert"></p>
+    </section>
+
+</aside>

@@ -1,0 +1,32 @@
+{# The graph and where we are: state bar and canvas. Expects canvas_background; optionally explorer_show_proposed + explorer_legend. #}
+<section class="model-explorer-main" aria-label="Graph">
+
+    <div class="model-explorer-statebar">
+
+        <div class="model-explorer-statebar-row">
+            <div id="explorer-counts" class="model-explorer-counts"></div>
+            <div class="model-explorer-statebar-actions">
+                {% if explorer_show_proposed %}
+                <span class="model-ontology-legend-item">
+                    <span class="model-ontology-legend-swatch model-ontology-legend-swatch-proposed" style="--legend-proposed: {{ explorer_legend.proposed_colour }};"></span>
+                    Proposed change
+                </span>
+                {% endif %}
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="fit-view">Fit</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="reset-view">Reset view</button>
+            </div>
+        </div>
+
+        <div id="explorer-chips" class="model-explorer-chips"></div>
+        <div id="explorer-notices"></div>
+        <p id="explorer-error" class="model-explorer-form-error" role="alert" hidden></p>
+
+    </div>
+
+    <div
+        id="model-explorer-graph"
+        class="model-ontology-graph-canvas model-explorer-canvas"
+        style="background: {{ canvas_background }};"
+    ></div>
+
+</section>

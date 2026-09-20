@@ -1,0 +1,224 @@
+/* =========================================================
+   Publishing page
+   The Explorer surfaces come from explorer.css; this file only
+   lays out the page around them.
+   ========================================================= */
+
+.publish-page {
+    --weave-theme: #4c6ef5;
+}
+
+.publish-actions {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+}
+
+.publish-status {
+    min-height: 1.2em;
+    color: var(--model-text-muted);
+    font-size: 0.78rem;
+}
+
+.publish-layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: stretch;
+    height: calc(100vh - 330px);
+    min-height: 620px;
+}
+
+.publish-config {
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.publish-section {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--model-border-light);
+}
+
+.publish-section:last-child {
+    margin-bottom: 0;
+    border-bottom: 0;
+}
+
+.publish-section h3 {
+    margin: 0 0 0.4rem;
+    font-size: 0.95rem;
+}
+
+.publish-section h4 {
+    margin: 1rem 0 0.4rem;
+}
+
+.publish-hint {
+    margin: 0 0 0.6rem;
+    font-size: 0.78rem;
+}
+
+.publish-field {
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.publish-label {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--model-text-secondary);
+}
+
+.publish-colour,
+.publish-button-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.publish-colour input[type="color"] {
+    width: 2.4rem;
+    height: 1.9rem;
+    padding: 0.1rem;
+    border: 1px solid var(--model-border);
+    border-radius: 0.3rem;
+    background: var(--model-surface);
+    cursor: pointer;
+}
+
+.publish-roots {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin: 0.75rem 0;
+    padding: 0;
+    list-style: none;
+}
+
+.publish-root {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--model-border);
+    border-radius: 0.4rem;
+    font-size: 0.85rem;
+}
+
+.publish-root-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.publish-section-quiet {
+    border-bottom: 0;
+}
+
+/* -- preview ---------------------------------------------------------------- */
+
+.publish-preview {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    gap: 0.5rem;
+    padding-top: 0.6rem;
+    border-top: 3px solid var(--weave-theme);
+    border-radius: 2px;
+}
+
+.publish-preview-summary {
+    margin: 0;
+    font-weight: 600;
+}
+
+.publish-revision {
+    margin-left: 0.4rem;
+    color: var(--model-text-muted);
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.publish-reader {
+    flex: 0 0 auto;
+}
+
+.publish-reader > summary {
+    cursor: pointer;
+    color: var(--model-text-muted);
+    font-size: 0.82rem;
+}
+
+.publish-reader[open] .model-explorer-panel {
+    max-height: 38vh;
+    margin-top: 0.5rem;
+}
+
+.publish-preview-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+    gap: 1rem;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* -- banners and empty state ------------------------------------------------------ */
+
+.publish-banner {
+    margin-bottom: 1rem;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--model-border);
+    border-radius: 0.5rem;
+    font-size: 0.88rem;
+}
+
+.publish-banner-success {
+    border-color: #8ce99a;
+    background: #ebfbee;
+    color: #1b5e2b;
+}
+
+.publish-banner-changed {
+    border-color: #ffd43b;
+    background: #fff9db;
+    color: #7a5b00;
+}
+
+.publish-banner-error {
+    border-color: #ffa8a8;
+    background: #fff5f5;
+    color: var(--model-danger);
+}
+
+.publish-empty {
+    max-width: 40rem;
+}
+
+.publication-back {
+    color: var(--model-text-muted);
+}
+
+@media (max-width: 1200px) {
+    .publish-layout {
+        grid-template-columns: minmax(0, 1fr);
+        height: auto;
+    }
+
+    .publish-config {
+        max-height: none;
+    }
+
+    .publish-preview-body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

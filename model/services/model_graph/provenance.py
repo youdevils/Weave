@@ -67,7 +67,7 @@ def _result(kind, summary, *, field=None, before=None, after=None, **extra) -> d
     }
 
 
-def _interpret_create(change, target_type, specs, endpoint_names) -> dict:
+def _interpret_create(change, target_type, specs, endpoint_names, missing_endpoint=_MISSING_ENDPOINT) -> dict:
     after = change.after or {}
     inactive = "is_active" in after and not _is_truthy(after["is_active"])
 
@@ -79,8 +79,8 @@ def _interpret_create(change, target_type, specs, endpoint_names) -> dict:
             initial.append({"label": spec.get("label") or key, "value": shown})
 
     if target_type == "Relationship":
-        source = endpoint_names.get(str(after.get("subject_id")), _MISSING_ENDPOINT)
-        target = endpoint_names.get(str(after.get("object_id")), _MISSING_ENDPOINT)
+        source = endpoint_names.get(str(after.get("subject_id")), missing_endpoint)
+        target = endpoint_names.get(str(after.get("object_id")), missing_endpoint)
         return _result(
             "created",
             "Created relationship (inactive)" if inactive else "Created relationship",
@@ -140,16 +140,17 @@ def _interpret_update(change, specs) -> dict:
     return _result("field_changed", f"Changed {label}", field=label, before=before, after=after)
 
 
-def interpret_change(change, target_type, specs, endpoint_names=None) -> dict:
+def interpret_change(change, target_type, specs, endpoint_names=None, missing_endpoint=_MISSING_ENDPOINT) -> dict:
     """
     What one stored change did to its target, for a person.
 
     ``specs`` maps attribute key to ``{"label", "dataType"}``; an attribute
     whose definition no longer exists falls back to its key. ``endpoint_names``
-    maps object ids to (current) names, used for Relationship CREATE.
+    maps object ids to (current) names, used for Relationship CREATE;
+    ``missing_endpoint`` is what an endpoint absent from that map is called.
     """
     if change.operation == Operation.CREATE:
-        return _interpret_create(change, target_type, specs, endpoint_names or {})
+        return _interpret_create(change, target_type, specs, endpoint_names or {}, missing_endpoint)
     if change.operation == Operation.DELETE:
         return _result("deleted", "Deleted")
     return _interpret_update(change, specs)
@@ -173,42 +174,18 @@ def _entry(proposal) -> dict:
     }
 
 
-def build_provenance(model, target_type, target_id, specs=None, limit=DEFAULT_LIMIT) -> dict:
-    """
-    The provenance chain of one Object or Relationship of ``model``.
+_ID_CHUNK = 5000
 
-    ``specs``: attribute key -> ``{"label", "dataType"}`` (see
-    ``interpret_change``). When more than ``limit`` proposals touched the
-    record, the most recent ``limit`` are kept and ``truncated`` is set; they
-    are still returned oldest first.
-    """
-    specs = specs or {}
 
-    changes = list(
-        ProposalChange.objects.filter(
-            proposal__model=model,
-            proposal__status=Proposal.Status.COMPLETED,
-            target_type=target_type,
-            target_id=target_id,
-        )
-        .select_related("proposal__created_by", "proposal__submission_result")
-        .prefetch_related("evidence")
-        .order_by("proposal__submission_result__after_revision", "created_at", "id")
-    )
-
-    endpoint_names = {}
-    if target_type == "Relationship":
-        endpoint_names = ProposalReviewService.resolve_object_names(
-            changes, ProposalReviewService.build_create_lookup(changes)
-        )
-
+def _provenance_for(changes, target_type, specs, endpoint_names, missing_endpoint, limit) -> dict:
+    """The provenance chain built from one record's changes (already in order)."""
     entries: dict = {}
     for change in changes:
         entry = entries.get(change.proposal_id)
         if entry is None:
             entry = entries[change.proposal_id] = _entry(change.proposal)
 
-        item = interpret_change(change, target_type, specs, endpoint_names)
+        item = interpret_change(change, target_type, specs, endpoint_names, missing_endpoint)
         item["evidence"] = [
             {"source": e.source, "locator": e.locator, "note": e.note} for e in change.evidence.all()
         ]
@@ -223,3 +200,76 @@ def build_provenance(model, target_type, target_id, specs=None, limit=DEFAULT_LI
         entry["changes"] = [item for _, item in sorted(entry["changes"], key=lambda pair: pair[0])]
 
     return {"entries": ordered, "truncated": truncated}
+
+
+def _completed_changes(model, target_type, target_ids):
+    return (
+        ProposalChange.objects.filter(
+            proposal__model=model,
+            proposal__status=Proposal.Status.COMPLETED,
+            target_type=target_type,
+            target_id__in=target_ids,
+        )
+        .select_related("proposal__created_by", "proposal__submission_result")
+        .prefetch_related("evidence")
+        .order_by("proposal__submission_result__after_revision", "created_at", "id")
+    )
+
+
+def build_provenance(model, target_type, target_id, specs=None, limit=DEFAULT_LIMIT) -> dict:
+    """
+    The provenance chain of one Object or Relationship of ``model``.
+
+    ``specs``: attribute key -> ``{"label", "dataType"}`` (see
+    ``interpret_change``). When more than ``limit`` proposals touched the
+    record, the most recent ``limit`` are kept and ``truncated`` is set; they
+    are still returned oldest first.
+    """
+    specs = specs or {}
+
+    changes = list(_completed_changes(model, target_type, [target_id]))
+
+    endpoint_names = {}
+    if target_type == "Relationship":
+        endpoint_names = ProposalReviewService.resolve_object_names(
+            changes, ProposalReviewService.build_create_lookup(changes)
+        )
+
+    return _provenance_for(changes, target_type, specs, endpoint_names, _MISSING_ENDPOINT, limit)
+
+
+def build_provenance_bulk(
+    model,
+    target_type,
+    target_ids,
+    specs_for,
+    *,
+    endpoint_names,
+    missing_endpoint=_MISSING_ENDPOINT,
+    limit=DEFAULT_LIMIT,
+) -> dict:
+    """
+    Provenance chains for many records of one type, keyed by (string) record id.
+
+    Equivalent to calling ``build_provenance`` per id but in a handful of
+    queries however many records there are. Every requested id has an entry
+    (empty when no committed proposal touched it).
+
+    ``specs_for(record_id)`` gives that record's attribute specs. Unlike the
+    single-record builder, ``endpoint_names`` is supplied by the caller (object
+    id -> name) so it can decide which names may be disclosed; an endpoint not
+    in the map is called ``missing_endpoint``.
+    """
+    ids = [str(target_id) for target_id in target_ids]
+    by_target: dict[str, list] = {target_id: [] for target_id in ids}
+
+    for start in range(0, len(ids), _ID_CHUNK):
+        for change in _completed_changes(model, target_type, ids[start : start + _ID_CHUNK]):
+            by_target[str(change.target_id)].append(change)
+
+    return {
+        target_id: _provenance_for(
+            changes, target_type, specs_for(target_id) or {}, endpoint_names, missing_endpoint, limit
+        )
+        for target_id, changes in by_target.items()
+    }

@@ -9,7 +9,7 @@ from model.models.evidence_reference import EvidenceReference
 from model.models.model import Model
 from model.models.proposal import Proposal, ProposalChange
 from model.models.proposal_submission_result import ProposalSubmissionResult
-from model.services.model_graph.provenance import build_provenance
+from model.services.model_graph.provenance import build_provenance, build_provenance_bulk
 from model.services.model_graph.tests.base import ModelGraphTestCase
 
 Op = ProposalChange.Operation
@@ -554,3 +554,66 @@ class RelationshipInterpretationTests(ProvenanceTestCase):
         kinds = [c["kind"] for e in self.entries() for c in e["changes"]]
 
         self.assertEqual(kinds, ["renamed"])
+
+
+class BulkProvenanceTests(ProvenanceTestCase):
+
+    def test_bulk_matches_single_record_calls(self):
+        proposal = self.proposal(2, title="First", note="why")
+        self.field_change(proposal, self.alice.id, "name", "Alice", "Alicia")
+        EvidenceReference.objects.create(
+            change=self.field_change(proposal, self.alice.id, "attributes.status", "x", "Active"), source="Source A"
+        )
+        self.field_change(self.proposal(3), self.ops.id, "name", "Ops", "Operations")
+
+        bulk = build_provenance_bulk(
+            self.model,
+            "Object",
+            [self.alice.id, self.ops.id],
+            lambda _id: SPECS,
+            endpoint_names={},
+        )
+
+        for record in (self.alice, self.ops):
+            self.assertEqual(bulk[str(record.id)], build_provenance(self.model, "Object", record.id, SPECS))
+
+    def test_every_requested_id_has_an_entry_even_without_history(self):
+        untouched = uuid.uuid4()
+
+        bulk = build_provenance_bulk(self.model, "Object", [untouched], lambda _id: {}, endpoint_names={})
+
+        self.assertEqual(bulk, {str(untouched): {"entries": [], "truncated": False}})
+
+    def test_query_count_does_not_grow_with_the_number_of_records(self):
+        people = [self.make_object(self.person_type, f"P{i}") for i in range(6)]
+        for i, person in enumerate(people, start=2):
+            self.field_change(self.proposal(i, user=self.user), person.id, "name", "a", "b")
+
+        def count(ids):
+            with CaptureQueriesContext(connection) as queries:
+                build_provenance_bulk(self.model, "Object", ids, lambda _id: SPECS, endpoint_names={})
+            return len(queries)
+
+        self.assertEqual(count([p.id for p in people[:1]]), count([p.id for p in people]))
+
+    def test_unlisted_relationship_endpoints_use_the_supplied_label(self):
+        relationship = self.make_relationship(self.alice, self.ops)
+        self.change(
+            self.proposal(2),
+            Op.CREATE,
+            "Relationship",
+            relationship.id,
+            after={"subject_id": str(self.alice.id), "object_id": str(self.ops.id), "is_active": True},
+        )
+
+        bulk = build_provenance_bulk(
+            self.model,
+            "Relationship",
+            [relationship.id],
+            lambda _id: {},
+            endpoint_names={str(self.alice.id): "Alice"},
+            missing_endpoint="an object outside this publication",
+        )
+
+        (entry,) = bulk[str(relationship.id)]["entries"]
+        self.assertEqual(entry["changes"][0]["after"], "Alice → an object outside this publication")

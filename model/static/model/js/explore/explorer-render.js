@@ -7,6 +7,8 @@
  * here has a side effect, which keeps it testable without a DOM.
  */
 
+import { icon } from "./explorer-icons.js";
+
 export function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -131,7 +133,7 @@ export function renderResults(response) {
 export function renderEmptyDetails() {
   return `
     <div class="model-explorer-empty-state">
-      <i class="bi bi-cursor"></i>
+      ${icon("cursor")}
       <p><strong>Nothing selected</strong></p>
       <p>Select an object or relationship in the graph, or search for one, to see its attributes and connections.</p>
     </div>`;
@@ -140,7 +142,7 @@ export function renderEmptyDetails() {
 export function renderDetailsError(message) {
   return `
     <div class="model-explorer-empty-state" role="status">
-      <i class="bi bi-slash-circle"></i>
+      ${icon("slash-circle")}
       <p><strong>Selection cleared</strong></p>
       <p>${e(message)}</p>
     </div>`;
@@ -314,7 +316,7 @@ function renderEvidence(evidence) {
     .map(
       (item) => `
         <li class="model-explorer-evidence-item">
-          <i class="bi bi-paperclip" aria-hidden="true"></i>
+          ${icon("paperclip")}
           ${renderEvidenceSource(item.source)}
           ${item.locator ? `<span class="model-explorer-muted">${e(item.locator)}</span>` : ""}
           ${item.note ? `<span class="model-explorer-evidence-note">${e(item.note)}</span>` : ""}

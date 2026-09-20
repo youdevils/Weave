@@ -1,0 +1,167 @@
+/* =========================================================
+   Portable published Explorer: page chrome and the few
+   Bootstrap-style controls the Explorer surfaces rely on.
+   The document has no external stylesheet, font or icon set.
+   ========================================================= */
+
+.weave-published {
+    --weave-theme: #4c6ef5;
+    --weave-theme-ink: #ffffff;
+    margin: 0;
+    color: #212529;
+    background: #f8f9fa;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.45;
+}
+
+.weave-published *,
+.weave-published *::before,
+.weave-published *::after {
+    box-sizing: border-box;
+}
+
+.weave-published-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.4rem 1.5rem;
+    padding: 0.85rem 1.25rem;
+    color: var(--weave-theme-ink);
+    background: var(--weave-theme);
+}
+
+.weave-published-title h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 650;
+}
+
+.weave-published-title p {
+    margin: 0.15rem 0 0;
+    max-width: 60rem;
+    font-size: 0.85rem;
+    opacity: 0.92;
+}
+
+.weave-published-meta {
+    margin: 0;
+    font-size: 0.78rem;
+    opacity: 0.85;
+    white-space: nowrap;
+}
+
+.weave-published-main {
+    padding: 1rem 1.25rem 0.5rem;
+}
+
+.weave-published .model-explorer-layout {
+    height: calc(100vh - 9.5rem);
+    min-height: 480px;
+}
+
+/* explorer.css pads the icon side of the search box; the generic control padding must not undo it. */
+.weave-published .model-explorer-search input.form-control {
+    padding-left: 2.1rem;
+}
+
+.weave-published-footer {
+    padding: 0.4rem 1.25rem 0.9rem;
+    color: #6c757d;
+    font-size: 0.75rem;
+}
+
+.weave-published-footer a {
+    color: inherit;
+}
+
+.weave-published :focus-visible {
+    outline: 2px solid var(--weave-theme);
+    outline-offset: 1px;
+}
+
+.weave-published h3,
+.weave-published h4 {
+    font-weight: 600;
+}
+
+/* ---- Bootstrap-style controls the Explorer markup uses ---- */
+
+.weave-published .btn {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: 0.375rem;
+    background: transparent;
+    color: #212529;
+    font: inherit;
+    line-height: 1.5;
+    text-align: center;
+    cursor: pointer;
+}
+
+.weave-published .btn-sm {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.82rem;
+    border-radius: 0.3rem;
+}
+
+.weave-published .btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.weave-published .btn-outline-secondary:hover {
+    color: #fff;
+    background: #6c757d;
+}
+
+.weave-published .form-control,
+.weave-published .form-select {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    color: #212529;
+    font: inherit;
+    line-height: 1.5;
+}
+
+.weave-published .form-control-sm,
+.weave-published .form-select-sm {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.82rem;
+    border-radius: 0.3rem;
+}
+
+.weave-published .form-select {
+    appearance: auto;
+}
+
+.weave-published .form-control:focus,
+.weave-published .form-select:focus {
+    border-color: var(--weave-theme);
+    outline: 0;
+    box-shadow: 0 0 0 0.15rem color-mix(in srgb, var(--weave-theme) 30%, transparent);
+}
+
+.weave-published input[type="checkbox"] {
+    accent-color: var(--weave-theme);
+}
+
+@media (max-width: 1200px) {
+    .weave-published .model-explorer-layout {
+        height: auto;
+    }
+}
+
+@media print {
+    .weave-published-header {
+        color: #000;
+        background: none;
+        border-bottom: 2px solid var(--weave-theme);
+    }
+}

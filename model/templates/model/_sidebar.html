@@ -499,15 +499,25 @@
             <div class="model-nav-children">
 
                 <a
-                    href="#"
-                    class="model-nav-item"
+                    href="{% url 'publication:publish' model.id %}"
+                    class="
+                        model-nav-item
+                        {% if active_url_name == 'publish' %}
+                            active
+                        {% endif %}
+                    "
                 >
                     <span>Publish</span>
                 </a>
 
                 <a
-                    href="#"
-                    class="model-nav-item"
+                    href="{% url 'publication:publication_history' model.id %}"
+                    class="
+                        model-nav-item
+                        {% if active_url_name == 'publication_history' %}
+                            active
+                        {% endif %}
+                    "
                 >
                     <span>Publications</span>
                 </a>

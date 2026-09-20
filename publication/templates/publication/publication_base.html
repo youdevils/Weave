@@ -1,0 +1,27 @@
+{% extends "authenticated_base.html" %}
+
+{% load static %}
+
+{% block workspace_breadcrumb %}Workspace → Model → Publishing{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'model/css/model.css' %}">
+<link rel="stylesheet" href="{% static 'model/css/explorer.css' %}">
+<link rel="stylesheet" href="{% static 'publication/css/publish.css' %}">
+{% block publication_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+
+<div class="model-shell">
+
+    {% include "publication/_sidebar.html" %}
+
+    <main class="model-content">
+        {% block publication_content %}
+        {% endblock %}
+    </main>
+
+</div>
+
+{% endblock %}
