@@ -19,6 +19,7 @@ from model.services.model_graph.compiler import compile_model_graph
 from model.services.model_graph.details import object_details, relationship_details
 from model.services.model_graph.explorer import explore as build_exploration
 from model.services.model_graph.facets import build_facets
+from model.services.model_graph.provenance import build_provenance
 from model.services.model_graph.query import QueryError
 from model.services.model_graph.search import search_objects
 from model.views.active_proposal import resolve_active_proposal
@@ -117,6 +118,17 @@ def explore_search(request, model_id):
     )
 
 
+def _with_provenance(model, target_type, details):
+    """
+    Add the record's provenance chain (committed proposals only) to its details.
+    Derived on read from ProposalChange / EvidenceReference; nothing is written.
+    """
+    if details is not None:
+        specs = {a["key"]: {"label": a["label"], "dataType": a["dataType"]} for a in details["attributes"]}
+        details["provenance"] = build_provenance(model, target_type, details["id"], specs)
+    return details
+
+
 def _details_response(exploration, details, kind):
     if details is None:
         return JsonResponse(
@@ -133,13 +145,17 @@ def _details_response(exploration, details, kind):
 @login_required
 @require_GET
 def explore_object(request, model_id, object_id):
-    _model, exploration, error = _exploration(request, model_id)
+    model, exploration, error = _exploration(request, model_id)
     if error:
         return error
 
     return _details_response(
         exploration,
-        object_details(exploration.dataset, object_id, exploration.projection),
+        _with_provenance(
+            model,
+            "Object",
+            object_details(exploration.dataset, object_id, exploration.projection),
+        ),
         "object",
     )
 
@@ -147,12 +163,16 @@ def explore_object(request, model_id, object_id):
 @login_required
 @require_GET
 def explore_relationship(request, model_id, relationship_id):
-    _model, exploration, error = _exploration(request, model_id)
+    model, exploration, error = _exploration(request, model_id)
     if error:
         return error
 
     return _details_response(
         exploration,
-        relationship_details(exploration.dataset, relationship_id, exploration.projection),
+        _with_provenance(
+            model,
+            "Relationship",
+            relationship_details(exploration.dataset, relationship_id, exploration.projection),
+        ),
         "relationship",
     )

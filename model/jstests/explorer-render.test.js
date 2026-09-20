@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   escapeHtml,
   formatCardinality,
+  formatDate,
   renderChips,
   renderCounts,
   renderDetails,
@@ -11,6 +12,7 @@ import {
   renderEmptyDetails,
   renderFilterBuilder,
   renderNotices,
+  renderProvenance,
   renderResults,
   renderSelectionChip,
   renderTypeFilters,
@@ -673,4 +675,258 @@ test("relationship attributes listed on an object's connections link consistentl
 
   assert.match(unsafe, /Spec: javascript:alert\(1\)/);
   assert.doesNotMatch(unsafe, /<a class="model-explorer-url"/);
+});
+
+// ---------------------------------------------------------------------------
+// Provenance ("History")
+// ---------------------------------------------------------------------------
+
+const change = (over = {}) => ({
+  kind: "renamed",
+  summary: "Renamed",
+  field: "Name",
+  before: "Alice",
+  after: "Alicia",
+  evidence: [],
+  ...over,
+});
+
+const entry = (over = {}) => ({
+  revision: { before: 4, after: 5 },
+  title: "Rename Alice",
+  source: "user",
+  proposer: "author@example.com",
+  changeNote: "",
+  submittedAt: "2026-03-10T12:00:00Z",
+  committedAt: "2026-03-12T12:00:00Z",
+  changes: [change()],
+  ...over,
+});
+
+const chain = (entries, truncated = false) => ({ entries, truncated });
+
+test("no provenance in the response renders nothing", () => {
+  assert.equal(renderProvenance(undefined), "");
+  assert.equal(renderProvenance(null), "");
+});
+
+test("an empty chain says so, naming the kind of record", () => {
+  assert.match(renderProvenance(chain([]), "object"), /No approved proposals have changed this object\./);
+  assert.match(renderProvenance(chain([]), "relationship"), /changed this relationship\./);
+});
+
+test("an entry is referred to by revision, with proposer and dates", () => {
+  const html = renderProvenance(chain([entry()]));
+
+  assert.match(html, /Revision 5/);
+  assert.match(html, /Rename Alice/);
+  assert.match(html, /Proposed by author@example\.com/);
+  assert.match(html, /Submitted \d+ Mar 2026/);
+  assert.match(html, /Validated &amp; committed \d+ Mar 2026/);
+});
+
+test("the proposal is never shown by id or as a link", () => {
+  const html = renderProvenance(chain([entry()]));
+
+  assert.ok(!/data-action/.test(html), "history must not carry actions");
+  assert.ok(!/href=/.test(html), "no proposal navigation");
+  assert.ok(!/[0-9a-f]{8}-[0-9a-f]{4}/.test(html), "no uuid");
+});
+
+test("entries render in the order the server sent them (oldest first)", () => {
+  const html = renderProvenance(
+    chain([
+      entry({
+        revision: { before: 1, after: 2 },
+        changes: [change({ kind: "created", summary: "Created", before: null, after: "Alice" })],
+      }),
+      entry({ revision: { before: 4, after: 5 } }),
+      entry({
+        revision: { before: 6, after: 7 },
+        changes: [change({ kind: "deactivated", summary: "Deactivated", before: null, after: null })],
+      }),
+    ]),
+  );
+
+  const positions = ["Revision 2", "Revision 5", "Revision 7"].map((label) => html.indexOf(label));
+  assert.ok(positions.every((p) => p >= 0));
+  assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
+  assert.ok(html.indexOf("Created") < html.indexOf("Renamed") && html.indexOf("Renamed") < html.indexOf("Deactivated"));
+});
+
+test("a change shows what happened and its before and after values", () => {
+  const html = renderProvenance(chain([entry()]));
+
+  assert.match(html, /Renamed/);
+  assert.match(html, /Alice &rarr; Alicia/);
+});
+
+test("set and cleared changes show only the values that exist", () => {
+  const set = renderProvenance(chain([entry({ changes: [change({ summary: "Set Status", before: null, after: "Active" })] })]));
+  const cleared = renderProvenance(
+    chain([entry({ changes: [change({ summary: "Cleared Status", before: "Active", after: null })] })]),
+  );
+
+  assert.match(set, />Active</);
+  assert.ok(!set.includes("&rarr;"));
+  assert.match(cleared, /Active &rarr; not set/);
+});
+
+test("initial attribute values of a created record are listed", () => {
+  const html = renderProvenance(
+    chain([
+      entry({
+        changes: [
+          change({
+            kind: "created",
+            summary: "Created",
+            before: null,
+            after: "Alice",
+            initial: [{ label: "Status", value: "Active" }],
+          }),
+        ],
+      }),
+    ]),
+  );
+
+  assert.match(html, /Status: Active/);
+});
+
+test("relationship endpoint names are labelled as current, not historical", () => {
+  const html = renderProvenance(
+    chain([
+      entry({
+        changes: [
+          change({ kind: "created", summary: "Created relationship", before: null, after: "Alice → Ops", currentNames: true }),
+        ],
+      }),
+    ]),
+    "relationship",
+  );
+
+  assert.match(html, /Alice → Ops \(current names\)/);
+});
+
+test("a change note is shown with its entry", () => {
+  const html = renderProvenance(chain([entry({ changeNote: "Joined in March" })]));
+
+  assert.match(html, /model-explorer-provenance-note/);
+  assert.match(html, /Joined in March/);
+  assert.ok(!renderProvenance(chain([entry()])).includes("model-explorer-provenance-note"));
+});
+
+test("AI proposals are flagged", () => {
+  assert.match(renderProvenance(chain([entry({ source: "ai" })])), />AI</);
+  assert.ok(!/>AI</.test(renderProvenance(chain([entry()]))));
+});
+
+test("an entry without a revision still renders", () => {
+  const html = renderProvenance(chain([entry({ revision: { before: null, after: null } })]));
+
+  assert.match(html, /Earlier revision/);
+});
+
+test("evidence is shown under its change: source, locator and note", () => {
+  const html = renderProvenance(
+    chain([entry({ changes: [change({ evidence: [{ source: "HR system", locator: "record 12", note: "Confirmed" }] })] })]),
+  );
+
+  assert.match(html, /model-explorer-evidence-item/);
+  assert.match(html, /HR system/);
+  assert.match(html, /record 12/);
+  assert.match(html, /Confirmed/);
+});
+
+test("evidence with only a source renders just the source", () => {
+  const html = renderProvenance(
+    chain([entry({ changes: [change({ evidence: [{ source: "Email thread", locator: "", note: "" }] })] })]),
+  );
+
+  assert.match(html, /Email thread/);
+  assert.ok(!html.includes("model-explorer-evidence-note"));
+});
+
+test("a change with no evidence renders no evidence list", () => {
+  assert.ok(!renderProvenance(chain([entry()])).includes("model-explorer-evidence"));
+});
+
+test("only http(s) evidence sources become links", () => {
+  const evidenceHtml = (source) =>
+    renderProvenance(chain([entry({ changes: [change({ evidence: [{ source, locator: "", note: "" }] })] })]));
+
+  const linked = evidenceHtml("https://example.com/spec");
+  assert.match(linked, /<a class="model-explorer-url model-explorer-evidence-source" href="https:\/\/example\.com\/spec"/);
+  assert.match(linked, /rel="noopener noreferrer nofollow"/);
+
+  for (const source of ["javascript:alert(1)", "data:text/html,x", "/relative/path", "Board minutes"]) {
+    assert.ok(!evidenceHtml(source).includes("<a "), `${source} must not be a link`);
+  }
+});
+
+test("hostile text in every provenance field is escaped", () => {
+  const html = renderProvenance(
+    chain([
+      entry({
+        title: HOSTILE,
+        proposer: HOSTILE,
+        changeNote: HOSTILE,
+        changes: [
+          change({
+            summary: HOSTILE,
+            before: HOSTILE,
+            after: HOSTILE,
+            initial: [{ label: HOSTILE, value: HOSTILE }],
+            evidence: [{ source: HOSTILE, locator: HOSTILE, note: HOSTILE }],
+          }),
+        ],
+      }),
+    ]),
+    HOSTILE,
+  );
+
+  assertNoLiveMarkup(html);
+});
+
+test("a truncated chain says older history is not shown", () => {
+  assert.match(renderProvenance(chain([entry()], true)), /Older history is not shown/);
+  assert.ok(!renderProvenance(chain([entry()], false)).includes("Older history"));
+});
+
+test("formatDate is tolerant of missing and invalid values", () => {
+  assert.equal(formatDate(null), "");
+  assert.equal(formatDate(""), "");
+  assert.equal(formatDate("not a date"), "");
+  assert.match(formatDate("2026-03-12T12:00:00Z"), /Mar 2026/);
+});
+
+test("object details show History after the connections", () => {
+  const html = renderDetails(objectDetails({ provenance: chain([entry()]) }));
+
+  assert.match(html, /<h4>History/);
+  assert.ok(html.indexOf("Connections") < html.indexOf("History"));
+});
+
+test("object details without a provenance field are unchanged", () => {
+  assert.ok(!renderDetails(objectDetails()).includes("History"));
+});
+
+test("relationship details show History", () => {
+  const ref = { id: "o1", name: "Alice", typeName: "Person", isProposed: false, inView: true };
+  const html = renderDetails({
+    kind: "relationship",
+    id: "r1",
+    type: { id: "rt", key: "member_of", name: "Member of" },
+    source: ref,
+    target: { ...ref, id: "o2", name: "Ops", typeName: "Team" },
+    attributes: [],
+    validFrom: null,
+    validTo: null,
+    cardinality: null,
+    isProposed: false,
+    inView: true,
+    provenance: chain([]),
+  });
+
+  assert.match(html, /<h4>History/);
+  assert.match(html, /changed this relationship\./);
 });

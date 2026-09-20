@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import (
     AttributeDefinition,
+    EvidenceReference,
     Model,
     Object,
     ObjectType,
@@ -180,11 +181,20 @@ class ProposalAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "submitted_at",
+        "completed_at",
     )
+
+
+class EvidenceReferenceInline(admin.TabularInline):
+    model = EvidenceReference
+    extra = 0
+    readonly_fields = ("id", "created_at", "updated_at")
 
 
 @admin.register(ProposalChange)
 class ProposalChangeAdmin(admin.ModelAdmin):
+    inlines = (EvidenceReferenceInline,)
+
     list_display = (
         "proposal",
         "operation",
@@ -204,6 +214,28 @@ class ProposalChangeAdmin(admin.ModelAdmin):
         "proposal__title",
         "target_type",
         "target_id",
+    )
+
+    readonly_fields = (
+        "id",
+        "created_at",
+        "updated_at",
+    )
+
+
+@admin.register(EvidenceReference)
+class EvidenceReferenceAdmin(admin.ModelAdmin):
+    list_display = (
+        "source",
+        "locator",
+        "change",
+        "created_at",
+    )
+
+    search_fields = (
+        "source",
+        "locator",
+        "note",
     )
 
     readonly_fields = (

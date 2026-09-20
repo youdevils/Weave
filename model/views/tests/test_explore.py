@@ -5,9 +5,11 @@ from django.test import TestCase
 from django.urls import reverse
 
 from account.models import CustomUser
+from model.models.evidence_reference import EvidenceReference
 from model.models.model import Model
 from model.models.object import Object
 from model.models.proposal import Proposal, ProposalChange
+from model.models.proposal_submission_result import ProposalSubmissionResult
 from model.models.relationship import Relationship
 from model.services.appearance import OBJECT_TYPE, AppearanceService
 from model.services.model_graph.tests.base import ModelGraphTestCase
@@ -119,6 +121,9 @@ class ReadOnlyGuaranteeTests(ExploreViewTestCase):
         return {
             "proposals": Proposal.objects.count(),
             "changes": list(ProposalChange.objects.order_by("id").values_list("id", "after")),
+            "evidence": list(
+                EvidenceReference.objects.order_by("id").values_list("id", "change_id", "source", "locator", "note")
+            ),
             "objects": list(Object.objects.order_by("id").values_list("id", "name", "attributes", "is_active")),
             "relationships": list(Relationship.objects.order_by("id").values_list("id", "is_active")),
             "revision": model.revision,
@@ -577,3 +582,142 @@ class DetailsEndpointTests(ExploreViewTestCase):
 
         self.assertEqual(details["connectionCount"], 61)
         self.assertEqual(len(details["relationships"][0]["items"]), 61)
+
+
+class ProvenanceTests(ExploreViewTestCase):
+    """The details response carries a provenance chain derived from committed proposals."""
+
+    def commit(self, revision, *, user=None, title="", note=""):
+        proposal = Proposal.objects.create(
+            model=self.model,
+            created_by=user or self.user,
+            status=Proposal.Status.COMPLETED,
+            title=title,
+            summary=note,
+        )
+        ProposalSubmissionResult.objects.create(
+            proposal=proposal,
+            outcome=ProposalSubmissionResult.Outcome.SUCCESS,
+            before_revision=revision - 1,
+            after_revision=revision,
+        )
+        return proposal
+
+    def rename(self, proposal, target_type, target_id, before, after):
+        return self.add_change(
+            proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type=target_type,
+            target_id=target_id,
+            before={"field": "name", "value": before},
+            after={"field": "name", "value": after},
+        )
+
+    def test_an_object_with_no_history_has_an_empty_chain(self):
+        details = self.client.get(self.object_url(self.alice.id)).json()["details"]
+
+        self.assertEqual(details["provenance"], {"entries": [], "truncated": False})
+
+    def test_object_details_include_the_chain_with_evidence(self):
+        proposal = self.commit(2, title="Rename Alice", note="HR confirmed")
+        change = self.rename(proposal, "Object", self.alice.id, "Alice", "Alicia")
+        EvidenceReference.objects.create(change=change, source="HR system", locator="rec 12", note="ok")
+
+        details = self.client.get(self.object_url(self.alice.id)).json()["details"]
+
+        (entry,) = details["provenance"]["entries"]
+        self.assertEqual(entry["revision"], {"before": 1, "after": 2})
+        self.assertEqual(entry["title"], "Rename Alice")
+        self.assertEqual(entry["changeNote"], "HR confirmed")
+        self.assertEqual(entry["proposer"], "user@example.com")
+        self.assertEqual(entry["changes"][0]["summary"], "Renamed")
+        self.assertEqual(
+            entry["changes"][0]["evidence"],
+            [{"source": "HR system", "locator": "rec 12", "note": "ok"}],
+        )
+
+    def test_relationship_details_include_the_chain(self):
+        proposal = self.commit(2)
+        self.add_change(
+            proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="Relationship",
+            target_id=self.membership.id,
+            after={"subject_id": str(self.alice.id), "object_id": str(self.ops.id), "is_active": True, "attributes": {}},
+        )
+
+        details = self.client.get(self.relationship_url(self.membership.id)).json()["details"]
+
+        (entry,) = details["provenance"]["entries"]
+        self.assertEqual(entry["changes"][0]["after"], "Alice → Ops")
+
+    def test_attribute_labels_come_from_the_selected_records_definitions(self):
+        proposal = self.commit(2)
+        self.add_change(
+            proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="Object",
+            target_id=self.alice.id,
+            before={"field": "attributes.status", "value": "Active"},
+            after={"field": "attributes.status", "value": "Left"},
+        )
+
+        details = self.client.get(self.object_url(self.alice.id)).json()["details"]
+
+        self.assertEqual(details["provenance"]["entries"][0]["changes"][0]["summary"], "Changed Status")
+
+    def test_a_workspace_colleagues_committed_proposal_appears(self):
+        colleague = CustomUser.objects.create_user(email="colleague@example.com", password="test-password")
+        WorkspaceMember.objects.create(workspace=self.workspace, user=colleague, role=WorkspaceMember.Role.EDITOR)
+        self.rename(self.commit(2, user=colleague), "Object", self.alice.id, "Alice", "Alicia")
+
+        details = self.client.get(self.object_url(self.alice.id)).json()["details"]
+
+        self.assertEqual(details["provenance"]["entries"][0]["proposer"], "colleague@example.com")
+
+    def test_uncommitted_proposals_are_not_part_of_the_chain_even_when_active(self):
+        proposal = self.working_proposal()
+        change = self.update(proposal, "Object", self.alice.id, "name", "Alicia")
+        EvidenceReference.objects.create(change=change, source="Draft evidence")
+        activate_proposal(self.client, self.model.id, proposal)
+
+        details = self.client.get(self.object_url(self.alice.id)).json()["details"]
+
+        self.assertTrue(details["isProposed"])
+        self.assertEqual(details["provenance"]["entries"], [])
+
+    def test_the_chain_is_oldest_first(self):
+        self.rename(self.commit(5), "Object", self.alice.id, "B", "C")
+        self.rename(self.commit(3), "Object", self.alice.id, "A", "B")
+
+        details = self.client.get(self.object_url(self.alice.id)).json()["details"]
+
+        self.assertEqual([e["revision"]["after"] for e in details["provenance"]["entries"]], [3, 5])
+
+    def test_the_payload_exposes_no_proposal_identity_or_navigation(self):
+        proposal = self.commit(2)
+        self.rename(proposal, "Object", self.alice.id, "A", "B")
+
+        body = self.client.get(self.object_url(self.alice.id)).content.decode()
+
+        self.assertNotIn(str(proposal.id), body)
+        self.assertNotIn("/proposals/", body)
+
+    def test_the_page_bootstrap_carries_no_provenance(self):
+        self.rename(self.commit(2), "Object", self.alice.id, "A", "B")
+
+        response = self.client.get(self.page_url())
+
+        self.assertNotIn("provenance", response.context["explorer_bootstrap"])
+        self.assertNotContains(response, "provenance")
+
+    def test_reading_provenance_writes_nothing(self):
+        change = self.rename(self.commit(2), "Object", self.alice.id, "A", "B")
+        EvidenceReference.objects.create(change=change, source="Doc")
+        before = ReadOnlyGuaranteeTests.snapshot(self)
+
+        self.client.get(self.object_url(self.alice.id))
+        self.client.get(self.relationship_url(self.membership.id))
+
+        self.assertEqual(ReadOnlyGuaranteeTests.snapshot(self), before)
+

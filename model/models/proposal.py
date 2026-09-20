@@ -67,8 +67,11 @@ class Proposal(models.Model):
         blank=True,
     )
 
+    # The proposal-level "Change note": optional, human-entered context for
+    # why the proposal exists. Not evidence, and never required.
     summary = models.TextField(
         blank=True,
+        verbose_name="Change note",
     )
 
     created_at = models.DateTimeField(
@@ -85,6 +88,14 @@ class Proposal(models.Model):
     )
 
     acknowledged_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    # When validation passed and the changes were committed (status
+    # COMPLETED). Distinct from acknowledged_at, which is the proposer
+    # dismissing the result, and from updated_at, which moves on rename.
+    completed_at = models.DateTimeField(
         null=True,
         blank=True,
     )
@@ -181,6 +192,10 @@ class ProposalChange(models.Model):
 
     class Meta:
         ordering = ["created_at"]
+        indexes = [
+            # Provenance looks a target's changes up across proposals.
+            models.Index(fields=["target_id", "target_type"]),
+        ]
 
     def __str__(self):
         return f"{self.operation} {self.target_type} {self.target_id}"

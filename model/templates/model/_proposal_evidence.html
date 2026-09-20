@@ -1,0 +1,141 @@
+{% comment %}
+    Evidence references for one proposal change, rendered inline in Proposal
+    Review. Used by proposal.html and, after an evidence action, returned as
+    an HTML fragment that proposal.js swaps in, so there is a single renderer.
+    Only ever shown for editable (working / failed) proposals.
+
+    Expects: change (with .evidence).
+{% endcomment %}
+<div class="model-proposal-evidence" data-change-id="{{ change.id }}">
+
+    {% with items=change.evidence.all %}
+
+        {% if items %}
+
+            <ul class="model-proposal-evidence-list">
+
+                {% for item in items %}
+
+                    <li
+                        class="model-proposal-evidence-item"
+                        data-evidence-id="{{ item.id }}"
+                        data-source="{{ item.source }}"
+                        data-locator="{{ item.locator }}"
+                        data-note="{{ item.note }}"
+                    >
+
+                        <i class="bi bi-paperclip" aria-hidden="true"></i>
+
+                        <span class="model-proposal-evidence-source">{{ item.source }}</span>
+
+                        {% if item.locator %}
+                            <span class="model-proposal-evidence-locator">{{ item.locator }}</span>
+                        {% endif %}
+
+                        {% if item.note %}
+                            <span class="model-proposal-evidence-note" title="{{ item.note }}">{{ item.note }}</span>
+                        {% endif %}
+
+                        <span class="model-proposal-evidence-actions">
+
+                            <button
+                                type="button"
+                                class="model-proposal-evidence-edit"
+                                aria-label="Edit evidence"
+                                title="Edit evidence"
+                            >
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="model-proposal-evidence-remove"
+                                aria-label="Remove evidence"
+                                title="Remove evidence"
+                            >
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+
+                            <span class="model-proposal-evidence-confirm">
+
+                                <span class="model-proposal-evidence-confirm-text">Remove?</span>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-danger model-proposal-evidence-confirm-yes"
+                                >
+                                    Remove
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary model-proposal-evidence-confirm-no"
+                                >
+                                    Cancel
+                                </button>
+
+                            </span>
+
+                        </span>
+
+                    </li>
+
+                {% endfor %}
+
+            </ul>
+
+        {% endif %}
+
+        <button
+            type="button"
+            class="model-proposal-evidence-add"
+        >
+            <i class="bi bi-plus"></i>
+            {% if items %}Add evidence{% else %}Evidence{% endif %}
+        </button>
+
+    {% endwith %}
+
+    <form class="model-proposal-evidence-form" hidden>
+
+        <input
+            type="text"
+            name="source"
+            class="form-control form-control-sm"
+            placeholder="Source (required)"
+            aria-label="Evidence source"
+            maxlength="500"
+            required
+        >
+
+        <input
+            type="text"
+            name="locator"
+            class="form-control form-control-sm"
+            placeholder="Locator, e.g. page or section"
+            aria-label="Evidence locator"
+            maxlength="500"
+        >
+
+        <input
+            type="text"
+            name="note"
+            class="form-control form-control-sm"
+            placeholder="Note"
+            aria-label="Evidence note"
+            maxlength="2000"
+        >
+
+        <button type="submit" class="btn btn-sm btn-outline-secondary model-proposal-evidence-save">
+            Save
+        </button>
+
+        <button type="button" class="btn btn-sm btn-outline-secondary model-proposal-evidence-cancel">
+            Cancel
+        </button>
+
+        <span class="model-proposal-evidence-error" role="alert"></span>
+
+    </form>
+
+</div>

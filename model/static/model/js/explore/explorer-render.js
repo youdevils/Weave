@@ -257,7 +257,8 @@ function renderObjectDetails(details) {
       <h4>Connections <span class="model-explorer-count">${details.connectionCount}</span></h4>
       ${expand}
     </div>
-    ${groups || '<p class="model-explorer-muted">This object has no relationships.</p>'}`;
+    ${groups || '<p class="model-explorer-muted">This object has no relationships.</p>'}
+    ${renderProvenance(details.provenance, "object")}`;
 }
 
 function renderRelationshipDetails(details) {
@@ -280,7 +281,125 @@ function renderRelationshipDetails(details) {
     </div>
     ${renderAttributes(details.attributes)}
     ${validity}
-    ${cardinality}`;
+    ${cardinality}
+    ${renderProvenance(details.provenance, "relationship")}`;
+}
+
+// ---------------------------------------------------------------------------
+// Provenance ("History")
+//
+// The server derives the chain from committed proposals and has already turned
+// each stored change into a statement about this record ("Renamed", "Set Owner",
+// "Deactivated"); this only presents it. Proposals are referred to by revision
+// and are not links: there is no proposal navigation from the Explorer.
+// ---------------------------------------------------------------------------
+
+/** "12 Mar 2026" in the viewer's time zone, or "" when the value is not a date. */
+export function formatDate(iso) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function renderEvidenceSource(source) {
+  const href = safeUrlHref(source);
+  if (!href) return `<span class="model-explorer-evidence-source">${e(source)}</span>`;
+  return `<a class="model-explorer-url model-explorer-evidence-source" href="${e(href)}" target="_blank" rel="noopener noreferrer nofollow">${e(source)}</a>`;
+}
+
+function renderEvidence(evidence) {
+  if (!evidence || evidence.length === 0) return "";
+  const items = evidence
+    .map(
+      (item) => `
+        <li class="model-explorer-evidence-item">
+          <i class="bi bi-paperclip" aria-hidden="true"></i>
+          ${renderEvidenceSource(item.source)}
+          ${item.locator ? `<span class="model-explorer-muted">${e(item.locator)}</span>` : ""}
+          ${item.note ? `<span class="model-explorer-evidence-note">${e(item.note)}</span>` : ""}
+        </li>`,
+    )
+    .join("");
+  return `<ul class="model-explorer-evidence">${items}</ul>`;
+}
+
+function renderChangeValues(change) {
+  const hasBefore = change.before != null;
+  const hasAfter = change.after != null;
+  let values = "";
+
+  if (hasBefore && hasAfter) values = `${e(change.before)} &rarr; ${e(change.after)}`;
+  else if (hasAfter) values = e(change.after);
+  else if (hasBefore) values = `${e(change.before)} &rarr; not set`;
+
+  if (values && change.currentNames) values += " (current names)";
+  return values ? ` <span class="model-explorer-muted">${values}</span>` : "";
+}
+
+function renderInitialValues(initial) {
+  if (!initial || initial.length === 0) return "";
+  const parts = initial.map((item) => `${e(item.label)}: ${e(item.value)}`).join(", ");
+  return `<div class="model-explorer-muted">${parts}</div>`;
+}
+
+function renderProvenanceChange(change) {
+  return `
+    <li class="model-explorer-provenance-change" data-kind="${e(change.kind)}">
+      <span class="model-explorer-provenance-summary">${e(change.summary)}</span>${renderChangeValues(change)}
+      ${renderInitialValues(change.initial)}
+      ${renderEvidence(change.evidence)}
+    </li>`;
+}
+
+function renderProvenanceEntry(entry) {
+  const revision = entry.revision?.after != null ? `Revision ${e(entry.revision.after)}` : "Earlier revision";
+  const title = entry.title ? ` <span class="model-explorer-muted">${e(entry.title)}</span>` : "";
+  const ai = entry.source === "ai" ? ' <span class="model-explorer-pill">AI</span>' : "";
+
+  const submitted = formatDate(entry.submittedAt);
+  const committed = formatDate(entry.committedAt);
+  const dates = [
+    submitted ? `Submitted ${e(submitted)}` : "",
+    committed ? `Validated &amp; committed ${e(committed)}` : "",
+  ]
+    .filter(Boolean)
+    .join(" &middot; ");
+
+  return `
+    <li class="model-explorer-provenance-entry">
+      <div class="model-explorer-provenance-head"><strong>${revision}</strong>${title}</div>
+      <div class="model-explorer-muted">Proposed by ${e(entry.proposer)}${ai}${dates ? ` &middot; ${dates}` : ""}</div>
+      ${entry.changeNote ? `<p class="model-explorer-provenance-note">${e(entry.changeNote)}</p>` : ""}
+      <ul class="model-explorer-provenance-changes">${entry.changes.map(renderProvenanceChange).join("")}</ul>
+    </li>`;
+}
+
+/**
+ * The record's history, oldest first. Renders nothing when the response carried
+ * no provenance at all, and an explicit empty state when there is none to show.
+ */
+export function renderProvenance(provenance, kind = "object") {
+  if (!provenance) return "";
+
+  if (provenance.entries.length === 0) {
+    return `
+      <section class="model-explorer-provenance">
+        <h4>History</h4>
+        <p class="model-explorer-muted">No approved proposals have changed this ${e(kind)}.</p>
+      </section>`;
+  }
+
+  const older = provenance.truncated
+    ? '<p class="model-explorer-muted">Older history is not shown.</p>'
+    : "";
+
+  return `
+    <section class="model-explorer-provenance">
+      <h4>History <span class="model-explorer-count">${provenance.entries.length}</span></h4>
+      ${older}
+      <ol class="model-explorer-provenance-list">${provenance.entries.map(renderProvenanceEntry).join("")}</ol>
+    </section>`;
 }
 
 export function renderDetails(details) {

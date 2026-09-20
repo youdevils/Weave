@@ -79,6 +79,18 @@
 
     {% if proposal %}
 
+    {% if proposal.summary and proposal.status != "working" and proposal.status != "failed" %}
+
+        <section class="model-proposal-change-note model-proposal-change-note-readonly">
+
+            <div class="model-proposal-change-note-label">Change note</div>
+
+            <p class="model-proposal-change-note-text">{{ proposal.summary|linebreaksbr }}</p>
+
+        </section>
+
+    {% endif %}
+
     {% if proposal.status == "working" or proposal.status == "failed" %}
 
         {% if proposal.status == "failed" %}
@@ -127,6 +139,64 @@
             </section>
 
         {% endif %}
+
+        <section
+            class="model-proposal-change-note"
+            {% if not proposal.summary %}data-empty="true"{% endif %}
+        >
+
+            <button
+                type="button"
+                class="model-proposal-change-note-open"
+            >
+                <i class="bi bi-plus"></i>
+                Add change note
+            </button>
+
+            <div class="model-proposal-change-note-editor">
+
+                <label
+                    for="model-proposal-change-note-input"
+                    class="model-proposal-change-note-label"
+                >
+                    Change note
+                    <span class="model-proposal-change-note-hint">
+                        Optional. Why this change is being made &mdash;
+                        context for reviewers, not evidence.
+                    </span>
+                </label>
+
+                <textarea
+                    id="model-proposal-change-note-input"
+                    class="form-control form-control-sm model-proposal-change-note-input"
+                    rows="2"
+                    maxlength="2000"
+                    data-saved="{{ proposal.summary }}"
+                >{{ proposal.summary }}</textarea>
+
+                <div class="model-proposal-change-note-controls">
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary model-proposal-change-note-save"
+                    >
+                        Save note
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary model-proposal-change-note-cancel"
+                    >
+                        Cancel
+                    </button>
+
+                    <span class="model-proposal-change-note-status" role="status"></span>
+
+                </div>
+
+            </div>
+
+        </section>
 
         <div class="model-proposal-summary">
 
@@ -739,6 +809,8 @@
                                         </div>
 
                                     {% endif %}
+
+                                    {% include "model/_proposal_evidence.html" with change=change %}
 
                                 </article>
 

@@ -1244,6 +1244,67 @@
     opacity: 0.6;
 }
 
+/* Provenance (history) ---------------------------------------------------- */
+
+.model-explorer-provenance {
+    margin-top: 1rem;
+}
+
+.model-explorer-provenance-list,
+.model-explorer-provenance-changes,
+.model-explorer-evidence {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.model-explorer-provenance-entry {
+    padding: 0.5rem 0 0.5rem 0.75rem;
+    border-left: 2px solid var(--model-border);
+    font-size: 0.85rem;
+}
+
+.model-explorer-provenance-note {
+    margin: 0.25rem 0 0;
+    color: var(--model-text-secondary);
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+
+.model-explorer-provenance-changes {
+    margin-top: 0.3rem;
+}
+
+.model-explorer-provenance-change {
+    padding: 0.15rem 0;
+    overflow-wrap: anywhere;
+}
+
+.model-explorer-provenance-summary {
+    font-weight: 500;
+}
+
+.model-explorer-evidence {
+    margin: 0.15rem 0 0.15rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+.model-explorer-evidence-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+
+.model-explorer-evidence-item > .bi {
+    color: var(--model-text-placeholder);
+}
+
+.model-explorer-evidence-note {
+    color: var(--model-text-muted);
+}
+
 .model-explorer-arrow {
     color: var(--model-text-muted);
 }
@@ -2659,6 +2720,243 @@
 .model-proposal-discard-confirm-text {
     color: var(--model-text-muted);
     font-size: 0.68rem;
+}
+
+/* Change note (proposal-level, optional) ---------------------------------- */
+
+.model-proposal-change-note {
+    margin-bottom: 1rem;
+}
+
+.model-proposal-change-note-open {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--model-text-muted);
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.model-proposal-change-note-open:hover {
+    color: var(--model-text-secondary);
+}
+
+.model-proposal-change-note:not([data-empty="true"]) .model-proposal-change-note-open {
+    display: none;
+}
+
+.model-proposal-change-note[data-empty="true"] .model-proposal-change-note-editor {
+    display: none;
+}
+
+.model-proposal-change-note-label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+    color: var(--model-text-secondary);
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.model-proposal-change-note-hint {
+    color: var(--model-text-faint);
+    font-weight: 400;
+}
+
+.model-proposal-change-note-input {
+    resize: vertical;
+    font-size: 0.85rem;
+}
+
+.model-proposal-change-note-controls {
+    display: none;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+}
+
+.model-proposal-change-note.is-dirty .model-proposal-change-note-controls,
+.model-proposal-change-note-controls:has(.model-proposal-change-note-status:not(:empty)) {
+    display: flex;
+}
+
+.model-proposal-change-note:not(.is-dirty) .model-proposal-change-note-controls .btn {
+    display: none;
+}
+
+.model-proposal-change-note-controls .btn {
+    padding: 0.25rem 0.55rem;
+    font-size: 0.68rem;
+}
+
+.model-proposal-change-note-status {
+    color: var(--model-text-muted);
+    font-size: 0.72rem;
+}
+
+.model-proposal-change-note-status.is-error {
+    color: var(--model-danger);
+}
+
+.model-proposal-change-note-text {
+    margin: 0;
+    color: var(--model-text-secondary);
+    font-size: 0.85rem;
+}
+
+/* Evidence references (per change) ----------------------------------------- */
+
+.model-proposal-evidence {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    padding: 0 0.9rem 0.6rem 5.9rem;
+    font-size: 0.72rem;
+}
+
+.model-proposal-evidence[hidden],
+.model-proposal-evidence-form[hidden] {
+    display: none;
+}
+
+.model-proposal-evidence-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.model-proposal-evidence-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    min-width: 0;
+    color: var(--model-text-muted);
+}
+
+.model-proposal-evidence-item > .bi {
+    flex: none;
+    color: var(--model-text-placeholder);
+}
+
+.model-proposal-evidence-source {
+    flex: none;
+    max-width: 40%;
+    overflow: hidden;
+    color: var(--model-text-secondary);
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.model-proposal-evidence-locator {
+    flex: none;
+    max-width: 25%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.model-proposal-evidence-note {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--model-text-faint);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.model-proposal-evidence-actions {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 0.2rem;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.model-proposal-evidence-edit,
+.model-proposal-evidence-remove,
+.model-proposal-evidence-add {
+    padding: 0.1rem 0.3rem;
+    border: 0;
+    border-radius: 0.25rem;
+    background: none;
+    color: var(--model-text-faint);
+    font-size: 0.72rem;
+    cursor: pointer;
+}
+
+.model-proposal-evidence-add {
+    padding-left: 0;
+}
+
+.model-proposal-evidence-edit:hover,
+.model-proposal-evidence-remove:hover,
+.model-proposal-evidence-add:hover {
+    color: var(--model-text-secondary);
+}
+
+.model-proposal-evidence-confirm {
+    display: none;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.model-proposal-evidence-confirm .btn {
+    padding: 0.15rem 0.45rem;
+    font-size: 0.68rem;
+}
+
+.model-proposal-evidence-item.is-confirming .model-proposal-evidence-edit,
+.model-proposal-evidence-item.is-confirming .model-proposal-evidence-remove {
+    display: none;
+}
+
+.model-proposal-evidence-item.is-confirming .model-proposal-evidence-confirm {
+    display: inline-flex;
+}
+
+.model-proposal-evidence-form {
+    display: grid;
+    grid-template-columns: minmax(120px, 2fr) minmax(90px, 1.2fr) minmax(120px, 2fr) auto auto;
+    align-items: center;
+    gap: 0.35rem;
+    width: 100%;
+}
+
+.model-proposal-evidence-form .form-control {
+    font-size: 0.75rem;
+}
+
+.model-proposal-evidence-form .btn {
+    padding: 0.25rem 0.55rem;
+    font-size: 0.68rem;
+}
+
+.model-proposal-evidence-error {
+    grid-column: 1 / -1;
+    color: var(--model-danger);
+}
+
+.model-proposal-evidence-error:empty {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .model-proposal-evidence {
+        padding-left: 0.9rem;
+    }
+
+    .model-proposal-evidence-form {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 .model-proposal-change-parent {

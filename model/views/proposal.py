@@ -4,10 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 
+from model.models.evidence_reference import EvidenceReference
 from model.models.proposal import Proposal, ProposalChange
+from model.services.proposal.evidence import EvidenceService
 from model.services.proposal.proposal import ProposalService
 from model.services.proposal.review import ProposalReviewService
 from model.views.active_proposal import (
@@ -294,6 +297,91 @@ def proposal(request, model_id, proposal_id=None):
             )
 
         # ---------------------------------------------------------
+        # Change note (proposal-level, optional) and evidence
+        # references (per change, optional). Neither affects review
+        # status, validation or submission.
+        # ---------------------------------------------------------
+
+        if action == "set_change_note":
+
+            try:
+                EvidenceService.set_change_note(
+                    target_proposal,
+                    request.POST.get("change_note", ""),
+                )
+            except ValueError as exc:
+                return JsonResponse(
+                    {"success": False, "error": str(exc)},
+                    status=400,
+                )
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "change_note": target_proposal.summary,
+                }
+            )
+
+        if action in ("add_evidence", "update_evidence", "remove_evidence"):
+
+            try:
+
+                if action == "add_evidence":
+
+                    evidence = EvidenceService.add(
+                        target_proposal,
+                        request.POST.get("change_id"),
+                        request.POST.get("source"),
+                        request.POST.get("locator"),
+                        request.POST.get("note"),
+                    )
+
+                    change = evidence.change
+
+                elif action == "update_evidence":
+
+                    evidence = EvidenceService.update(
+                        target_proposal,
+                        request.POST.get("evidence_id"),
+                        request.POST.get("source"),
+                        request.POST.get("locator"),
+                        request.POST.get("note"),
+                    )
+
+                    change = evidence.change
+
+                else:
+
+                    change = EvidenceService.remove(
+                        target_proposal,
+                        request.POST.get("evidence_id"),
+                    )
+
+            except (ProposalChange.DoesNotExist, EvidenceReference.DoesNotExist):
+                return JsonResponse(
+                    {"success": False, "error": "Not found."},
+                    status=404,
+                )
+
+            except ValueError as exc:
+                return JsonResponse(
+                    {"success": False, "error": str(exc)},
+                    status=400,
+                )
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "change_id": str(change.id),
+                    "html": render_to_string(
+                        "model/_proposal_evidence.html",
+                        {"change": change},
+                        request=request,
+                    ),
+                }
+            )
+
+        # ---------------------------------------------------------
         # Discard a single change
         # ---------------------------------------------------------
 
@@ -511,7 +599,11 @@ def proposal(request, model_id, proposal_id=None):
     # Base queryset
     # -------------------------------------------------------------
 
-    changes = target_proposal.changes.all().order_by("created_at")
+    changes = (
+        target_proposal.changes.all()
+        .prefetch_related("evidence")
+        .order_by("created_at")
+    )
 
     # -------------------------------------------------------------
     # Search

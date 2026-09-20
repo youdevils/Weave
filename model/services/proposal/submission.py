@@ -629,7 +629,15 @@ def process(proposal_id):
 
             proposal.status = Proposal.Status.COMPLETED
             proposal.validation_status = Proposal.ValidationStatus.VALID
-            proposal.save(update_fields=["status", "validation_status", "updated_at"])
+            proposal.completed_at = timezone.now()
+            proposal.save(
+                update_fields=[
+                    "status",
+                    "validation_status",
+                    "completed_at",
+                    "updated_at",
+                ]
+            )
 
             # Types deleted by this proposal no longer need their style; types it
             # created keep theirs (same UUID, now canonical).

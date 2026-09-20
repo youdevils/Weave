@@ -18,12 +18,17 @@ from .dataset import (
 from .projection import Projection
 
 
-def _display(spec: AttributeSpec, value) -> str | None:
+def display_value(data_type: str | None, value) -> str | None:
+    """How an attribute value is shown to people; None when it is not populated."""
     if not is_populated(value):
         return None
-    if spec.data_type == "boolean":
+    if data_type == "boolean":
         return "Yes" if value is True or str(value).lower() == "true" else "No"
     return str(value)
+
+
+def _display(spec: AttributeSpec, value) -> str | None:
+    return display_value(spec.data_type, value)
 
 
 def _attributes(specs, values: dict) -> list[dict]:
