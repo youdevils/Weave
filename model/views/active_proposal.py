@@ -10,21 +10,17 @@ while the database remains the sole authority on lifecycle status.
 """
 
 from django.conf import settings
-from django.db.models import Q
 from django.http import JsonResponse
 
 from model.models.proposal import Proposal
+from model.services.proposal.proposal import (
+    LIVE_STATUSES,  # noqa: F401  (kept importable from here)
+    ProposalService,
+)
 
 SESSION_KEY = "active_proposals"
 
 EDITABLE_STATUSES = (Proposal.Status.WORKING, Proposal.Status.FAILED)
-
-LIVE_STATUSES = (
-    Proposal.Status.WORKING,
-    Proposal.Status.FAILED,
-    Proposal.Status.QUEUED,
-    Proposal.Status.PROCESSING,
-)
 
 
 def live_proposals_queryset(model, user):
@@ -35,16 +31,7 @@ def live_proposals_queryset(model, user):
     cap check.
     """
 
-    return Proposal.objects.filter(
-        model=model,
-        created_by=user,
-    ).filter(
-        Q(status__in=LIVE_STATUSES)
-        | Q(
-            status=Proposal.Status.COMPLETED,
-            acknowledged_at__isnull=True,
-        )
-    )
+    return ProposalService.live_queryset(model, user)
 
 
 def get_active_proposal_id(request, model_id):

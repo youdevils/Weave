@@ -1,0 +1,290 @@
+/* =========================================================
+   Data Import page (Assets)
+   Uses the model app's tokens (--model-*); Bootstrap supplies
+   the generic form controls and buttons.
+   ========================================================= */
+
+.import-page {
+    max-width: 62rem;
+}
+
+.import-step {
+    margin-bottom: 1rem;
+    border: 1px solid var(--model-border);
+    border-radius: 0.5rem;
+    background: var(--model-surface);
+}
+
+.import-step h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--model-border-light);
+    color: var(--model-text);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.import-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: var(--model-surface-hover);
+    color: var(--model-text-secondary);
+    font-size: 0.75rem;
+}
+
+.import-step-body {
+    padding: 1rem;
+}
+
+/* A step that cannot be used yet (or is finished) is visible but inert. */
+.import-step.is-disabled .import-step-body {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.import-muted {
+    color: var(--model-text-muted);
+    font-size: 0.8rem;
+}
+
+.import-file-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--model-text-secondary);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.import-upload-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    max-width: 34rem;
+}
+
+.import-kind {
+    display: flex;
+    gap: 1.25rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.import-type-select {
+    max-width: 22rem;
+}
+
+/* -- Upload summary ---------------------------------------------------- */
+
+.import-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.75rem;
+    margin: 0.75rem 0;
+}
+
+.import-facts dt {
+    color: var(--model-text-muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.import-facts dd {
+    margin: 0;
+    color: var(--model-text);
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+}
+
+.import-sample {
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--model-border-light);
+    border-radius: 0.375rem;
+}
+
+.import-sample-table,
+.import-mapping-table {
+    margin: 0;
+    font-size: 0.8rem;
+}
+
+.import-sample-table th,
+.import-sample-table td {
+    max-width: 16rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.import-notes {
+    margin: 0.5rem 0;
+    padding-left: 1.1rem;
+    color: var(--model-text-secondary);
+    font-size: 0.8rem;
+}
+
+.import-warnings {
+    padding: 0.5rem 0.75rem 0.5rem 1.75rem;
+    border: 1px solid #f1c40f;
+    border-radius: 0.375rem;
+    background: #fff8e1;
+    color: #6b5300;
+}
+
+/* -- Mapping ------------------------------------------------------------ */
+
+.import-mapping {
+    overflow-x: auto;
+}
+
+.import-mapping-table th,
+.import-mapping-table td {
+    vertical-align: top;
+}
+
+.import-header-cell {
+    min-width: 9rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.import-sample-cell {
+    max-width: 14rem;
+    color: var(--model-text-muted);
+    overflow-wrap: anywhere;
+}
+
+.import-inline {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--model-text-secondary);
+    font-size: 0.75rem;
+}
+
+.import-check {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.import-empty {
+    color: var(--model-text-faint);
+    font-style: italic;
+}
+
+/* -- Preview ------------------------------------------------------------ */
+
+.import-preview {
+    margin-top: 1rem;
+}
+
+.import-total {
+    margin-bottom: 0.25rem;
+    color: var(--model-text);
+    font-weight: 600;
+}
+
+.import-op {
+    display: inline-block;
+    margin-right: 0.4rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 0.25rem;
+    background: var(--model-surface-hover);
+    color: var(--model-text-secondary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.import-op-create {
+    background: #e6f4ea;
+    color: #1b6b35;
+}
+
+.import-op-update {
+    background: #e7f0fe;
+    color: #1a4f9c;
+}
+
+.import-none {
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--model-border);
+    border-radius: 0.375rem;
+    background: var(--model-surface-subtle);
+}
+
+.import-problems {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--model-danger);
+    border-radius: 0.375rem;
+    background: #fdf1f2;
+}
+
+.import-problems h3 {
+    margin: 0 0 0.25rem;
+    color: var(--model-danger);
+    font-size: 0.9rem;
+}
+
+.import-problems ul {
+    max-height: 18rem;
+    margin: 0.5rem 0 0;
+    padding-left: 1.1rem;
+    overflow-y: auto;
+    font-size: 0.8rem;
+}
+
+.import-items h3 {
+    margin: 1rem 0 0.4rem;
+    color: var(--model-text-secondary);
+    font-size: 0.85rem;
+}
+
+.import-item {
+    margin-bottom: 0.35rem;
+    border: 1px solid var(--model-border-light);
+    border-radius: 0.375rem;
+    font-size: 0.8rem;
+}
+
+.import-item summary {
+    padding: 0.4rem 0.6rem;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+
+.import-diff {
+    margin: 0;
+    font-size: 0.78rem;
+}
+
+.import-diff th {
+    width: 22%;
+    font-weight: 600;
+}
+
+.import-diff td {
+    overflow-wrap: anywhere;
+}
+
+.import-status {
+    margin-left: 0.75rem;
+    color: var(--model-text-muted);
+    font-size: 0.8rem;
+}
+
+@media (max-width: 720px) {
+    .import-upload-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

@@ -1,5 +1,6 @@
 from model.models.object import Object
 from model.services.validation.attributes import validate_attributes
+from model.services.validation.fields import validate_object_builtin_fields
 from model.services.validation.result import (
     ValidationIssue,
     ValidationResult,
@@ -26,6 +27,19 @@ def validate_object(obj: Object) -> ValidationResult:
                 target_id=obj.id,
             )
         )
+
+    # ---------------------------------------------------------
+    # Built-in fields
+    # ---------------------------------------------------------
+
+    for issue in validate_object_builtin_fields(
+        name=obj.name,
+        description=obj.description,
+        is_active=obj.is_active,
+    ):
+        issue.target_type = "Object"
+        issue.target_id = obj.id
+        issues.append(issue)
 
     # ---------------------------------------------------------
     # Attribute validation

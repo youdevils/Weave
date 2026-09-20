@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -13,9 +14,15 @@ from model.models.proposal_submission_result import (
 )
 from model.services.appearance import AppearanceService
 from model.services.proposal.review import ProposalReviewService
+from model.services.validation.fields import (
+    validate_object_builtin_fields,
+    validate_object_field,
+    validate_relationship_builtin_fields,
+    validate_relationship_field,
+)
 from model.services.validation.model_validation import validate_model
 from model.services.validation.result import ValidationIssue
-from model.views.data_context import ATTRIBUTE_FIELD_PREFIX
+from model.services.field_paths import ATTRIBUTE_FIELD_PREFIX
 
 logger = logging.getLogger(__name__)
 
@@ -166,6 +173,64 @@ def _duplicate_rule_issue(target_id, relationship_type_id, subject_type_id, obje
     )
 
 
+def _attributed(issue, target_type, target_id):
+    issue.target_type = target_type
+    issue.target_id = target_id
+    return issue
+
+
+def _create_field_issues(model, change, target_type, kwargs):
+    """
+    Pre-check of a CREATE's built-in field values and, for a Relationship,
+    of its endpoints -- reported as issues instead of being left to raise a
+    database error mid-apply. The rules themselves live in
+    model.services.validation.fields; a value missing from the payload takes
+    the model default, exactly as the write below would.
+    """
+
+    if target_type == "Object":
+        issues = validate_object_builtin_fields(
+            name=kwargs.get("name", ""),
+            description=kwargs.get("description", ""),
+            is_active=kwargs.get("is_active", True),
+        )
+
+    elif target_type == "Relationship":
+        issues = validate_relationship_builtin_fields(
+            is_active=kwargs.get("is_active", True),
+        )
+
+        for field in ("subject_id", "object_id"):
+            if not _object_exists_in_model(model, kwargs.get(field)):
+                issues.append(
+                    ValidationIssue(
+                        code="endpoint_not_found",
+                        field=field,
+                        message=(
+                            f"The {'subject' if field == 'subject_id' else 'object'} "
+                            "of this relationship no longer exists in this model."
+                        ),
+                    )
+                )
+
+    else:
+        return []
+
+    return [_attributed(issue, target_type, change.target_id) for issue in issues]
+
+
+def _object_exists_in_model(model, object_id):
+    from model.models.object import Object
+
+    if not object_id:
+        return False
+
+    try:
+        return Object.objects.filter(model=model, id=object_id).exists()
+    except (ValueError, TypeError, ValidationError):
+        return False
+
+
 def _protected_delete_issue(target_type, target_id, proposal_deleted_ids):
     if target_type == "ObjectType":
         from model.models.object import Object
@@ -313,6 +378,11 @@ def _apply_create_or_update(model, change, target_type, issues, proposal_deleted
                 issues.append(duplicate)
                 return
 
+        field_issues = _create_field_issues(model, change, target_type, kwargs)
+        if field_issues:
+            issues.extend(field_issues)
+            return
+
         model_cls.objects.create(id=change.target_id, **kwargs)
         return
 
@@ -350,6 +420,17 @@ def _apply_create_or_update(model, change, target_type, issues, proposal_deleted
                 target_id=change.target_id,
             )
         )
+        return
+
+    if target_type == "Object":
+        field_issue = validate_object_field(field, after.get("value"))
+    elif target_type == "Relationship":
+        field_issue = validate_relationship_field(field, after.get("value"))
+    else:
+        field_issue = None
+
+    if field_issue is not None:
+        issues.append(_attributed(field_issue, target_type, change.target_id))
         return
 
     setattr(instance, field, after.get("value"))

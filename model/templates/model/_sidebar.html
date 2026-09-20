@@ -52,8 +52,13 @@
                 </a>
 
                 <a
-                    href="#"
-                    class="model-nav-item"
+                    href="{% url 'ingestion:assets' model.id %}"
+                    class="
+                        model-nav-item
+                        {% if active_url_name == 'assets' %}
+                            active
+                        {% endif %}
+                    "
                 >
                     <span>Assets</span>
                 </a>

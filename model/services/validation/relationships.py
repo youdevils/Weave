@@ -1,5 +1,6 @@
 from model.models.relationship import Relationship
 from model.services.validation.attributes import validate_attributes
+from model.services.validation.fields import validate_relationship_builtin_fields
 from model.services.validation.result import (
     ValidationIssue,
     ValidationResult,
@@ -89,6 +90,15 @@ def validate_relationship(
                     target_id=relationship.id,
                 )
             )
+
+    # ---------------------------------------------------------
+    # Built-in fields
+    # ---------------------------------------------------------
+
+    for issue in validate_relationship_builtin_fields(is_active=relationship.is_active):
+        issue.target_type = "Relationship"
+        issue.target_id = relationship.id
+        issues.append(issue)
 
     # ---------------------------------------------------------
     # Relationship attributes

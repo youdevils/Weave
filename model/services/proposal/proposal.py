@@ -1,11 +1,100 @@
+from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
+from model.models.model import Model
 from model.models.proposal import Proposal, ProposalChange
 from model.services.appearance import AppearanceService
 
+EDITABLE_STATUSES = (
+    Proposal.Status.WORKING,
+    Proposal.Status.FAILED,
+)
+
+LIVE_STATUSES = (
+    Proposal.Status.WORKING,
+    Proposal.Status.FAILED,
+    Proposal.Status.QUEUED,
+    Proposal.Status.PROCESSING,
+)
+
+
+class ProposalLimitReached(Exception):
+    """The user already has the maximum number of live proposals for the model."""
+
 
 class ProposalService:
+
+    # -----------------------------------------------------------------
+    # Live proposals
+    # -----------------------------------------------------------------
+
+    @staticmethod
+    def live_queryset(model, user):
+        """
+        Every proposal that belongs in the active workspace: WORKING /
+        FAILED / QUEUED / PROCESSING, plus COMPLETED proposals not yet
+        acknowledged. Used by both the sidebar list and the live-proposal
+        cap check. Scoped to one user on one model.
+        """
+
+        return Proposal.objects.filter(
+            model=model,
+            created_by=user,
+        ).filter(
+            Q(status__in=LIVE_STATUSES)
+            | Q(
+                status=Proposal.Status.COMPLETED,
+                acknowledged_at__isnull=True,
+            )
+        )
+
+    @staticmethod
+    def assert_capacity(model, user):
+        """
+        Raise ProposalLimitReached if `user` may not start another proposal.
+
+        The count is only trustworthy while the caller holds the Model row
+        lock (see create_working); on its own it is a cheap early check.
+        """
+
+        if (
+            ProposalService.live_queryset(model, user).count()
+            >= settings.PROPOSAL_MAX_LIVE_PER_MODEL
+        ):
+            raise ProposalLimitReached(
+                f"You have reached the maximum of "
+                f"{settings.PROPOSAL_MAX_LIVE_PER_MODEL} active proposals "
+                "for this model. Submit, resolve, or delete one before "
+                "starting another."
+            )
+
+    @staticmethod
+    @transaction.atomic
+    def create_working(model, user, *, title="", summary=""):
+        """
+        Always create a new WORKING proposal (never reuses an existing one),
+        subject to the live-proposal cap.
+
+        The Model row is locked (the same lock proposal claiming and
+        processing take) so the cap check and the insert are one serialised
+        step: two concurrent callers cannot both observe a free slot.
+        """
+
+        locked = Model.objects.select_for_update().get(pk=model.pk)
+
+        ProposalService.assert_capacity(locked, user)
+
+        return Proposal.objects.create(
+            model=locked,
+            created_by=user,
+            source=Proposal.Source.USER,
+            status=Proposal.Status.WORKING,
+            base_revision=locked.revision,
+            title=(title or "")[:200],
+            summary=summary or "",
+        )
 
     # -----------------------------------------------------------------
     # Proposal creation
@@ -179,6 +268,51 @@ class ProposalService:
         ProposalService.reset_validation(proposal)
 
         return change
+
+    @staticmethod
+    @transaction.atomic
+    def record_changes_bulk(*, proposal, specs):
+        """
+        Insert many new changes in one go. Each spec is a dict with
+        operation, target_type, target_id, before, after and optionally
+        parent_type / parent_id / field.
+
+        This is `record_change` for the case where the caller has already
+        collapsed its input to exactly one change per (target, field): there
+        is nothing to upsert, so the per-change lookup is skipped. The
+        editable-status guard and the change source are derived exactly as
+        record_change does, and validation is reset once.
+        """
+
+        if proposal.status not in EDITABLE_STATUSES:
+            raise ValueError("Changes can only be recorded against an editable proposal.")
+
+        source = (
+            ProposalChange.Source.AI
+            if proposal.source == Proposal.Source.AI
+            else ProposalChange.Source.USER
+        )
+
+        changes = [
+            ProposalChange(
+                proposal=proposal,
+                source=source,
+                operation=spec["operation"],
+                target_type=spec["target_type"],
+                target_id=spec["target_id"],
+                parent_type=spec.get("parent_type", ""),
+                parent_id=spec.get("parent_id"),
+                before=spec["before"],
+                after=spec["after"],
+            )
+            for spec in specs
+        ]
+
+        created = ProposalChange.objects.bulk_create(changes, batch_size=1000)
+
+        ProposalService.reset_validation(proposal)
+
+        return created
 
     @staticmethod
     @transaction.atomic

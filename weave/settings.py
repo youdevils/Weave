@@ -205,6 +205,30 @@ PROPOSAL_PROCESSING_STUCK_THRESHOLD = timedelta(minutes=15)
 PROPOSAL_MAX_LIVE_PER_MODEL = 5
 
 # ------------------------------------------------------------------------------------
+# DATA IMPORT (ingestion app)
+# ------------------------------------------------------------------------------------
+
+# Read through ingestion.services.limits at call time, so they can be tuned
+# (or overridden in tests) without touching the import code.
+IMPORT_MAX_FILE_BYTES = 5 * 1024 * 1024
+IMPORT_MAX_ROWS = 2000  # data rows, excluding the header
+IMPORT_MAX_COLUMNS = 100
+IMPORT_MAX_HEADER_CHARS = 200
+IMPORT_MAX_CELL_CHARS = 10_000
+# ProposalChanges one import may produce (an UPDATE is one change per field).
+# Sized by the Proposal Review page, which renders every change of a proposal on
+# one page at roughly 13 KB of HTML each (about 13 MB at 1,000, ~60 MB at 5,000).
+# Raise it only together with paginating that page.
+IMPORT_MAX_CHANGES = 1000
+# Zip-bomb guards for XLSX.
+IMPORT_XLSX_MAX_UNCOMPRESSED_BYTES = 50 * 1024 * 1024
+IMPORT_XLSX_MAX_COMPRESSION_RATIO = 200
+# A staged (uploaded, never imported) source is swept after this long.
+IMPORT_STAGED_SOURCE_TTL = timedelta(hours=24)
+# Problems listed in a preview (the total is always reported).
+IMPORT_PROBLEMS_SHOWN = 100
+
+# ------------------------------------------------------------------------------------
 # DEFAULT AUTO FIELD
 # ------------------------------------------------------------------------------------
 

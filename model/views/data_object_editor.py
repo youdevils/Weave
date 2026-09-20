@@ -9,6 +9,7 @@ from model.models.object import Object
 from model.models.proposal import ProposalChange
 from model.services.proposal.proposal import ProposalService
 from model.services.validation.attributes import validate_attribute_value
+from model.services.validation.fields import validate_object_field
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
 from model.views.sidebar import with_updated_sidebar
@@ -87,15 +88,9 @@ def _validate_object_property(
     field,
     value,
 ):
-    if field == "name":
+    issue = validate_object_field(field, value)
 
-        if not value:
-            return "Name is required."
-
-        if len(value) > 255:
-            return "Name cannot exceed 255 characters."
-
-    return None
+    return issue.message if issue is not None else None
 
 
 def _resolve_attribute_definition(

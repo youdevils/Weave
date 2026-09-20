@@ -1,0 +1,161 @@
+{% extends "model/model_base.html" %}
+
+{% load static %}
+
+{% block workspace_breadcrumb %}Workspace → Model → Assets{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'ingestion/css/import.css' %}">
+{% endblock %}
+
+{% block model_content %}
+
+<div class="import-page" id="import-page">
+
+    <div class="model-page-header">
+
+        <div>
+
+            <div class="model-page-eyebrow">Assets</div>
+
+            <h1 class="model-page-title">Import data</h1>
+
+            <p class="model-page-description">
+                Populate this model from a CSV, Excel (.xlsx) or legacy Excel (.xls) file with a single
+                table or worksheet. An import never changes the model directly: it creates one proposal
+                that you review, and the usual validation decides what is allowed. It fills in the
+                types you have already defined; it does not create or change them.
+            </p>
+
+        </div>
+
+    </div>
+
+    <div id="import-banner" aria-live="polite"></div>
+
+    <!-- 1. Upload -->
+    <section class="import-step" data-step="upload">
+
+        <h2><span class="import-step-number">1</span> Upload</h2>
+
+        <div class="import-step-body">
+
+            <label class="import-file-label" for="import-file">File</label>
+
+            <div class="import-upload-row">
+                <input
+                    type="file"
+                    id="import-file"
+                    class="form-control form-control-sm"
+                    accept=".csv,.xlsx,.xls"
+                >
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="import-reset" hidden>Start over</button>
+            </div>
+
+            <p class="import-muted">
+                CSV must be UTF-8. Workbooks must have exactly one worksheet. Up to
+                {{ import_bootstrap.limits.max_rows }} data rows and
+                {{ import_bootstrap.limits.max_file_mb }} MB.
+            </p>
+
+            <div id="import-upload-result"></div>
+
+        </div>
+
+    </section>
+
+    <!-- 2. Target -->
+    <section class="import-step" data-step="target">
+
+        <h2><span class="import-step-number">2</span> Target</h2>
+
+        <div class="import-step-body">
+
+            <p class="import-muted">Each import fills in one existing type.</p>
+
+            <div class="import-kind" role="radiogroup" aria-label="What are you importing?">
+                <label><input type="radio" name="import-kind" value="object" checked> Objects</label>
+                <label><input type="radio" name="import-kind" value="relationship"> Relationships</label>
+            </div>
+
+            <label class="import-file-label" for="import-type">Type</label>
+            <select id="import-type" class="form-select form-select-sm import-type-select"></select>
+
+        </div>
+
+    </section>
+
+    <!-- 3. Map -->
+    <section class="import-step" data-step="map">
+
+        <h2><span class="import-step-number">3</span> Map columns</h2>
+
+        <div class="import-step-body">
+
+            <p class="import-muted">
+                Choose the field each column feeds. Columns you leave alone are ignored. To update
+                records that already exist, map a column that identifies them: a Weave ID, or one of the
+                type&rsquo;s own attributes (such as an application id from your source system) marked
+                &ldquo;use to identify&rdquo;. Names are never used to match records. A blank cell sets
+                that value to empty.
+            </p>
+
+            <div id="import-mapping" class="import-mapping"></div>
+
+        </div>
+
+    </section>
+
+    <!-- 4. Preview -->
+    <section class="import-step" data-step="preview">
+
+        <h2><span class="import-step-number">4</span> Preview changes</h2>
+
+        <div class="import-step-body">
+
+            <button type="button" class="btn btn-outline-primary btn-sm" id="import-preview-button" disabled>Preview changes</button>
+
+            <div id="import-preview" class="import-preview" aria-live="polite"></div>
+
+        </div>
+
+    </section>
+
+    <!-- 5. Create -->
+    <section class="import-step" data-step="create">
+
+        <h2><span class="import-step-number">5</span> Create proposal</h2>
+
+        <div class="import-step-body">
+
+            <p class="import-muted">
+                Creates one working proposal containing these changes, each linked to your file as
+                evidence, and opens it for review. Nothing is committed until you submit it.
+            </p>
+
+            <button type="button" class="btn btn-primary btn-sm" id="import-create-button" disabled>Create proposal</button>
+
+            <span class="import-status" id="import-status" aria-live="polite"></span>
+
+        </div>
+
+    </section>
+
+</div>
+
+{{ import_bootstrap|json_script:"import-bootstrap" }}
+{% csrf_token %}
+
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script type="module">
+  import { startImport } from "{% static 'ingestion/js/import-boot.js' %}";
+
+  startImport({
+    bootstrap: JSON.parse(document.getElementById("import-bootstrap").textContent),
+  });
+</script>
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Count
 
 from model.models.evidence_reference import EvidenceReference
 from model.models.proposal import Proposal, ProposalChange
@@ -114,6 +115,54 @@ class EvidenceService:
             source=source,
             locator=locator,
             note=note,
+        )
+
+    @staticmethod
+    @transaction.atomic
+    def add_for_changes(proposal, change_ids, source, locator="", note=""):
+        """
+        Attach an identical, independent Evidence Reference to each of many
+        changes of the proposal (one reference per change -- a reference
+        belongs to exactly one change). The bulk counterpart of `add` for
+        mechanisms such as Data Import that evidence every change they
+        create with the same source.
+
+        Same guards as `add`: editable proposal, valid input, every id must be
+        a change of this proposal, and the per-change cap.
+        """
+
+        EvidenceService._require_editable(proposal)
+
+        source, locator, note = EvidenceService._clean(source, locator, note)
+
+        change_ids = list(change_ids)
+
+        found = {
+            change.id: change
+            for change in proposal.changes.filter(id__in=change_ids).annotate(
+                evidence_total=Count("evidence")
+            )
+        }
+
+        if len(found) != len(set(change_ids)):
+            raise ProposalChange.DoesNotExist("Change not found.")
+
+        if any(change.evidence_total >= MAX_EVIDENCE_PER_CHANGE for change in found.values()):
+            raise ValueError(
+                f"A change can have at most {MAX_EVIDENCE_PER_CHANGE} evidence references."
+            )
+
+        return EvidenceReference.objects.bulk_create(
+            [
+                EvidenceReference(
+                    change_id=change_id,
+                    source=source,
+                    locator=locator,
+                    note=note,
+                )
+                for change_id in change_ids
+            ],
+            batch_size=1000,
         )
 
     @staticmethod

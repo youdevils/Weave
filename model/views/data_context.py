@@ -4,6 +4,11 @@ from model.models.attribute_definition import AttributeDefinition
 from model.models.object import Object
 from model.models.proposal import ProposalChange
 from model.models.relationship import Relationship
+from model.services.coercion import coerce_attribute_value  # noqa: F401  (re-exported)
+from model.services.field_paths import (  # noqa: F401  (re-exported)
+    ATTRIBUTE_FIELD_PREFIX,
+    attribute_field_name,
+)
 from model.services.proposal.proposal import ProposalService
 
 # =====================================================================
@@ -57,11 +62,6 @@ def resolve_working_relationship_type(context, relationship_type_id):
 # key ("attributes.<key>") instead of a bare field name.
 # =====================================================================
 
-ATTRIBUTE_FIELD_PREFIX = "attributes."
-
-
-def attribute_field_name(key):
-    return f"{ATTRIBUTE_FIELD_PREFIX}{key}"
 
 
 def _proposal_changes(
@@ -90,50 +90,6 @@ def _proposal_changes(
             "created_at",
         )
     )
-
-
-def coerce_attribute_value(
-    data_type,
-    raw_value,
-):
-    """
-    Coerce a raw form value into a Python value suitable for storage in
-    an Object/Relationship's `attributes` JSON blob, following the same
-    per-data-type conventions as
-    object_type_editor.py's _coerce_default_value.
-    """
-
-    if isinstance(raw_value, str):
-        raw_value = raw_value.strip()
-
-    if raw_value in (None, ""):
-        return None
-
-    if data_type == AttributeDefinition.DataType.NUMBER:
-
-        try:
-
-            if "." in str(raw_value):
-                return float(raw_value)
-
-            return int(raw_value)
-
-        except (TypeError, ValueError):
-            raise ValueError("Value must be a number.")
-
-    if data_type == AttributeDefinition.DataType.BOOLEAN:
-
-        value = str(raw_value).strip().lower()
-
-        if value in {"true", "1", "yes", "on"}:
-            return True
-
-        if value in {"false", "0", "no", "off"}:
-            return False
-
-        raise ValueError("Value must be true or false.")
-
-    return raw_value
 
 
 # =====================================================================
