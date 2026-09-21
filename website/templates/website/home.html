@@ -1,0 +1,224 @@
+{% extends "website/base.html" %}
+
+{% block content %}
+
+<!-- 1. Hero -->
+<section class="ff-hero" aria-labelledby="hero-title">
+
+    <div class="ff-hero-art" aria-hidden="true">
+        {% include "website/_mark.html" %}
+    </div>
+
+    <div class="ff-container">
+        <div class="ff-hero-copy">
+
+            <span class="ff-pill">Free during beta</span>
+
+            <h1 class="ff-h1" id="hero-title">Build a living model of complex work.</h1>
+
+            <p class="ff-lead">
+                FacetFold turns the connected parts of complex work into a structured model that
+                you can explore, change with confidence, and share.
+            </p>
+
+            <div class="ff-actions">
+                <a class="ff-btn ff-btn--primary" href="{% url 'account:signup' %}">Try FacetFold free</a>
+                <a class="ff-btn ff-btn--secondary" href="{% url 'website:examples' %}">See an example</a>
+            </div>
+
+        </div>
+    </div>
+
+</section>
+
+<!-- 2. What is FacetFold? -->
+<section class="ff-section" id="what" aria-labelledby="what-title">
+    <div class="ff-container ff-split">
+
+        <div class="ff-prose-block">
+            <div class="ff-eyebrow">What is FacetFold?</div>
+            <h2 class="ff-h2" id="what-title">A model of how your work fits together.</h2>
+
+            <p>
+                Complex work is made of many connected things. A <strong>process</strong> uses a
+                <strong>system</strong>. A <strong>team</strong> is responsible for it. A
+                <strong>capability</strong> depends on both.
+            </p>
+
+            <ul class="ff-things" aria-label="Examples of what you can model">
+                <li>Processes</li>
+                <li>Systems</li>
+                <li>People &amp; teams</li>
+                <li>Capabilities</li>
+                <li>Relationships</li>
+                <li>Anything particular to your domain</li>
+            </ul>
+
+            <p>
+                FacetFold lets you describe those things and how they relate as a structured, living
+                model. You decide the types and the attributes that matter, and every part of the model
+                is checked against them. It is something you maintain over time, not a diagram you
+                draw once.
+            </p>
+        </div>
+
+        <div class="ff-model-card" aria-label="A small example of a model">
+            <ul class="ff-chain">
+                <li class="ff-node">
+                    <span class="ff-node-facet ff-facet--indigo" aria-hidden="true"></span>
+                    <span><small>Process</small>Onboard a new customer</span>
+                </li>
+                <li class="ff-edge" aria-hidden="true">uses</li>
+                <li class="ff-node">
+                    <span class="ff-node-facet ff-facet--sky" aria-hidden="true"></span>
+                    <span><small>System</small>Customer records</span>
+                </li>
+                <li class="ff-edge" aria-hidden="true">owned by</li>
+                <li class="ff-node">
+                    <span class="ff-node-facet ff-facet--teal" aria-hidden="true"></span>
+                    <span><small>Team</small>Customer operations</span>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+</section>
+
+<!-- 3. Benefits -->
+<section class="ff-section ff-section--white" aria-labelledby="benefits-title">
+    <div class="ff-container">
+
+        <div class="ff-section-head">
+            <div class="ff-eyebrow">Why FacetFold</div>
+            <h2 class="ff-h2" id="benefits-title">A model you can rely on.</h2>
+        </div>
+
+        <div class="ff-grid">
+
+            <article class="ff-card">
+                <div class="ff-card-facet ff-facet--indigo" aria-hidden="true"></div>
+                <h3 class="ff-h3">Understand the whole</h3>
+                <p>See how the different parts of complex work connect, from a single process to the systems, teams and capabilities around it.</p>
+            </article>
+
+            <article class="ff-card">
+                <div class="ff-card-facet ff-facet--teal" aria-hidden="true"></div>
+                <h3 class="ff-h3">Keep the model trustworthy</h3>
+                <p>Changes are proposed, checked and reviewed before they are committed, with evidence and history so you can see why things are the way they are.</p>
+            </article>
+
+            <article class="ff-card">
+                <div class="ff-card-facet ff-facet--sky" aria-hidden="true"></div>
+                <h3 class="ff-h3">Explore the connections</h3>
+                <p>Investigate relationships and dependencies, and trace where each piece of the model came from.</p>
+            </article>
+
+            <article class="ff-card">
+                <div class="ff-card-facet ff-facet--ink" aria-hidden="true"></div>
+                <h3 class="ff-h3">Share what you&rsquo;ve built</h3>
+                <p>Publish a self-contained, interactive model that opens in any browser and can be shared independently of FacetFold.</p>
+            </article>
+
+        </div>
+    </div>
+</section>
+
+<!-- 4. How FacetFold is used -->
+<section class="ff-section" id="how" aria-labelledby="how-title">
+    <div class="ff-container">
+
+        <div class="ff-section-head">
+            <div class="ff-eyebrow">How it works</div>
+            <h2 class="ff-h2" id="how-title">Build, govern, understand, publish.</h2>
+        </div>
+
+        <ol class="ff-steps">
+            <li class="ff-step">
+                <h3 class="ff-h3">Build</h3>
+                <p>Create a model from a ready-made starting point, or import the data you already have.</p>
+            </li>
+            <li class="ff-step">
+                <h3 class="ff-h3">Govern</h3>
+                <p>Make changes through proposals, with validation, evidence and history behind every one.</p>
+            </li>
+            <li class="ff-step">
+                <h3 class="ff-h3">Understand</h3>
+                <p>Explore relationships, dependencies and provenance across the whole model.</p>
+            </li>
+            <li class="ff-step">
+                <h3 class="ff-h3">Publish</h3>
+                <p>Create a portable, interactive model that you can send to anyone.</p>
+            </li>
+        </ol>
+
+    </div>
+</section>
+
+<!-- 5. See it in action -->
+<section class="ff-section ff-section--flush-top" id="see" aria-labelledby="see-title">
+    <div class="ff-container">
+        <div class="ff-band">
+
+            <div class="ff-band-art" aria-hidden="true">
+                {% include "website/_mark.html" %}
+            </div>
+
+            <div class="ff-eyebrow ff-eyebrow--light">See it in action</div>
+            <h2 class="ff-h2" id="see-title">Explore a real model.</h2>
+            <p>
+                Download a real FacetFold example and open it in your browser. It is a genuine published
+                model, fully interactive, with nothing to install and no account needed.
+            </p>
+
+            <div class="ff-actions">
+                <a class="ff-btn ff-btn--primary" href="{% url 'website:examples' %}">See the examples</a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- 6. Who is it for? -->
+<section class="ff-section ff-section--white" aria-labelledby="who-title">
+    <div class="ff-container">
+
+        <div class="ff-section-head">
+            <div class="ff-eyebrow">Who it&rsquo;s for</div>
+            <h2 class="ff-h2" id="who-title">For anyone who needs to make sense of something complex.</h2>
+            <p>If you keep a picture of how things fit together in your head or in scattered documents, FacetFold gives it a structure everyone can share.</p>
+        </div>
+
+        <div class="ff-grid">
+            <article class="ff-card">
+                <h3 class="ff-h3">Business analysts</h3>
+                <p>Capture how processes, systems and teams relate, and keep it accurate as things change.</p>
+            </article>
+            <article class="ff-card">
+                <h3 class="ff-h3">Transformation &amp; change teams</h3>
+                <p>Understand what exists today and agree what is changing, with a record of why.</p>
+            </article>
+            <article class="ff-card">
+                <h3 class="ff-h3">Architects</h3>
+                <p>Model the structure of a domain in your own terms, not a fixed set of boxes.</p>
+            </article>
+            <article class="ff-card">
+                <h3 class="ff-h3">Project teams</h3>
+                <p>Keep one shared, connected view of a project&rsquo;s moving parts.</p>
+            </article>
+        </div>
+
+    </div>
+</section>
+
+<!-- 7. Final CTA -->
+<section class="ff-section ff-final" aria-labelledby="final-title">
+    <div class="ff-container">
+        <h2 class="ff-h2" id="final-title">Build your first living model.</h2>
+        <p class="ff-lead">FacetFold is currently free during beta.</p>
+        <div class="ff-actions">
+            <a class="ff-btn ff-btn--primary" href="{% url 'account:signup' %}">Try FacetFold free</a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

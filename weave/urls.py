@@ -5,16 +5,26 @@ from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # path("", include(("website.urls", "website"), namespace="website")),
+    path("", include(("website.urls", "website"), namespace="website")),
+    path("", include(("account.urls", "account"), namespace="account")),
     path("model/", include(("model.urls", "model"), namespace="model")),
-    path("model/", include(("publication.urls", "publication"), namespace="publication")),
+    path(
+        "model/", include(("publication.urls", "publication"), namespace="publication")
+    ),
     path("model/", include(("ingestion.urls", "ingestion"), namespace="ingestion")),
     path("viewer/", include(("viewer.urls", "viewer"), namespace="viewer")),
-    path("", include(("workspace.urls", "workspace"), namespace="workspace")),
+    path("workspace/", include(("workspace.urls", "workspace"), namespace="workspace")),
     # path("api/", include(("api.urls", "api"), namespace="api")),
 ]
 
 
-# Serve media files during development
+# Serve media and published example files during development
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )
+    urlpatterns += static(
+        "/published/",
+        document_root=settings.PUBLISHED_ROOT,
+    )

@@ -21,6 +21,9 @@ ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split("
 # Custom email based user model
 AUTH_USER_MODEL = "account.CustomUser"
 
+# Anonymous users hitting a @login_required view are sent to the public log-in page.
+LOGIN_URL = "account:login"
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -37,6 +40,7 @@ INSTALLED_APPS = [
     "ingestion",
     "publication",
     "viewer",
+    "website",
     "workspace",
     # Third Party
     "rest_framework",
@@ -67,6 +71,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "website.context_processors.site",
             ],
         },
     },
@@ -106,6 +111,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 105 * 1024 * 1024  # 105MB
 # ------------------------------------------------------------------------------------
 # STATIC FILES (Dev vs Prod)
 # ------------------------------------------------------------------------------------
+PUBLISHED_ROOT = BASE_DIR / "published"
 
 STATIC_URL = "/static/"
 
@@ -227,6 +233,15 @@ IMPORT_XLSX_MAX_COMPRESSION_RATIO = 200
 IMPORT_STAGED_SOURCE_TTL = timedelta(hours=24)
 # Problems listed in a preview (the total is always reported).
 IMPORT_PROBLEMS_SHOWN = 100
+
+# ------------------------------------------------------------------------------------
+# PUBLIC WEBSITE (website app)
+# ------------------------------------------------------------------------------------
+
+# Shown in the footer copyright line and the legal pages. Set the real legal
+# entity name (and a contact address) per environment.
+WEBSITE_LEGAL_ENTITY = os.getenv("WEBSITE_LEGAL_ENTITY", "FacetFold")
+WEBSITE_CONTACT_EMAIL = os.getenv("WEBSITE_CONTACT_EMAIL", "")
 
 # ------------------------------------------------------------------------------------
 # DEFAULT AUTO FIELD

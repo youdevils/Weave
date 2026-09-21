@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Root package.json for Weave's frontend dependencies (currently: vis-network, used by the viewer app's WeaveViewer wrapper).",
   "scripts": {
-    "test": "node --test \"viewer/jstests/*.test.js\" \"model/jstests/*.test.js\" \"publication/jstests/*.test.js\" \"ingestion/jstests/*.test.js\""
+    "test": "node --test \"viewer/jstests/*.test.js\" \"model/jstests/*.test.js\" \"publication/jstests/*.test.js\" \"ingestion/jstests/*.test.js\" \"website/jstests/*.test.js\""
   },
   "dependencies": {
     "vis-network": "10.1.2"

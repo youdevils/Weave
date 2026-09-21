@@ -1,0 +1,1093 @@
+/* =========================================================
+   FacetFold design language
+   Public website styles. Everything is namespaced (--ff-*, .ff-*)
+   so it can be reused by the authenticated app page by page
+   without colliding with existing styles.
+
+   Personality: intelligent, clean, calm, slightly distinctive,
+   professional, a little playful. Whitespace, restrained type,
+   simple geometry, one strong accent (Indigo), and the folded
+   facet motif from the mark.
+   ========================================================= */
+
+:root {
+    /* Palette (from the brand board) */
+    --ff-indigo: #4f46e5;
+    --ff-indigo-strong: #4338ca;
+    --ff-teal: #10b981; /* decorative: too light for text on white */
+    --ff-sky: #60a5fa;
+    --ff-ink: #0f172a;
+    --ff-slate: #94a3b8;
+    --ff-mist: #f1f5f9;
+
+    /* Roles */
+    --ff-bg: #f8fafc;
+    --ff-surface: #ffffff;
+    --ff-text: var(--ff-ink);
+    --ff-text-muted: #475569;
+    --ff-border: #e2e8f0;
+    --ff-focus: #4f46e5;
+
+    /* Shape */
+    --ff-radius-sm: 10px;
+    --ff-radius: 16px;
+    --ff-radius-lg: 28px;
+    --ff-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 12px 32px rgba(15, 23, 42, 0.07);
+    --ff-shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 18px rgba(15, 23, 42, 0.05);
+
+    /* Type */
+    --ff-font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /* Layout */
+    --ff-header-h: 68px;
+    --ff-container: 1140px;
+    --ff-gutter: clamp(1.25rem, 4vw, 2rem);
+    --ff-section-y: clamp(4rem, 9vw, 7.5rem);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--ff-header-h) + 16px);
+    -webkit-text-size-adjust: 100%;
+}
+
+body.ff-body {
+    margin: 0;
+    background: var(--ff-bg);
+    color: var(--ff-text);
+    font-family: var(--ff-font);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* Holds the shared <symbol>s. Zero-size rather than display:none, which stops gradients rendering. */
+.ff-sprite {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+.ff-body img,
+.ff-body svg {
+    max-width: 100%;
+    display: block;
+}
+
+.ff-body a {
+    color: var(--ff-indigo);
+    text-underline-offset: 0.2em;
+}
+
+.ff-body a:hover {
+    color: var(--ff-indigo-strong);
+}
+
+.ff-body :focus-visible {
+    outline: 3px solid var(--ff-focus);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+.ff-skip {
+    position: absolute;
+    left: 1rem;
+    top: -4rem;
+    z-index: 100;
+    padding: 0.6rem 1rem;
+    border-radius: var(--ff-radius-sm);
+    background: var(--ff-ink);
+    color: #fff !important;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.ff-skip:focus {
+    top: 1rem;
+}
+
+/* ---- Typography ------------------------------------------------------- */
+
+.ff-body h1,
+.ff-body h2,
+.ff-body h3 {
+    margin: 0;
+    color: var(--ff-ink);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+}
+
+.ff-h1 {
+    font-size: clamp(2.5rem, 6.4vw, 4.5rem);
+    font-weight: 800 !important;
+    letter-spacing: -0.035em !important;
+    line-height: 1.04 !important;
+}
+
+.ff-h1--page {
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+}
+
+.ff-h2 {
+    font-size: clamp(1.9rem, 3.8vw, 2.75rem);
+}
+
+.ff-h3 {
+    font-size: 1.25rem;
+    letter-spacing: -0.01em !important;
+    line-height: 1.25 !important;
+}
+
+.ff-lead {
+    max-width: 38rem;
+    margin: 1.5rem 0 0;
+    color: var(--ff-text-muted);
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
+    line-height: 1.6;
+}
+
+.ff-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: var(--ff-text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.ff-eyebrow::before {
+    content: "";
+    width: 0.9rem;
+    height: 0.6rem;
+    border-radius: 3px;
+    background: var(--ff-indigo);
+    transform: skewX(-18deg);
+}
+
+.ff-eyebrow--light {
+    color: #cbd5e1;
+}
+
+/* ---- Layout ------------------------------------------------------------ */
+
+.ff-container {
+    width: 100%;
+    max-width: calc(var(--ff-container) + 2 * var(--ff-gutter));
+    margin-inline: auto;
+    padding-inline: var(--ff-gutter);
+}
+
+.ff-section {
+    padding-block: var(--ff-section-y);
+}
+
+.ff-section--flush-top {
+    padding-top: 0;
+}
+
+.ff-section--white {
+    background: var(--ff-surface);
+    border-block: 1px solid var(--ff-border);
+}
+
+.ff-section-head {
+    max-width: 44rem;
+    margin-bottom: clamp(2rem, 5vw, 3.5rem);
+}
+
+.ff-section-head p {
+    margin: 1rem 0 0;
+    color: var(--ff-text-muted);
+    font-size: 1.15rem;
+}
+
+.ff-main--offset {
+    padding-top: var(--ff-header-h);
+}
+
+/* ---- Buttons ------------------------------------------------------------ */
+
+.ff-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.5rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.ff-body .ff-btn--primary {
+    background: var(--ff-indigo);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(79, 70, 229, 0.28);
+}
+
+.ff-body .ff-btn--primary:hover {
+    background: var(--ff-indigo-strong);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.ff-body .ff-btn--secondary {
+    background: var(--ff-surface);
+    border-color: var(--ff-border);
+    color: var(--ff-ink);
+}
+
+.ff-body .ff-btn--secondary:hover {
+    border-color: var(--ff-slate);
+    color: var(--ff-ink);
+}
+
+.ff-btn--sm {
+    padding: 0.55rem 1.1rem;
+    font-size: 0.925rem;
+}
+
+.ff-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: 2.25rem;
+}
+
+/* ---- Header (two states) ----------------------------------------------- */
+/* Hero state: quiet and transparent over the hero.
+   Compact state (.is-scrolled): defined, blurred, bordered. Pages without a hero
+   render compact from the start. */
+
+.ff-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+    border-bottom: 1px solid transparent;
+    transition: background-color 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+
+.ff-header.is-scrolled,
+.ff-header.is-open {
+    background: rgba(255, 255, 255, 0.94);
+    border-bottom-color: var(--ff-border);
+    box-shadow: 0 1px 14px rgba(15, 23, 42, 0.06);
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .ff-header.is-scrolled,
+    .ff-header.is-open {
+        background: rgba(255, 255, 255, 0.78);
+        -webkit-backdrop-filter: saturate(1.5) blur(14px);
+        backdrop-filter: saturate(1.5) blur(14px);
+    }
+}
+
+.ff-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    height: var(--ff-header-h);
+}
+
+.ff-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--ff-ink) !important;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+}
+
+.ff-brand .ff-mark {
+    width: 2rem;
+    height: 2rem;
+}
+
+.ff-wordmark-fold {
+    background: linear-gradient(100deg, var(--ff-indigo), #3b82f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--ff-indigo);
+}
+
+.ff-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.ff-nav a:not(.ff-btn) {
+    padding: 0.5rem 0.8rem;
+    border-radius: 999px;
+    color: var(--ff-text-muted);
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.ff-nav a:not(.ff-btn):hover,
+.ff-nav a[aria-current="page"] {
+    background: rgba(79, 70, 229, 0.08);
+    color: var(--ff-indigo);
+}
+
+.ff-nav .ff-btn {
+    margin-left: 0.5rem;
+}
+
+.ff-menu-toggle {
+    display: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid var(--ff-border);
+    border-radius: 12px;
+    background: var(--ff-surface);
+    color: var(--ff-ink);
+    cursor: pointer;
+}
+
+.ff-menu-toggle span,
+.ff-menu-toggle span::before,
+.ff-menu-toggle span::after {
+    display: block;
+    width: 1.1rem;
+    height: 2px;
+    margin: auto;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.ff-menu-toggle span {
+    position: relative;
+}
+
+.ff-menu-toggle span::before,
+.ff-menu-toggle span::after {
+    content: "";
+    position: absolute;
+    left: 0;
+}
+
+.ff-menu-toggle span::before {
+    top: -6px;
+}
+
+.ff-menu-toggle span::after {
+    top: 6px;
+}
+
+.ff-header.is-open .ff-menu-toggle span {
+    background: transparent;
+}
+
+.ff-header.is-open .ff-menu-toggle span::before {
+    transform: translateY(6px) rotate(45deg);
+}
+
+.ff-header.is-open .ff-menu-toggle span::after {
+    transform: translateY(-6px) rotate(-45deg);
+}
+
+@media (max-width: 860px) {
+    .ff-menu-toggle {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* Only collapse the menu once the script that can open it is running. */
+    .ff-js .ff-nav {
+        display: none;
+    }
+
+    .ff-js .ff-header.is-open .ff-nav {
+        display: flex;
+    }
+
+    .ff-nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+        padding: 0.75rem var(--ff-gutter) 1.25rem;
+        background: var(--ff-surface);
+        border-bottom: 1px solid var(--ff-border);
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    .ff-nav a:not(.ff-btn) {
+        padding: 0.85rem 0.9rem;
+        border-radius: 12px;
+        font-size: 1.05rem;
+    }
+
+    .ff-nav .ff-btn {
+        margin: 0.5rem 0 0;
+    }
+}
+
+/* ---- Hero ---------------------------------------------------------------- */
+
+.ff-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: calc(var(--ff-header-h) + 2rem) 0 4rem;
+    overflow: hidden;
+    background:
+        radial-gradient(60rem 36rem at 88% 12%, rgba(96, 165, 250, 0.2), transparent 60%),
+        radial-gradient(40rem 26rem at 0% 70%, rgba(16, 185, 129, 0.09), transparent 60%),
+        linear-gradient(180deg, #ffffff 0%, var(--ff-bg) 100%);
+}
+
+.ff-hero-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 46rem;
+}
+
+.ff-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0.35rem 0.9rem 0.35rem 0.5rem;
+    border: 1px solid var(--ff-border);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--ff-text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.ff-pill::before {
+    content: "";
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    background: var(--ff-teal);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18);
+}
+
+.ff-hero-art {
+    position: absolute;
+    right: max(-6rem, calc((100vw - var(--ff-container)) / 2 - 8rem));
+    top: 50%;
+    width: min(46vw, 34rem);
+    aspect-ratio: 1;
+    transform: translateY(-46%);
+    opacity: 0.95;
+    filter: drop-shadow(0 30px 50px rgba(79, 70, 229, 0.18));
+    pointer-events: none;
+}
+
+.ff-hero-art .ff-mark {
+    width: 100%;
+    height: 100%;
+}
+
+@media (max-width: 860px) {
+    .ff-hero-art {
+        right: -18vw;
+        top: auto;
+        bottom: -8vw;
+        width: 78vw;
+        opacity: 0.22;
+        transform: none;
+    }
+}
+
+/* ---- What is FacetFold --------------------------------------------------- */
+
+.ff-split {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: center;
+}
+
+@media (max-width: 860px) {
+    .ff-split {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ff-prose-block p {
+    margin: 1.25rem 0 0;
+    color: var(--ff-text-muted);
+}
+
+.ff-prose-block p strong {
+    color: var(--ff-ink);
+}
+
+.ff-things {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 1.75rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ff-things li {
+    padding: 0.4rem 0.95rem;
+    border: 1px solid var(--ff-border);
+    border-radius: 999px;
+    background: var(--ff-surface);
+    color: var(--ff-ink);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* A small, real-looking slice of a model: things and their relationships. */
+.ff-model-card {
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border: 1px solid var(--ff-border);
+    border-radius: var(--ff-radius-lg);
+    background: var(--ff-surface);
+    box-shadow: var(--ff-shadow);
+}
+
+.ff-chain {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ff-node {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--ff-radius-sm);
+    background: var(--ff-mist);
+    font-weight: 600;
+}
+
+.ff-node small {
+    display: block;
+    color: var(--ff-text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ff-node-facet {
+    flex: none;
+    width: 1.5rem;
+    height: 1.1rem;
+    border-radius: 4px;
+    transform: skewX(-16deg);
+}
+
+.ff-edge {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-left: 1.5rem;
+    color: var(--ff-text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.ff-edge::before {
+    content: "";
+    width: 2px;
+    height: 1.3rem;
+    margin-right: 0.35rem;
+    border-radius: 2px;
+    background: linear-gradient(var(--ff-slate), var(--ff-indigo));
+}
+
+/* Facet fills: the palette as reusable gradients (used by nodes, card marks, badges). */
+.ff-facet--indigo {
+    background: linear-gradient(135deg, #4f46e5, #3b6fe0);
+}
+
+.ff-facet--teal {
+    background: linear-gradient(135deg, #1ccba3, #10b981);
+}
+
+.ff-facet--sky {
+    background: linear-gradient(135deg, #a9cdfc, #4c97f4);
+}
+
+.ff-facet--ink {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+}
+
+/* ---- Cards ---------------------------------------------------------------- */
+
+.ff-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr));
+}
+
+.ff-card {
+    padding: 1.75rem;
+    border: 1px solid var(--ff-border);
+    border-radius: var(--ff-radius);
+    background: var(--ff-surface);
+    box-shadow: var(--ff-shadow-soft);
+}
+
+.ff-card p {
+    margin: 0.75rem 0 0;
+    color: var(--ff-text-muted);
+    font-size: 1rem;
+}
+
+.ff-card-facet {
+    width: 2.4rem;
+    height: 1.7rem;
+    margin-bottom: 1.4rem;
+    border-radius: 7px;
+    transform: skewX(-14deg);
+}
+
+/* ---- Workflow -------------------------------------------------------------- */
+
+.ff-steps {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: ffstep;
+}
+
+.ff-step {
+    position: relative;
+    padding: 1.75rem 1.5rem 1.5rem;
+    border: 1px solid var(--ff-border);
+    border-radius: var(--ff-radius);
+    background: var(--ff-surface);
+    counter-increment: ffstep;
+}
+
+.ff-step::before {
+    content: counter(ffstep);
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.1rem;
+    margin-bottom: 1.25rem;
+    border-radius: 9px;
+    background: var(--ff-step-colour, var(--ff-indigo));
+    color: #fff;
+    font-weight: 700;
+    transform: skewX(-14deg);
+}
+
+.ff-step:nth-child(1) {
+    --ff-step-colour: linear-gradient(135deg, #4f46e5, #3b6fe0);
+}
+
+.ff-step:nth-child(2) {
+    --ff-step-colour: linear-gradient(135deg, #1ccba3, #0e9f74);
+}
+
+.ff-step:nth-child(3) {
+    --ff-step-colour: linear-gradient(135deg, #6aa9f5, #3f86ec);
+}
+
+.ff-step:nth-child(4) {
+    --ff-step-colour: linear-gradient(135deg, #1e293b, #0f172a);
+}
+
+.ff-step p {
+    margin: 0.65rem 0 0;
+    color: var(--ff-text-muted);
+    font-size: 1rem;
+}
+
+/* ---- Showcase band -------------------------------------------------------------- */
+
+.ff-band {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(2.5rem, 6vw, 4.5rem);
+    border-radius: var(--ff-radius-lg);
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 55%, #312e81 100%);
+    color: #e2e8f0;
+}
+
+.ff-body .ff-band h2 {
+    color: #fff;
+}
+
+.ff-band p {
+    max-width: 34rem;
+    margin: 1rem 0 0;
+    color: #cbd5e1;
+    font-size: 1.15rem;
+}
+
+.ff-band .ff-band-art {
+    position: absolute;
+    right: -4rem;
+    bottom: -5rem;
+    width: 22rem;
+    opacity: 0.35;
+}
+
+.ff-body .ff-band .ff-btn--primary {
+    background: #fff;
+    color: var(--ff-indigo-strong);
+    box-shadow: none;
+}
+
+.ff-body .ff-band .ff-btn--primary:hover {
+    background: var(--ff-mist);
+    color: var(--ff-indigo-strong);
+}
+
+.ff-band > * {
+    position: relative;
+}
+
+.ff-band > .ff-band-art {
+    position: absolute;
+}
+
+/* ---- Final CTA ---------------------------------------------------------------------- */
+
+.ff-final {
+    text-align: center;
+}
+
+.ff-final .ff-lead,
+.ff-final .ff-actions {
+    margin-inline: auto;
+    justify-content: center;
+}
+
+/* ---- Page header (inner pages) ---------------------------------------------------------- */
+
+.ff-page-head {
+    padding-block: clamp(3rem, 7vw, 5rem) clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.ff-page-head .ff-lead {
+    margin-top: 1.1rem;
+}
+
+/* ---- Examples ------------------------------------------------------------------------------- */
+
+.ff-examples {
+    display: grid;
+    gap: 2rem;
+    padding-bottom: var(--ff-section-y);
+}
+
+.ff-example {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: center;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border: 1px solid var(--ff-border);
+    border-radius: var(--ff-radius-lg);
+    background: var(--ff-surface);
+    box-shadow: var(--ff-shadow);
+}
+
+@media (max-width: 860px) {
+    .ff-example {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ff-example-images {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.ff-example-images img {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--ff-border);
+    border-radius: var(--ff-radius);
+    background: var(--ff-mist);
+}
+
+.ff-example-images--multi {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.ff-example-images--multi img:first-child {
+    grid-column: 1 / -1;
+}
+
+.ff-example h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.ff-example p {
+    margin: 0.9rem 0 0;
+    color: var(--ff-text-muted);
+}
+
+.ff-example .ff-eyebrow {
+    margin-bottom: 0.75rem;
+}
+
+.ff-example-note {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.ff-empty {
+    padding: 3rem 1.5rem;
+    border: 1px dashed var(--ff-slate);
+    border-radius: var(--ff-radius-lg);
+    text-align: center;
+    color: var(--ff-text-muted);
+}
+
+.ff-page-body {
+    padding-bottom: var(--ff-section-y);
+}
+
+/* ---- Forms ----------------------------------------------------------------------------------------- */
+
+.ff-form-card {
+    max-width: 40rem;
+    padding: clamp(1.5rem, 4vw, 2.25rem);
+    border: 1px solid var(--ff-border);
+    border-radius: var(--ff-radius-lg);
+    background: var(--ff-surface);
+    box-shadow: var(--ff-shadow);
+}
+
+.ff-field {
+    margin-bottom: 1.25rem;
+}
+
+.ff-field label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.ff-field input,
+.ff-field textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--ff-radius-sm);
+    background: #fff;
+    color: var(--ff-ink);
+    font: inherit;
+}
+
+.ff-field textarea {
+    min-height: 9rem;
+    resize: vertical;
+}
+
+.ff-field input:focus,
+.ff-field textarea:focus {
+    border-color: var(--ff-indigo);
+    outline: 3px solid rgba(79, 70, 229, 0.25);
+    outline-offset: 0;
+}
+
+.ff-field [aria-invalid="true"] {
+    border-color: #b42318;
+}
+
+.ff-error {
+    margin: 0.4rem 0 0;
+    color: #b42318;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.ff-error--summary {
+    margin: 0 0 1.25rem;
+}
+
+.ff-notice {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding: 1.1rem 1.25rem;
+    border: 1px solid #a7f3d0;
+    border-radius: var(--ff-radius);
+    background: #ecfdf5;
+    color: #065f46;
+}
+
+.ff-notice strong {
+    display: block;
+}
+
+/* ---- Stub / centred pages ------------------------------------------------------------------------------ */
+
+.ff-stub {
+    display: grid;
+    min-height: calc(100vh - var(--ff-header-h));
+    place-items: center;
+    padding-block: 3rem;
+}
+
+.ff-stub-card {
+    max-width: 34rem;
+    padding: clamp(1.75rem, 5vw, 3rem);
+    border: 1px solid var(--ff-border);
+    border-radius: var(--ff-radius-lg);
+    background: var(--ff-surface);
+    box-shadow: var(--ff-shadow);
+    text-align: center;
+}
+
+.ff-stub-card .ff-mark {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin: 0 auto 1.5rem;
+}
+
+.ff-stub-card p {
+    margin: 1rem 0 0;
+    color: var(--ff-text-muted);
+}
+
+.ff-stub-card .ff-actions {
+    justify-content: center;
+}
+
+/* ---- Legal prose -------------------------------------------------------------------------------------------- */
+
+.ff-legal {
+    max-width: 44rem;
+    padding-bottom: var(--ff-section-y);
+}
+
+.ff-legal h2 {
+    margin: 2.5rem 0 0.75rem;
+    font-size: 1.4rem;
+}
+
+.ff-legal p,
+.ff-legal li {
+    color: var(--ff-text-muted);
+}
+
+.ff-legal ul {
+    padding-left: 1.25rem;
+}
+
+.ff-legal li {
+    margin: 0.4rem 0;
+}
+
+/* ---- Footer ---------------------------------------------------------------------------------------------------- */
+
+.ff-footer {
+    border-top: 1px solid var(--ff-border);
+    background: var(--ff-surface);
+}
+
+.ff-footer-inner {
+    display: grid;
+    gap: 2rem 3rem;
+    grid-template-columns: 1.4fr 1fr;
+    padding-block: 3.5rem 2rem;
+}
+
+@media (max-width: 720px) {
+    .ff-footer-inner {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ff-footer .ff-brand .ff-mark {
+    width: 1.8rem;
+    height: 1.8rem;
+}
+
+.ff-footer-tagline {
+    max-width: 22rem;
+    margin: 0.85rem 0 0;
+    color: var(--ff-text-muted);
+    font-size: 0.975rem;
+}
+
+.ff-footer nav ul {
+    display: grid;
+    gap: 0.55rem 2rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ff-footer nav a {
+    color: var(--ff-text-muted);
+    font-size: 0.975rem;
+    text-decoration: none;
+}
+
+.ff-footer nav a:hover {
+    color: var(--ff-indigo);
+    text-decoration: underline;
+}
+
+.ff-legalline {
+    grid-column: 1 / -1;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--ff-border);
+    color: var(--ff-text-muted);
+    font-size: 0.875rem;
+}
+
+/* ---- Motion ------------------------------------------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+    }
+}

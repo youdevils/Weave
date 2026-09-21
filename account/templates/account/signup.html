@@ -1,0 +1,25 @@
+{% extends "website/base.html" %}
+
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+
+{% block content %}
+<section class="ff-container ff-stub" aria-labelledby="signup-title">
+    <div class="ff-stub-card">
+
+        {% include "website/_mark.html" %}
+
+        <h1 class="ff-h2" id="signup-title">Try FacetFold free</h1>
+
+        <p>
+            Sign-up is opening soon. FacetFold is free during beta, and you&rsquo;ll be able to create
+            your first living model as soon as accounts are available.
+        </p>
+
+        <div class="ff-actions">
+            <a class="ff-btn ff-btn--secondary" href="{% url 'website:examples' %}">See an example</a>
+            <a class="ff-btn ff-btn--secondary" href="{% url 'website:contact' %}">Contact us</a>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+<footer class="ff-footer">
+    <div class="ff-container ff-footer-inner">
+
+        <div>
+            <a class="ff-brand" href="{% url 'website:home' %}" aria-label="FacetFold home">
+                {% include "website/_mark.html" %}
+                <span>Facet<span class="ff-wordmark-fold">Fold</span></span>
+            </a>
+            <p class="ff-footer-tagline">Build a living model of complex work.</p>
+        </div>
+
+        <nav aria-label="Footer">
+            <ul>
+                <li><a href="{% url 'website:examples' %}">Examples</a></li>
+                <li><a href="{% url 'website:privacy' %}">Privacy</a></li>
+                <li><a href="{% url 'website:terms' %}">Terms</a></li>
+                <li><a href="{% url 'website:contact' %}">Contact &amp; feedback</a></li>
+                {% if request.user.is_authenticated %}
+                    <li><a href="{% url 'workspace:index' %}">Open FacetFold</a></li>
+                {% else %}
+                    <li><a href="{% url 'account:login' %}">Log in</a></li>
+                    <li><a href="{% url 'account:signup' %}">Try it free</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+
+        <p class="ff-legalline">&copy; {% now "Y" %} {{ legal_entity }}. All rights reserved.</p>
+
+    </div>
+</footer>

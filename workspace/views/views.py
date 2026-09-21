@@ -142,9 +142,7 @@ def model_template_review(request, model_id, template_key):
             template_key=template_key,
         )
 
-        return redirect(
-            "/",
-        )
+        return redirect("workspace:index")
 
     return render(
         request,

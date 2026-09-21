@@ -1,0 +1,39 @@
+{% comment %}
+    The two-state header. On the homepage it starts quiet over the hero (data-ff-hero) and
+    turns compact on scroll (site.js). Every other page renders it compact from the start.
+{% endcomment %}
+<header
+    class="ff-header{% if not hero_header %} is-scrolled{% endif %}"
+    data-ff-header
+    {% if hero_header %}data-ff-hero{% endif %}
+>
+    <div class="ff-container ff-header-inner">
+
+        <a class="ff-brand" href="{% url 'website:home' %}" aria-label="FacetFold home">
+            {% include "website/_mark.html" %}
+            <span>Facet<span class="ff-wordmark-fold">Fold</span></span>
+        </a>
+
+        <button
+            type="button"
+            class="ff-menu-toggle"
+            data-ff-menu-toggle
+            aria-expanded="false"
+            aria-controls="ff-nav"
+            aria-label="Open menu"
+        ><span></span></button>
+
+        <nav class="ff-nav" id="ff-nav" data-ff-nav aria-label="Primary">
+            <a href="{% url 'website:home' %}#what">What is FacetFold?</a>
+            <a href="{% url 'website:home' %}#how">How it works</a>
+            <a href="{% url 'website:examples' %}"{% if nav_active == "examples" %} aria-current="page"{% endif %}>Examples</a>
+            {% if request.user.is_authenticated %}
+                <a class="ff-btn ff-btn--primary ff-btn--sm" href="{% url 'workspace:index' %}">Open FacetFold</a>
+            {% else %}
+                <a href="{% url 'account:login' %}">Log in</a>
+                <a class="ff-btn ff-btn--primary ff-btn--sm" href="{% url 'account:signup' %}">Try it free</a>
+            {% endif %}
+        </nav>
+
+    </div>
+</header>

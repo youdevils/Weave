@@ -1,0 +1,66 @@
+{% extends "website/base.html" %}
+
+{% block content %}
+
+<section class="ff-container ff-page-head" aria-labelledby="privacy-title">
+    <div class="ff-eyebrow">Legal</div>
+    <h1 class="ff-h1 ff-h1--page" id="privacy-title">Privacy</h1>
+    <p class="ff-lead">How {{ legal_entity }} handles your information. Last updated {{ updated }}.</p>
+</section>
+
+<div class="ff-container">
+    <div class="ff-legal">
+
+        <h2>Who we are</h2>
+        <p>
+            FacetFold is operated by {{ legal_entity }}.{% if contact_email %} You can reach us at
+            <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>, or through the
+            <a href="{% url 'website:contact' %}">contact form</a>.{% else %} You can reach us through the
+            <a href="{% url 'website:contact' %}">contact form</a>.{% endif %}
+        </p>
+
+        <h2>What we collect</h2>
+        <ul>
+            <li><strong>Account details.</strong> The email address you use to create an account, and the information needed to keep your account secure.</li>
+            <li><strong>Your models.</strong> The content you create and import in FacetFold, including any changes, evidence and history you record.</li>
+            <li><strong>Messages you send us.</strong> If you contact us, the details you give us so that we can reply.</li>
+        </ul>
+        <p>Browsing this website does not require an account.</p>
+
+        <h2>How we use it</h2>
+        <p>
+            We use your information to provide FacetFold, to keep it secure, and to respond when you
+            get in touch. We do not sell your information.
+        </p>
+
+        <h2>Cookies</h2>
+        <p>
+            We use only the cookies needed to run the service: a session cookie to keep you signed in and
+            a security cookie that protects forms from forgery. We do not use advertising cookies.
+        </p>
+
+        <h2>Third-party services</h2>
+        <p>
+            This website loads its typeface, Plus Jakarta Sans, from Google Fonts. When your browser
+            fetches it, Google receives your IP address and the usual browser request details.
+        </p>
+
+        <h2>Files you publish</h2>
+        <p>
+            A model you publish from FacetFold becomes a file that you control. It can include the
+            model&rsquo;s content and its change history, and it can be shared wherever you choose. Please
+            review what you are sharing before you share it.
+        </p>
+
+        <h2>Your choices</h2>
+        <p>
+            You can ask us to access, correct or delete the information we hold about you by contacting us.
+        </p>
+
+        <h2>Changes to this page</h2>
+        <p>If we change how we handle information we will update this page and its date.</p>
+
+    </div>
+</div>
+
+{% endblock %}

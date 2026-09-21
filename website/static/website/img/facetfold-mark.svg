@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="FacetFold">
+  <defs>
+    <linearGradient id="ffm-indigo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#3B6FE0"/>
+    </linearGradient>
+    <linearGradient id="ffm-teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1CCBA3"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+    <linearGradient id="ffm-sky" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#A9CDFC" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#4C97F4"/>
+    </linearGradient>
+  </defs>
+  <g stroke-linejoin="round" stroke-width="7">
+    <polygon points="8,44 44,30 44,92 8,105" fill="url(#ffm-indigo)" stroke="url(#ffm-indigo)"/>
+    <polygon points="60,15 112,8 112,46 60,53" fill="url(#ffm-teal)" stroke="url(#ffm-teal)"/>
+    <polygon points="42,68 96,62 86,102 62,112 40,98" fill="url(#ffm-sky)" stroke="url(#ffm-sky)"/>
+  </g>
+</svg>

@@ -1,0 +1,88 @@
+{% extends "website/base.html" %}
+
+{% block content %}
+
+<section class="ff-container ff-page-head" aria-labelledby="contact-title">
+    <div class="ff-eyebrow">Contact &amp; feedback</div>
+    <h1 class="ff-h1 ff-h1--page" id="contact-title">Tell us what you think.</h1>
+    <p class="ff-lead">
+        Questions, ideas, or something that didn&rsquo;t work the way you expected? We&rsquo;d like to hear it.
+    </p>
+</section>
+
+<div class="ff-container ff-page-body">
+
+    <div class="ff-form-card">
+
+        {% if sent %}
+
+            <div class="ff-notice" role="status">
+                <div>
+                    <strong>Thanks for getting in touch.</strong>
+                    We appreciate you taking the time to write.
+                </div>
+            </div>
+
+            <a class="ff-btn ff-btn--secondary" href="{% url 'website:home' %}">Back to the homepage</a>
+
+        {% else %}
+
+            <form method="post" action="{% url 'website:contact' %}" novalidate>
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <p class="ff-error ff-error--summary" role="alert">Please check the highlighted fields and try again.</p>
+                {% endif %}
+
+                <div class="ff-field">
+                    <label for="{{ form.name.id_for_label }}">Your name</label>
+                    <input
+                        type="text"
+                        name="{{ form.name.html_name }}"
+                        id="{{ form.name.id_for_label }}"
+                        value="{{ form.name.value|default_if_none:'' }}"
+                        maxlength="100"
+                        autocomplete="name"
+                        required
+                        {% if form.name.errors %}aria-invalid="true" aria-describedby="name-error"{% endif %}
+                    >
+                    {% for error in form.name.errors %}<p class="ff-error" id="name-error">{{ error }}</p>{% endfor %}
+                </div>
+
+                <div class="ff-field">
+                    <label for="{{ form.email.id_for_label }}">Email</label>
+                    <input
+                        type="email"
+                        name="{{ form.email.html_name }}"
+                        id="{{ form.email.id_for_label }}"
+                        value="{{ form.email.value|default_if_none:'' }}"
+                        maxlength="254"
+                        autocomplete="email"
+                        required
+                        {% if form.email.errors %}aria-invalid="true" aria-describedby="email-error"{% endif %}
+                    >
+                    {% for error in form.email.errors %}<p class="ff-error" id="email-error">{{ error }}</p>{% endfor %}
+                </div>
+
+                <div class="ff-field">
+                    <label for="{{ form.message.id_for_label }}">Message</label>
+                    <textarea
+                        name="{{ form.message.html_name }}"
+                        id="{{ form.message.id_for_label }}"
+                        maxlength="5000"
+                        required
+                        {% if form.message.errors %}aria-invalid="true" aria-describedby="message-error"{% endif %}
+                    >{{ form.message.value|default_if_none:'' }}</textarea>
+                    {% for error in form.message.errors %}<p class="ff-error" id="message-error">{{ error }}</p>{% endfor %}
+                </div>
+
+                <button type="submit" class="ff-btn ff-btn--primary">Send message</button>
+            </form>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

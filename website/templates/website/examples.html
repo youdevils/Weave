@@ -1,0 +1,51 @@
+{% extends "website/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<section class="ff-container ff-page-head" aria-labelledby="examples-title">
+    <div class="ff-eyebrow">Examples</div>
+    <h1 class="ff-h1 ff-h1--page" id="examples-title">See a living model.</h1>
+    <p class="ff-lead">
+        Each example is a real, self-contained FacetFold publication. Download one and open it in your
+        browser to explore every object and connection. Nothing to install, and no account needed.
+    </p>
+</section>
+
+<div class="ff-container ff-examples">
+
+    {% for example in examples %}
+        <article class="ff-example" aria-labelledby="example-{{ forloop.counter }}-title">
+
+            <div class="ff-example-images{% if example.images|length > 1 %} ff-example-images--multi{% endif %}">
+                {% for image in example.images %}
+                    <img
+                        src="{% static image %}"
+                        alt="{% if forloop.first %}A preview of the {{ example.title }} example{% else %}Another view of the {{ example.title }} example{% endif %}"
+                        width="1280"
+                        height="800"
+                        loading="lazy"
+                    >
+                {% endfor %}
+            </div>
+
+            <div>
+                <div class="ff-eyebrow">{{ example.category }}</div>
+                <h2 id="example-{{ forloop.counter }}-title">{{ example.title }}</h2>
+                <p>{{ example.description }}</p>
+
+                <div class="ff-actions">
+                    <a class="ff-btn ff-btn--primary" href="{{ example.url }}" download>Download example</a>
+                </div>
+
+                <p class="ff-example-note">A single HTML file. It opens in any modern browser and works offline.</p>
+            </div>
+
+        </article>
+    {% empty %}
+        <p class="ff-empty">Examples are on their way. Check back soon.</p>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

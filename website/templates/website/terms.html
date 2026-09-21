@@ -1,0 +1,76 @@
+{% extends "website/base.html" %}
+
+{% block content %}
+
+<section class="ff-container ff-page-head" aria-labelledby="terms-title">
+    <div class="ff-eyebrow">Legal</div>
+    <h1 class="ff-h1 ff-h1--page" id="terms-title">Terms</h1>
+    <p class="ff-lead">The terms for using FacetFold during beta. Last updated {{ updated }}.</p>
+</section>
+
+<div class="ff-container">
+    <div class="ff-legal">
+
+        <h2>Using FacetFold</h2>
+        <p>
+            FacetFold is provided by {{ legal_entity }}. By creating an account or using the service you
+            agree to these terms. If you are using FacetFold on behalf of an organisation, you confirm
+            you are able to agree to them for that organisation.
+        </p>
+
+        <h2>Beta</h2>
+        <p>
+            FacetFold is currently in beta and free to use. Features may change, be added or be removed,
+            and the service may be interrupted. We may introduce pricing in future and will tell you before
+            anything you rely on becomes paid.
+        </p>
+
+        <h2>Your content</h2>
+        <p>
+            You own the content you put into FacetFold. You give us permission to store and process it so
+            that we can provide the service to you. You are responsible for having the right to use the
+            content you import and for what you choose to publish and share.
+        </p>
+
+        <h2>Acceptable use</h2>
+        <ul>
+            <li>Do not use FacetFold to break the law or to infringe other people&rsquo;s rights.</li>
+            <li>Do not try to disrupt the service, gain unauthorised access, or probe it for weaknesses without permission.</li>
+            <li>Do not share access to your account.</li>
+        </ul>
+
+        <h2>Availability and changes</h2>
+        <p>
+            We work to keep FacetFold available and your work safe, but during beta we cannot promise
+            uninterrupted service. Keep your own copy of anything important, for example by publishing it.
+        </p>
+
+        <h2>No warranty</h2>
+        <p>
+            To the extent the law allows, FacetFold is provided as it is, without warranties, and we are
+            not liable for indirect or consequential loss. Nothing in these terms limits rights you have
+            under consumer law that cannot be limited.
+        </p>
+
+        <h2>Ending your use</h2>
+        <p>
+            You can stop using FacetFold at any time. We may suspend or end access if these terms are broken
+            or if we need to protect the service or other people.
+        </p>
+
+        <h2>Changes to these terms</h2>
+        <p>
+            We may update these terms. If a change is significant we will tell you, and continuing to use
+            FacetFold after that means you accept the updated terms.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+            Questions about these terms? Use the <a href="{% url 'website:contact' %}">contact form</a>{% if contact_email %}
+            or write to <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>{% endif %}.
+        </p>
+
+    </div>
+</div>
+
+{% endblock %}
