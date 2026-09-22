@@ -199,7 +199,7 @@ class RelationshipImportTests(ImportTestCase):
 
         self.assertEqual([p.row for p in plan.problems], [2, 3])
 
-    # -- Weave Relationship ID ----------------------------------------------------------
+    # -- OnyxJar Relationship ID ----------------------------------------------------------
 
     def test_a_relationship_id_identifies_the_relationship_without_endpoints(self):
         existing = self.make_uses(self.a, self.b)

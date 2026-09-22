@@ -2,7 +2,7 @@
 Plan an Object import: one existing ObjectType, one row per Object.
 
 Per row:
-  1. identify the record  -- Weave Object ID and/or the explicitly chosen match
+  1. identify the record  -- OnyxJar Object ID and/or the explicitly chosen match
                              attribute, exactly, or no identity (a new record);
   2. accumulate           -- later rows overwrite earlier assignments to the
                              same target field (blank is a real assignment);
@@ -148,7 +148,7 @@ def _identify(row_number, row, id_entry, match_entry, match_attribute, index, ca
     match_key = None
     match_value = None
 
-    # -- the Weave Object ID ------------------------------------------------
+    # -- the OnyxJar Object ID ------------------------------------------------
 
     if id_entry is not None and not coercion.is_blank(row[id_entry.column]):
 
@@ -158,7 +158,7 @@ def _identify(row_number, row, id_entry, match_entry, match_attribute, index, ca
         if parsed is None:
             return _Identified(problem=problem(
                 "invalid_identity_id",
-                f"'{snippet(cell)}' is not a valid Weave Object ID.",
+                f"'{snippet(cell)}' is not a valid OnyxJar Object ID.",
                 row_number,
             ))
 

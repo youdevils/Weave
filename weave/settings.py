@@ -29,7 +29,7 @@ LOGIN_REDIRECT_URL = "workspace:index"
 
 # Outbound account email (verification, password reset) via Resend.
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "FacetFold <onboarding@resend.dev>")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "OnyxJar <onboarding@resend.dev>")
 
 # Application definition
 INSTALLED_APPS = [
@@ -247,7 +247,7 @@ IMPORT_PROBLEMS_SHOWN = 100
 
 # Shown in the footer copyright line and the legal pages. Set the real legal
 # entity name (and a contact address) per environment.
-WEBSITE_LEGAL_ENTITY = os.getenv("WEBSITE_LEGAL_ENTITY", "FacetFold")
+WEBSITE_LEGAL_ENTITY = os.getenv("WEBSITE_LEGAL_ENTITY", "OnyxJar")
 WEBSITE_CONTACT_EMAIL = os.getenv("WEBSITE_CONTACT_EMAIL", "")
 
 # ------------------------------------------------------------------------------------

@@ -3,12 +3,12 @@ Plan a Relationship import: one existing RelationshipType, one directed
 relationship per row.
 
 A relationship is identified by, in order:
-  * its Weave Relationship ID, if that column is mapped and filled; supplied
+  * its OnyxJar Relationship ID, if that column is mapped and filled; supplied
     endpoints are then only a cross-check and are never written on an UPDATE;
   * otherwise its endpoints: (source object, target object) *in that
     direction* -- A -> B and B -> A are different relationships.
 
-Endpoints must already exist (they are resolved by Weave Object ID or an
+Endpoints must already exist (they are resolved by OnyxJar Object ID or an
 explicitly chosen attribute, exactly). Whether the resulting relationship is
 allowed by the relationship type is not decided here.
 """
@@ -171,7 +171,7 @@ def _resolve_row(row_number, row, id_entry, subject_entry, object_entry, resolve
         if relationship_id is None:
             problems.append(problem(
                 "invalid_identity_id",
-                f"'{snippet(cell)}' is not a valid Weave Relationship ID.",
+                f"'{snippet(cell)}' is not a valid OnyxJar Relationship ID.",
                 row_number,
             ))
 
@@ -220,7 +220,7 @@ def _resolve_row(row_number, row, id_entry, subject_entry, object_entry, resolve
         return [problem(
             "ambiguous_relationship",
             f"{len(matches)} relationships already connect these two objects in this "
-            "direction. Use the Weave Relationship ID to say which one.",
+            "direction. Use the OnyxJar Relationship ID to say which one.",
             row_number,
         )]
 

@@ -30,7 +30,7 @@ export function fieldOptions(kind, target) {
 
   if (kind === KINDS.RELATIONSHIP) {
     return [
-      { group: "Identity", value: "identity.id", label: "Weave Relationship ID" },
+      { group: "Identity", value: "identity.id", label: "OnyxJar Relationship ID" },
       { group: "Endpoints", value: "endpoint.subject", label: "Source object" },
       { group: "Endpoints", value: "endpoint.object", label: "Target object" },
       { group: "Built-in fields", value: "field.is_active", label: "Active" },
@@ -39,7 +39,7 @@ export function fieldOptions(kind, target) {
   }
 
   return [
-    { group: "Identity", value: "identity.id", label: "Weave Object ID" },
+    { group: "Identity", value: "identity.id", label: "OnyxJar Object ID" },
     { group: "Built-in fields", value: "field.name", label: "Name" },
     { group: "Built-in fields", value: "field.description", label: "Description" },
     { group: "Built-in fields", value: "field.is_active", label: "Active" },
@@ -47,9 +47,9 @@ export function fieldOptions(kind, target) {
   ];
 }
 
-/** Ways an endpoint can be identified: by Weave Object ID, or by an object type's attribute. */
+/** Ways an endpoint can be identified: by OnyxJar Object ID, or by an object type's attribute. */
 export function endpointResolvers(objectTypes) {
-  const resolvers = [{ value: "id", label: "Weave Object ID" }];
+  const resolvers = [{ value: "id", label: "OnyxJar Object ID" }];
 
   for (const type of objectTypes ?? []) {
     for (const attribute of type.attributes ?? []) {

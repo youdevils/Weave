@@ -77,4 +77,4 @@ class ResendPasswordResetForm(PasswordResetForm):
             {"reset_url": reset_url, "user": context["user"]},
         )
 
-        send_email(to=to_email, subject="Reset your FacetFold password", html=html)
+        send_email(to=to_email, subject="Reset your OnyxJar password", html=html)

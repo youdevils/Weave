@@ -46,7 +46,7 @@ def send_verification_email(request, user):
         {"verify_url": verify_url, "user": user},
     )
 
-    # send_email(to=user.email, subject="Verify your FacetFold email", html=html)
+    # send_email(to=user.email, subject="Verify your OnyxJar email", html=html)
     send_email(
-        to="leon@youdevils.com", subject="Verify your FacetFold email", html=html
+        to="leon@youdevils.com", subject="Verify your OnyxJar email", html=html
     )

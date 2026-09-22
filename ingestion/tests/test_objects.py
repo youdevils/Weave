@@ -240,7 +240,7 @@ class ObjectImportTests(ImportTestCase):
 
         self.assertEqual(plan.changes, [])
 
-    # -- identity: Weave Object ID ----------------------------------------------------
+    # -- identity: OnyxJar Object ID ----------------------------------------------------
 
     def test_weave_object_id_identifies_the_existing_object(self):
         app = self.make_app("Payroll")

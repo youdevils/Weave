@@ -78,7 +78,7 @@ class PageTests(TestCase):
         html = self.get("website:home").content.decode()
 
         self.assertContains(self.get("website:home"), "Build a living model of complex work.")
-        self.assertContains(self.get("website:home"), "Try FacetFold free")
+        self.assertContains(self.get("website:home"), "Try OnyxJar free")
         self.assertContains(self.get("website:home"), "See an example")
         self.assertIn(f'href="{reverse("account:signup")}"', html)
         self.assertIn(f'href="{reverse("website:examples")}"', html)
@@ -87,7 +87,7 @@ class PageTests(TestCase):
         html = self.get("website:home").content.decode()
 
         for needle in (
-            'id="what"',  # What is FacetFold?
+            'id="what"',  # What is OnyxJar?
             "Understand the whole",
             "Keep the model trustworthy",
             "Explore the connections",
@@ -115,7 +115,7 @@ class PageTests(TestCase):
             self.assertRegex(html, r'<meta name="description" content="[^"]+">', name)
             self.assertIn(f'<link rel="canonical" href="{url}">', html, name)
             self.assertIn(f'<meta property="og:url" content="{url}">', html, name)
-            self.assertIn('<meta property="og:site_name" content="FacetFold">', html, name)
+            self.assertIn('<meta property="og:site_name" content="OnyxJar">', html, name)
             self.assertIn('<meta property="og:type" content="website">', html, name)
             self.assertIn('<meta name="twitter:card" content="summary_large_image">', html, name)
             self.assertRegex(html, r'<meta property="og:image" content="http://testserver/static/website/img/og-image\.png">', name)
@@ -133,7 +133,7 @@ class PageTests(TestCase):
 
         self.assertEqual(len(titles), len(PUBLIC_PAGES))
         self.assertEqual(len(descriptions), len(PUBLIC_PAGES))
-        self.assertIn("FacetFold", " ".join(titles))
+        self.assertIn("OnyxJar", " ".join(titles))
 
     def test_the_canonical_url_ignores_the_query_string(self):
         html = self.client.get(reverse("website:examples") + "?utm_source=x").content.decode()
@@ -168,8 +168,8 @@ class PageTests(TestCase):
             "website/img/og-image.png",
             "website/img/favicon-32.png",
             "website/img/apple-touch-icon.png",
-            "website/img/facetfold-mark.svg",
-            "website/css/facetfold.css",
+            "website/img/onyxjar-mark.svg",
+            "website/css/onyxjar.css",
             "website/js/site.js",
         ):
             self.assertIsNotNone(finders.find(path), path)
@@ -197,7 +197,7 @@ class HeaderTests(TestCase):
     def test_the_header_offers_the_agreed_navigation_and_cta(self):
         header = self.header("website:home")
 
-        for label in ("What is FacetFold?", "How it works", "Examples", "Log in", "Try it free"):
+        for label in ("What is OnyxJar?", "How it works", "Examples", "Log in", "Try it free"):
             self.assertIn(label, header)
 
         self.assertIn(f'href="{reverse("website:home")}#what"', header)
@@ -225,7 +225,7 @@ class HeaderTests(TestCase):
 
         header = self.header("website:home", client)
 
-        self.assertIn("Open FacetFold", header)
+        self.assertIn("Open OnyxJar", header)
         self.assertIn(f'href="{reverse("workspace:index")}"', header)
         self.assertNotIn("Try it free", header)
         self.assertNotIn(">Log in<", header)
@@ -242,7 +242,7 @@ class FooterTests(TestCase):
         for name in ("website:examples", "website:privacy", "website:terms", "website:contact", "account:login", "account:signup"):
             self.assertIn(f'href="{reverse(name)}"', footer, name)
 
-        self.assertRegex(footer, r"&copy; \d{4} FacetFold\. All rights reserved\.")
+        self.assertRegex(footer, r"&copy; \d{4} OnyxJar\. All rights reserved\.")
 
     def test_the_legal_entity_comes_from_settings(self):
         from django.test import override_settings

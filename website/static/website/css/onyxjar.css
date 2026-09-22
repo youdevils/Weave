@@ -1,5 +1,5 @@
 /* =========================================================
-   FacetFold design language
+   OnyxJar design language
    Public website styles. Everything is namespaced (--ff-*, .ff-*)
    so it can be reused by the authenticated app page by page
    without colliding with existing styles.
@@ -525,7 +525,7 @@ body.ff-body {
     }
 }
 
-/* ---- What is FacetFold --------------------------------------------------- */
+/* ---- What is OnyxJar --------------------------------------------------- */
 
 .ff-split {
     display: grid;

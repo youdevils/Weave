@@ -2,9 +2,9 @@
     <div class="ff-container ff-footer-inner">
 
         <div>
-            <a class="ff-brand" href="{% url 'website:home' %}" aria-label="FacetFold home">
+            <a class="ff-brand" href="{% url 'website:home' %}" aria-label="OnyxJar home">
                 {% include "website/_mark.html" %}
-                <span>Facet<span class="ff-wordmark-fold">Fold</span></span>
+                <span>Onyx<span class="ff-wordmark-fold">Jar</span></span>
             </a>
             <p class="ff-footer-tagline">Build a living model of complex work.</p>
         </div>
@@ -16,7 +16,7 @@
                 <li><a href="{% url 'website:terms' %}">Terms</a></li>
                 <li><a href="{% url 'website:contact' %}">Contact &amp; feedback</a></li>
                 {% if request.user.is_authenticated %}
-                    <li><a href="{% url 'workspace:index' %}">Open FacetFold</a></li>
+                    <li><a href="{% url 'workspace:index' %}">Open OnyxJar</a></li>
                 {% else %}
                     <li><a href="{% url 'account:login' %}">Log in</a></li>
                     <li><a href="{% url 'account:signup' %}">Try it free</a></li>

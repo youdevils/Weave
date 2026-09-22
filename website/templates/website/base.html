@@ -5,34 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {# Page identity and search/social metadata. Views supply page_title and page_description. #}
-    <title>{{ page_title|default:"FacetFold" }}</title>
+    <title>{{ page_title|default:"OnyxJar" }}</title>
     <meta name="description" content="{{ page_description }}">
     {% block robots %}{% endblock %}
     <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
     <meta name="theme-color" content="#4F46E5">
 
-    <meta property="og:site_name" content="FacetFold">
+    <meta property="og:site_name" content="OnyxJar">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ page_title|default:'FacetFold' }}">
+    <meta property="og:title" content="{{ page_title|default:'OnyxJar' }}">
     <meta property="og:description" content="{{ page_description }}">
     <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'website/img/og-image.png' %}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="FacetFold: build a living model of complex work.">
+    <meta property="og:image:alt" content="OnyxJar: build a living model of complex work.">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ page_title|default:'FacetFold' }}">
+    <meta name="twitter:title" content="{{ page_title|default:'OnyxJar' }}">
     <meta name="twitter:description" content="{{ page_description }}">
     <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'website/img/og-image.png' %}">
 
-    <link rel="icon" href="{% static 'website/img/facetfold-mark.svg' %}" type="image/svg+xml">
+    <link rel="icon" href="{% static 'website/img/onyxjar-mark.svg' %}" type="image/svg+xml">
     <link rel="icon" href="{% static 'website/img/favicon-32.png' %}" type="image/png" sizes="32x32">
     <link rel="apple-touch-icon" href="{% static 'website/img/apple-touch-icon.png' %}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'website/css/facetfold.css' %}">
+    <link rel="stylesheet" href="{% static 'website/css/onyxjar.css' %}">
 
     {# Lets the stylesheet collapse the mobile menu only when the script that opens it will run. #}
     <script>document.documentElement.classList.add("ff-js");</script>

@@ -21,8 +21,8 @@ existing Proposal validator's job (`model.services.validation`), which Import ne
 - **Blocking, not skipping.** A row whose identity cannot be determined (unresolved, ambiguous, mismatched,
   unreadable id/endpoint) blocks the whole import. Nothing partial is ever created.
 - **Canonical only.** Matching reads `Object` / `Relationship` tables. Other proposals are never consulted.
-- **Identity is explicit and exact:** a Weave Object/Relationship ID, or one attribute the user marks "use to
-  identify" (trimmed once, compared case-sensitively and type-strictly). Names are never matched. Weave Keys do not
+- **Identity is explicit and exact:** an OnyxJar Object/Relationship ID, or one attribute the user marks "use to
+  identify" (trimmed once, compared case-sensitively and type-strictly). Names are never matched. OnyxJar Keys do not
   exist; the resolvers are where they would be added.
 - **The match attribute is never updated on an existing object** (even when its cell is blank); it is written on CREATE.
 - **Later rows win**, blank is a real assignment, and only *canonical-before → final-after* changes are emitted.
@@ -65,7 +65,7 @@ the Proposal Review page, which renders every change (~13 KB of HTML each); rais
 ## Known limitations / deferred
 
 - One worksheet, one target type per import; no mixed object + relationship imports; endpoints are never created.
-- Composite identity, Weave Keys, export, a source list/download UI, background processing, persisted import jobs.
+- Composite identity, OnyxJar Keys, export, a source list/download UI, background processing, persisted import jobs.
 - No AI ingestion (the services are structured so it can reuse parsing, planning and proposal creation).
 - Pre-existing hand-made objects with no identifying attribute cannot be matched (by design: no name matching);
-  fill the attribute in first, or use their Weave ID.
+  fill the attribute in first, or use their OnyxJar ID.

@@ -51,7 +51,7 @@ test("relationship targets offer endpoints instead of name and description", () 
   assert.ok(values.includes("attribute.owner"));
 });
 
-test("endpoint resolvers list the Weave id and only identity-eligible attributes", () => {
+test("endpoint resolvers list the OnyxJar id and only identity-eligible attributes", () => {
   const resolvers = endpointResolvers([{ type_id: "T1", name: "Application", attributes: target.attributes }]);
 
   assert.deepEqual(

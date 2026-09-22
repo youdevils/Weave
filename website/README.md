@@ -1,7 +1,8 @@
-# Public website (FacetFold)
+# Public website (OnyxJar)
 
-The public FacetFold site: `/`, `/examples/`, `/privacy/`, `/terms/`, `/contact/`. "FacetFold" is the public brand;
-**Weave** remains the internal project name (no public page shows it; a test asserts that).
+The public OnyxJar site: `/`, `/examples/`, `/privacy/`, `/terms/`, `/contact/`. "OnyxJar" is the public brand. The
+Django project package is still named `weave` internally (module paths, `manage.py`, etc.) — this is not user-facing
+and is out of scope for the rebrand.
 
 Log-in and sign-up are **stubs in the existing `account` app** (`/login/`, `/signup/`, names `account:login` /
 `account:signup`): real pages that never create users, authenticate, or touch the session. `settings.LOGIN_URL` points at
@@ -10,10 +11,10 @@ real flow (email verification, Resend) replaces view bodies, not links. The appl
 
 ## Design language
 
-`static/website/css/facetfold.css` is a reusable, namespaced system (`--ff-*` tokens, `.ff-*` components): the palette from the
+`static/website/css/onyxjar.css` is a reusable, namespaced system (`--ff-*` tokens, `.ff-*` components): the palette from the
 brand board (Indigo `#4F46E5` primary, Teal accent used decoratively, Sky, Ink, Slate, Mist), Plus Jakarta Sans, radii,
 buttons, cards, the two-state header, the facet motif. The authenticated app can adopt it page by page. The mark is defined
-once as an SVG `<symbol>` in `base.html` (`_mark.html` references it); `img/facetfold-mark.svg` is the standalone copy used as the
+once as an SVG `<symbol>` in `base.html` (`_mark.html` references it); `img/onyxjar-mark.svg` is the standalone copy used as the
 favicon. Raster favicons and the social image were rendered once from that artwork.
 
 `static/website/js/site.js` is the only script: the header's hero → compact scroll state and the mobile menu (ES module with pure,

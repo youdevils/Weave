@@ -151,7 +151,7 @@ export function mappingTable({ kind, target, columns, sampleRows, rows, objectTy
     .join("");
 
   return `<table class="table table-sm import-mapping-table">
-    <thead><tr><th scope="col">Source column</th><th scope="col">Sample</th><th scope="col">Weave field</th></tr></thead>
+    <thead><tr><th scope="col">Source column</th><th scope="col">Sample</th><th scope="col">OnyxJar field</th></tr></thead>
     <tbody>${body}</tbody>
   </table>`;
 }

@@ -3,7 +3,7 @@ Deterministic identity resolution against canonical Objects.
 
 Resolution is by exact, explicit identity only:
 
-  * a Weave Object ID (a UUID), or
+  * an OnyxJar Object ID (a UUID), or
   * the value of one explicitly chosen attribute of an object type.
 
 There is no name matching and no fuzzy matching. Only the canonical `Object`
@@ -95,7 +95,7 @@ class EndpointResolver:
         if object_id is None:
             return None, (
                 "invalid_endpoint_id",
-                f"The {self.label} '{snippet(cell)}' is not a valid Weave Object ID.",
+                f"The {self.label} '{snippet(cell)}' is not a valid OnyxJar Object ID.",
             )
 
         if object_id not in self._known_ids:

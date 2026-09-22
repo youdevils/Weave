@@ -274,7 +274,7 @@ class CustomisePageTests(AppearanceViewTestCase):
         self.assertTemplateUsed(response, "model/customise.html")
         scopes = [scope["scope"] for scope in response.context["appearance_form"]["scopes"]]
         self.assertEqual(scopes, ["theme", "object", "relationship"])
-        self.assertContains(response, "Reset all to Weave defaults")
+        self.assertContains(response, "Reset all to OnyxJar defaults")
         self.assertEqual(response.context["canvas_background"], "#FFFFFF")
 
     def test_sidebar_lists_customise_under_understand_and_marks_it_active(self):

@@ -58,7 +58,7 @@
                     data-customise-reset-all
                     {% if not appearance_form.has_customisation %}disabled{% endif %}
                 >
-                    Reset all to Weave defaults
+                    Reset all to OnyxJar defaults
                 </button>
 
                 <p>
@@ -128,7 +128,7 @@
   if (resetAll) {
     resetAll.addEventListener("click", async () => {
       const confirmed = window.confirm(
-        "Reset the theme and model-wide defaults to Weave's built-in look? " +
+        "Reset the theme and model-wide defaults to OnyxJar's built-in look? " +
         "Styles set on individual types are kept."
       );
       if (!confirmed) return;

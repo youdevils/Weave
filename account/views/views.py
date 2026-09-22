@@ -65,8 +65,8 @@ def signup(request):
         "account/signup.html",
         {
             "form": form,
-            "page_title": "Try FacetFold free",
-            "page_description": "Create your FacetFold account. Free during beta.",
+            "page_title": "Try OnyxJar free",
+            "page_description": "Create your OnyxJar account. Free during beta.",
         },
     )
 
@@ -79,8 +79,8 @@ class LoginView(auth_views.LoginView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "page_title": "Log in — FacetFold",
-            "page_description": "Log in to FacetFold.",
+            "page_title": "Log in — OnyxJar",
+            "page_description": "Log in to OnyxJar.",
         }
 
 
@@ -122,8 +122,8 @@ class PasswordResetView(auth_views.PasswordResetView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "page_title": "Reset your password — FacetFold",
-            "page_description": "Reset your FacetFold password.",
+            "page_title": "Reset your password — OnyxJar",
+            "page_description": "Reset your OnyxJar password.",
         }
 
 
@@ -142,6 +142,6 @@ class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "page_title": "Choose a new password — FacetFold",
-            "page_description": "Choose a new FacetFold password.",
+            "page_title": "Choose a new password — OnyxJar",
+            "page_description": "Choose a new OnyxJar password.",
         }

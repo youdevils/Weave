@@ -1,5 +1,5 @@
 """
-The public FacetFold website.
+The public OnyxJar website.
 
 Views only assemble page content and metadata. Sign-up and log-in belong to the
 existing ``account`` app (``account:signup`` / ``account:login``); this app
@@ -26,9 +26,9 @@ def home(request):
         "website/home.html",
         {
             "hero_header": True,
-            "page_title": f"FacetFold — {TAGLINE}",
+            "page_title": f"OnyxJar — {TAGLINE}",
             "page_description": (
-                "FacetFold turns the connected parts of complex work into a structured, living model "
+                "OnyxJar turns the connected parts of complex work into a structured, living model "
                 "you can explore, change with confidence, and share. Free during beta."
             ),
         },
@@ -43,9 +43,9 @@ def examples(request):
         {
             "nav_active": "examples",
             "examples": EXAMPLES,
-            "page_title": "Examples — FacetFold",
+            "page_title": "Examples — OnyxJar",
             "page_description": (
-                "Download a real FacetFold example and explore it in your browser. "
+                "Download a real OnyxJar example and explore it in your browser. "
                 "Each one is a self-contained, interactive model."
             ),
         },
@@ -58,8 +58,8 @@ def privacy(request):
         request,
         "website/privacy.html",
         {
-            "page_title": "Privacy — FacetFold",
-            "page_description": "How FacetFold handles your information.",
+            "page_title": "Privacy — OnyxJar",
+            "page_description": "How OnyxJar handles your information.",
             "updated": LEGAL_UPDATED,
         },
     )
@@ -71,8 +71,8 @@ def terms(request):
         request,
         "website/terms.html",
         {
-            "page_title": "Terms — FacetFold",
-            "page_description": "The terms for using FacetFold during beta.",
+            "page_title": "Terms — OnyxJar",
+            "page_description": "The terms for using OnyxJar during beta.",
             "updated": LEGAL_UPDATED,
         },
     )
@@ -101,7 +101,7 @@ def contact(request):
             "nav_active": "contact",
             "form": form,
             "sent": request.method != "POST" and request.GET.get("sent") == "1",
-            "page_title": "Contact & feedback — FacetFold",
-            "page_description": "Questions, ideas or feedback about FacetFold? Send us a note.",
+            "page_title": "Contact & feedback — OnyxJar",
+            "page_description": "Questions, ideas or feedback about OnyxJar? Send us a note.",
         },
     )
