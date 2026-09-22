@@ -6,6 +6,17 @@
 
 <div class="model-object-type-editor">
 
+    {% if relationship_type %}
+
+        <div
+            class="proposal-editor"
+            data-update-url="{{ proposal_update_url }}"
+        >
+
+            {% csrf_token %}
+
+    {% endif %}
+
     <!-- ============================================================
          PAGE HEADER
          ============================================================ -->
@@ -28,19 +39,101 @@
             </div>
 
 
-            <h1 class="model-page-title">
+            {% if relationship_type %}
 
-                {% if relationship_type %}
+                <!-- =================================================
+                     NAME (functions as the page title)
+                     ================================================= -->
 
-                    {{ proposed_values.name|default:relationship_type.name }}
+                <div
+                    class="model-editor-field proposal-editor-field model-page-title-field"
+                    data-field="name"
+                >
 
-                {% else %}
+                    <div class="model-editor-field-header">
 
+                        <h1
+                            class="model-page-title"
+                            data-field-display="name"
+                        >
+
+                            {% if proposed_values.name %}
+
+                                {{ proposed_values.name }}
+
+                            {% else %}
+
+                                <span class="model-field-empty">
+                                    Not defined
+                                </span>
+
+                            {% endif %}
+
+                        </h1>
+
+                        <button
+                            type="button"
+                            class="model-inline-edit-button"
+                            data-proposal-action="edit"
+                        >
+                            Edit
+                        </button>
+
+                    </div>
+
+
+                    <div
+                        class="model-editor-field-editor"
+                        data-field-editor="name"
+                        hidden
+                    >
+
+                        <input
+                            type="text"
+                            name="name"
+                            value="{{ proposed_values.name|default:'' }}"
+                            class="form-control"
+                            maxlength="100"
+                        >
+
+                        <div
+                            class="model-editor-field-error"
+                            data-proposal-error
+                            hidden
+                        ></div>
+
+
+                        <div class="model-editor-actions">
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                data-proposal-action="cancel"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-primary"
+                                data-proposal-action="save"
+                            >
+                                Save
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% else %}
+
+                <h1 class="model-page-title">
                     New relationship type
+                </h1>
 
-                {% endif %}
-
-            </h1>
+            {% endif %}
 
 
             <p class="model-page-description">
@@ -67,19 +160,11 @@
 
     {% if relationship_type %}
 
-        <div
-            class="proposal-editor"
-            data-update-url="{{ proposal_update_url }}"
-        >
-
-            {% csrf_token %}
-
-
             <!-- ========================================================
                  DETAILS
                  ======================================================== -->
 
-            <section class="model-editor-section">
+            <section class="model-editor-section model-editor-section--compact-grid">
 
                 <div class="model-editor-section-header">
 
@@ -98,98 +183,6 @@
 
 
                 <div class="model-editor-fields" data-attribute-list >
-
-
-                    <!-- =================================================
-                         NAME
-                         ================================================= -->
-
-                    <div
-                        class="model-editor-field proposal-editor-field"
-                        data-field="name"
-                    >
-
-                        <div class="model-editor-field-header">
-
-                            <label>
-                                Name
-                            </label>
-
-                            <button
-                                type="button"
-                                class="model-inline-edit-button"
-                                data-proposal-action="edit"
-                            >
-                                Edit
-                            </button>
-
-                        </div>
-
-
-                        <div
-                            class="model-editor-field-display"
-                            data-field-display="name"
-                        >
-
-                            {% if proposed_values.name %}
-
-                                {{ proposed_values.name }}
-
-                            {% else %}
-
-                                <span class="model-field-empty">
-                                    Not defined
-                                </span>
-
-                            {% endif %}
-
-                        </div>
-
-
-                        <div
-                            class="model-editor-field-editor"
-                            data-field-editor="name"
-                            hidden
-                        >
-
-                            <input
-                                type="text"
-                                name="name"
-                                value="{{ proposed_values.name|default:'' }}"
-                                class="form-control"
-                                maxlength="100"
-                            >
-
-                            <div
-                                class="model-editor-field-error"
-                                data-proposal-error
-                                hidden
-                            ></div>
-
-
-                            <div class="model-editor-actions">
-
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-secondary"
-                                    data-proposal-action="cancel"
-                                >
-                                    Cancel
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-primary"
-                                    data-proposal-action="save"
-                                >
-                                    Save
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
 
 
                     <!-- =================================================

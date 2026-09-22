@@ -11,19 +11,22 @@
    ========================================================= */
 
 .model-shell {
-    --model-text: #212529;
-    --model-text-secondary: #495057;
-    --model-text-muted: #6c757d;
-    --model-text-faint: #8a9198;
-    --model-text-placeholder: #adb5bd;
-    --model-border: #dee2e6;
-    --model-border-light: #e9ecef;
-    --model-border-lighter: #edf0f2;
+    --model-text: #0f172a;
+    --model-text-secondary: #475569;
+    --model-text-muted: #64748b;
+    --model-text-faint: #94a3b8;
+    --model-text-placeholder: #cbd5e1;
+    --model-border: #e2e8f0;
+    --model-border-light: #eef2f6;
+    --model-border-lighter: #f1f5f9;
     --model-surface: #ffffff;
-    --model-surface-subtle: #f8f9fa;
-    --model-surface-hover: #f1f3f5;
-    --model-focus: #adb5bd;
+    --model-surface-subtle: #f8fafc;
+    --model-surface-hover: #f1f5f9;
+    --model-focus: #4f46e5;
     --model-danger: #b02a37;
+    --model-accent: #4f46e5;
+    --model-accent-strong: #4338ca;
+    --model-accent-soft: #eef2ff;
 }
 
 /* =========================================================
@@ -124,14 +127,14 @@
 }
 
 .model-nav-item.active {
-    background: #e2e3e5;
-    color: var(--model-text);
+    background: var(--model-accent-soft);
+    color: var(--model-accent-strong);
     font-weight: 600;
 }
 .model-nav-child.active {
-    color: var(--model-text);
+    color: var(--model-accent-strong);
     font-weight: 600;
-    background: var(--model-surface-hover);
+    background: var(--model-accent-soft);
 }
 
 .model-nav-parent {
@@ -262,6 +265,25 @@
     color: var(--model-text-muted);
     font-size: 0.875rem;
     line-height: 1.5;
+}
+
+/* Name field relocated into the page header (type editors) — the field
+   still carries .model-editor-field for the proposal-editing JS hooks,
+   but is laid out as the page title, not a form row. These selectors
+   are deliberately over-specific so they win over the later, more
+   generic .model-object-type-editor .model-editor-field* rules. */
+.model-object-type-editor .model-page-title-field.model-editor-field {
+    padding: 0;
+    border-bottom: 0;
+}
+
+.model-object-type-editor .model-page-title-field .model-editor-field-header {
+    align-items: baseline;
+    margin-bottom: 0;
+}
+
+.model-object-type-editor .model-page-title-field .model-editor-field-editor {
+    max-width: 420px;
 }
 
 /* =========================================================
@@ -438,9 +460,14 @@
     text-decoration: underline;
 }
 
+.model-overview-ontology .model-overview-eyebrow {
+    margin-bottom: 1.25rem;
+}
+
 .model-structure-summary {
     display: flex;
     gap: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .model-structure-card {
@@ -1087,6 +1114,73 @@
     border-bottom: 0;
 }
 
+/* Compact 2-column grouping for the "Details" section on the type
+   editors only (opt-in via this modifier, added only in
+   object_type_editor.html / relationship_type_editor.html) — must
+   never apply to the bare .model-editor-fields selector, since
+   data_object_editor.html / data_relationship_editor.html reuse the
+   same wrapper/section/field classes and keep their own layout. */
+.model-object-type-editor .model-editor-section--compact-grid .model-editor-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 2rem;
+}
+
+.model-object-type-editor .model-editor-section--compact-grid .model-editor-field {
+    border-bottom: 0;
+    padding: 0;
+}
+
+/* Explicit placement (rather than relying on DOM order/auto-flow) so
+   Key and Sort order sit side by side on row 1 regardless of where
+   Description falls in the markup, with Description spanning both
+   columns on row 2 underneath. */
+.model-object-type-editor .model-editor-section--compact-grid .model-editor-field[data-field="key"] {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.model-object-type-editor .model-editor-section--compact-grid .model-editor-field[data-field="sort_order"] {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.model-object-type-editor .model-editor-section--compact-grid .model-editor-field[data-field="description"] {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding-top: 1rem;
+    margin-top: 0.75rem;
+    border-top: 1px solid var(--model-border-light);
+}
+
+@media (max-width: 767.98px) {
+
+    .model-object-type-editor .model-editor-section--compact-grid .model-editor-field[data-field="key"],
+    .model-object-type-editor .model-editor-section--compact-grid .model-editor-field[data-field="sort_order"],
+    .model-object-type-editor .model-editor-section--compact-grid .model-editor-field[data-field="description"] {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+
+    .model-object-type-editor .model-editor-section--compact-grid .model-editor-fields {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .model-object-type-editor .model-editor-section--compact-grid .model-editor-field {
+        padding: 0.8rem 0;
+        border-bottom: 1px solid var(--model-border-light);
+    }
+
+    .model-object-type-editor .model-editor-section--compact-grid .model-editor-field[data-field="description"] {
+        border-top: 0;
+        margin-top: 0;
+        padding-top: 0.8rem;
+    }
+
+}
+
 .model-object-type-editor .model-editor-field-header {
     display: flex;
     align-items: center;
@@ -1276,9 +1370,9 @@
 }
 
 .model-status-active {
-    border-color: #d8e3dc;
-    background: #f8fbf9;
-    color: #495b4f;
+    border-color: #bbf0da;
+    background: #ecfdf5;
+    color: #047857;
 }
 
 .model-status-retired {
@@ -1403,7 +1497,7 @@
 }
 
 .model-object-type-attribute[data-attribute-created="true"] .model-status-active {
-    background: #f8fbf9;
+    background: #ecfdf5;
 }
 
 /* =========================================================

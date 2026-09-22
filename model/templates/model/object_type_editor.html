@@ -7,6 +7,17 @@
 
 <div class="model-object-type-editor">
 
+    {% if object_type %}
+
+        <div
+            class="proposal-editor"
+            data-update-url="{{ proposal_update_url }}"
+        >
+
+            {% csrf_token %}
+
+    {% endif %}
+
     <!-- ============================================================
          PAGE HEADER
          ============================================================ -->
@@ -29,15 +40,133 @@
             </div>
 
 
-            <h1 class="model-page-title">
+            {% if object_type %}
 
-                {% if object_type %}
-                    {{ proposed_values.name|default:object_type.name }}
-                {% else %}
+                <!-- =================================================
+                     NAME (functions as the page title)
+                     ================================================= -->
+
+                <div
+                    class="model-editor-field proposal-editor-field model-page-title-field"
+                    data-field="name"
+                >
+
+                    <div class="model-editor-field-header">
+
+                        <h1
+                            class="model-page-title"
+                            data-field-display="name"
+                        >
+
+                            {% if proposed_values.name %}
+
+                                {{ proposed_values.name }}
+
+                            {% else %}
+
+                                <span class="model-field-empty">
+                                    Not defined
+                                </span>
+
+                            {% endif %}
+
+                        </h1>
+
+                        <button
+                            type="button"
+                            class="model-inline-edit-button"
+                            data-proposal-action="edit"
+                        >
+                            Edit
+                        </button>
+
+                    </div>
+
+
+                    <div
+                        class="model-editor-field-editor"
+                        data-field-editor="name"
+                        hidden
+                    >
+
+                        <input
+                            type="text"
+                            id="id_name"
+                            name="name"
+                            value="{{ proposed_values.name|default:'' }}"
+                            class="form-control"
+                            maxlength="100"
+                        >
+
+
+                        <div class="model-editor-field-help">
+                            The name users will see when working with this type.
+                        </div>
+
+
+                        <div
+                            class="model-editor-field-error"
+                            data-proposal-error
+                            hidden
+                        ></div>
+
+
+                        <div class="model-editor-actions">
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                data-proposal-action="cancel"
+                            >
+                                Cancel
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-primary"
+                                data-proposal-action="save"
+                            >
+                                Save
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="model-proposed-indicator"
+                        data-proposal-indicator
+                        {% if not proposed_fields.name %}
+                            hidden
+                        {% endif %}
+                    >
+                        <i class="bi bi-pencil-square"></i>
+                        Proposed change
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="model-discard-button"
+                        data-proposal-action="discard"
+                        {% if not proposed_fields.name %}
+                            hidden
+                        {% endif %}
+                    >
+                        Discard
+                    </button>
+
+                </div>
+
+            {% else %}
+
+                <h1 class="model-page-title">
                     New object type
-                {% endif %}
+                </h1>
 
-            </h1>
+            {% endif %}
 
 
             <p class="model-page-description">
@@ -64,19 +193,11 @@
 
     {% if object_type %}
 
-        <div
-            class="proposal-editor"
-            data-update-url="{{ proposal_update_url }}"
-        >
-
-            {% csrf_token %}
-
-
             <!-- ========================================================
                  DETAILS
                  ======================================================== -->
 
-            <section class="model-editor-section">
+            <section class="model-editor-section model-editor-section--compact-grid">
 
                 <div class="model-editor-section-header">
 
@@ -94,130 +215,6 @@
 
 
                 <div class="model-editor-fields">
-
-
-                    <!-- =================================================
-                         NAME
-                         ================================================= -->
-
-                    <div
-                        class="model-editor-field proposal-editor-field"
-                        data-field="name"
-                    >
-
-                        <div class="model-editor-field-header">
-
-                            <label for="id_name">
-                                Name
-                            </label>
-
-                            <button
-                                type="button"
-                                class="model-inline-edit-button"
-                                data-proposal-action="edit"
-                            >
-                                Edit
-                            </button>
-
-                        </div>
-
-
-                        <div
-                            class="model-editor-field-display"
-                            data-field-display="name"
-                        >
-
-                            {% if proposed_values.name %}
-
-                                {{ proposed_values.name }}
-
-                            {% else %}
-
-                                <span class="model-field-empty">
-                                    Not defined
-                                </span>
-
-                            {% endif %}
-
-                        </div>
-
-
-                        <div
-                            class="model-editor-field-editor"
-                            data-field-editor="name"
-                            hidden
-                        >
-
-                            <input
-                                type="text"
-                                id="id_name"
-                                name="name"
-                                value="{{ proposed_values.name|default:'' }}"
-                                class="form-control"
-                                maxlength="100"
-                            >
-
-
-                            <div class="model-editor-field-help">
-                                The name users will see when working with this type.
-                            </div>
-
-
-                            <div
-                                class="model-editor-field-error"
-                                data-proposal-error
-                                hidden
-                            ></div>
-
-
-                            <div class="model-editor-actions">
-
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-secondary"
-                                    data-proposal-action="cancel"
-                                >
-                                    Cancel
-                                </button>
-
-
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-primary"
-                                    data-proposal-action="save"
-                                >
-                                    Save
-                                </button>
-
-                            </div>
-
-                        </div>
-
-
-                        <div
-                            class="model-proposed-indicator"
-                            data-proposal-indicator
-                            {% if not proposed_fields.name %}
-                                hidden
-                            {% endif %}
-                        >
-                            <i class="bi bi-pencil-square"></i>
-                            Proposed change
-                        </div>
-
-
-                        <button
-                            type="button"
-                            class="model-discard-button"
-                            data-proposal-action="discard"
-                            {% if not proposed_fields.name %}
-                                hidden
-                            {% endif %}
-                        >
-                            Discard
-                        </button>
-
-                    </div>
 
 
                     <!-- =================================================

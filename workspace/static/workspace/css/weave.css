@@ -1,0 +1,115 @@
+/* ==========================================================
+   OnyxJar — authenticated app global theme layer
+   Mirrors the brand tokens in website/static/website/css/onyxjar.css
+   (that file's --ff-* prefix stays specific to the public site;
+   this app-wide layer uses its own --weave-* prefix).
+   ========================================================== */
+
+:root {
+
+    /* Brand palette */
+    --weave-indigo: #4f46e5;
+    --weave-indigo-strong: #4338ca;
+    --weave-teal: #10b981;
+    --weave-sky: #60a5fa;
+    --weave-ink: #0f172a;
+    --weave-slate: #94a3b8;
+    --weave-mist: #f1f5f9;
+
+    --weave-bg: #f8fafc;
+    --weave-surface: #ffffff;
+    --weave-text: var(--weave-ink);
+    --weave-text-muted: #475569;
+    --weave-border: #e2e8f0;
+    --weave-focus: #4f46e5;
+
+    --weave-radius-sm: 10px;
+    --weave-radius: 16px;
+    --weave-shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 18px rgba(15, 23, 42, 0.05);
+
+    --weave-font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /* Bootstrap root-level overrides (reboot/link/focus rules read these live) */
+    --bs-primary: var(--weave-indigo);
+    --bs-primary-rgb: 79, 70, 229;
+    --bs-link-color: var(--weave-indigo);
+    --bs-link-color-rgb: 79, 70, 229;
+    --bs-link-hover-color: var(--weave-indigo-strong);
+    --bs-link-hover-color-rgb: 67, 56, 202;
+    --bs-focus-ring-color: rgba(79, 70, 229, 0.25);
+    --bs-border-radius: 0.5rem;
+    --bs-border-radius-sm: 0.375rem;
+    --bs-border-radius-lg: 0.75rem;
+
+}
+
+
+/* ==========================================================
+   Typography
+   ========================================================== */
+
+body {
+    font-family: var(--weave-font);
+}
+
+
+/* ==========================================================
+   Bootstrap component overrides
+   Bootstrap 5.3's compiled CDN CSS bakes component colours as
+   literal hex inside component-scoped custom properties, so the
+   root --bs-primary override above does not by itself retheme
+   .btn-primary/.form-control etc. — redeclare explicitly.
+   Semantic colours (success/warning/danger/info) are untouched.
+   ========================================================== */
+
+.btn-primary {
+    --bs-btn-bg: var(--weave-indigo);
+    --bs-btn-border-color: var(--weave-indigo);
+    --bs-btn-hover-bg: var(--weave-indigo-strong);
+    --bs-btn-hover-border-color: var(--weave-indigo-strong);
+    --bs-btn-active-bg: var(--weave-indigo-strong);
+    --bs-btn-active-border-color: var(--weave-indigo-strong);
+    --bs-btn-focus-shadow-rgb: 79, 70, 229;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--weave-indigo);
+    --bs-btn-border-color: var(--weave-indigo);
+    --bs-btn-hover-bg: var(--weave-indigo);
+    --bs-btn-hover-border-color: var(--weave-indigo);
+    --bs-btn-active-bg: var(--weave-indigo);
+    --bs-btn-active-border-color: var(--weave-indigo);
+    --bs-btn-focus-shadow-rgb: 79, 70, 229;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--weave-indigo);
+    box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.15);
+}
+
+.form-check-input:checked {
+    background-color: var(--weave-indigo);
+    border-color: var(--weave-indigo);
+}
+
+.form-check-input:focus {
+    border-color: var(--weave-indigo);
+    box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.15);
+}
+
+
+/* ==========================================================
+   Navbar / footer
+   ========================================================== */
+
+.weave-navbar-mark {
+    width: 28px;
+    height: 28px;
+}
+
+.weave-page-title {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--weave-ink);
+}
