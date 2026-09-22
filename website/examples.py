@@ -33,15 +33,16 @@ class Example:
 
 EXAMPLES = (
     Example(
-        title="Business process model",
+        title="EFTPOS modernisation project",
         description=(
-            "A model of how an organisation runs: business processes and the activities inside them, "
-            "the teams that perform them, the applications they use, the capabilities those applications "
-            "support, and the customers and outcomes they serve. Download it and explore every "
-            "connection in your browser."
+            "A fictional retail technology delivery project showing how OnyxJar can connect projects, "
+            "workstreams, changes, deliverables, tests, releases, processes, applications, teams and "
+            "capabilities into a single model. Explore how the project is structured, what it affects, "
+            "how delivery is progressing, and how the existing payment environment transitions to the "
+            "target state."
         ),
-        category="Business transformation",
+        category="Delivery projects",
         images=("website/examples/business-process-1.png",),
-        url="/published/business-process.html",
+        url="/published/harbour-home-retail-r3.html",
     ),
 )

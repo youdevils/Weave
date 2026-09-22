@@ -11,8 +11,13 @@ from model.model_templates.business_process import (
     BUSINESS_PROCESS_TEMPLATE,
 )
 
+from model.model_templates.delivery_project import (
+    DELIVERY_PROJECT_TEMPLATE,
+)
+
 TEMPLATES = {
     BUSINESS_PROCESS_TEMPLATE["key"]: BUSINESS_PROCESS_TEMPLATE,
+    DELIVERY_PROJECT_TEMPLATE["key"]: DELIVERY_PROJECT_TEMPLATE,
 }
 
 
