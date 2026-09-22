@@ -3,23 +3,69 @@
 {% block robots %}<meta name="robots" content="noindex">{% endblock %}
 
 {% block content %}
-<section class="ff-container ff-stub" aria-labelledby="signup-title">
-    <div class="ff-stub-card">
+<section class="ff-container ff-page-head" aria-labelledby="signup-title">
+    <div class="ff-eyebrow">Sign up</div>
+    <h1 class="ff-h1 ff-h1--page" id="signup-title">Try FacetFold free</h1>
+    <p class="ff-lead">Free during beta. No credit card required.</p>
+</section>
 
-        {% include "website/_mark.html" %}
+<div class="ff-container ff-page-body">
 
-        <h1 class="ff-h2" id="signup-title">Try FacetFold free</h1>
+    <div class="ff-form-card">
 
-        <p>
-            Sign-up is opening soon. FacetFold is free during beta, and you&rsquo;ll be able to create
-            your first living model as soon as accounts are available.
-        </p>
+        <form method="post" action="{% url 'account:signup' %}" novalidate>
+            {% csrf_token %}
 
-        <div class="ff-actions">
-            <a class="ff-btn ff-btn--secondary" href="{% url 'website:examples' %}">See an example</a>
-            <a class="ff-btn ff-btn--secondary" href="{% url 'website:contact' %}">Contact us</a>
-        </div>
+            {% if form.non_field_errors %}
+                <p class="ff-error ff-error--summary" role="alert">Please check the highlighted fields and try again.</p>
+            {% endif %}
+
+            <div class="ff-field">
+                <label for="{{ form.email.id_for_label }}">Email</label>
+                <input
+                    type="email"
+                    name="{{ form.email.html_name }}"
+                    id="{{ form.email.id_for_label }}"
+                    value="{{ form.email.value|default_if_none:'' }}"
+                    autocomplete="email"
+                    required
+                    {% if form.email.errors %}aria-invalid="true"{% endif %}
+                >
+                {% for error in form.email.errors %}<p class="ff-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="ff-field">
+                <label for="{{ form.password1.id_for_label }}">Password</label>
+                <input
+                    type="password"
+                    name="{{ form.password1.html_name }}"
+                    id="{{ form.password1.id_for_label }}"
+                    autocomplete="new-password"
+                    required
+                    {% if form.password1.errors %}aria-invalid="true"{% endif %}
+                >
+                {% for error in form.password1.errors %}<p class="ff-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="ff-field">
+                <label for="{{ form.password2.id_for_label }}">Confirm password</label>
+                <input
+                    type="password"
+                    name="{{ form.password2.html_name }}"
+                    id="{{ form.password2.id_for_label }}"
+                    autocomplete="new-password"
+                    required
+                    {% if form.password2.errors %}aria-invalid="true"{% endif %}
+                >
+                {% for error in form.password2.errors %}<p class="ff-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <button type="submit" class="ff-btn ff-btn--primary">Create your account</button>
+        </form>
+
+        <p>Already have an account? <a href="{% url 'account:login' %}">Log in</a></p>
 
     </div>
-</section>
+
+</div>
 {% endblock %}

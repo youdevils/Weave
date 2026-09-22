@@ -39,7 +39,7 @@ xlrd==2.0.1
 defusedxml==0.7.1
 
 # Email
-resend
+resend==2.42.0
 
 # Business Website Context Extraction
 requests==2.31.0

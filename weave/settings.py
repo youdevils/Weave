@@ -24,6 +24,13 @@ AUTH_USER_MODEL = "account.CustomUser"
 # Anonymous users hitting a @login_required view are sent to the public log-in page.
 LOGIN_URL = "account:login"
 
+# Where a successful login lands when there's no "next" parameter.
+LOGIN_REDIRECT_URL = "workspace:index"
+
+# Outbound account email (verification, password reset) via Resend.
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "FacetFold <onboarding@resend.dev>")
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",

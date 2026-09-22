@@ -3,23 +3,58 @@
 {% block robots %}<meta name="robots" content="noindex">{% endblock %}
 
 {% block content %}
-<section class="ff-container ff-stub" aria-labelledby="login-title">
-    <div class="ff-stub-card">
+<section class="ff-container ff-page-head" aria-labelledby="login-title">
+    <div class="ff-eyebrow">Log in</div>
+    <h1 class="ff-h1 ff-h1--page" id="login-title">Log in to FacetFold</h1>
+</section>
 
-        {% include "website/_mark.html" %}
+<div class="ff-container ff-page-body">
 
-        <h1 class="ff-h2" id="login-title">Log in to FacetFold</h1>
+    <div class="ff-form-card">
 
-        <p>
-            Log in isn&rsquo;t open on this page yet. Accounts are coming soon, and FacetFold is free
-            during beta.
-        </p>
+        <form method="post" action="{% url 'account:login' %}" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
 
-        <div class="ff-actions">
-            <a class="ff-btn ff-btn--primary" href="{% url 'account:signup' %}">Try FacetFold free</a>
-            <a class="ff-btn ff-btn--secondary" href="{% url 'website:contact' %}">Contact us</a>
-        </div>
+            {% if form.non_field_errors %}
+                <p class="ff-error ff-error--summary" role="alert">{{ form.non_field_errors.0 }}</p>
+            {% endif %}
+
+            <div class="ff-field">
+                <label for="{{ form.username.id_for_label }}">Email</label>
+                <input
+                    type="email"
+                    name="{{ form.username.html_name }}"
+                    id="{{ form.username.id_for_label }}"
+                    value="{{ form.username.value|default_if_none:'' }}"
+                    autocomplete="email"
+                    autofocus
+                    required
+                    {% if form.username.errors %}aria-invalid="true"{% endif %}
+                >
+                {% for error in form.username.errors %}<p class="ff-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="ff-field">
+                <label for="{{ form.password.id_for_label }}">Password</label>
+                <input
+                    type="password"
+                    name="{{ form.password.html_name }}"
+                    id="{{ form.password.id_for_label }}"
+                    autocomplete="current-password"
+                    required
+                    {% if form.password.errors %}aria-invalid="true"{% endif %}
+                >
+                {% for error in form.password.errors %}<p class="ff-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <button type="submit" class="ff-btn ff-btn--primary">Log in</button>
+        </form>
+
+        <p><a href="{% url 'account:password_reset' %}">Forgot your password?</a></p>
+        <p>Don&rsquo;t have an account? <a href="{% url 'account:signup' %}">Try FacetFold free</a></p>
 
     </div>
-</section>
+
+</div>
 {% endblock %}

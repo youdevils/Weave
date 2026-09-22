@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import uuid
-from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import (
@@ -12,15 +11,6 @@ from django.contrib.auth.models import (
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-
-# =============================================================================
-# Utilities
-# =============================================================================
-
-
-def email_verification_default_expiry():
-    return timezone.now() + timedelta(days=1)
-
 
 # =============================================================================
 # Custom User

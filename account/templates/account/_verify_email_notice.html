@@ -1,0 +1,5 @@
+<span>Please verify your email address.</span>
+<form method="post" action="{% url 'account:resend_verification' %}" class="d-inline">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-link p-0 align-baseline">Resend verification email</button>
+</form>

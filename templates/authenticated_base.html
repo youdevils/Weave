@@ -315,23 +315,21 @@
 
                                 {% endif %}
 
-                                <!--
-                                Login/logout/signup will be wired when
-                                application authentication is implemented.
-                                -->
-
                                 <li>
 
-                                    <a
-                                        class="dropdown-item text-danger"
-                                        href="{% url 'admin:logout' %}"
-                                    >
-                                        <i
-                                            class="bi bi-box-arrow-right me-2"
-                                            aria-hidden="true"
-                                        ></i>
-                                        Logout
-                                    </a>
+                                    <form method="post" action="{% url 'account:logout' %}">
+                                        {% csrf_token %}
+                                        <button
+                                            type="submit"
+                                            class="dropdown-item text-danger"
+                                        >
+                                            <i
+                                                class="bi bi-box-arrow-right me-2"
+                                                aria-hidden="true"
+                                            ></i>
+                                            Logout
+                                        </button>
+                                    </form>
 
                                 </li>
 

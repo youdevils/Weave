@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from account.notifications import notify_unverified_email
 from model.models.model import Model
 from model.services.model_deletion import ModelDeletionBlocked, delete_model
 from model.services.model_template.loader import (
@@ -15,6 +16,9 @@ from workspace.models import WorkspaceMember
 
 @login_required
 def index(request):
+    if not request.user.email_verified:
+        notify_unverified_email(request)
+
     memberships = request.user.workspace_memberships.select_related(
         "workspace",
     ).prefetch_related(
