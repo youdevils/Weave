@@ -1,11 +1,10 @@
 from django.db import transaction
 
-from model.models.attribute_definition import AttributeDefinition
-from model.models.object import Object
-from model.models.object_type import ObjectType
-from model.models.relationship import Relationship
-from model.models.relationship_type import RelationshipType
-from model.models.relationship_type_rule import RelationshipTypeRule
+from model.models.proposal import Proposal
+from model.models.proposal_submission_result import ProposalValidationError
+from model.services.appearance import AppearanceService, OBJECT_TYPE, RELATIONSHIP_TYPE
+from model.services.proposal import submission
+from model.services.proposal.proposal import ProposalService
 
 from model.model_templates.business_process import (
     BUSINESS_PROCESS_TEMPLATE,
@@ -14,6 +13,8 @@ from model.model_templates.business_process import (
 from model.model_templates.delivery_project import (
     DELIVERY_PROJECT_TEMPLATE,
 )
+
+from .builder import TemplateDefinitionError, build_template_changes
 
 TEMPLATES = {
     BUSINESS_PROCESS_TEMPLATE["key"]: BUSINESS_PROCESS_TEMPLATE,
@@ -32,369 +33,109 @@ def get_template(key: str) -> dict:
         raise ValueError(f"Unknown model template: '{key}'.")
 
 
+def template_has_data(template: dict) -> bool:
+    """Whether this template ships populated sample data, not just structure."""
+
+    return bool(template.get("objects"))
+
+
+class TemplateInstantiationFailure(Exception):
+    """The template did not validate; nothing from the attempt was persisted."""
+
+    def __init__(self, message, issues=None):
+        super().__init__(message)
+        self.issues = issues or []
+
+
 @transaction.atomic
-def instantiate_template(model, template_key: str):
+def instantiate_template_via_proposal(model, template_key: str, user):
     """
-    Instantiate a model template into an existing Model.
+    Populate `model` from `template_key` through the normal proposal
+    lifecycle: create a working proposal, record every object type /
+    attribute / relationship type / attribute / rule / object / relationship
+    the template defines as a ProposalChange, submit it, and process it
+    synchronously (the same claim_next()/process() pair the Celery worker
+    runs, invoked inline instead of dispatched) so validate_model() runs
+    against the complete proposed model before anything becomes canonical.
 
-    The template is declarative. It can define:
+    Once the proposal has completed, any template-defined initial
+    appearance is applied via AppearanceService, using the same type ids
+    the proposal just made canonical.
 
-    - Object types
-    - Object type attributes
-    - Relationship types
-    - Relationship type attributes
-    - Relationship type rules
-    - Sample objects
-    - Sample relationships
-
-    Template object and relationship keys are temporary references used
-    only during instantiation. They are not persisted as fields on the
-    Object or Relationship models.
-
-    The entire operation occurs inside a transaction. If any part fails,
-    none of the template is persisted.
+    Raises TemplateDefinitionError if the template dict itself is malformed
+    (duplicate/unknown template-local keys), or TemplateInstantiationFailure
+    if the complete proposed model does not validate. Both are raised from
+    inside this function's transaction, so nothing it did -- proposal,
+    changes, canonical rows, appearance -- survives either failure.
     """
 
     template = get_template(template_key)
 
-    object_types = _create_object_types(
-        model=model,
-        definitions=template.get("object_types", []),
+    proposal = ProposalService.create_working(
+        model,
+        user,
+        title=f"Initialise from {template['name']} template"[:200],
+        summary=f"Create initial model from {template['name']} template",
     )
 
-    relationship_types = _create_relationship_types(
-        model=model,
-        definitions=template.get("relationship_types", []),
+    change_set = build_template_changes(template, model.id)
+
+    ProposalService.record_changes_bulk(
+        proposal=proposal,
+        specs=change_set.specs,
     )
 
-    _create_relationship_rules(
-        relationship_types=relationship_types,
-        object_types=object_types,
-        definitions=template.get("relationship_types", []),
-    )
+    ProposalService.submit(proposal)
 
-    objects = _create_objects(
-        model=model,
-        object_types=object_types,
-        definitions=template.get("objects", []),
-    )
+    # This model has exactly one live proposal at this point (the one just
+    # created), so claiming and processing it inline is deterministic --
+    # there is nothing else for claim_next() to have picked instead.
+    claimed = submission.claim_next(model.id)
+    submission.process(claimed.id)
 
-    _create_relationships(
-        model=model,
-        objects=objects,
-        relationship_types=relationship_types,
-        definitions=template.get("relationships", []),
-    )
+    proposal.refresh_from_db()
+
+    if proposal.status != Proposal.Status.COMPLETED:
+        issues = list(
+            ProposalValidationError.objects.filter(result__proposal=proposal)
+        )
+        raise TemplateInstantiationFailure(
+            f"Template '{template_key}' failed validation.",
+            issues,
+        )
+
+    apply_template_appearance(model, template, change_set)
 
     return model
 
 
-# ---------------------------------------------------------------------
-# Object types
-# ---------------------------------------------------------------------
-
-
-def _create_object_types(model, definitions):
+def apply_template_appearance(model, template, change_set):
     """
-    Create all ObjectType records and their AttributeDefinitions.
-
-    Returns:
-        dict: template key -> ObjectType instance
+    Write a template's declared initial appearance into Model.appearance,
+    resolving template-local object-type/relationship-type keys through the
+    ids build_template_changes() already generated for them (now canonical).
     """
 
-    object_types = {}
-
-    for definition in definitions:
-        key = definition["key"]
-
-        if key in object_types:
-            raise ValueError(f"Duplicate object type template key: '{key}'.")
-
-        object_type = ObjectType.objects.create(
-            model=model,
-            name=definition["name"],
-            key=key,
-            description=definition.get("description", ""),
-            sort_order=definition.get("sort_order", 0),
-        )
-
-        object_types[key] = object_type
-
-        _create_object_type_attributes(
-            object_type=object_type,
-            definitions=definition.get("attributes", []),
-        )
-
-    return object_types
-
-
-def _create_object_type_attributes(object_type, definitions):
-    """
-    Create AttributeDefinitions belonging to an ObjectType.
-    """
-
-    for definition in definitions:
-        AttributeDefinition.objects.create(
-            object_type=object_type,
-            name=definition["name"],
-            key=definition["key"],
-            data_type=definition["data_type"],
-            description=definition.get("description", ""),
-            required=definition.get("required", False),
-            nullable=definition.get("nullable", False),
-            default_value=definition.get("default_value"),
-            sort_order=definition.get("sort_order", 0),
-            config=definition.get("config", {}),
-        )
-
-
-# ---------------------------------------------------------------------
-# Relationship types
-# ---------------------------------------------------------------------
-
-
-def _create_relationship_types(model, definitions):
-    """
-    Create all RelationshipType records.
-
-    Returns:
-        dict: template key -> RelationshipType instance
-
-    Relationship rules are created separately because they reference
-    ObjectTypes which must already exist.
-    """
-
-    relationship_types = {}
-
-    for definition in definitions:
-        key = definition["key"]
-
-        if key in relationship_types:
-            raise ValueError(f"Duplicate relationship type template key: '{key}'.")
-
-        relationship_type = RelationshipType.objects.create(
-            model=model,
-            name=definition["name"],
-            key=key,
-            description=definition.get("description", ""),
-            sort_order=definition.get("sort_order", 0),
-        )
-
-        relationship_types[key] = relationship_type
-
-        _create_relationship_attributes(
-            relationship_type=relationship_type,
-            definitions=definition.get("attributes", []),
-        )
-
-    return relationship_types
-
-
-def _create_relationship_attributes(
-    relationship_type,
-    definitions,
-):
-    """
-    Create AttributeDefinitions belonging to a RelationshipType.
-    """
-
-    for definition in definitions:
-        AttributeDefinition.objects.create(
-            relationship_type=relationship_type,
-            name=definition["name"],
-            key=definition["key"],
-            data_type=definition["data_type"],
-            description=definition.get("description", ""),
-            required=definition.get("required", False),
-            nullable=definition.get("nullable", False),
-            default_value=definition.get("default_value"),
-            sort_order=definition.get("sort_order", 0),
-            config=definition.get("config", {}),
-        )
-
-
-# ---------------------------------------------------------------------
-# Relationship rules
-# ---------------------------------------------------------------------
-
-
-def _create_relationship_rules(
-    relationship_types,
-    object_types,
-    definitions,
-):
-    """
-    Create RelationshipTypeRule records.
-
-    Object types are referenced by their stable template keys rather
-    than database IDs.
-    """
-
-    for definition in definitions:
-        relationship_key = definition["key"]
-
-        if relationship_key not in relationship_types:
-            raise ValueError(f"Relationship type '{relationship_key}' was not created.")
-
-        relationship_type = relationship_types[relationship_key]
-
-        for rule in definition.get("rules", []):
-            subject_key = rule["subject_type"]
-            object_key = rule["object_type"]
-
-            if subject_key not in object_types:
-                raise ValueError(
-                    f"Unknown subject object type '{subject_key}' "
-                    f"in relationship type '{relationship_key}'."
-                )
-
-            if object_key not in object_types:
-                raise ValueError(
-                    f"Unknown object object type '{object_key}' "
-                    f"in relationship type '{relationship_key}'."
-                )
-
-            subject_type = object_types[subject_key]
-            object_type = object_types[object_key]
-
-            RelationshipTypeRule.objects.create(
-                relationship_type=relationship_type,
-                subject_type=subject_type,
-                object_type=object_type,
-                subject_minimum=rule.get(
-                    "subject_minimum",
-                    0,
-                ),
-                subject_maximum=rule.get(
-                    "subject_maximum",
-                ),
-                object_minimum=rule.get(
-                    "object_minimum",
-                    0,
-                ),
-                object_maximum=rule.get(
-                    "object_maximum",
-                ),
-            )
-
-
-# ---------------------------------------------------------------------
-# Sample objects
-# ---------------------------------------------------------------------
-
-
-def _create_objects(
-    model,
-    object_types,
-    definitions,
-):
-    """
-    Create sample Object records defined by the template.
-
-    Each object definition must contain:
-
-        key
-        type
-        name
-
-    The template key is an in-memory reference used to create
-    relationships between sample objects. It is not stored on Object.
-
-    Returns:
-        dict: template object key -> Object instance
-    """
-
-    objects = {}
-
-    for definition in definitions:
-        key = definition["key"]
-        object_type_key = definition["type"]
-
-        if key in objects:
-            raise ValueError(f"Duplicate sample object template key: '{key}'.")
-
-        if object_type_key not in object_types:
-            raise ValueError(
-                f"Unknown object type '{object_type_key}' "
-                f"for sample object '{key}'."
-            )
-
-        object_type = object_types[object_type_key]
-
-        obj = Object.objects.create(
-            model=model,
-            object_type=object_type,
-            name=definition["name"],
-            description=definition.get("description", ""),
-            is_active=definition.get("is_active", True),
-            attributes=definition.get("attributes", {}),
-        )
-
-        objects[key] = obj
-
-    return objects
-
-
-# ---------------------------------------------------------------------
-# Sample relationships
-# ---------------------------------------------------------------------
-
-
-def _create_relationships(
-    model,
-    objects,
-    relationship_types,
-    definitions,
-):
-    """
-    Create sample Relationship records defined by the template.
-
-    Each relationship definition must contain:
-
-        type
-        subject
-        object
-
-    subject/object reference sample object template keys.
-
-    Optional fields:
-
-        is_active
-        attributes
-        valid_from
-        valid_to
-    """
-
-    for definition in definitions:
-        relationship_type_key = definition["type"]
-        subject_key = definition["subject"]
-        object_key = definition["object"]
-
-        if relationship_type_key not in relationship_types:
-            raise ValueError(f"Unknown relationship type '{relationship_type_key}'.")
-
-        if subject_key not in objects:
-            raise ValueError(
-                f"Unknown sample object '{subject_key}' "
-                f"used as relationship subject."
-            )
-
-        if object_key not in objects:
-            raise ValueError(
-                f"Unknown sample object '{object_key}' " f"used as relationship object."
-            )
-
-        relationship_type = relationship_types[relationship_type_key]
-        subject = objects[subject_key]
-        object_ = objects[object_key]
-
-        Relationship.objects.create(
-            model=model,
-            relationship_type=relationship_type,
-            subject=subject,
-            object=object_,
-            is_active=definition.get("is_active", True),
-            attributes=definition.get("attributes", {}),
-            valid_from=definition.get("valid_from"),
-            valid_to=definition.get("valid_to"),
-        )
+    appearance = template.get("appearance", {})
+
+    for key, style in appearance.get("object_types", {}).items():
+        try:
+            type_id = change_set.object_type_ids[key]
+        except KeyError:
+            raise TemplateDefinitionError(
+                f"Template appearance references unknown object type '{key}'."
+            ) from None
+
+        for field, value in style.items():
+            AppearanceService.set_type_style(model, OBJECT_TYPE, type_id, field, value)
+
+    for key, style in appearance.get("relationship_types", {}).items():
+        try:
+            type_id = change_set.relationship_type_ids[key]
+        except KeyError:
+            raise TemplateDefinitionError(
+                f"Template appearance references unknown relationship type '{key}'."
+            ) from None
+
+        for field, value in style.items():
+            AppearanceService.set_type_style(model, RELATIONSHIP_TYPE, type_id, field, value)

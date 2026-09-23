@@ -383,6 +383,48 @@
 }
 
 
+.starting-point-card-title {
+    margin: 0 0 0.5rem;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--weave-ink);
+    /* Long names (e.g. "Harbour Home Retail EFTPOS Modernisation") wrap
+       cleanly on their own line instead of fighting the pills for space. */
+    overflow-wrap: break-word;
+}
+
+
+.starting-point-card-pills {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+}
+
+
+/* Sizing only -- colour/background come from .weave-status-pill (neutral
+   metadata look) or .weave-status-soon (the existing "coming soon" look),
+   whichever the element also carries, so both stay visually consistent
+   with the rest of the design system. */
+.starting-point-pill {
+    padding: 0.2rem 0.55rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+
+.starting-point-card-description {
+    margin: 0;
+    color: var(--weave-text-muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+
 .starting-point-card-footer {
     display: flex;
     align-items: center;

@@ -209,19 +209,19 @@
 
                                 <div class="starting-point-card-body">
 
-                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                    <h3 class="starting-point-card-title">
+                                        Start from scratch
+                                    </h3>
 
-                                        <h3 class="h5 mb-0">
-                                            Start from scratch
-                                        </h3>
+                                    <div class="starting-point-card-pills">
 
-                                        <span class="weave-status-pill weave-status-soon">
+                                        <span class="weave-status-pill weave-status-soon starting-point-pill">
                                             Coming soon
                                         </span>
 
                                     </div>
 
-                                    <p class="text-muted small mb-0">
+                                    <p class="starting-point-card-description">
                                         Build your own ontology from an
                                         empty model.
                                     </p>
@@ -232,94 +232,104 @@
 
 
                             <!-- =====================================
-                                 Business Process
+                                 Templates (available starting points)
                                  ===================================== -->
 
-                            <a
-                                href="{% url 'workspace:model_template_review' model_id=model.id template_key='business_process' %}"
-                                class="starting-point-card"
-                            >
+                            {% for point in starting_points %}
 
-                                <div class="starting-point-card-icon">
-                                    <i
-                                        class="bi bi-diagram-3"
-                                        aria-hidden="true"
-                                    ></i>
-                                </div>
+                                {% if point.available %}
 
-                                <div class="starting-point-card-body">
+                                    <a
+                                        href="{% url 'workspace:model_template_review' model_id=model.id template_key=point.key %}"
+                                        class="starting-point-card"
+                                    >
 
-                                    <h3 class="h5 mb-2">
-                                        Business Process
-                                    </h3>
+                                        <div class="starting-point-card-icon">
+                                            <i
+                                                class="bi {{ point.icon }}"
+                                                aria-hidden="true"
+                                            ></i>
+                                        </div>
 
-                                    <p class="text-muted small mb-0">
-                                        Model processes, systems and teams
-                                        to understand how work flows through
-                                        the organisation.
-                                    </p>
+                                        <div class="starting-point-card-body">
 
-                                </div>
+                                            <h3 class="starting-point-card-title">
+                                                {{ point.name }}
+                                            </h3>
 
-                                <div class="starting-point-card-footer">
+                                            <div class="starting-point-card-pills">
 
-                                    <span>
-                                        Choose template
-                                    </span>
+                                                <span class="weave-status-pill starting-point-pill">
+                                                    MODEL
+                                                </span>
 
-                                    <i
-                                        class="bi bi-arrow-right"
-                                        aria-hidden="true"
-                                    ></i>
+                                                {% if point.has_data %}
 
-                                </div>
+                                                    <span class="weave-status-pill starting-point-pill">
+                                                        DATA
+                                                    </span>
 
-                            </a>
+                                                {% endif %}
 
+                                            </div>
 
-                            <!-- =====================================
-                                 Harbour Home Retail EFTPOS Modernisation
-                                 ===================================== -->
+                                            <p class="starting-point-card-description">
+                                                {{ point.description }}
+                                            </p>
 
-                            <a
-                                href="{% url 'workspace:model_template_review' model_id=model.id template_key='delivery_project' %}"
-                                class="starting-point-card"
-                            >
+                                        </div>
 
-                                <div class="starting-point-card-icon">
-                                    <i
-                                        class="bi bi-shop"
-                                        aria-hidden="true"
-                                    ></i>
-                                </div>
+                                        <div class="starting-point-card-footer">
 
-                                <div class="starting-point-card-body">
+                                            <span>
+                                                Choose template
+                                            </span>
 
-                                    <h3 class="h5 mb-2">
-                                        Harbour Home Retail EFTPOS Modernisation
-                                    </h3>
+                                            <i
+                                                class="bi bi-arrow-right"
+                                                aria-hidden="true"
+                                            ></i>
 
-                                    <p class="text-muted small mb-0">
-                                        Model of a medium-sized delivery delivery_project
-                                        That overlays Delivery, Operational Domain and Transition.
-                                    </p>
+                                        </div>
 
-                                </div>
+                                    </a>
 
-                                <div class="starting-point-card-footer">
+                                {% else %}
 
-                                    <span>
-                                        Choose template
-                                    </span>
+                                    <div class="starting-point-card unavailable">
 
-                                    <i
-                                        class="bi bi-arrow-right"
-                                        aria-hidden="true"
-                                    ></i>
+                                        <div class="starting-point-card-icon">
+                                            <i
+                                                class="bi {{ point.icon }}"
+                                                aria-hidden="true"
+                                            ></i>
+                                        </div>
 
-                                </div>
+                                        <div class="starting-point-card-body">
 
-                            </a>
+                                            <h3 class="starting-point-card-title">
+                                                {{ point.name }}
+                                            </h3>
+
+                                            <div class="starting-point-card-pills">
+
+                                                <span class="weave-status-pill weave-status-soon starting-point-pill">
+                                                    Coming soon
+                                                </span>
+
+                                            </div>
+
+                                            <p class="starting-point-card-description">
+                                                {{ point.description }}
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% endfor %}
 
 
                         </div>

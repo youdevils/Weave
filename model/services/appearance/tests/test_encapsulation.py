@@ -7,7 +7,17 @@ from django.test import SimpleTestCase
 # The structure of Model.appearance is private to the appearance service
 # package. Nothing else may read or write it (or its nested keys).
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
-ALLOWED_DIR = PROJECT_ROOT / "model" / "services" / "appearance"
+ALLOWED_DIRS = (
+    PROJECT_ROOT / "model" / "services" / "appearance",
+    # Declarative model templates carry their own `"appearance": {...}`
+    # section (template-local object-type/relationship-type keys ->
+    # background/shape/icon/colour). It is a different, template-local
+    # shape, never the private Model.appearance document, and is only ever
+    # consumed field-by-field through AppearanceService.set_type_style()
+    # (model.services.model_template.loader.apply_template_appearance) --
+    # it never reads or writes the stored document directly.
+    PROJECT_ROOT / "model" / "model_templates",
+)
 SKIPPED_PARTS = {"migrations", "tests", "jstests", "node_modules", ".venv", "staticfiles", "static"}
 
 # `.appearance` as an attribute of a model object, or `appearance=` as a
@@ -33,7 +43,7 @@ class AppearanceEncapsulationTests(SimpleTestCase):
             ]
             for name in files:
                 path = Path(directory) / name
-                if path.suffix != ".py" or ALLOWED_DIR in path.parents:
+                if path.suffix != ".py" or any(allowed in path.parents for allowed in ALLOWED_DIRS):
                     continue
                 yield path
 

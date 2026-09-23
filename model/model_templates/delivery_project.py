@@ -87,7 +87,7 @@ CRITICALITY = ["Low", "Medium", "High", "Critical"]
 
 DELIVERY_PROJECT_TEMPLATE = {
     "key": "delivery_project",
-    "name": "Delivery Project",
+    "name": "Harbour Home Retail EFTPOS Modernisation",
     "description": (
         "A model for understanding a delivery project together with the business "
         "processes, applications, teams, capabilities and outcomes that the project "
@@ -682,4 +682,36 @@ DELIVERY_PROJECT_TEMPLATE = {
         _rel("uses_information", "payment_analytics_warehouse", "payment_transaction"),
         _rel("uses_information", "payment_analytics_warehouse", "settlement_batch"),
     ],
+
+    "appearance": {
+        "object_types": {
+            "project": {"shape": "hexagon", "icon": "flag", "background": "#FFE8CC"},
+            "workstream": {"shape": "box", "icon": "folder", "background": "#FFF3BF"},
+            "change": {"shape": "diamond", "icon": "warning", "background": "#FFE3E3"},
+            "deliverable": {"shape": "box", "icon": "product", "background": "#FFD8A8"},
+            "test": {"shape": "triangle", "icon": "shield", "background": "#D3F9D8"},
+            "release": {"shape": "box", "icon": "cube", "background": "#B2F2BB"},
+            "decision": {"shape": "diamond", "icon": "decision", "background": "#D0BFFF"},
+            "business_process": {"shape": "ellipse", "icon": "process", "background": "#D0EBFF"},
+            "application": {"shape": "box", "icon": "application", "background": "#E5DBFF"},
+            "team": {"shape": "ellipse", "icon": "team", "background": "#A5D8FF"},
+            "business_unit": {"shape": "box", "icon": "organisation", "background": "#99E9F2"},
+            "business_capability": {"shape": "hexagon", "icon": "target", "background": "#C5F6FA"},
+            "business_outcome": {"shape": "star", "icon": "chart", "background": "#96F2D7"},
+            "information_object": {"shape": "box", "icon": "document", "background": "#F3D9FA"},
+            "store_cluster": {"shape": "box", "icon": "store", "background": "#C3FAE8"},
+        },
+        "relationship_types": {
+            "contains": {"colour": "#868E96"},
+            "owned_by": {"colour": "#495057"},
+            "depends_on": {"colour": "#E03131"},
+            "affects": {"colour": "#F08C00"},
+            "delivers": {"colour": "#2F9E44"},
+            "uses": {"colour": "#1971C2"},
+            "will_use": {"colour": "#74C0FC"},
+            "replaces": {"colour": "#AE3EC9"},
+            "supports": {"colour": "#12B886"},
+            "rolls_out_to": {"colour": "#FAB005"},
+        },
+    },
 }

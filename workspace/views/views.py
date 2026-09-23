@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -7,11 +9,17 @@ from django.views.decorators.http import require_POST
 from account.notifications import notify_unverified_email
 from model.models.model import Model
 from model.services.model_deletion import ModelDeletionBlocked, delete_model
+from model.services.model_template.builder import TemplateDefinitionError
 from model.services.model_template.loader import (
+    TEMPLATES,
+    TemplateInstantiationFailure,
     get_template,
-    instantiate_template,
+    instantiate_template_via_proposal,
+    template_has_data,
 )
 from workspace.models import WorkspaceMember
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -84,17 +92,23 @@ def model_starting_point(request, model_id):
         workspace=membership.workspace,
     )
 
+    # Presentational only (icon glyph per card) -- not template metadata.
+    template_icons = {
+        "business_process": "bi-diagram-3",
+        "delivery_project": "bi-shop",
+    }
+
     starting_points = [
         {
-            "key": "business_process",
-            "name": "Business Process",
-            "description": (
-                "Model processes, systems and teams to understand "
-                "how work flows through the organisation."
-            ),
-            "icon": "bi-diagram-3",
+            "key": key,
+            "name": template["name"],
+            "description": template["description"],
+            "icon": template_icons.get(key, "bi-diagram-3"),
+            "has_data": template_has_data(template),
             "available": True,
-        },
+        }
+        for key, template in TEMPLATES.items()
+    ] + [
         {
             "key": "application_landscape",
             "name": "Application Landscape",
@@ -103,6 +117,7 @@ def model_starting_point(request, model_id):
                 "across your organisation."
             ),
             "icon": "bi-grid-3x3-gap",
+            "has_data": False,
             "available": False,
         },
     ]
@@ -141,10 +156,36 @@ def model_template_review(request, model_id, template_key):
         )
 
     if request.method == "POST":
-        instantiate_template(
-            model=model,
-            template_key=template_key,
-        )
+        try:
+            instantiate_template_via_proposal(
+                model=model,
+                template_key=template_key,
+                user=request.user,
+            )
+        except (TemplateInstantiationFailure, TemplateDefinitionError) as failure:
+            logger.warning(
+                "Template instantiation failed for model %s, template %s: %s",
+                model.id,
+                template_key,
+                failure,
+            )
+
+            try:
+                delete_model(model)
+            except ModelDeletionBlocked:
+                logger.error(
+                    "Could not roll back model %s after failed template "
+                    "instantiation (template %s).",
+                    model.id,
+                    template_key,
+                )
+
+            messages.error(
+                request,
+                "The model could not be created from this template because "
+                "the template failed validation. No model was created.",
+            )
+            return redirect("workspace:index")
 
         return redirect("workspace:index")
 
