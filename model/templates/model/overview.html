@@ -238,122 +238,6 @@
 
 
     <!-- ============================================================
-         ONTOLOGY
-         ============================================================ -->
-
-    <section class="model-overview-section model-overview-ontology">
-
-        <div class="model-overview-eyebrow">
-            Model structure
-        </div>
-
-
-        <div class="model-structure-summary">
-
-
-            <a
-                href="{% url 'model:object_types' model.id %}"
-                class="model-structure-card"
-            >
-
-                <div class="model-structure-card-icon">
-                    <i class="bi bi-boxes"></i>
-                </div>
-
-                <div>
-
-                    <strong>
-                        {{ object_types|length }}
-                    </strong>
-
-                    <span>
-                        Object types
-                    </span>
-
-                </div>
-
-            </a>
-
-
-            <a
-                href="{% url 'model:relationship_types' model.id %}"
-                class="model-structure-card"
-            >
-
-                <div class="model-structure-card-icon">
-                    <i class="bi bi-arrow-left-right"></i>
-                </div>
-
-                <div>
-
-                    <strong>
-                        {{ relationship_types|length }}
-                    </strong>
-
-                    <span>
-                        Relationships
-                    </span>
-
-                </div>
-
-            </a>
-
-
-        </div>
-
-
-        <div class="model-ontology-graph-panel">
-
-            <div
-                class="model-ontology-legend"
-                style="--legend-node-background: {{ ontology_legend.node_background }}; --legend-node-border: {{ ontology_legend.node_border }}; --legend-edge: {{ ontology_legend.edge_colour }}; --legend-proposed: {{ ontology_legend.proposed_colour }};"
-            >
-
-                <span class="model-ontology-legend-item">
-                    <span class="model-ontology-legend-swatch model-ontology-legend-swatch-node"></span>
-                    Object Type
-                </span>
-
-                <span class="model-ontology-legend-item">
-                    <span class="model-ontology-legend-swatch model-ontology-legend-swatch-edge"></span>
-                    Relationship Type
-                </span>
-
-                {% if active_proposal %}
-
-                <span class="model-ontology-legend-item">
-                    <span class="model-ontology-legend-swatch model-ontology-legend-swatch-proposed"></span>
-                    <i class="bi bi-pencil-square"></i>
-                    Proposed change
-                </span>
-
-                {% endif %}
-
-            </div>
-
-            <button
-                type="button"
-                class="btn btn-outline-secondary btn-sm model-ontology-reset-button"
-                data-ontology-reset-view
-            >
-                Reset view
-            </button>
-
-        </div>
-
-
-        {{ ontology_payload|json_script:"model-ontology-payload" }}
-
-        <div
-            id="model-ontology-graph"
-            class="model-ontology-graph-canvas"
-            style="background: {{ canvas_background }};"
-        ></div>
-
-    </section>
-
-
-    <!-- ============================================================
          PURPOSE / SCOPE / EXCLUSIONS
          ============================================================ -->
 
@@ -713,6 +597,121 @@
 
 
         </div>
+
+    </section>
+
+    <!-- ============================================================
+         ONTOLOGY
+         ============================================================ -->
+
+    <section class="model-overview-section model-overview-ontology">
+
+        <div class="model-overview-eyebrow">
+            Model structure
+        </div>
+
+
+        <div class="model-structure-summary">
+
+
+            <a
+                href="{% url 'model:object_types' model.id %}"
+                class="model-structure-card"
+            >
+
+                <div class="model-structure-card-icon">
+                    <i class="bi bi-boxes"></i>
+                </div>
+
+                <div>
+
+                    <strong>
+                        {{ object_types|length }}
+                    </strong>
+
+                    <span>
+                        Object types
+                    </span>
+
+                </div>
+
+            </a>
+
+
+            <a
+                href="{% url 'model:relationship_types' model.id %}"
+                class="model-structure-card"
+            >
+
+                <div class="model-structure-card-icon">
+                    <i class="bi bi-arrow-left-right"></i>
+                </div>
+
+                <div>
+
+                    <strong>
+                        {{ relationship_types|length }}
+                    </strong>
+
+                    <span>
+                        Relationships
+                    </span>
+
+                </div>
+
+            </a>
+
+
+        </div>
+
+
+        <div class="model-ontology-graph-panel">
+
+            <div
+                class="model-ontology-legend"
+                style="--legend-node-background: {{ ontology_legend.node_background }}; --legend-node-border: {{ ontology_legend.node_border }}; --legend-edge: {{ ontology_legend.edge_colour }}; --legend-proposed: {{ ontology_legend.proposed_colour }};"
+            >
+
+                <span class="model-ontology-legend-item">
+                    <span class="model-ontology-legend-swatch model-ontology-legend-swatch-node"></span>
+                    Object Type
+                </span>
+
+                <span class="model-ontology-legend-item">
+                    <span class="model-ontology-legend-swatch model-ontology-legend-swatch-edge"></span>
+                    Relationship Type
+                </span>
+
+                {% if active_proposal %}
+
+                <span class="model-ontology-legend-item">
+                    <span class="model-ontology-legend-swatch model-ontology-legend-swatch-proposed"></span>
+                    <i class="bi bi-pencil-square"></i>
+                    Proposed change
+                </span>
+
+                {% endif %}
+
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-primary btn-sm model-ontology-reset-button"
+                data-ontology-reset-view
+            >
+                Reset view
+            </button>
+
+        </div>
+
+
+        {{ ontology_payload|json_script:"model-ontology-payload" }}
+
+        <div
+            id="model-ontology-graph"
+            class="model-ontology-graph-canvas"
+            style="background: {{ canvas_background }};"
+        ></div>
 
     </section>
 

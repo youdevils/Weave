@@ -140,64 +140,6 @@
 
         {% endif %}
 
-        <section
-            class="model-proposal-change-note"
-            {% if not proposal.summary %}data-empty="true"{% endif %}
-        >
-
-            <button
-                type="button"
-                class="model-proposal-change-note-open"
-            >
-                <i class="bi bi-plus"></i>
-                Add change note
-            </button>
-
-            <div class="model-proposal-change-note-editor">
-
-                <label
-                    for="model-proposal-change-note-input"
-                    class="model-proposal-change-note-label"
-                >
-                    Change note
-                    <span class="model-proposal-change-note-hint">
-                        Optional. Why this change is being made &mdash;
-                        context for reviewers, not evidence.
-                    </span>
-                </label>
-
-                <textarea
-                    id="model-proposal-change-note-input"
-                    class="form-control form-control-sm model-proposal-change-note-input"
-                    rows="2"
-                    maxlength="2000"
-                    data-saved="{{ proposal.summary }}"
-                >{{ proposal.summary }}</textarea>
-
-                <div class="model-proposal-change-note-controls">
-
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary model-proposal-change-note-save"
-                    >
-                        Save note
-                    </button>
-
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-outline-secondary model-proposal-change-note-cancel"
-                    >
-                        Cancel
-                    </button>
-
-                    <span class="model-proposal-change-note-status" role="status"></span>
-
-                </div>
-
-            </div>
-
-        </section>
-
         <div class="model-proposal-summary">
 
             <div class="model-proposal-summary-item">
@@ -465,7 +407,7 @@
 
                     <button
                         type="submit"
-                        class="btn btn-sm btn-outline-secondary"
+                        class="btn btn-sm btn-primary"
                     >
                         Apply
                     </button>
@@ -503,7 +445,7 @@
 
                         <button
                             type="button"
-                            class="btn btn-sm btn-outline-secondary model-proposal-review-all"
+                            class="btn btn-sm btn-outline-success model-proposal-review-all"
                         >
                             Mark all reviewed
                         </button>
@@ -739,7 +681,7 @@
 
                                                 <button
                                                     type="button"
-                                                    class="btn btn-sm btn-outline-secondary model-proposal-review"
+                                                    class="btn btn-sm btn-outline-success model-proposal-review"
                                                     data-change-id="{{ change.id }}"
                                                 >
                                                     Review
@@ -852,6 +794,63 @@
 
         </section>
 
+        <section
+            class="model-proposal-change-note"
+            {% if not proposal.summary %}data-empty="true"{% endif %}
+        >
+
+            <button
+                type="button"
+                class="model-proposal-change-note-open"
+            >
+                <i class="bi bi-plus"></i>
+                Add change note
+            </button>
+
+            <div class="model-proposal-change-note-editor">
+
+                <label
+                    for="model-proposal-change-note-input"
+                    class="model-proposal-change-note-label"
+                >
+                    Change note
+                    <span class="model-proposal-change-note-hint">
+                        Optional. Why this change is being made &mdash;
+                        context for reviewers, not evidence.
+                    </span>
+                </label>
+
+                <textarea
+                    id="model-proposal-change-note-input"
+                    class="form-control form-control-sm model-proposal-change-note-input"
+                    rows="2"
+                    maxlength="2000"
+                    data-saved="{{ proposal.summary }}"
+                >{{ proposal.summary }}</textarea>
+
+                <div class="model-proposal-change-note-controls">
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary model-proposal-change-note-save"
+                    >
+                        Save note
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary model-proposal-change-note-cancel"
+                    >
+                        Cancel
+                    </button>
+
+                    <span class="model-proposal-change-note-status" role="status"></span>
+
+                </div>
+
+            </div>
+
+        </section>
 
         {% if total_count %}
 
