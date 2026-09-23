@@ -50,6 +50,16 @@ _KEY_UNIQUE_TYPES = ("ObjectType", "RelationshipType")
 # JSON blob and are addressed by "attributes.<key>" field paths.
 _ATTRIBUTE_HOST_TYPES = ("Object", "Relationship")
 
+# The only Model fields a proposal may update. Enforced here -- not just by
+# the editor view that records the change -- because this is the point that
+# actually writes to the Model row: hasattr(model, field) alone would accept
+# any attribute of the model, including `appearance`, which is deliberately
+# outside the Proposal system (model.services.appearance.service) and must
+# never be reachable through a Model-field ProposalChange, however it was
+# produced. model.views.overview.EDITABLE_FIELDS is the same set, for the
+# editor's own pre-check; this is the one that matters for correctness.
+MODEL_EDITABLE_FIELDS = frozenset({"name", "description", "purpose", "scope", "exclusions"})
+
 
 class _ValidationFailed(Exception):
     """
@@ -277,7 +287,7 @@ def _apply_model_field_update(model, change, issues, model_fields_changed):
     after = change.after or {}
     field = after.get("field")
 
-    if not field or not hasattr(model, field):
+    if not field or field not in MODEL_EDITABLE_FIELDS:
         issues.append(
             ValidationIssue(
                 code="invalid_change",

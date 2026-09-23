@@ -6,17 +6,15 @@ from model.models.proposal import ProposalChange
 from model.services.appearance import AppearanceService
 from model.services.ontology_graph.compiler import compile_ontology_graph
 from model.services.proposal.proposal import ProposalService
+from model.services.proposal.submission import MODEL_EDITABLE_FIELDS
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
 from model.views.sidebar import with_updated_sidebar
 
-EDITABLE_FIELDS = {
-    "name",
-    "description",
-    "purpose",
-    "scope",
-    "exclusions",
-}
+# Single source of truth is submission.MODEL_EDITABLE_FIELDS -- the point
+# that actually writes a proposed Model field to the row. Aliased here so
+# this view's pre-check (a fast, user-facing 400) always agrees with it.
+EDITABLE_FIELDS = MODEL_EDITABLE_FIELDS
 
 
 def _validate_model_field(
