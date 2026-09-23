@@ -159,6 +159,7 @@ class SharedExplorerModulesTests(SimpleTestCase):
                     "explorer-render.js",
                     "explorer-builder.js",
                     "explorer-controller.js",
+                    "copy-format.js",
                     "portable-boot.js",
                 ]
             ),

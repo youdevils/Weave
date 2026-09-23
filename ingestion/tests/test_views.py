@@ -50,7 +50,9 @@ class PageAccessTests(ViewTestCase):
             response = self.login(user).get(self.url("assets"))
 
             self.assertEqual(response.status_code, 200, user.email)
-            self.assertContains(response, "Import data")
+            self.assertContains(response, "Import/Export")
+            self.assertContains(response, "Data Import")
+            self.assertContains(response, "Model Export")
 
     def test_a_viewer_cannot(self):
         self.assertEqual(self.login(self.viewer).get(self.url("assets")).status_code, 403)
@@ -68,7 +70,7 @@ class PageAccessTests(ViewTestCase):
 
         self.assertContains(response, f'href="{self.url("assets")}"')
         self.assertContains(response, "model-nav-item")
-        self.assertRegex(response.content.decode(), r'model-nav-item\s+active\s+"\s*>\s*<span>Assets')
+        self.assertRegex(response.content.decode(), r'model-nav-item\s+active\s+"\s*>\s*<span>Import/Export')
 
     def test_the_sidebar_link_exists_on_other_model_pages(self):
         response = self.login(self.editor).get(reverse("model:overview", args=[self.model.id]))

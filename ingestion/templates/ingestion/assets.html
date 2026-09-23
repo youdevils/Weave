@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block workspace_breadcrumb %}Workspace → Model → Assets{% endblock %}
+{% block workspace_breadcrumb %}Workspace → Model → Import/Export{% endblock %}
 
 {% block extra_css %}
 {{ block.super }}
@@ -17,20 +17,24 @@
 
         <div>
 
-            <div class="model-page-eyebrow">Assets</div>
+            <div class="model-page-eyebrow">Import/Export</div>
 
-            <h1 class="model-page-title">Import data</h1>
-
-            <p class="model-page-description">
-                Populate this model from a CSV, Excel (.xlsx) or legacy Excel (.xls) file with a single
-                table or worksheet. An import never changes the model directly: it creates one proposal
-                that you review, and the usual validation decides what is allowed. It fills in the
-                types you have already defined; it does not create or change them.
-            </p>
+            <h1 class="model-page-title">Import/Export</h1>
 
         </div>
 
     </div>
+
+    <section class="import-export-section" aria-labelledby="data-import-heading">
+
+    <h2 id="data-import-heading">Data Import</h2>
+
+    <p class="model-page-description">
+        Populate this model from a CSV, Excel (.xlsx) or legacy Excel (.xls) file with a single
+        table or worksheet. An import never changes the model directly: it creates one proposal
+        that you review, and the usual validation decides what is allowed. It fills in the
+        types you have already defined; it does not create or change them.
+    </p>
 
     <div id="import-banner" aria-live="polite"></div>
 
@@ -139,6 +143,21 @@
             <span class="import-status" id="import-status" aria-live="polite"></span>
 
         </div>
+
+    </section>
+
+    </section>
+
+    <section class="import-export-section" aria-labelledby="model-export-heading">
+
+        <h2 id="model-export-heading">Model Export</h2>
+
+        <p class="model-page-description">
+            Exports the complete model &mdash; its object types, relationship types and canonical
+            data &mdash; as a single JSON file, for backup or moving into another Weave workspace.
+        </p>
+
+        <a class="btn btn-primary btn-sm" href="{% url 'ingestion:export_model' model.id %}">Export Model</a>
 
     </section>
 

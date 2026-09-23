@@ -408,6 +408,13 @@
     margin-bottom: 0.75rem;
 }
 
+.model-explorer-details-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
 .model-explorer-description {
     font-size: 0.85rem;
     color: var(--model-text-secondary);

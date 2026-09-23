@@ -284,7 +284,7 @@ class CustomisePageTests(AppearanceViewTestCase):
 
         self.assertIn(f'href="{self.customise_url()}"', html)
         understand = html[html.index("Understand") : html.index("Define")]
-        self.assertLess(understand.index("Assets"), understand.index("Customise"))
+        self.assertLess(understand.index("Import/Export"), understand.index("Customise"))
         self.assertRegex(understand, r'model-nav-item\s+active\s+"\s*>\s*<span>Customise</span>')
         self.assertNotIn("collapsed", understand)
 

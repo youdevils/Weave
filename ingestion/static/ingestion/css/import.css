@@ -8,6 +8,23 @@
     max-width: 62rem;
 }
 
+.import-export-section {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--model-border-light);
+}
+
+.import-export-section:last-of-type {
+    border-bottom: none;
+}
+
+.import-export-section h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--model-text);
+}
+
 .import-step {
     margin-bottom: 1rem;
     border: 1px solid var(--model-border);

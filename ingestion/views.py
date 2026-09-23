@@ -1,7 +1,8 @@
 """
-The Data Import page (reached from Assets in the model sidebar) and its endpoints.
+The Import/Export page (reached from Import/Export in the model sidebar) and its endpoints.
 
-    GET  assets/                the page
+    GET  assets/                the page (Data Import + Model Export)
+    GET  assets/export/         download the complete canonical model as JSON
     POST assets/import/upload/  store a file as a staged source; returns its columns
     POST assets/import/preview/ what a mapping would change (read-only)
     POST assets/import/create/  create the one Working Proposal (or report no changes)
@@ -15,7 +16,7 @@ touches canonical data.
 import json
 
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
@@ -26,6 +27,7 @@ from ingestion.models import ImportSource
 from ingestion.services import limits, source_file
 from ingestion.services.coercion import cell_text
 from ingestion.services.errors import ImportBlocked, ImportError_
+from ingestion.services.model_export import build_export, export_filename
 from ingestion.services.proposals import create_import_proposal, preview_import
 from ingestion.services.targets import describe_targets
 from ingestion.uploads import LimitedUploadHandler
@@ -90,6 +92,18 @@ def assets(request, model_id):
     }
 
     return render(request, "ingestion/assets.html", context)
+
+
+@login_required
+@require_GET
+def export_model(request, model_id):
+    model = get_importable_model(request, model_id)
+
+    payload = json.dumps(build_export(model), indent=2)
+
+    response = HttpResponse(payload, content_type="application/json")
+    response["Content-Disposition"] = f'attachment; filename="{export_filename(model)}"'
+    return response
 
 
 @csrf_exempt

@@ -1,7 +1,7 @@
 # Data Import
 
 Data Import populates an **existing canonical model** from one structured file (CSV, XLSX or legacy XLS).
-It is reached from **Assets** in the model sidebar.
+It is reached from **Import/Export** in the model sidebar, alongside Model Export (see `services/model_export.py`).
 
 ```
 upload ─► target ─► map ─► preview ─► ONE Working Proposal ─► (existing) review ─► validate ─► commit
@@ -65,7 +65,8 @@ the Proposal Review page, which renders every change (~13 KB of HTML each); rais
 ## Known limitations / deferred
 
 - One worksheet, one target type per import; no mixed object + relationship imports; endpoints are never created.
-- Composite identity, OnyxJar Keys, export, a source list/download UI, background processing, persisted import jobs.
+- Composite identity, OnyxJar Keys, a source list/download UI, background processing, persisted import jobs.
+- Model Export (`services/model_export.py`) is all-or-nothing: no filters, no object selection, and nothing yet reads its JSON back in.
 - No AI ingestion (the services are structured so it can reuse parsing, planning and proposal creation).
 - Pre-existing hand-made objects with no identifying attribute cannot be matched (by design: no name matching);
   fill the attribute in first, or use their OnyxJar ID.

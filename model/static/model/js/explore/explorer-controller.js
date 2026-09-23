@@ -38,6 +38,7 @@ import {
   toggleObjectType,
   toggleRelationshipType,
 } from "./explorer-state.js";
+import { buildObjectCopyHtml, buildObjectCopyText } from "./copy-format.js";
 import { readFilterBuilder } from "./explorer-builder.js";
 import {
   renderChips,
@@ -365,7 +366,37 @@ export function createExplorer({
   }
 
   function renderDetailsPanel() {
-    el.details.innerHTML = state.selection && details ? renderDetails(details) : renderEmptyDetails();
+    el.details.innerHTML =
+      state.selection && details ? renderDetails(details, { canCopy: Boolean(source.dataset) }) : renderEmptyDetails();
+  }
+
+  /** Copies a human-readable extract of the selected object; a published-viewer-only convenience. */
+  async function copySelectedDetails(button) {
+    if (!details || details.kind !== "object" || !source.dataset) return;
+
+    const text = buildObjectCopyText(details, source.dataset);
+    const originalLabel = button.innerHTML;
+
+    try {
+      if (globalThis.ClipboardItem && navigator.clipboard?.write) {
+        const html = buildObjectCopyHtml(details, source.dataset);
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "text/plain": new Blob([text], { type: "text/plain" }),
+            "text/html": new Blob([html], { type: "text/html" }),
+          }),
+        ]);
+      } else {
+        await navigator.clipboard.writeText(text);
+      }
+      button.textContent = "Copied";
+    } catch (_error) {
+      button.textContent = "Couldn't copy";
+    }
+
+    setTimeout(() => {
+      button.innerHTML = originalLabel;
+    }, 1500);
   }
 
   // -- events ---------------------------------------------------------------------------
@@ -423,6 +454,9 @@ export function createExplorer({
           break;
         case "show-selection":
           await showSelection();
+          break;
+        case "copy-details":
+          await copySelectedDetails(actionElement);
           break;
         case "include-connected":
           state = includeObjects(state, actionElement.dataset.ids.split(",").filter(Boolean));

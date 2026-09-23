@@ -215,7 +215,12 @@ function objectButton(ref) {
   return `<button type="button" class="model-explorer-link" data-action="select-object" data-id="${e(ref.id)}">${e(ref.name)}</button> ${typePill(ref.typeName)}${proposedBadge(ref.isProposed)}${hidden}`;
 }
 
-function renderObjectDetails(details) {
+function renderCopyButton(canCopy) {
+  if (!canCopy) return "";
+  return `<button type="button" class="btn btn-outline-secondary btn-sm" data-action="copy-details">${icon("copy")} Copy</button>`;
+}
+
+function renderObjectDetails(details, canCopy) {
   const groups = details.relationships
     .map((group) => {
       const items = group.items
@@ -249,7 +254,10 @@ function renderObjectDetails(details) {
 
   return `
     <header class="model-explorer-details-header">
-      <h3>${e(details.name)}</h3>
+      <div class="model-explorer-details-heading-row">
+        <h3>${e(details.name)}</h3>
+        ${renderCopyButton(canCopy)}
+      </div>
       <div>${typePill(details.type.name)}${proposedBadge(details.isProposed)}</div>
     </header>
     ${hiddenNotice("object", details.inView)}
@@ -404,9 +412,9 @@ export function renderProvenance(provenance, kind = "object") {
     </section>`;
 }
 
-export function renderDetails(details) {
+export function renderDetails(details, { canCopy = false } = {}) {
   if (!details) return renderEmptyDetails();
-  return details.kind === "object" ? renderObjectDetails(details) : renderRelationshipDetails(details);
+  return details.kind === "object" ? renderObjectDetails(details, canCopy) : renderRelationshipDetails(details);
 }
 
 // ---------------------------------------------------------------------------

@@ -5,7 +5,7 @@ import { ICON_NAMES, icon } from "../static/model/js/explore/explorer-icons.js";
 import { renderDetailsError, renderEmptyDetails } from "../static/model/js/explore/explorer-render.js";
 
 test("every icon is a self-contained inline svg with no external references", () => {
-  assert.deepEqual([...ICON_NAMES].sort(), ["cursor", "paperclip", "search", "slash-circle"]);
+  assert.deepEqual([...ICON_NAMES].sort(), ["copy", "cursor", "paperclip", "search", "slash-circle"]);
   for (const name of ICON_NAMES) {
     const svg = icon(name);
     assert.match(svg, /^<svg class="weave-icon"/);
