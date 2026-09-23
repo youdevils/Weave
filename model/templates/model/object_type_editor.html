@@ -1045,6 +1045,47 @@
                                     </div>
 
 
+                                    <!-- VALUE COLOURS (Choice/Boolean only) -->
+
+                                    {% url 'model:object_type_attribute_colours' model.id object_type.id attribute.proposed_values.key as attribute_colours_endpoint %}
+
+                                    <div
+                                        class="model-editor-field"
+                                        data-attribute-colour-section
+                                        data-attribute-colours-endpoint="{{ attribute_colours_endpoint }}"
+                                        {% if attribute.proposed_values.data_type != "choice" and attribute.proposed_values.data_type != "boolean" %}hidden{% endif %}
+                                    >
+
+                                        <label>Value colours</label>
+
+                                        <div class="model-attribute-colour-list" data-attribute-colour-list>
+
+                                            {% for row in attribute.value_colour_rows %}
+
+                                                <div class="model-attribute-colour-row" data-attribute-colour-row data-value-key="{{ row.value }}">
+
+                                                    <span class="model-attribute-colour-label">{{ row.label }}</span>
+
+                                                    <input
+                                                        type="color"
+                                                        class="model-attribute-colour-input"
+                                                        data-attribute-colour-input
+                                                        value="{{ row.colour }}"
+                                                    >
+
+                                                </div>
+
+                                            {% endfor %}
+
+                                        </div>
+
+                                        <p class="model-editor-hint">
+                                            Used to colour objects in the graph when this attribute is selected as a Background or Border colour source.
+                                        </p>
+
+                                    </div>
+
+
                                     <!-- DESCRIPTION -->
 
                                     <div class="model-editor-field">

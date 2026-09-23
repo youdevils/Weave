@@ -1,3 +1,5 @@
+import dataclasses
+
 from django.test import SimpleTestCase
 
 from model.services.appearance import defaults
@@ -59,6 +61,117 @@ class NodeStyleTests(SimpleTestCase):
         self.assertIn("%23F08C00", style.image)
 
 
+class AttributeDrivenNodeStyleTests(SimpleTestCase):
+
+    def setUp(self):
+        self.theme = resolve_theme({})
+
+    def node(self, **type_layer):
+        return resolve_object(self.theme, {}, type_layer)
+
+    def attribute_node(self, background_by_value=None, border_by_value=None, **type_layer):
+        resolved = self.node(**type_layer)
+        return dataclasses.replace(
+            resolved,
+            background_by_value=background_by_value or {},
+            border_by_value=border_by_value or {},
+        )
+
+    def test_fixed_colours_are_unaffected_when_source_is_type(self):
+        appearance = self.attribute_node(background="#111111", border="#222222")
+        style = node_style(appearance, instance_attributes={"status": "Passed"})
+        self.assertEqual((style.background, style.border), ("#111111", "#222222"))
+
+    def test_choice_value_drives_background(self):
+        appearance = self.attribute_node(
+            background_source="attribute",
+            background_attribute="status",
+            background_by_value={"Passed": "#00FF00", "Failed": "#FF0000"},
+            background="#DEFAULT0",
+        )
+        self.assertEqual(node_style(appearance, instance_attributes={"status": "Passed"}).background, "#00FF00")
+        self.assertEqual(node_style(appearance, instance_attributes={"status": "Failed"}).background, "#FF0000")
+
+    def test_boolean_value_drives_border(self):
+        appearance = self.attribute_node(
+            border_source="attribute",
+            border_attribute="urgent",
+            border_by_value={"true": "#FF0000", "false": "#00FF00"},
+            border="#DEFAULT0",
+        )
+        self.assertEqual(node_style(appearance, instance_attributes={"urgent": True}).border, "#FF0000")
+        self.assertEqual(node_style(appearance, instance_attributes={"urgent": False}).border, "#00FF00")
+
+    def test_missing_or_null_value_falls_back_to_type_colour(self):
+        appearance = self.attribute_node(
+            background_source="attribute",
+            background_attribute="status",
+            background_by_value={"Passed": "#00FF00"},
+            background="#DEFAULT0",
+        )
+        self.assertEqual(node_style(appearance, instance_attributes={}).background, "#DEFAULT0")
+        self.assertEqual(node_style(appearance, instance_attributes={"status": None}).background, "#DEFAULT0")
+        self.assertEqual(node_style(appearance, instance_attributes=None).background, "#DEFAULT0")
+
+    def test_value_with_no_configured_colour_falls_back_to_type_colour(self):
+        appearance = self.attribute_node(
+            background_source="attribute",
+            background_attribute="status",
+            background_by_value={"Passed": "#00FF00"},
+            background="#DEFAULT0",
+        )
+        self.assertEqual(node_style(appearance, instance_attributes={"status": "Unmapped"}).background, "#DEFAULT0")
+
+    def test_stale_attribute_reference_falls_back_like_a_missing_value(self):
+        """
+        The configured attribute may no longer exist (e.g. its proposal was
+        discarded). The instance simply never has that key either, so this
+        must not raise and must fall back exactly like a missing value.
+        """
+        appearance = self.attribute_node(
+            background_source="attribute",
+            background_attribute="discarded_attr",
+            background_by_value={},
+            background="#DEFAULT0",
+        )
+        style = node_style(appearance, instance_attributes={"status": "Passed"})
+        self.assertEqual(style.background, "#DEFAULT0")
+
+    def test_different_attributes_for_background_and_border(self):
+        appearance = self.attribute_node(
+            background_source="attribute",
+            background_attribute="status",
+            background_by_value={"Passed": "#00FF00"},
+            border_source="attribute",
+            border_attribute="urgent",
+            border_by_value={"true": "#FF0000"},
+        )
+        style = node_style(appearance, instance_attributes={"status": "Passed", "urgent": True})
+        self.assertEqual((style.background, style.border), ("#00FF00", "#FF0000"))
+
+    def test_same_attribute_for_background_and_border(self):
+        appearance = self.attribute_node(
+            background_source="attribute",
+            background_attribute="status",
+            background_by_value={"Passed": "#00FF00"},
+            border_source="attribute",
+            border_attribute="status",
+            border_by_value={"Passed": "#003300"},
+        )
+        style = node_style(appearance, instance_attributes={"status": "Passed"})
+        self.assertEqual((style.background, style.border), ("#00FF00", "#003300"))
+
+    def test_proposal_cue_wins_over_an_attribute_colour(self):
+        appearance = self.attribute_node(
+            background_source="attribute",
+            background_attribute="status",
+            background_by_value={"Passed": "#00FF00"},
+        )
+        style = node_style(appearance, is_proposed=True, instance_attributes={"status": "Passed"})
+        self.assertEqual(style.background, defaults.PROPOSED_NODE_BACKGROUND)
+        self.assertEqual(style.border, defaults.PROPOSED_NODE_BORDER)
+
+
 class EdgeStyleTests(SimpleTestCase):
 
     def setUp(self):
@@ -106,3 +219,56 @@ class EdgeStyleTests(SimpleTestCase):
         theme = resolve_theme({"canvas_background": "#101010"})
         style = edge_style(resolve_relationship(theme, {}, {}))
         self.assertEqual(style.font["strokeColor"], "#101010")
+
+
+class AttributeDrivenEdgeStyleTests(SimpleTestCase):
+
+    def setUp(self):
+        self.theme = resolve_theme({})
+
+    def attribute_edge(self, colour_by_value=None, **type_layer):
+        resolved = resolve_relationship(self.theme, {}, type_layer)
+        return dataclasses.replace(resolved, colour_by_value=colour_by_value or {})
+
+    def test_fixed_colour_is_unaffected_when_source_is_type(self):
+        appearance = self.attribute_edge(colour="#123456")
+        style = edge_style(appearance, instance_attributes={"status": "Passed"})
+        self.assertEqual(style.colour, "#123456")
+
+    def test_choice_value_drives_line_colour(self):
+        appearance = self.attribute_edge(
+            colour_source="attribute",
+            colour_attribute="status",
+            colour_by_value={"Passed": "#00FF00", "Failed": "#FF0000"},
+            colour="#DEFAULT0",
+        )
+        self.assertEqual(edge_style(appearance, instance_attributes={"status": "Passed"}).colour, "#00FF00")
+        self.assertEqual(edge_style(appearance, instance_attributes={"status": "Failed"}).colour, "#FF0000")
+
+    def test_missing_value_falls_back_to_type_colour(self):
+        appearance = self.attribute_edge(
+            colour_source="attribute",
+            colour_attribute="status",
+            colour_by_value={"Passed": "#00FF00"},
+            colour="#DEFAULT0",
+        )
+        self.assertEqual(edge_style(appearance, instance_attributes={}).colour, "#DEFAULT0")
+        self.assertEqual(edge_style(appearance, instance_attributes=None).colour, "#DEFAULT0")
+
+    def test_stale_attribute_reference_falls_back_like_a_missing_value(self):
+        appearance = self.attribute_edge(
+            colour_source="attribute",
+            colour_attribute="discarded_attr",
+            colour_by_value={},
+            colour="#DEFAULT0",
+        )
+        self.assertEqual(edge_style(appearance, instance_attributes={"status": "Passed"}).colour, "#DEFAULT0")
+
+    def test_proposal_cue_wins_over_an_attribute_colour(self):
+        appearance = self.attribute_edge(
+            colour_source="attribute",
+            colour_attribute="status",
+            colour_by_value={"Passed": "#00FF00"},
+        )
+        style = edge_style(appearance, is_proposed=True, instance_attributes={"status": "Passed"})
+        self.assertEqual(style.colour, defaults.PROPOSED_EDGE_COLOUR)

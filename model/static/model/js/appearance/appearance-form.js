@@ -12,15 +12,35 @@
 
 export const TEXT_INSIDE_SHAPES = ["box", "ellipse", "circle", "database"];
 
+// Links each fixed-colour field to the "source" select that can switch it to
+// attribute-driven, and to the attribute picker that appears in its place.
+export const ATTRIBUTE_SOURCE_LINKS = [
+  { source: "background_source", attribute: "background_attribute", colour: "background" },
+  { source: "border_source", attribute: "border_attribute", colour: "border" },
+  { source: "colour_source", attribute: "colour_attribute", colour: "colour" },
+];
+
 /** What a field should look like given the current values of the whole form. */
 export function describeField(field, values, { inheritedLabel = "Default" } = {}) {
   const overridden = Boolean(field.overridden);
   let disabled = false;
+  let hidden = false;
   let reason = "";
 
   if (field.key === "size" && !values.icon && TEXT_INSIDE_SHAPES.includes(values.shape)) {
     disabled = true;
     reason = "This shape fits its label. Size applies to dot, square, diamond, triangle, hexagon, star and icons.";
+  }
+
+  const colourLink = ATTRIBUTE_SOURCE_LINKS.find((link) => link.colour === field.key);
+  if (colourLink && values[colourLink.source] === "attribute") {
+    disabled = true;
+    reason = "Driven by the selected attribute below. Switch the source back to Type to use a fixed colour.";
+  }
+
+  const attributeLink = ATTRIBUTE_SOURCE_LINKS.find((link) => link.attribute === field.key);
+  if (attributeLink && values[attributeLink.source] !== "attribute") {
+    hidden = true;
   }
 
   return {
@@ -29,6 +49,7 @@ export function describeField(field, values, { inheritedLabel = "Default" } = {}
     status: overridden ? "Customised" : inheritedLabel,
     resetVisible: overridden,
     disabled,
+    hidden,
     reason,
   };
 }
@@ -164,6 +185,7 @@ export function applyGroups(root, groups, { inheritedLabel = "Default" } = {}) {
         note.hidden = !view.reason;
       }
       wrapper.dataset.overridden = view.overridden ? "true" : "false";
+      wrapper.hidden = Boolean(view.hidden);
     }
   }
 

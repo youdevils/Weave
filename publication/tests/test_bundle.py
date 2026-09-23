@@ -131,6 +131,61 @@ class ShapeTests(BundleFixture):
             self.assertNotIn(needle, text)
 
 
+class AttributeDrivenStyleTests(BundleFixture):
+    """
+    ``build_dataset_block`` must resolve colour per instance only for types
+    that are actually attribute-driven, so an unmodified model's bundle is
+    byte-identical to before this feature existed.
+    """
+
+    def test_type_sourced_types_carry_no_per_instance_style(self):
+        bundle = self.bundle()
+
+        self.assertNotIn("style", bundle["dataset"]["objects"][0])
+        self.assertNotIn("style", bundle["dataset"]["relationships"][0])
+
+    def test_attribute_sourced_object_type_gets_a_resolved_per_instance_style(self):
+        AppearanceService.set_type_style(self.model, "object_type", self.person_type.id, "background_source", "attribute")
+        AppearanceService.set_type_style(self.model, "object_type", self.person_type.id, "background_attribute", "status")
+        AppearanceService.set_attribute_colour(self.model, "object_type", self.person_type.id, "status", "Active", "#00FF00")
+
+        objects = {o["name"]: o for o in self.bundle()["dataset"]["objects"]}
+
+        self.assertEqual(objects["Alice"]["style"]["background"], "#00FF00")
+        self.assertNotIn("style", objects["Ops"])  # a Team: an unaffected type
+
+    def test_missing_value_falls_back_to_the_type_colour_in_the_bundle(self):
+        AppearanceService.set_type_style(self.model, "object_type", self.person_type.id, "background_source", "attribute")
+        AppearanceService.set_type_style(self.model, "object_type", self.person_type.id, "background_attribute", "status")
+        AppearanceService.set_type_style(self.model, "object_type", self.person_type.id, "background", "#123456")
+        self.make_object(self.person_type, "NoValue")
+
+        objects = {o["name"]: o for o in self.bundle()["dataset"]["objects"]}
+
+        self.assertEqual(objects["NoValue"]["style"]["background"], "#123456")
+
+    def test_attribute_sourced_relationship_type_gets_a_resolved_per_instance_style(self):
+        AttributeDefinitionCls = self.status_attribute.__class__
+        AttributeDefinitionCls.objects.create(
+            relationship_type=self.member_of,
+            name="Importance",
+            key="importance",
+            data_type=AttributeDefinitionCls.DataType.CHOICE,
+            config={"choices": ["High", "Low"]},
+        )
+        self.rel.attributes = {"importance": "High"}
+        self.rel.save()
+        AppearanceService.set_type_style(self.model, "relationship_type", self.member_of.id, "colour_source", "attribute")
+        AppearanceService.set_type_style(self.model, "relationship_type", self.member_of.id, "colour_attribute", "importance")
+        AppearanceService.set_attribute_colour(
+            self.model, "relationship_type", self.member_of.id, "importance", "High", "#FF0000"
+        )
+
+        relationships = self.bundle()["dataset"]["relationships"]
+
+        self.assertEqual(relationships[0]["style"]["colour"], "#FF0000")
+
+
 class CanonicalOnlyTests(BundleFixture):
 
     def test_pending_proposal_changes_never_appear(self):

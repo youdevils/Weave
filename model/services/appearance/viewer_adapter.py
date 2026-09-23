@@ -32,9 +32,57 @@ _ARROWS = {
 }
 
 
-def node_style(appearance: ResolvedObjectAppearance, *, is_proposed: bool = False) -> NodeStyle:
-    background = appearance.background
-    border = appearance.border
+def normalise_attribute_value(raw) -> str:
+    """
+    The key an instance's attribute value is looked up under in a colour map:
+    Boolean collapses to "true"/"false"; every other value is its exact
+    string form (choice values are matched as typed, not case-folded -- this
+    is deliberately distinct from ``facets.py``'s case-insensitive counting).
+    """
+    if raw is True:
+        return "true"
+    if raw is False:
+        return "false"
+    return str(raw)
+
+
+def _resolve_colour(source: str, attribute_key, by_value: dict, fallback: str, instance_attributes) -> str:
+    """
+    The colour for one visual property of one instance: the configured
+    attribute's value, mapped through its colour, or the type's fixed colour
+    when the source is "type", the attribute is unset, the instance has no
+    value for it, or that value has no configured colour -- including when
+    ``attribute_key`` itself no longer names an eligible attribute (a stale
+    reference), since it then simply never matches an instance value either.
+    """
+    if source != "attribute" or not attribute_key or not instance_attributes:
+        return fallback
+    raw = instance_attributes.get(attribute_key)
+    if raw is None:
+        return fallback
+    return by_value.get(normalise_attribute_value(raw), fallback)
+
+
+def node_style(
+    appearance: ResolvedObjectAppearance,
+    *,
+    is_proposed: bool = False,
+    instance_attributes: dict | None = None,
+) -> NodeStyle:
+    background = _resolve_colour(
+        appearance.background_source,
+        appearance.background_attribute,
+        appearance.background_by_value,
+        appearance.background,
+        instance_attributes,
+    )
+    border = _resolve_colour(
+        appearance.border_source,
+        appearance.border_attribute,
+        appearance.border_by_value,
+        appearance.border,
+        instance_attributes,
+    )
     if is_proposed:
         background = defaults.PROPOSED_NODE_BACKGROUND
         border = defaults.PROPOSED_NODE_BORDER
@@ -64,8 +112,21 @@ def node_style(appearance: ResolvedObjectAppearance, *, is_proposed: bool = Fals
     )
 
 
-def edge_style(appearance: ResolvedRelationshipAppearance, *, is_proposed: bool = False) -> EdgeStyle:
-    colour = defaults.PROPOSED_EDGE_COLOUR if is_proposed else appearance.colour
+def edge_style(
+    appearance: ResolvedRelationshipAppearance,
+    *,
+    is_proposed: bool = False,
+    instance_attributes: dict | None = None,
+) -> EdgeStyle:
+    colour = _resolve_colour(
+        appearance.colour_source,
+        appearance.colour_attribute,
+        appearance.colour_by_value,
+        appearance.colour,
+        instance_attributes,
+    )
+    if is_proposed:
+        colour = defaults.PROPOSED_EDGE_COLOUR
     dashes = True if is_proposed else _DASHES[appearance.line_style]
 
     return EdgeStyle(

@@ -119,6 +119,13 @@ THEME_FIELDS = (
     FieldSpec("font_family", "Font", "select", "Typography", choices=FONT_STACKS),
 )
 
+SOURCES = (("type", "Type"), ("attribute", "Attribute"))
+
+# Attribute data types eligible to drive a background/border/line colour.
+# Reused by every caller that builds an eligible-attribute list (the type
+# editors and the appearance endpoint), so eligibility can never drift.
+COLOUR_ELIGIBLE_DATA_TYPES = ("choice", "boolean")
+
 OBJECT_FIELDS = (
     FieldSpec("shape", "Shape", "select", "Shape", choices=SHAPES),
     FieldSpec(
@@ -141,8 +148,40 @@ OBJECT_FIELDS = (
         help="Replaces the shape with a circular icon.",
         type_only=True,
     ),
+    FieldSpec(
+        "background_source",
+        "Background source",
+        "select",
+        "Colour",
+        choices=SOURCES,
+        help="Attribute colours each object by an eligible attribute's value instead of one fixed colour.",
+        type_only=True,
+    ),
     FieldSpec("background", "Fill colour", "color", "Colour"),
+    FieldSpec(
+        "background_attribute",
+        "Background attribute",
+        "attribute",
+        "Colour",
+        type_only=True,
+    ),
+    FieldSpec(
+        "border_source",
+        "Border source",
+        "select",
+        "Colour",
+        choices=SOURCES,
+        help="Attribute colours each object's border by an eligible attribute's value instead of one fixed colour.",
+        type_only=True,
+    ),
     FieldSpec("border", "Border colour", "color", "Colour"),
+    FieldSpec(
+        "border_attribute",
+        "Border attribute",
+        "attribute",
+        "Colour",
+        type_only=True,
+    ),
     FieldSpec("border_width", "Border width", "number", "Colour", minimum=0, maximum=8, step=0.5),
     FieldSpec("font_colour", "Label colour", "color", "Label"),
     FieldSpec("font_size", "Label size", "number", "Label", minimum=8, maximum=32, step=1),
@@ -150,7 +189,23 @@ OBJECT_FIELDS = (
 )
 
 RELATIONSHIP_FIELDS = (
+    FieldSpec(
+        "colour_source",
+        "Line colour source",
+        "select",
+        "Line",
+        choices=SOURCES,
+        help="Attribute colours each relationship's line by an eligible attribute's value instead of one fixed colour.",
+        type_only=True,
+    ),
     FieldSpec("colour", "Line colour", "color", "Line"),
+    FieldSpec(
+        "colour_attribute",
+        "Line colour attribute",
+        "attribute",
+        "Line",
+        type_only=True,
+    ),
     FieldSpec("width", "Line width", "number", "Line", minimum=0.5, maximum=10, step=0.5),
     FieldSpec("line_style", "Line style", "select", "Line", choices=LINE_STYLES),
     FieldSpec("arrows", "Arrows", "select", "Line", choices=ARROWS),
@@ -190,14 +245,34 @@ def get_field(scope: str, key: str, *, model_level: bool = False) -> FieldSpec:
 
 _HEX_COLOUR = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
 
+# Matches AttributeDefinition.key (a SlugField): letters, numbers, hyphens, underscores.
+_ATTRIBUTE_KEY = re.compile(r"^[-a-zA-Z0-9_]{1,100}$")
 
-def _clean_colour(spec: FieldSpec, value: Any) -> str:
+
+def clean_colour_value(label: str, value: Any) -> str:
+    """Validate/normalise a hex colour against a plain label, with no FieldSpec involved."""
     if not isinstance(value, str) or not _HEX_COLOUR.match(value.strip()):
-        raise AppearanceValidationError(f"{spec.label} must be a hex colour such as #4C6EF5.")
+        raise AppearanceValidationError(f"{label} must be a hex colour such as #4C6EF5.")
     text = value.strip().lstrip("#")
     if len(text) == 3:
         text = "".join(char * 2 for char in text)
     return f"#{text.upper()}"
+
+
+def _clean_colour(spec: FieldSpec, value: Any) -> str:
+    return clean_colour_value(spec.label, value)
+
+
+def _clean_attribute_key(spec: FieldSpec, value: Any) -> str:
+    """
+    Format-only validation: is this shaped like an attribute key at all. Whether
+    it actually names an eligible (Choice/Boolean, canonical-or-proposed)
+    attribute of this specific type is a dynamic check only the caller (which
+    has the model and proposal in scope) can make.
+    """
+    if not isinstance(value, str) or not _ATTRIBUTE_KEY.match(value.strip()):
+        raise AppearanceValidationError(f"{spec.label} must be an attribute key.")
+    return value.strip()
 
 
 def _clean_number(spec: FieldSpec, value: Any) -> int | float:
@@ -229,6 +304,8 @@ def clean_value(scope: str, key: str, value: Any, *, model_level: bool = False) 
         return _clean_colour(spec, value)
     if spec.control == "number":
         return _clean_number(spec, value)
+    if spec.control == "attribute":
+        return _clean_attribute_key(spec, value)
     return _clean_choice(spec, value)
 
 
@@ -265,6 +342,14 @@ _TYPE_MAPS = {
 }
 
 
+ATTRIBUTE_COLOURS = "attribute_colours"
+
+_ATTRIBUTE_COLOUR_MAPS = {
+    OBJECT_TYPE: "object_type",
+    RELATIONSHIP_TYPE: "relationship_type",
+}
+
+
 def empty_document() -> dict:
     return {
         "version": DOCUMENT_VERSION,
@@ -273,7 +358,45 @@ def empty_document() -> dict:
         "relationships": {},
         "object_types": {},
         "relationship_types": {},
+        ATTRIBUTE_COLOURS: {"object_type": {}, "relationship_type": {}},
     }
+
+
+def _sanitise_attribute_colours(raw: Any) -> dict:
+    """
+    ``{kind: {type_id: {attribute_key: {value: hex}}}}``. Value colours are not
+    field-spec-shaped (the set of values is dynamic, per attribute), so this is
+    walked and cleaned by hand rather than through ``sanitise_layer``.
+    """
+    result = {"object_type": {}, "relationship_type": {}}
+    if not isinstance(raw, dict):
+        return result
+
+    for kind, doc_key in _ATTRIBUTE_COLOUR_MAPS.items():
+        types = raw.get(doc_key)
+        if not isinstance(types, dict):
+            continue
+        for type_id, attributes in types.items():
+            if not isinstance(type_id, str) or not isinstance(attributes, dict):
+                continue
+            cleaned_type: dict = {}
+            for attribute_key, values in attributes.items():
+                if not isinstance(attribute_key, str) or not isinstance(values, dict):
+                    continue
+                cleaned_values = {}
+                for value_key, colour in values.items():
+                    if not isinstance(value_key, str) or not value_key:
+                        continue
+                    try:
+                        cleaned_values[value_key] = clean_colour_value(f"{attribute_key} colour", colour)
+                    except AppearanceValidationError:
+                        continue
+                if cleaned_values:
+                    cleaned_type[attribute_key] = cleaned_values
+            if cleaned_type:
+                result[doc_key][type_id] = cleaned_type
+
+    return result
 
 
 def sanitise_document(raw: Any) -> dict:
@@ -294,6 +417,8 @@ def sanitise_document(raw: Any) -> dict:
             if cleaned and isinstance(type_id, str):
                 document[doc_key][type_id] = cleaned
 
+    document[ATTRIBUTE_COLOURS] = _sanitise_attribute_colours(raw.get(ATTRIBUTE_COLOURS))
+
     return document
 
 
@@ -303,3 +428,14 @@ def model_layer(document: dict, scope: str) -> dict:
 
 def type_map(document: dict, kind: str) -> dict:
     return document[_TYPE_MAPS[kind]]
+
+
+def attribute_colours(document: dict, kind: str, type_id, attribute_key: str) -> dict:
+    """The value->hex colour map for one attribute of one type; ``{}`` if none is set."""
+    doc_key = _ATTRIBUTE_COLOUR_MAPS[kind]
+    return document[ATTRIBUTE_COLOURS][doc_key].get(str(type_id), {}).get(attribute_key, {})
+
+
+def attribute_colour_map(document: dict, kind: str) -> dict:
+    """The whole ``{type_id: {attribute_key: {value: hex}}}`` map for one kind."""
+    return document[ATTRIBUTE_COLOURS][_ATTRIBUTE_COLOUR_MAPS[kind]]

@@ -50,6 +50,14 @@ def _object_swatch(appearance, type_id):
         "shape": resolved.shape,
         "icon": resolved.icon,
         "image": style.image,
+        # Static, per-type metadata: which visual properties (if any) this
+        # type resolves from an attribute rather than a fixed colour, so the
+        # legend knows which types need the attribute-value breakdown and
+        # which attribute to read it from -- never a second colour resolution.
+        "backgroundSource": resolved.background_source,
+        "backgroundAttribute": resolved.background_attribute,
+        "borderSource": resolved.border_source,
+        "borderAttribute": resolved.border_attribute,
     }
 
 
@@ -57,7 +65,12 @@ def _relationship_swatch(appearance, type_id):
     if appearance is None:
         return None
     resolved = appearance.relationship_type(type_id)
-    return {"colour": resolved.colour, "lineStyle": resolved.line_style}
+    return {
+        "colour": resolved.colour,
+        "lineStyle": resolved.line_style,
+        "colourSource": resolved.colour_source,
+        "colourAttribute": resolved.colour_attribute,
+    }
 
 
 def build_facets(dataset: EffectiveDataset, appearance=None) -> dict:

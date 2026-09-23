@@ -16,6 +16,7 @@ proposed (not yet canonical) types may legitimately carry styles.
 
 from __future__ import annotations
 
+import dataclasses
 import uuid
 
 from django.db import transaction
@@ -84,14 +85,37 @@ class AppearanceResolver:
 
     def object_type(self, type_id) -> ResolvedObjectAppearance:
         layer = schema.type_map(self._document, OBJECT_TYPE).get(str(type_id), {})
-        return resolve_object(self._theme, schema.model_layer(self._document, schema.OBJECT), layer)
+        resolved = resolve_object(self._theme, schema.model_layer(self._document, schema.OBJECT), layer)
+        if resolved.background_source != "attribute" and resolved.border_source != "attribute":
+            return resolved
+        return dataclasses.replace(
+            resolved,
+            background_by_value=(
+                schema.attribute_colours(self._document, OBJECT_TYPE, type_id, resolved.background_attribute)
+                if resolved.background_source == "attribute" and resolved.background_attribute
+                else {}
+            ),
+            border_by_value=(
+                schema.attribute_colours(self._document, OBJECT_TYPE, type_id, resolved.border_attribute)
+                if resolved.border_source == "attribute" and resolved.border_attribute
+                else {}
+            ),
+        )
 
     def relationship_type(self, type_id) -> ResolvedRelationshipAppearance:
         layer = schema.type_map(self._document, RELATIONSHIP_TYPE).get(str(type_id), {})
-        return resolve_relationship(
+        resolved = resolve_relationship(
             self._theme,
             schema.model_layer(self._document, schema.RELATIONSHIP),
             layer,
+        )
+        if resolved.colour_source != "attribute" or not resolved.colour_attribute:
+            return resolved
+        return dataclasses.replace(
+            resolved,
+            colour_by_value=schema.attribute_colours(
+                self._document, RELATIONSHIP_TYPE, type_id, resolved.colour_attribute
+            ),
         )
 
 
@@ -197,9 +221,22 @@ class AppearanceService:
 
         AppearanceService._mutate(model, mutate)
 
+    # The attribute-selecting fields whose *value* must additionally be one of
+    # the type's current eligible (Choice/Boolean, canonical-or-proposed)
+    # attribute keys -- a check schema.py cannot make on its own since it has
+    # no DB/proposal access and eligibility is dynamic per type.
+    _ATTRIBUTE_SELECT_FIELDS = ("background_attribute", "border_attribute", "colour_attribute")
+
     @staticmethod
-    def set_type_style(model, kind: str, type_id, field: str, value) -> None:
-        """Set (or, for an empty value, clear) one field of a type's override."""
+    def set_type_style(model, kind: str, type_id, field: str, value, *, valid_attribute_keys=None) -> None:
+        """
+        Set (or, for an empty value, clear) one field of a type's override.
+
+        ``valid_attribute_keys``, when given, additionally restricts a
+        ``background_attribute``/``border_attribute``/``colour_attribute``
+        value to that set (the caller's current eligible-attribute list); it
+        is ignored for every other field.
+        """
         _check_kind(kind)
         type_key = _normalise_type_id(type_id)
         if not AppearanceService.is_known_type(model, kind, type_key):
@@ -210,6 +247,13 @@ class AppearanceService:
         cleaned = None if cleared else schema.clean_value(scope, field, value)
         if cleared:
             schema.get_field(scope, field)
+        if (
+            not cleared
+            and valid_attribute_keys is not None
+            and field in AppearanceService._ATTRIBUTE_SELECT_FIELDS
+            and cleaned not in valid_attribute_keys
+        ):
+            raise AppearanceValidationError("That attribute is not available for this type.")
 
         def mutate(document):
             entries = schema.type_map(document, kind)
@@ -235,6 +279,66 @@ class AppearanceService:
 
         def mutate(document):
             schema.type_map(document, kind).pop(type_key, None)
+
+        AppearanceService._mutate(model, mutate)
+
+    # -----------------------------------------------------------------
+    # Choice / Boolean attribute value colours
+    #
+    # Independent of whether the attribute is currently selected as a
+    # background/border/line colour source (requirement: these colours exist
+    # regardless, configured directly on the attribute).
+    # -----------------------------------------------------------------
+
+    @staticmethod
+    def attribute_value_colours(model, kind: str, type_id, attribute_key: str) -> dict:
+        """The value->hex colour map configured for one attribute of one type."""
+        _check_kind(kind)
+        document = schema.sanitise_document(model.appearance)
+        return dict(schema.attribute_colours(document, kind, type_id, attribute_key))
+
+    @staticmethod
+    def set_attribute_colour(model, kind: str, type_id, attribute_key: str, value_key: str, colour) -> None:
+        """Set (or, for an empty colour, clear) one attribute value's colour."""
+        _check_kind(kind)
+        type_key = _normalise_type_id(type_id)
+        if not attribute_key or not value_key:
+            raise AppearanceValidationError("An attribute and value are required.")
+
+        cleared = colour is None or colour == ""
+        cleaned = None if cleared else schema.clean_colour_value(f"{attribute_key} colour", colour)
+
+        def mutate(document):
+            by_kind = schema.attribute_colour_map(document, kind)
+            by_type = by_kind.setdefault(type_key, {})
+            by_attribute = by_type.setdefault(attribute_key, {})
+            if cleared:
+                by_attribute.pop(value_key, None)
+            else:
+                by_attribute[value_key] = cleaned
+            if not by_attribute:
+                by_type.pop(attribute_key, None)
+            if not by_type:
+                by_kind.pop(type_key, None)
+
+        AppearanceService._mutate(model, mutate)
+
+    @staticmethod
+    def clear_attribute_colour(model, kind: str, type_id, attribute_key: str, value_key: str | None = None) -> None:
+        """Remove one value's colour, or every colour configured for the attribute when ``value_key`` is None."""
+        if value_key is not None:
+            AppearanceService.set_attribute_colour(model, kind, type_id, attribute_key, value_key, None)
+            return
+
+        _check_kind(kind)
+        type_key = _normalise_type_id(type_id)
+
+        def mutate(document):
+            by_type = schema.attribute_colour_map(document, kind).get(type_key)
+            if by_type is not None:
+                by_type.pop(attribute_key, None)
+                if not by_type:
+                    schema.attribute_colour_map(document, kind).pop(type_key, None)
 
         AppearanceService._mutate(model, mutate)
 
@@ -352,7 +456,15 @@ class AppearanceService:
         }
 
     @staticmethod
-    def type_form(model, kind: str, type_id) -> dict:
+    def type_form(model, kind: str, type_id, eligible_attributes=()) -> dict:
+        """
+        ``eligible_attributes`` is ``[(key, name), ...]`` for this type's
+        current Choice/Boolean effective attributes (canonical or introduced/
+        changed by the active proposal) -- the caller resolves this via
+        ``model.views.data_context.build_object_attribute_definitions`` /
+        ``build_relationship_attribute_definitions``, since this service has
+        no proposal/attribute-definition access of its own.
+        """
         _check_kind(kind)
         scope = schema.KIND_SCOPE[kind]
         type_key = str(type_id)
@@ -374,16 +486,17 @@ class AppearanceService:
         return {
             "kind": kind,
             "type_id": type_key,
-            "groups": _groups(scope, layer, resolve_layer, model_level=False),
+            "groups": _groups(scope, layer, resolve_layer, model_level=False, eligible_attributes=eligible_attributes),
             "has_overrides": bool(layer),
             "text_inside_shapes": list(schema.TEXT_INSIDE_SHAPES),
         }
 
 
-def _groups(scope: str, layer: dict, resolve_layer, *, model_level: bool) -> list[dict]:
+def _groups(scope: str, layer: dict, resolve_layer, *, model_level: bool, eligible_attributes=()) -> list[dict]:
     """Field states for one scope, grouped in spec order."""
     current = resolve_layer(layer)
     groups: dict[str, list] = {}
+    eligible_keys = {key for key, _name in eligible_attributes}
 
     for spec in schema.field_specs(scope, model_level=model_level):
         without = {key: value for key, value in layer.items() if key != spec.key}
@@ -395,6 +508,16 @@ def _groups(scope: str, layer: dict, resolve_layer, *, model_level: bool) -> lis
             inherited="" if inherited is None else inherited,
             overridden=spec.key in layer,
         )
+        if spec.control == "attribute":
+            choices = [{"value": key, "label": name} for key, name in eligible_attributes]
+            # The configured attribute may no longer be eligible (deactivated,
+            # deleted, or its proposal discarded). Keep it selectable and
+            # visibly distinct rather than silently dropping it -- colour
+            # resolution already falls back to the type colour on its own,
+            # but the editor should make clear *why*.
+            if value and value not in eligible_keys:
+                choices.append({"value": value, "label": f"{value} (no longer available)"})
+            field["choices"] = choices
         groups.setdefault(spec.group, []).append(field)
 
     return [{"label": label, "fields": fields} for label, fields in groups.items()]

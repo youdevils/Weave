@@ -157,6 +157,102 @@ def _published(dataset: EffectiveDataset) -> EffectiveDataset:
 
 
 # ------------------------------------------------------------------------------------
+# Attribute-driven colours
+#
+# A small, dedicated dataset (not the shared sample_dataset(), which many
+# other tests assert exact shapes against) exercising Object background AND
+# border driven by attributes, a Relationship line colour driven by an
+# attribute, a missing/null value falling back to the type colour, and a
+# type that stays fixed-colour throughout (regression: must compile exactly
+# as it always has).
+# ------------------------------------------------------------------------------------
+
+STYLED_APP, PLAIN_TEAM = 5, 6
+INTEGRATION = 15
+WEB_APP, BILLING_APP, NO_STATUS_APP = 501, 502, 503
+STYLED_TEAM = 601
+
+
+def attribute_styled_dataset() -> EffectiveDataset:
+    """
+    An Application's background comes from its Choice ``status``, its border
+    from its Boolean ``critical``; an Integration relationship's line colour
+    comes from its Choice ``health``. A Team stays fixed-colour throughout.
+    """
+    app_attributes = [
+        spec("status", "choice", ["Live", "Retired"]),
+        spec("critical", "boolean"),
+    ]
+    return EffectiveDataset(
+        object_types=[
+            object_type(STYLED_APP, "Application", app_attributes),
+            object_type(PLAIN_TEAM, "Team"),
+        ],
+        relationship_types=[
+            relationship_type(
+                INTEGRATION, "Integration", [rule(STYLED_APP, STYLED_APP)], [spec("health", "choice", ["Passed", "Failed"])]
+            ),
+        ],
+        objects=[
+            obj(WEB_APP, STYLED_APP, "Web Portal", {"status": "Live", "critical": True}),
+            obj(BILLING_APP, STYLED_APP, "Billing", {"status": "Retired", "critical": False}),
+            # No "status"/"critical" value at all: must fall back to the type colour.
+            obj(NO_STATUS_APP, STYLED_APP, "No Status"),
+            obj(STYLED_TEAM, PLAIN_TEAM, "Ops"),
+        ],
+        relationships=[
+            rel(7001, INTEGRATION, WEB_APP, BILLING_APP, {"health": "Passed"}),
+            rel(7002, INTEGRATION, BILLING_APP, WEB_APP, {"health": "Failed"}),
+            # No "health" value: must fall back to the relationship type's fixed colour.
+            rel(7003, INTEGRATION, WEB_APP, NO_STATUS_APP),
+        ],
+    )
+
+
+def attribute_styled_states():
+    return [
+        {},
+        {"hiddenObjectTypes": [uid(PLAIN_TEAM)]},
+    ]
+
+
+ATTRIBUTE_STYLED_MODEL = SimpleNamespace(
+    name="Attribute Styled",
+    revision=1,
+    appearance={
+        "object_types": {
+            uid(STYLED_APP): {
+                "background_source": "attribute",
+                "background_attribute": "status",
+                "border_source": "attribute",
+                "border_attribute": "critical",
+            },
+            # PLAIN_TEAM has no override at all: exercises the fixed-colour path untouched.
+        },
+        "relationship_types": {
+            uid(INTEGRATION): {
+                "colour_source": "attribute",
+                "colour_attribute": "health",
+            },
+        },
+        "attribute_colours": {
+            "object_type": {
+                uid(STYLED_APP): {
+                    "status": {"Live": "#2F9E44", "Retired": "#868E96"},
+                    "critical": {"true": "#E03131", "false": "#37B24D"},
+                },
+            },
+            "relationship_type": {
+                uid(INTEGRATION): {
+                    "health": {"Passed": "#2F9E44", "Failed": "#E03131"},
+                },
+            },
+        },
+    },
+)
+
+
+# ------------------------------------------------------------------------------------
 # States and queries
 # ------------------------------------------------------------------------------------
 
@@ -274,14 +370,14 @@ def _dropped(entries):
     return [{"kind": e["kind"], "reason": e["reason"]} for e in entries]
 
 
-def _run_state(dataset, state, queries, with_details):
+def _run_state(dataset, state, queries, with_details, model=MODEL):
     query, dropped = ExplorerQuery.from_state(state, dataset)
     projection = project(dataset, query)
 
     step = {
         "state": state,
         "graph": {
-            "payload": compile_model_graph(MODEL, dataset, projection).to_dict(),
+            "payload": compile_model_graph(model, dataset, projection).to_dict(),
             "summary": projection.summary.to_dict(),
             "state": query.to_state(),
             "dropped": _dropped(dropped),
@@ -300,15 +396,17 @@ def _run_state(dataset, state, queries, with_details):
     return step
 
 
-def build_case(name, dataset, states, queries, details_states=(0,)):
+def build_case(name, dataset, states, queries, details_states=(0,), model=MODEL):
     dataset = _published(dataset)
     empty = project(dataset, ExplorerQuery())
-    template = {**compile_model_graph(MODEL, dataset, empty).to_dict(), "nodes": [], "edges": []}
-    resolver = AppearanceService.resolver(MODEL)
+    template = {**compile_model_graph(model, dataset, empty).to_dict(), "nodes": [], "edges": []}
+    resolver = AppearanceService.resolver(model)
 
     steps = []
     for index, state in enumerate(states):
-        steps.append(_run_state(dataset, state, queries if index in details_states else [], index in details_states))
+        steps.append(
+            _run_state(dataset, state, queries if index in details_states else [], index in details_states, model=model)
+        )
     return {
         "name": name,
         "dataset": build_dataset_block(dataset, resolver),
@@ -325,5 +423,13 @@ def build_fixture() -> dict:
             build_case("sample", sample_dataset(), sample_states(), SAMPLE_QUERIES, details_states=(0, 2, 12)),
             build_case("unicode", unicode_dataset(), unicode_states(), UNICODE_QUERIES, details_states=(0, 3)),
             build_case("dense", dense_dataset(), dense_states(), DENSE_QUERIES, details_states=(0, 1)),
+            build_case(
+                "attribute_styled",
+                attribute_styled_dataset(),
+                attribute_styled_states(),
+                [],
+                details_states=(0,),
+                model=ATTRIBUTE_STYLED_MODEL,
+            ),
         ],
     }

@@ -204,6 +204,113 @@ class AppearanceInheritanceTests(CompilerTestCase):
         self.assertTrue(style.image.startswith("data:image/svg+xml"))
 
 
+class AttributeDrivenAppearanceTests(CompilerTestCase):
+    """Colour resolved per-instance from an eligible attribute's value."""
+
+    def setUp(self):
+        super().setUp()
+        AttributeDefinitionCls = self.status_attribute.__class__
+        self.urgent_attribute = AttributeDefinitionCls.objects.create(
+            object_type=self.person_type,
+            name="Urgent",
+            key="urgent",
+            data_type=AttributeDefinitionCls.DataType.BOOLEAN,
+        )
+        self.importance_attribute = AttributeDefinitionCls.objects.create(
+            relationship_type=self.member_of,
+            name="Importance",
+            key="importance",
+            data_type=AttributeDefinitionCls.DataType.CHOICE,
+            config={"choices": ["High", "Low"]},
+        )
+
+    def set_attribute_colour(self, kind, type_id, attribute_key, value_key, colour):
+        AppearanceService.set_attribute_colour(self.model, kind, type_id, attribute_key, value_key, colour)
+
+    def test_choice_value_drives_background_per_instance(self):
+        self.alice = self.make_object(self.person_type, "Alice", attributes={"status": "Active"})
+        left = self.make_object(self.person_type, "Bob", attributes={"status": "Left"})
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "background_source", "attribute")
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "background_attribute", "status")
+        self.set_attribute_colour(OBJECT_TYPE, self.person_type.id, "status", "Active", "#00FF00")
+        self.set_attribute_colour(OBJECT_TYPE, self.person_type.id, "status", "Left", "#FF0000")
+
+        payload = self.compile()
+
+        self.assertEqual(self.node(payload, self.alice).style.background, "#00FF00")
+        self.assertEqual(self.node(payload, left).style.background, "#FF0000")
+
+    def test_missing_or_unmapped_value_falls_back_to_the_type_colour(self):
+        no_value = self.make_object(self.person_type, "NoValue")
+        unmapped = self.make_object(self.person_type, "Unmapped", attributes={"status": "Other"})
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "background_source", "attribute")
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "background_attribute", "status")
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "background", "#123456")
+        self.set_attribute_colour(OBJECT_TYPE, self.person_type.id, "status", "Active", "#00FF00")
+
+        payload = self.compile()
+
+        self.assertEqual(self.node(payload, no_value).style.background, "#123456")
+        self.assertEqual(self.node(payload, unmapped).style.background, "#123456")
+
+    def test_different_attributes_drive_background_and_border(self):
+        alice = self.make_object(self.person_type, "Alice", attributes={"status": "Active", "urgent": True})
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "background_source", "attribute")
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "background_attribute", "status")
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "border_source", "attribute")
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "border_attribute", "urgent")
+        self.set_attribute_colour(OBJECT_TYPE, self.person_type.id, "status", "Active", "#00FF00")
+        self.set_attribute_colour(OBJECT_TYPE, self.person_type.id, "urgent", "true", "#FF0000")
+
+        style = self.node(self.compile(), alice).style
+
+        self.assertEqual((style.background, style.border), ("#00FF00", "#FF0000"))
+
+    def test_same_attribute_drives_background_and_border(self):
+        alice = self.make_object(self.person_type, "Alice", attributes={"status": "Active"})
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "background_source", "attribute")
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "background_attribute", "status")
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "border_source", "attribute")
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "border_attribute", "status")
+        self.set_attribute_colour(OBJECT_TYPE, self.person_type.id, "status", "Active", "#00FF00")
+
+        style = self.node(self.compile(), alice).style
+
+        self.assertEqual((style.background, style.border), ("#00FF00", "#00FF00"))
+
+    def test_relationship_line_colour_is_attribute_driven(self):
+        alice = self.make_object(self.person_type, "Alice")
+        ops = self.make_object(self.team_type, "Ops")
+        high = self.make_relationship(alice, ops, attributes={"importance": "High"})
+        AppearanceService.set_type_style(self.model, RELATIONSHIP_TYPE, self.member_of.id, "colour_source", "attribute")
+        AppearanceService.set_type_style(self.model, RELATIONSHIP_TYPE, self.member_of.id, "colour_attribute", "importance")
+        self.set_attribute_colour(RELATIONSHIP_TYPE, self.member_of.id, "importance", "High", "#FF0000")
+
+        edge = self.edge(self.compile(), high)
+
+        self.assertEqual(edge.style.colour, "#FF0000")
+
+    def test_relationship_with_no_value_falls_back_to_type_colour(self):
+        alice = self.make_object(self.person_type, "Alice")
+        ops = self.make_object(self.team_type, "Ops")
+        no_value = self.make_relationship(alice, ops)
+        AppearanceService.set_type_style(self.model, RELATIONSHIP_TYPE, self.member_of.id, "colour_source", "attribute")
+        AppearanceService.set_type_style(self.model, RELATIONSHIP_TYPE, self.member_of.id, "colour_attribute", "importance")
+        self.set_attribute_colour(RELATIONSHIP_TYPE, self.member_of.id, "importance", "High", "#FF0000")
+
+        edge = self.edge(self.compile(), no_value)
+
+        self.assertEqual(edge.style.colour, "#495057")
+
+    def test_type_sourced_colours_are_unaffected_by_the_new_fields(self):
+        self.seed()
+        AppearanceService.set_type_style(self.model, OBJECT_TYPE, self.person_type.id, "background", "#123456")
+
+        style = self.node(self.compile(), self.alice).style
+
+        self.assertEqual(style.background, "#123456")
+
+
 class ProposedVisualStateTests(CompilerTestCase):
 
     def test_no_active_proposal_shows_canonical_state_only(self):

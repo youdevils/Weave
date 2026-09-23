@@ -10,11 +10,53 @@ from model.models.attribute_definition import AttributeDefinition
 from model.models.relationship_type import RelationshipType
 from model.models.relationship_type_rule import RelationshipTypeRule
 from model.models.proposal import ProposalChange
-from model.services.appearance import RELATIONSHIP_TYPE, AppearanceService
+from model.services.appearance import COLOUR_ELIGIBLE_DATA_TYPES, RELATIONSHIP_TYPE, AppearanceService
 from model.services.proposal.proposal import ProposalService
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
+from model.views.data_context import build_relationship_attribute_definitions
 from model.views.sidebar import with_updated_sidebar
+
+
+def _eligible_appearance_attributes(relationship_type, proposal):
+    """[(key, name), ...] for this type's effective Choice/Boolean attributes."""
+    if not relationship_type:
+        return []
+    return [
+        (definition.key, definition.name)
+        for definition in build_relationship_attribute_definitions(relationship_type, proposal)
+        if definition.data_type in COLOUR_ELIGIBLE_DATA_TYPES
+    ]
+
+
+# Shown for a value that has no colour configured yet -- a neutral placeholder,
+# never mistaken for a deliberately chosen colour.
+DEFAULT_ATTRIBUTE_COLOUR = "#CED4DA"
+
+
+def _attribute_colour_rows(model, type_id, effective_values):
+    """
+    [{value, label, colour}, ...] for a Choice/Boolean attribute's value
+    colours, regardless of whether it is currently selected as a colour
+    source anywhere. Keyed by the attribute's *effective* key/choices
+    (proposal overlay included), matching how the graph compiler resolves
+    colours. Templates cannot do a dynamic dict lookup (``dict.key`` only
+    resolves a literal key), so the value/colour pairing is built here.
+    """
+    data_type = effective_values["data_type"]
+    if data_type not in COLOUR_ELIGIBLE_DATA_TYPES:
+        return []
+
+    colours = AppearanceService.attribute_value_colours(model, RELATIONSHIP_TYPE, type_id, effective_values["key"])
+
+    if data_type == "boolean":
+        return [
+            {"value": "true", "label": "True", "colour": colours.get("true", DEFAULT_ATTRIBUTE_COLOUR)},
+            {"value": "false", "label": "False", "colour": colours.get("false", DEFAULT_ATTRIBUTE_COLOUR)},
+        ]
+
+    choices = (effective_values.get("config") or {}).get("choices") or []
+    return [{"value": choice, "label": choice, "colour": colours.get(choice, DEFAULT_ATTRIBUTE_COLOUR)} for choice in choices]
 
 # =====================================================================
 # Field definitions
@@ -392,6 +434,7 @@ def _attribute_is_proposed(
 
 
 def _build_attribute_view_objects(
+    model,
     relationship_type,
     proposal,
 ):
@@ -429,6 +472,7 @@ def _build_attribute_view_objects(
 
         attribute.attribute_created = False
         attribute.data_type_choices = AttributeDefinition.DataType.choices
+        attribute.value_colour_rows = _attribute_colour_rows(model, relationship_type.id, attribute.proposed_values)
 
         attributes.append(
             attribute,
@@ -517,6 +561,15 @@ def _build_attribute_view_objects(
                     attribute_proposed=True,
                     attribute_created=True,
                     data_type_choices=(AttributeDefinition.DataType.choices),
+                    value_colour_rows=_attribute_colour_rows(
+                        model,
+                        relationship_type.id,
+                        {
+                            "data_type": values.get("data_type", AttributeDefinition.DataType.TEXT),
+                            "key": values.get("key", ""),
+                            "config": values.get("config") or {},
+                        },
+                    ),
                 )
             )
 
@@ -1304,6 +1357,7 @@ def _render_editor(
             ),
             "attributes": (
                 _build_attribute_view_objects(
+                    model,
                     relationship_type,
                     proposal,
                 )
@@ -1330,7 +1384,12 @@ def _render_editor(
             "proposal_update_url": request.path,
             # Style saves directly (never via the proposal); works for proposed-only types too.
             "appearance_form": (
-                AppearanceService.type_form(model, RELATIONSHIP_TYPE, relationship_type.id)
+                AppearanceService.type_form(
+                    model,
+                    RELATIONSHIP_TYPE,
+                    relationship_type.id,
+                    eligible_attributes=_eligible_appearance_attributes(relationship_type, proposal),
+                )
                 if relationship_type
                 else None
             ),

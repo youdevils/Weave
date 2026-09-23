@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from account.models import CustomUser
+from model.models.attribute_definition import AttributeDefinition
 from model.models.model import Model
 from model.models.object_type import ObjectType
 from model.models.proposal import Proposal, ProposalChange
@@ -439,3 +440,195 @@ class OverviewIntegrationTests(AppearanceViewTestCase):
         self.assertContains(response, "background: #101010;")
         self.assertContains(response, "--legend-node-border: #00AA00;")
         self.assertContains(response, "--legend-proposed: #F08C00;")
+
+
+class AttributeColourSourceEndpointTests(AppearanceViewTestCase):
+
+    def make_choice_attribute(self, object_type=None, key="status", choices=("Passed", "Failed")):
+        return AttributeDefinition.objects.create(
+            object_type=object_type or self.object_type,
+            name=key.title(),
+            key=key,
+            data_type=AttributeDefinition.DataType.CHOICE,
+            config={"choices": list(choices)},
+        )
+
+    def make_boolean_attribute(self, relationship_type=None, key="urgent"):
+        return AttributeDefinition.objects.create(
+            relationship_type=relationship_type or self.relationship_type,
+            name=key.title(),
+            key=key,
+            data_type=AttributeDefinition.DataType.BOOLEAN,
+        )
+
+    def test_background_attribute_accepts_an_eligible_choice_attribute(self):
+        self.make_choice_attribute()
+
+        response = self.client.post(self.object_type_url(), {"field": "background_attribute", "value": "status"})
+
+        self.assertTrue(response.json()["success"])
+        self.assertEqual(
+            AppearanceService.resolve_object_type(self.fresh_model(), self.object_type.id).background_attribute,
+            "status",
+        )
+
+    def test_background_attribute_rejects_a_non_eligible_key(self):
+        response = self.client.post(self.object_type_url(), {"field": "background_attribute", "value": "status"})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(AppearanceService.has_type_style(self.fresh_model(), OBJECT_TYPE, self.object_type.id))
+
+    def test_border_attribute_rejects_a_text_attribute(self):
+        AttributeDefinition.objects.create(
+            object_type=self.object_type, name="Notes", key="notes", data_type=AttributeDefinition.DataType.TEXT
+        )
+
+        response = self.client.post(self.object_type_url(), {"field": "border_attribute", "value": "notes"})
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_line_colour_attribute_accepts_an_eligible_boolean_attribute(self):
+        self.make_boolean_attribute()
+
+        response = self.client.post(self.relationship_type_url(), {"field": "colour_attribute", "value": "urgent"})
+
+        self.assertTrue(response.json()["success"])
+        self.assertEqual(
+            AppearanceService.resolve_relationship_type(self.fresh_model(), self.relationship_type.id).colour_attribute,
+            "urgent",
+        )
+
+    def test_source_and_colour_round_trip_through_the_editor_form(self):
+        self.make_choice_attribute()
+        self.client.post(self.object_type_url(), {"field": "background_source", "value": "attribute"})
+        self.client.post(self.object_type_url(), {"field": "background_attribute", "value": "status"})
+
+        response = self.client.get(
+            reverse("model:object_type_edit", args=[self.model.id, self.object_type.id])
+        )
+        fields = self.field_map(response.context["appearance_form"])
+
+        self.assertEqual(fields["background_source"]["value"], "attribute")
+        self.assertEqual(fields["background_attribute"]["value"], "status")
+        # Switching back to Type must restore the fixed colour immediately: it
+        # was never cleared, only ignored while the source was "attribute".
+        self.assertFalse(fields["background"]["overridden"] and fields["background"]["value"] == "")
+
+    def test_proposal_only_attribute_is_a_valid_selection(self):
+        proposal = ProposalService.get_or_create_working(self.model, self.user)
+        attribute_id = uuid.uuid4()
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="AttributeDefinition",
+            target_id=attribute_id,
+            parent_type="ObjectType",
+            parent_id=self.object_type.id,
+            before=None,
+            after={
+                "name": "Test Status",
+                "key": "test_status",
+                "data_type": "choice",
+                "config": {"choices": ["Passed", "Failed"]},
+                "is_active": True,
+            },
+        )
+        activate_proposal(self.client, self.model.id, proposal)
+
+        response = self.client.post(self.object_type_url(), {"field": "background_attribute", "value": "test_status"})
+
+        self.assertTrue(response.json()["success"])
+        self.assertEqual(
+            AppearanceService.resolve_object_type(self.fresh_model(), self.object_type.id).background_attribute,
+            "test_status",
+        )
+
+    def test_a_stale_attribute_reference_is_still_selectable_and_flagged(self):
+        attribute = self.make_choice_attribute()
+        self.client.post(self.object_type_url(), {"field": "background_source", "value": "attribute"})
+        self.client.post(self.object_type_url(), {"field": "background_attribute", "value": "status"})
+        attribute.delete()
+
+        response = self.client.get(reverse("model:object_type_edit", args=[self.model.id, self.object_type.id]))
+
+        fields = self.field_map(response.context["appearance_form"])
+        choices = {c["value"]: c["label"] for c in fields["background_attribute"]["choices"]}
+        self.assertIn("status", choices)
+        self.assertIn("no longer available", choices["status"])
+        # Colour resolution itself must not fail either: it falls back to the type colour.
+        self.assertEqual(
+            AppearanceService.resolve_object_type(self.fresh_model(), self.object_type.id).background_attribute,
+            "status",
+        )
+
+
+class AttributeValueColourEndpointTests(AppearanceViewTestCase):
+
+    def colour_url(self, attribute_key, type_id=None):
+        return reverse(
+            "model:object_type_attribute_colours", args=[self.model.id, type_id or self.object_type.id, attribute_key]
+        )
+
+    def relationship_colour_url(self, attribute_key, type_id=None):
+        return reverse(
+            "model:relationship_type_attribute_colours",
+            args=[self.model.id, type_id or self.relationship_type.id, attribute_key],
+        )
+
+    def test_saves_a_choice_value_colour(self):
+        response = self.client.post(self.colour_url("status"), {"field": "Passed", "value": "#00ff00"})
+
+        self.assertTrue(response.json()["success"])
+        self.assertEqual(response.json()["colours"], {"Passed": "#00FF00"})
+        self.assertEqual(
+            AppearanceService.attribute_value_colours(self.fresh_model(), OBJECT_TYPE, self.object_type.id, "status"),
+            {"Passed": "#00FF00"},
+        )
+
+    def test_colours_can_be_set_without_the_attribute_being_used_as_any_source(self):
+        response = self.client.post(self.colour_url("status"), {"field": "Passed", "value": "#00ff00"})
+
+        self.assertTrue(response.json()["success"])
+        self.assertFalse(AppearanceService.has_type_style(self.fresh_model(), OBJECT_TYPE, self.object_type.id))
+
+    def test_reset_field_and_reset_all(self):
+        self.client.post(self.colour_url("status"), {"field": "Passed", "value": "#00ff00"})
+        self.client.post(self.colour_url("status"), {"field": "Failed", "value": "#ff0000"})
+
+        response = self.client.post(self.colour_url("status"), {"action": "reset_field", "field": "Passed"})
+        self.assertEqual(response.json()["colours"], {"Failed": "#FF0000"})
+
+        response = self.client.post(self.colour_url("status"), {"action": "reset_all"})
+        self.assertEqual(response.json()["colours"], {})
+
+    def test_boolean_colours_save_on_relationship_types(self):
+        response = self.client.post(self.relationship_colour_url("urgent"), {"field": "true", "value": "#ff0000"})
+
+        self.assertTrue(response.json()["success"])
+        self.assertEqual(
+            AppearanceService.attribute_value_colours(
+                self.fresh_model(), RELATIONSHIP_TYPE, self.relationship_type.id, "urgent"
+            ),
+            {"true": "#FF0000"},
+        )
+
+    def test_invalid_colour_is_rejected(self):
+        response = self.client.post(self.colour_url("status"), {"field": "Passed", "value": "not-a-colour"})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            AppearanceService.attribute_value_colours(self.fresh_model(), OBJECT_TYPE, self.object_type.id, "status"), {}
+        )
+
+    def test_unknown_type_is_404(self):
+        response = self.client.post(
+            self.colour_url("status", type_id=uuid.uuid4()), {"field": "Passed", "value": "#00ff00"}
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_saving_colours_is_not_a_proposal_operation(self):
+        self.client.post(self.colour_url("status"), {"field": "Passed", "value": "#00ff00"})
+
+        self.assertFalse(Proposal.objects.exists())
+        self.assertFalse(ProposalChange.objects.exists())

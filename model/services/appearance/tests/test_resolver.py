@@ -59,6 +59,32 @@ class ObjectResolutionTests(SimpleTestCase):
         self.assertEqual(resolve_object(theme, {}, {}).font_family, stack)
         self.assertEqual(resolve_relationship(theme, {}, {}).font_family, stack)
 
+    def test_colour_source_defaults_to_type_with_no_attribute_and_no_value_map(self):
+        resolved = resolve_object(self.theme, {}, {})
+        self.assertEqual(resolved.background_source, "type")
+        self.assertIsNone(resolved.background_attribute)
+        self.assertEqual(resolved.background_by_value, {})
+        self.assertEqual(resolved.border_source, "type")
+        self.assertIsNone(resolved.border_attribute)
+        self.assertEqual(resolved.border_by_value, {})
+
+    def test_colour_source_and_attribute_flow_through_the_same_layering(self):
+        resolved = resolve_object(
+            self.theme,
+            {"background_source": "attribute", "background_attribute": "model-level-attr"},
+            {"background_attribute": "type-level-attr"},
+        )
+        self.assertEqual(resolved.background_source, "attribute")
+        self.assertEqual(resolved.background_attribute, "type-level-attr")
+
+    def test_by_value_maps_default_to_independent_empty_dicts(self):
+        """A mutable-default bug would alias one dict across every resolution."""
+        first = resolve_object(self.theme, {}, {})
+        second = resolve_object(self.theme, {}, {})
+        self.assertIsNot(first.background_by_value, second.background_by_value)
+        first.background_by_value["leaked"] = "#000000"
+        self.assertEqual(second.background_by_value, {})
+
 
 class RelationshipResolutionTests(SimpleTestCase):
 
@@ -88,3 +114,18 @@ class RelationshipResolutionTests(SimpleTestCase):
         self.assertEqual(resolved.line_style, "dotted")
         self.assertEqual(resolved.width, 3)
         self.assertEqual(resolved.arrows, "both")
+
+    def test_colour_source_defaults_to_type_with_no_attribute_and_no_value_map(self):
+        resolved = resolve_relationship(self.theme, {}, {})
+        self.assertEqual(resolved.colour_source, "type")
+        self.assertIsNone(resolved.colour_attribute)
+        self.assertEqual(resolved.colour_by_value, {})
+
+    def test_colour_source_and_attribute_flow_through_the_same_layering(self):
+        resolved = resolve_relationship(
+            self.theme,
+            {"colour_source": "attribute", "colour_attribute": "model-level"},
+            {"colour_attribute": "type-level"},
+        )
+        self.assertEqual(resolved.colour_source, "attribute")
+        self.assertEqual(resolved.colour_attribute, "type-level")

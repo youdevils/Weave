@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from django.test import SimpleTestCase
 
 from model.models.proposal import Proposal
+from model.services.appearance import AppearanceService
 from publication.services.bundle import build_bundle, compute_digest, with_publication
 from publication.services.portable.assets import load_assets
 from publication.services.portable.renderer import render_document
@@ -203,6 +204,21 @@ class ContentTests(DocumentFixture):
 
         self.assertNotIn("Proposed Pat", html)
         self.assertNotIn("Alice Renamed", html)
+
+
+class AttributeDrivenStyleTests(DocumentFixture):
+    """The offline document must carry resolved attribute-driven colours -- no server exists to resolve them later."""
+
+    def test_attribute_driven_colour_is_embedded_in_the_offline_data_block(self):
+        AppearanceService.set_type_style(self.model, "object_type", self.person_type.id, "background_source", "attribute")
+        AppearanceService.set_type_style(self.model, "object_type", self.person_type.id, "background_attribute", "status")
+        AppearanceService.set_attribute_colour(self.model, "object_type", self.person_type.id, "status", "Active", "#00FF00")
+
+        embedded = self.data(self.document())
+
+        objects = {o["name"]: o for o in embedded["dataset"]["objects"]}
+        self.assertEqual(objects["Alice"]["style"]["background"], "#00FF00")
+        self.assertIn("#00FF00", self.document())
 
 
 class HostileInputTests(DocumentFixture):

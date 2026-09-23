@@ -465,29 +465,112 @@ export function renderNotices(summary, { hasNarrowing }) {
 // Filter panel
 // ---------------------------------------------------------------------------
 
-function renderTypeRows(list, hiddenList, action, emptyLabel) {
+// Which style property(ies) can be attribute-driven, per kind, and where to
+// read the source/attribute/resolved-colour for each from.
+const OBJECT_COLOUR_PROPERTIES = [
+  { sourceKey: "backgroundSource", attributeKey: "backgroundAttribute", styleKey: "background" },
+  { sourceKey: "borderSource", attributeKey: "borderAttribute", styleKey: "border" },
+];
+const RELATIONSHIP_COLOUR_PROPERTIES = [{ sourceKey: "colourSource", attributeKey: "colourAttribute", styleKey: "colour" }];
+
+function isAttributeDriven(kind, type) {
+  const properties = kind === "object" ? OBJECT_COLOUR_PROPERTIES : RELATIONSHIP_COLOUR_PROPERTIES;
+  return Boolean(type.swatch) && properties.some((p) => type.swatch[p.sourceKey] === "attribute" && type.swatch[p.attributeKey]);
+}
+
+/**
+ * Groups of a type's currently-rendered items (nodes or edges) by their
+ * *resolved* colour tuple -- never a second colour resolution, just reading
+ * back what the graph already compiled, so the legend cannot disagree with
+ * it. Each group's label lists every distinct value (per attribute-driven
+ * property) that produced that colour, so two values sharing one configured
+ * colour are not misattributed to just one of them.
+ */
+export function attributeLegendGroups(kind, type, items) {
+  const properties = kind === "object" ? OBJECT_COLOUR_PROPERTIES : RELATIONSHIP_COLOUR_PROPERTIES;
+  const active = properties.filter((p) => type.swatch && type.swatch[p.sourceKey] === "attribute" && type.swatch[p.attributeKey]);
+  if (active.length === 0) return [];
+
+  const attributeKeys = [...new Set(active.map((p) => type.swatch[p.attributeKey]))];
+  const groups = new Map();
+
+  for (const item of items) {
+    const style = item.style || {};
+    const tupleKey = active.map((p) => style[p.styleKey] ?? "").join("\u0000");
+    let group = groups.get(tupleKey);
+    if (!group) {
+      group = { style, valuesByAttribute: new Map(attributeKeys.map((key) => [key, new Set()])) };
+      groups.set(tupleKey, group);
+    }
+    for (const key of attributeKeys) {
+      const raw = item.data && item.data.attributes ? item.data.attributes[key] : undefined;
+      if (raw !== undefined) group.valuesByAttribute.get(key).add(String(raw));
+    }
+  }
+
+  return [...groups.values()].map((group) => ({
+    style: group.style,
+    label: attributeKeys
+      .map((key) => {
+        const values = [...group.valuesByAttribute.get(key)].sort();
+        return values.length > 0 ? values.join(", ") : "No value";
+      })
+      .join(" · "),
+  }));
+}
+
+function attributeLegendRow(kind, type, group) {
+  // Colour comes from the resolved group; shape stays the type's own, so only
+  // the property that actually varies (colour) differs between rows. An icon
+  // is skipped here: its glyph is pre-rendered in the *type's* fixed border,
+  // so it cannot reflect a resolved-per-group border without a second render.
+  const data =
+    kind === "object"
+      ? { shape: type.swatch && type.swatch.shape, background: group.style.background, border: group.style.border }
+      : { colour: group.style.colour, lineStyle: group.style.lineStyle || (type.swatch && type.swatch.lineStyle) || "solid" };
+  return `
+    <div class="model-explorer-legend-subrow">
+      ${swatch(kind, data)}
+      <span class="model-explorer-legend-subrow-label">${e(group.label)}</span>
+    </div>`;
+}
+
+/** A neutral placeholder swatch for a type whose colour varies by attribute -- never one implied colour. */
+function variesSwatch(kind) {
+  return `<span class="model-explorer-swatch-varies" data-kind="${kind}" role="img" aria-label="Colour varies by attribute"></span>`;
+}
+
+function renderTypeRows(list, hiddenList, action, emptyLabel, items) {
   if (list.length === 0) return `<p class="model-explorer-muted">${emptyLabel}</p>`;
   const kind = action === "toggle-object-type" ? "object" : "relationship";
   return list
     .map((type) => {
       const checked = !hiddenList.includes(type.id);
+      const driven = isAttributeDriven(kind, type);
+      const typeItems =
+        kind === "object"
+          ? (items || []).filter((n) => n.data.object_type_id === type.id)
+          : (items || []).filter((edge) => edge.data.relationship_type_id === type.id);
+      const groups = driven ? attributeLegendGroups(kind, type, typeItems) : [];
+      const subrows = groups.map((group) => attributeLegendRow(kind, type, group)).join("");
       return `
         <label class="model-explorer-check">
           <input type="checkbox" data-action="${action}" data-id="${e(type.id)}" ${checked ? "checked" : ""}>
-          ${swatch(kind, type.swatch)}
+          ${driven ? variesSwatch(kind) : swatch(kind, type.swatch)}
           <span class="model-explorer-check-name">${e(type.name)}${proposedBadge(type.isProposed)}</span>
           <span class="model-explorer-count">${type.count}</span>
-        </label>`;
+        </label>
+        ${subrows ? `<div class="model-explorer-legend-subrows">${subrows}</div>` : ""}`;
     })
     .join("");
 }
 
-export function renderObjectTypeRows(objectTypes, hiddenObjectTypes) {
-  return renderTypeRows(objectTypes, hiddenObjectTypes, "toggle-object-type", "No object types.");
+export function renderObjectTypeRows(objectTypes, hiddenObjectTypes, nodes) {
+  return renderTypeRows(objectTypes, hiddenObjectTypes, "toggle-object-type", "No object types.", nodes);
 }
 
-export function renderRelationshipTypeRows(relationshipTypes, hiddenRelationshipTypes) {
-  return renderTypeRows(relationshipTypes, hiddenRelationshipTypes, "toggle-relationship-type", "No relationship types.");
+export function renderRelationshipTypeRows(relationshipTypes, hiddenRelationshipTypes, edges) {
+  return renderTypeRows(relationshipTypes, hiddenRelationshipTypes, "toggle-relationship-type", "No relationship types.", edges);
 }
 
 /** Combined legend used by consumers without collapsible sections (e.g. the publish scope panel). */

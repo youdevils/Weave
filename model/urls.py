@@ -9,7 +9,7 @@ from .views.explore import (
     explore_relationship,
     explore_search,
 )
-from .views.appearance import type_appearance
+from .views.appearance import attribute_value_appearance, type_appearance
 from .views.proposal import proposal, proposal_create
 from .views.object_types import object_types
 from .views.object_type_editor import object_type_editor
@@ -111,6 +111,12 @@ urlpatterns = [
         {"kind": "object_type"},
         name="object_type_appearance",
     ),
+    path(
+        "<uuid:model_id>/object-types/<uuid:type_id>/attributes/<slug:attribute_key>/colours/",
+        attribute_value_appearance,
+        {"kind": "object_type"},
+        name="object_type_attribute_colours",
+    ),
     # ================================================================
     # Relationship Types
     # ================================================================
@@ -134,6 +140,12 @@ urlpatterns = [
         type_appearance,
         {"kind": "relationship_type"},
         name="relationship_type_appearance",
+    ),
+    path(
+        "<uuid:model_id>/relationship-types/<uuid:type_id>/attributes/<slug:attribute_key>/colours/",
+        attribute_value_appearance,
+        {"kind": "relationship_type"},
+        name="relationship_type_attribute_colours",
     ),
     # ================================================================
     # Data — Objects

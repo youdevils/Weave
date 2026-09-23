@@ -57,7 +57,11 @@ def compile_model_graph(model, dataset: EffectiveDataset, projection: Projection
                     "is_created": obj.is_created,
                     "attributes": _populated_attributes(object_type.attributes, obj.attributes),
                 },
-                style=node_style(appearance.object_type(object_type.id), is_proposed=obj.is_proposed),
+                style=node_style(
+                    appearance.object_type(object_type.id),
+                    is_proposed=obj.is_proposed,
+                    instance_attributes=obj.attributes,
+                ),
             )
         )
 
@@ -82,6 +86,7 @@ def compile_model_graph(model, dataset: EffectiveDataset, projection: Projection
                 style=edge_style(
                     appearance.relationship_type(relationship_type.id),
                     is_proposed=relationship.is_proposed,
+                    instance_attributes=relationship.attributes,
                 ),
             )
         )

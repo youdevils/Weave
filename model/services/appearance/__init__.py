@@ -3,7 +3,7 @@ from .resolved import (
     ResolvedRelationshipAppearance,
     ResolvedTheme,
 )
-from .schema import AppearanceValidationError
+from .schema import COLOUR_ELIGIBLE_DATA_TYPES, AppearanceValidationError
 from .service import (
     OBJECT_TYPE,
     RELATIONSHIP_TYPE,
@@ -13,6 +13,7 @@ from .service import (
 )
 
 __all__ = [
+    "COLOUR_ELIGIBLE_DATA_TYPES",
     "OBJECT_TYPE",
     "RELATIONSHIP_TYPE",
     "AppearanceResolver",

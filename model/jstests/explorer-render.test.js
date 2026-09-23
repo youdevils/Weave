@@ -421,6 +421,144 @@ test("renderRelationshipTypeRows shows a message when there are no relationship 
   assert.match(renderRelationshipTypeRows([], []), /No relationship types\./);
 });
 
+// ---------------------------------------------------------------------------
+// Attribute-driven legend
+// ---------------------------------------------------------------------------
+
+const attributeDrivenObjectTypes = [
+  {
+    id: "t-app",
+    name: "Application",
+    isProposed: false,
+    count: 3,
+    swatch: {
+      background: "#EDF2FF",
+      border: "#4C6EF5",
+      shape: "box",
+      backgroundSource: "attribute",
+      backgroundAttribute: "status",
+      borderSource: "type",
+      borderAttribute: null,
+    },
+  },
+];
+
+const node = (id, typeId, attributes, style) => ({
+  id,
+  data: { object_type_id: typeId, attributes },
+  style,
+});
+
+test("renderObjectTypeRows keeps the type's checkbox, name and count unchanged for an attribute-driven type", () => {
+  const nodes = [node("o1", "t-app", { status: "Live" }, { background: "#2F9E44", border: "#4C6EF5" })];
+  const html = renderObjectTypeRows(attributeDrivenObjectTypes, [], nodes);
+
+  assert.match(html, /data-action="toggle-object-type" data-id="t-app"/);
+  assert.match(html, /checked/);
+  assert.match(html, /Application/);
+  assert.match(html, /<span class="model-explorer-count">3<\/span>/);
+});
+
+test("renderObjectTypeRows never shows the fixed single-colour swatch for an attribute-driven type", () => {
+  const nodes = [node("o1", "t-app", { status: "Live" }, { background: "#2F9E44", border: "#4C6EF5" })];
+  const html = renderObjectTypeRows(attributeDrivenObjectTypes, [], nodes);
+
+  assert.doesNotMatch(html, /fill="#EDF2FF"/);
+  assert.match(html, /model-explorer-swatch-varies/);
+});
+
+test("renderObjectTypeRows normally-styled types are rendered exactly as before (no subrows, no varies swatch)", () => {
+  const html = renderObjectTypeRows(facets.objectTypes, ["t-team"]);
+
+  assert.doesNotMatch(html, /model-explorer-swatch-varies/);
+  assert.doesNotMatch(html, /model-explorer-legend-subrows/);
+  assert.match(html, /<svg class="model-explorer-swatch"/);
+});
+
+test("attribute-driven subrows show only the distinct values actually present in the current view", () => {
+  const nodes = [
+    node("o1", "t-app", { status: "Live" }, { background: "#2F9E44", border: "#4C6EF5" }),
+    node("o2", "t-app", { status: "Live" }, { background: "#2F9E44", border: "#4C6EF5" }),
+  ];
+  const html = renderObjectTypeRows(attributeDrivenObjectTypes, [], nodes);
+
+  assert.match(html, /Live/);
+  assert.doesNotMatch(html, /Retired/); // configured on the attribute, but no node uses it here
+  const subrowCount = (html.match(/class="model-explorer-legend-subrow"/g) || []).length;
+  assert.equal(subrowCount, 1); // one distinct resolved colour, not one row per node
+});
+
+test("distinct values that resolve to the same colour share one swatch but list every contributing value", () => {
+  const nodes = [
+    node("o1", "t-app", { status: "Live" }, { background: "#2F9E44", border: "#4C6EF5" }),
+    node("o2", "t-app", { status: "Beta" }, { background: "#2F9E44", border: "#4C6EF5" }), // same colour, different value
+  ];
+  const html = renderObjectTypeRows(attributeDrivenObjectTypes, [], nodes);
+
+  const subrowCount = (html.match(/class="model-explorer-legend-subrow"/g) || []).length;
+  assert.equal(subrowCount, 1);
+  assert.match(html, /Beta, Live/); // both values named against the one shared swatch, sorted
+});
+
+test("an object with no value for the attribute is grouped and labelled distinctly (falls back to the type colour)", () => {
+  const nodes = [
+    node("o1", "t-app", { status: "Live" }, { background: "#2F9E44", border: "#4C6EF5" }),
+    node("o2", "t-app", {}, { background: "#EDF2FF", border: "#4C6EF5" }), // no "status": falls back
+  ];
+  const html = renderObjectTypeRows(attributeDrivenObjectTypes, [], nodes);
+
+  const subrowCount = (html.match(/class="model-explorer-legend-subrow"/g) || []).length;
+  assert.equal(subrowCount, 2);
+  assert.match(html, /No value/);
+});
+
+test("different attributes for background and border produce a compound label", () => {
+  const types = [
+    {
+      id: "t-app",
+      name: "Application",
+      count: 1,
+      swatch: {
+        background: "#EDF2FF",
+        border: "#4C6EF5",
+        shape: "box",
+        backgroundSource: "attribute",
+        backgroundAttribute: "status",
+        borderSource: "attribute",
+        borderAttribute: "urgent",
+      },
+    },
+  ];
+  const nodes = [node("o1", "t-app", { status: "Live", urgent: true }, { background: "#2F9E44", border: "#E03131" })];
+
+  const html = renderObjectTypeRows(types, [], nodes);
+
+  assert.match(html, /Live.*·.*true|true.*·.*Live/);
+});
+
+test("relationship line colour source produces attribute-driven subrows the same way", () => {
+  const relationshipTypes = [
+    {
+      id: "r-uses",
+      name: "Uses",
+      count: 2,
+      swatch: { colour: "#495057", lineStyle: "solid", colourSource: "attribute", colourAttribute: "health" },
+    },
+  ];
+  const edges = [
+    { id: "e1", data: { relationship_type_id: "r-uses", attributes: { health: "Passed" } }, style: { colour: "#2F9E44", lineStyle: "solid" } },
+    { id: "e2", data: { relationship_type_id: "r-uses", attributes: { health: "Failed" } }, style: { colour: "#E03131", lineStyle: "solid" } },
+  ];
+
+  const html = renderRelationshipTypeRows(relationshipTypes, [], edges);
+
+  assert.match(html, /model-explorer-swatch-varies/);
+  assert.match(html, /Passed/);
+  assert.match(html, /Failed/);
+  const subrowCount = (html.match(/class="model-explorer-legend-subrow"/g) || []).length;
+  assert.equal(subrowCount, 2);
+});
+
 test("type filters show every type with counts and its resolved swatch, checked unless hidden", () => {
   const html = renderTypeFilters(facets, toggleObjectType(initialState(), "t-team"));
 

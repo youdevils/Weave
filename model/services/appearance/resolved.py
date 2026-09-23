@@ -6,7 +6,7 @@ any viewer. Graph compilers turn these into viewer styles through
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 
 
 @dataclass(frozen=True)
@@ -31,6 +31,13 @@ class ResolvedObjectAppearance:
     font_size: float
     font_weight: str
     icon: str | None
+    background_source: str = "type"
+    background_attribute: str | None = None
+    # value -> hex, populated only when background_source == "attribute".
+    background_by_value: dict = field(default_factory=dict)
+    border_source: str = "type"
+    border_attribute: str | None = None
+    border_by_value: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -48,6 +55,10 @@ class ResolvedRelationshipAppearance:
     # Colour drawn around edge labels so they stay legible where they cross a
     # line; always the canvas background, so it is invisible against it.
     label_halo: str
+    colour_source: str = "type"
+    colour_attribute: str | None = None
+    # value -> hex, populated only when colour_source == "attribute".
+    colour_by_value: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return asdict(self)

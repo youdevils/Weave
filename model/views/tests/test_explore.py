@@ -243,7 +243,10 @@ class PageTests(ExploreViewTestCase):
         bootstrap = self.client.get(self.page_url()).context["explorer_bootstrap"]
 
         (member_of,) = bootstrap["facets"]["relationshipTypes"]
-        self.assertEqual(member_of["swatch"], {"colour": "#C92A2A", "lineStyle": "dashed"})
+        self.assertEqual(
+            member_of["swatch"],
+            {"colour": "#C92A2A", "lineStyle": "dashed", "colourSource": "type", "colourAttribute": None},
+        )
 
     def test_proposed_change_legend_item_is_only_present_with_an_active_proposal(self):
         self.assertNotContains(self.client.get(self.page_url()), "Proposed change")

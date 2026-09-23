@@ -21,7 +21,11 @@ THEME_DEFAULTS = {
 OBJECT_DEFAULTS = {
     "shape": "box",
     "background": "#EDF2FF",
+    "background_source": "type",
+    "background_attribute": None,
     "border_width": 1.5,
+    "border_source": "type",
+    "border_attribute": None,
     "size": 25,
     "font_colour": "#212529",
     "font_size": 14,
@@ -31,6 +35,8 @@ OBJECT_DEFAULTS = {
 
 RELATIONSHIP_DEFAULTS = {
     "colour": "#495057",
+    "colour_source": "type",
+    "colour_attribute": None,
     "width": 1.5,
     "line_style": "solid",
     "arrows": "to",

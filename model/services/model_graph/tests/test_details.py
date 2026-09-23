@@ -222,7 +222,10 @@ class FacetTests(SimpleTestCase):
         person = next(t for t in facets["objectTypes"] if t["name"] == "Person")
         self.assertEqual((application["swatch"]["shape"], application["swatch"]["background"]), ("star", "#112233"))
         self.assertEqual(person["swatch"]["shape"], "box")
-        self.assertEqual(facets["relationshipTypes"][0]["swatch"], {"colour": "#495057", "lineStyle": "solid"})
+        self.assertEqual(
+            facets["relationshipTypes"][0]["swatch"],
+            {"colour": "#495057", "lineStyle": "solid", "colourSource": "type", "colourAttribute": None},
+        )
 
     def object_swatch(self, type_layer, name="Application"):
         from model.services.appearance import AppearanceResolver, schema
@@ -236,7 +239,17 @@ class FacetTests(SimpleTestCase):
 
         self.assertEqual(
             swatch,
-            {"background": "#112233", "border": "#445566", "shape": "hexagon", "icon": None, "image": None},
+            {
+                "background": "#112233",
+                "border": "#445566",
+                "shape": "hexagon",
+                "icon": None,
+                "image": None,
+                "backgroundSource": "type",
+                "backgroundAttribute": None,
+                "borderSource": "type",
+                "borderAttribute": None,
+            },
         )
 
     def test_every_curated_shape_reaches_the_swatch(self):
@@ -273,9 +286,15 @@ class FacetTests(SimpleTestCase):
         facets = build_facets(sample_dataset(), AppearanceResolver(document))
 
         uses = next(t for t in facets["relationshipTypes"] if t["name"] == "Uses")
-        self.assertEqual(uses["swatch"], {"colour": "#C92A2A", "lineStyle": "dotted"})
+        self.assertEqual(
+            uses["swatch"],
+            {"colour": "#C92A2A", "lineStyle": "dotted", "colourSource": "type", "colourAttribute": None},
+        )
         member_of = next(t for t in facets["relationshipTypes"] if t["name"] == "Member of")
-        self.assertEqual(member_of["swatch"], {"colour": "#495057", "lineStyle": "solid"})
+        self.assertEqual(
+            member_of["swatch"],
+            {"colour": "#495057", "lineStyle": "solid", "colourSource": "type", "colourAttribute": None},
+        )
 
     def test_facets_ignore_filters(self):
         # Facets are built from the dataset alone, so a hidden type keeps its entry.

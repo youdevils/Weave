@@ -133,8 +133,44 @@ def compute_digest(bundle: dict) -> str:
     return hashlib.sha256(canonical_json(content).encode("utf-8")).hexdigest()
 
 
+def _object_entry(o, appearance) -> dict:
+    entry = {
+        "id": o.id,
+        "typeId": o.type_id,
+        "name": o.name,
+        "sortKey": o.name.lower(),
+        "foldKey": o.name.casefold(),
+        "description": o.description,
+        "attributes": o.attributes,
+    }
+    # Resolved once, at publish time (the portable file has no server to ask
+    # later): only for types whose colour genuinely varies per instance, so a
+    # model that never uses this stays byte-identical to before it existed.
+    if appearance.background_source == "attribute" or appearance.border_source == "attribute":
+        entry["style"] = node_style(appearance, instance_attributes=o.attributes).to_dict()
+    return entry
+
+
+def _relationship_entry(r, appearance) -> dict:
+    entry = {
+        "id": r.id,
+        "typeId": r.type_id,
+        "sourceId": r.source_id,
+        "targetId": r.target_id,
+        "attributes": r.attributes,
+        "validFrom": r.valid_from,
+        "validTo": r.valid_to,
+    }
+    if appearance.colour_source == "attribute":
+        entry["style"] = edge_style(appearance, instance_attributes=r.attributes).to_dict()
+    return entry
+
+
 def build_dataset_block(dataset, resolver) -> dict:
     """The bundle's ``dataset``: types (with resolved styles), objects and relationships."""
+    object_type_appearance = {t.id: resolver.object_type(t.id) for t in dataset.object_types.values()}
+    relationship_type_appearance = {t.id: resolver.relationship_type(t.id) for t in dataset.relationship_types.values()}
+
     return {
         "objectTypes": [
             {
@@ -142,7 +178,7 @@ def build_dataset_block(dataset, resolver) -> dict:
                 "key": t.key,
                 "name": t.name,
                 "attributes": _attribute_specs(t.attributes),
-                "style": node_style(resolver.object_type(t.id)).to_dict(),
+                "style": node_style(object_type_appearance[t.id]).to_dict(),
             }
             for t in dataset.object_types.values()
         ],
@@ -153,34 +189,14 @@ def build_dataset_block(dataset, resolver) -> dict:
                 "name": t.name,
                 "attributes": _attribute_specs(t.attributes),
                 "rules": [_rule(rule) for rule in t.rules],
-                "style": edge_style(resolver.relationship_type(t.id)).to_dict(),
+                "style": edge_style(relationship_type_appearance[t.id]).to_dict(),
             }
             for t in dataset.relationship_types.values()
         ],
         # Already in the dataset's stable (name, id) order; the runtime relies on it.
-        "objects": [
-            {
-                "id": o.id,
-                "typeId": o.type_id,
-                "name": o.name,
-                "sortKey": o.name.lower(),
-                "foldKey": o.name.casefold(),
-                "description": o.description,
-                "attributes": o.attributes,
-            }
-            for o in dataset.objects.values()
-        ],
+        "objects": [_object_entry(o, object_type_appearance[o.type_id]) for o in dataset.objects.values()],
         "relationships": [
-            {
-                "id": r.id,
-                "typeId": r.type_id,
-                "sourceId": r.source_id,
-                "targetId": r.target_id,
-                "attributes": r.attributes,
-                "validFrom": r.valid_from,
-                "validTo": r.valid_to,
-            }
-            for r in dataset.relationships.values()
+            _relationship_entry(r, relationship_type_appearance[r.type_id]) for r in dataset.relationships.values()
         ],
     }
 

@@ -309,8 +309,15 @@ export function createExplorer({
   }
 
   function renderFilters() {
-    el.objectTypeRows.innerHTML = renderObjectTypeRows(facets.objectTypes, state.hiddenObjectTypes);
-    el.relationshipTypeRows.innerHTML = renderRelationshipTypeRows(facets.relationshipTypes, state.hiddenRelationshipTypes);
+    // The current graph's own nodes/edges -- so the legend's attribute-value
+    // breakdown always matches what is actually on screen, and reflects it on
+    // every refresh (filter, search, or otherwise).
+    el.objectTypeRows.innerHTML = renderObjectTypeRows(facets.objectTypes, state.hiddenObjectTypes, graph.payload.nodes);
+    el.relationshipTypeRows.innerHTML = renderRelationshipTypeRows(
+      facets.relationshipTypes,
+      state.hiddenRelationshipTypes,
+      graph.payload.edges,
+    );
     syncSelectAll(el.selectAllObjectTypes, facets.objectTypes, state.hiddenObjectTypes);
     syncSelectAll(el.selectAllRelationshipTypes, facets.relationshipTypes, state.hiddenRelationshipTypes);
     el.builder.innerHTML = renderFilterBuilder(facets, builderDraft);

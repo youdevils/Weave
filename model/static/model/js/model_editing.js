@@ -447,7 +447,43 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     setChoiceSectionVisibility(dataTypeInput);
+    setAttributeColourSectionVisibility(dataTypeInput);
     updateDefaultValueVisibility(dataTypeInput);
+  });
+
+  /* ============================================================
+       Attribute value colours — save on change
+       ============================================================ */
+
+  document.addEventListener("change", function (event) {
+    const colourInput = event.target.closest("[data-attribute-colour-input]");
+
+    if (!colourInput) {
+      return;
+    }
+
+    const section = colourInput.closest("[data-attribute-colour-section]");
+    const row = colourInput.closest("[data-attribute-colour-row]");
+
+    if (!section || !row) {
+      return;
+    }
+
+    const endpoint = section.dataset.attributeColoursEndpoint;
+    const valueKey = row.dataset.valueKey;
+    const previousValue = colourInput.dataset.lastValue || colourInput.value;
+
+    postAttributeColour(endpoint, getCsrfToken(), {
+      field: valueKey,
+      value: colourInput.value,
+    })
+      .then(function () {
+        colourInput.dataset.lastValue = colourInput.value;
+      })
+      .catch(function (error) {
+        colourInput.value = previousValue;
+        console.error("Attribute colour update failed:", error);
+      });
   });
 
   /* ============================================================
@@ -1407,6 +1443,57 @@ document.addEventListener("DOMContentLoaded", function () {
     if (section) {
       section.hidden = dataTypeInput.value !== "choice";
     }
+  }
+
+  /* ============================================================
+       Attribute value colours — Choice/Boolean only
+       ============================================================
+       Exists regardless of whether the attribute is currently
+       selected as a graph colour source (Background/Border/Line);
+       shown/hidden purely by data type, alongside "Allowed values".
+       ============================================================ */
+
+  const ATTRIBUTE_COLOUR_ELIGIBLE = ["choice", "boolean"];
+
+  function setAttributeColourSectionVisibility(dataTypeInput) {
+    const fields = dataTypeInput.closest(".model-editor-fields");
+
+    const section = fields
+      ? fields.querySelector("[data-attribute-colour-section]")
+      : null;
+
+    if (section) {
+      section.hidden = !ATTRIBUTE_COLOUR_ELIGIBLE.includes(dataTypeInput.value);
+    }
+  }
+
+  async function postAttributeColour(url, csrfToken, values) {
+    if (!csrfToken || !url) {
+      throw new Error("This attribute must be saved before its colours can be set.");
+    }
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken,
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: new URLSearchParams(values),
+    });
+
+    let data = null;
+    try {
+      data = await response.json();
+    } catch (_error) {
+      data = null;
+    }
+
+    if (!response.ok || !data || !data.success) {
+      throw new Error((data && data.error) || "This colour could not be saved.");
+    }
+
+    return data;
   }
 
   /* ============================================================

@@ -28,7 +28,10 @@ export function compileGraph(dataset, projection, template) {
         is_created: false,
         attributes: populated(type.attributes, object.attributes),
       },
-      style: type.style,
+      // A per-object style is only present when the type is attribute-driven
+      // (resolved once, at publish time); every other object falls through
+      // to its type's fixed style, unchanged from before this existed.
+      style: object.style || type.style,
     };
   });
 
@@ -48,7 +51,7 @@ export function compileGraph(dataset, projection, template) {
         is_created: false,
         attributes: populated(type.attributes, relationship.attributes),
       },
-      style: type.style,
+      style: relationship.style || type.style,
     };
   });
 
