@@ -49,8 +49,13 @@ def _display_date(iso: str) -> str:
     return datetime.fromisoformat(iso).strftime("%d %b %Y").lstrip("0")
 
 
-def render_document(bundle: dict, *, hash_scripts: bool = True) -> str:
-    """The published document for ``bundle`` (which must carry its publication identity)."""
+def render_document(bundle: dict, *, hash_scripts: bool = True, show_platform_branding: bool = True) -> str:
+    """The published document for ``bundle`` (which must carry its publication identity).
+
+    ``show_platform_branding`` defaults to always shown; it exists as the one hook point
+    for a future commercial entitlement to hide the OnyxJar mark, without this task
+    implementing any actual plan/entitlement gating logic.
+    """
     assets = load_assets()
     vis_script = _escape_script(assets.vis_script)
     app_script = _escape_script(assets.app_script)
@@ -74,5 +79,6 @@ def render_document(bundle: dict, *, hash_scripts: bool = True) -> str:
             "vis_script": vis_script,
             "app_script": app_script,
             "data_block": json_script(bundle, DATA_BLOCK_ID),
+            "show_platform_branding": show_platform_branding,
         },
     )

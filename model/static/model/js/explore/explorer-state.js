@@ -39,6 +39,20 @@ export const toggleRelationshipType = (state, typeId) => ({
 
 export const showAllTypes = (state) => ({ ...state, hiddenObjectTypes: [], hiddenRelationshipTypes: [] });
 
+export const selectAllObjectTypes = (state) => ({ ...state, hiddenObjectTypes: [] });
+
+export const deselectAllObjectTypes = (state, objectTypes) => ({
+  ...state,
+  hiddenObjectTypes: objectTypes.map((t) => t.id),
+});
+
+export const selectAllRelationshipTypes = (state) => ({ ...state, hiddenRelationshipTypes: [] });
+
+export const deselectAllRelationshipTypes = (state, relationshipTypes) => ({
+  ...state,
+  hiddenRelationshipTypes: relationshipTypes.map((t) => t.id),
+});
+
 /** One filter per (type, attribute): adding again replaces the earlier one. */
 export function addAttributeFilter(state, filter) {
   const kept = state.attributeFilters.filter((f) => !(f.type_id === filter.type_id && f.key === filter.key));

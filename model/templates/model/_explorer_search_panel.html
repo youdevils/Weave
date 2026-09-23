@@ -1,5 +1,16 @@
 {# Find and narrow: search box, type filters, attribute-filter builder. Shared by the live Explorer and the portable file. #}
-<aside class="model-explorer-panel model-explorer-side" aria-label="Search and filters">
+<aside id="explorer-legend" class="model-explorer-panel model-explorer-side" aria-label="Search and filters">
+
+    <button
+        type="button"
+        id="explorer-legend-toggle"
+        class="model-explorer-panel-toggle"
+        data-action="toggle-legend"
+        aria-expanded="true"
+        aria-label="Collapse legend"
+    >
+        <svg class="weave-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 4l4 4-4 4"/></svg>
+    </button>
 
     <div class="model-explorer-search">
         <svg class="weave-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>
@@ -17,7 +28,51 @@
 
     <section class="model-explorer-filters">
         <h3>Filters</h3>
-        <div id="explorer-type-filters"></div>
+        <div id="explorer-type-filters">
+
+            <div class="model-explorer-legend-section" data-legend-section="object">
+                <div class="model-explorer-legend-header">
+                    <button
+                        type="button"
+                        id="explorer-object-type-toggle"
+                        class="model-explorer-legend-toggle"
+                        data-action="toggle-legend-section"
+                        data-id="object"
+                        aria-expanded="true"
+                    >
+                        <svg class="weave-icon model-explorer-legend-chevron" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 6l4 4 4-4"/></svg>
+                        <h4>Object types</h4>
+                    </button>
+                    <label class="model-explorer-select-all">
+                        <input type="checkbox" id="explorer-select-all-object-types" data-action="select-all-object-types" aria-label="Show all object types">
+                        All
+                    </label>
+                </div>
+                <div id="explorer-object-type-rows" class="model-explorer-legend-rows"></div>
+            </div>
+
+            <div class="model-explorer-legend-section" data-legend-section="relationship">
+                <div class="model-explorer-legend-header">
+                    <button
+                        type="button"
+                        id="explorer-relationship-type-toggle"
+                        class="model-explorer-legend-toggle"
+                        data-action="toggle-legend-section"
+                        data-id="relationship"
+                        aria-expanded="true"
+                    >
+                        <svg class="weave-icon model-explorer-legend-chevron" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 6l4 4 4-4"/></svg>
+                        <h4>Relationship types</h4>
+                    </button>
+                    <label class="model-explorer-select-all">
+                        <input type="checkbox" id="explorer-select-all-relationship-types" data-action="select-all-relationship-types" aria-label="Show all relationship types">
+                        All
+                    </label>
+                </div>
+                <div id="explorer-relationship-type-rows" class="model-explorer-legend-rows"></div>
+            </div>
+
+        </div>
 
         <h4>Attribute filter</h4>
         <div id="explorer-filter-builder"></div>

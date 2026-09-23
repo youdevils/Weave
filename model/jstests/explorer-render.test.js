@@ -12,7 +12,9 @@ import {
   renderEmptyDetails,
   renderFilterBuilder,
   renderNotices,
+  renderObjectTypeRows,
   renderProvenance,
+  renderRelationshipTypeRows,
   renderResults,
   renderSelectionChip,
   renderTypeFilters,
@@ -391,6 +393,33 @@ const facets = {
   ],
   relationshipTypes: [{ id: "r-uses", name: "Uses", isProposed: false, count: 4, swatch: { colour: "#495057", lineStyle: "dashed" } }],
 };
+
+test("renderObjectTypeRows renders only the rows, checked unless hidden, with no section heading", () => {
+  const html = renderObjectTypeRows(facets.objectTypes, ["t-team"]);
+
+  assert.doesNotMatch(html, /<h4>/);
+  const app = /<input[^>]*data-id="t-app"[^>]*>/.exec(html)[0];
+  const team = /<input[^>]*data-id="t-team"[^>]*>/.exec(html)[0];
+  assert.match(app, /data-action="toggle-object-type"/);
+  assert.match(app, /checked/);
+  assert.doesNotMatch(team, /checked/);
+});
+
+test("renderObjectTypeRows shows a message when there are no object types", () => {
+  assert.match(renderObjectTypeRows([], []), /No object types\./);
+});
+
+test("renderRelationshipTypeRows renders only the rows, checked unless hidden, with no section heading", () => {
+  const html = renderRelationshipTypeRows(facets.relationshipTypes, ["r-uses"]);
+
+  assert.doesNotMatch(html, /<h4>/);
+  assert.match(html, /data-action="toggle-relationship-type" data-id="r-uses"/);
+  assert.doesNotMatch(html, /checked/);
+});
+
+test("renderRelationshipTypeRows shows a message when there are no relationship types", () => {
+  assert.match(renderRelationshipTypeRows([], []), /No relationship types\./);
+});
 
 test("type filters show every type with counts and its resolved swatch, checked unless hidden", () => {
   const html = renderTypeFilters(facets, toggleObjectType(initialState(), "t-team"));

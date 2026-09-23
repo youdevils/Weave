@@ -6,6 +6,8 @@ import {
   clearFilters,
   clearIncluded,
   clearSelection,
+  deselectAllObjectTypes,
+  deselectAllRelationshipTypes,
   describeAttributeFilter,
   describeFilters,
   hasActiveNarrowing,
@@ -17,6 +19,8 @@ import {
   removeInclude,
   reset,
   select,
+  selectAllObjectTypes,
+  selectAllRelationshipTypes,
   showAllTypes,
   toQueryParams,
   toggleObjectType,
@@ -85,6 +89,49 @@ test("hiding an object type and a relationship type are independent", () => {
 
   state = showAllTypes(state);
   assert.deepEqual([state.hiddenObjectTypes, state.hiddenRelationshipTypes], [[], []]);
+});
+
+test("selectAllObjectTypes clears hidden object types without touching relationship types", () => {
+  let state = toggleObjectType(initialState(), "t-app");
+  state = toggleRelationshipType(state, "r-uses");
+
+  const shown = selectAllObjectTypes(state);
+
+  assert.deepEqual(shown.hiddenObjectTypes, []);
+  assert.deepEqual(shown.hiddenRelationshipTypes, ["r-uses"]);
+});
+
+test("deselectAllObjectTypes hides every object type from the given list, leaving relationship types alone", () => {
+  let state = toggleRelationshipType(initialState(), "r-uses");
+
+  const hidden = deselectAllObjectTypes(state, facets.objectTypes);
+
+  assert.deepEqual(hidden.hiddenObjectTypes, ["t-app", "t-team"]);
+  assert.deepEqual(hidden.hiddenRelationshipTypes, ["r-uses"]);
+});
+
+test("selectAllRelationshipTypes clears hidden relationship types without touching object types", () => {
+  let state = toggleObjectType(initialState(), "t-app");
+  state = toggleRelationshipType(state, "r-uses");
+
+  const shown = selectAllRelationshipTypes(state);
+
+  assert.deepEqual(shown.hiddenRelationshipTypes, []);
+  assert.deepEqual(shown.hiddenObjectTypes, ["t-app"]);
+});
+
+test("deselectAllRelationshipTypes hides every relationship type from the given list, leaving object types alone", () => {
+  let state = toggleObjectType(initialState(), "t-app");
+
+  const hidden = deselectAllRelationshipTypes(state, facets.relationshipTypes);
+
+  assert.deepEqual(hidden.hiddenRelationshipTypes, ["r-uses"]);
+  assert.deepEqual(hidden.hiddenObjectTypes, ["t-app"]);
+});
+
+test("select-all/deselect-all tolerate an empty type list", () => {
+  assert.deepEqual(deselectAllObjectTypes(initialState(), []).hiddenObjectTypes, []);
+  assert.deepEqual(deselectAllRelationshipTypes(initialState(), []).hiddenRelationshipTypes, []);
 });
 
 test("an attribute filter replaces an earlier one for the same type and attribute", () => {

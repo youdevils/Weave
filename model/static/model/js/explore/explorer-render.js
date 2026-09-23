@@ -465,38 +465,38 @@ export function renderNotices(summary, { hasNarrowing }) {
 // Filter panel
 // ---------------------------------------------------------------------------
 
+function renderTypeRows(list, hiddenList, action, emptyLabel) {
+  if (list.length === 0) return `<p class="model-explorer-muted">${emptyLabel}</p>`;
+  const kind = action === "toggle-object-type" ? "object" : "relationship";
+  return list
+    .map((type) => {
+      const checked = !hiddenList.includes(type.id);
+      return `
+        <label class="model-explorer-check">
+          <input type="checkbox" data-action="${action}" data-id="${e(type.id)}" ${checked ? "checked" : ""}>
+          ${swatch(kind, type.swatch)}
+          <span class="model-explorer-check-name">${e(type.name)}${proposedBadge(type.isProposed)}</span>
+          <span class="model-explorer-count">${type.count}</span>
+        </label>`;
+    })
+    .join("");
+}
+
+export function renderObjectTypeRows(objectTypes, hiddenObjectTypes) {
+  return renderTypeRows(objectTypes, hiddenObjectTypes, "toggle-object-type", "No object types.");
+}
+
+export function renderRelationshipTypeRows(relationshipTypes, hiddenRelationshipTypes) {
+  return renderTypeRows(relationshipTypes, hiddenRelationshipTypes, "toggle-relationship-type", "No relationship types.");
+}
+
+/** Combined legend used by consumers without collapsible sections (e.g. the publish scope panel). */
 export function renderTypeFilters(facets, state) {
-  const objectRows = facets.objectTypes
-    .map((type) => {
-      const checked = !state.hiddenObjectTypes.includes(type.id);
-      return `
-        <label class="model-explorer-check">
-          <input type="checkbox" data-action="toggle-object-type" data-id="${e(type.id)}" ${checked ? "checked" : ""}>
-          ${swatch("object", type.swatch)}
-          <span class="model-explorer-check-name">${e(type.name)}${proposedBadge(type.isProposed)}</span>
-          <span class="model-explorer-count">${type.count}</span>
-        </label>`;
-    })
-    .join("");
-
-  const relationshipRows = facets.relationshipTypes
-    .map((type) => {
-      const checked = !state.hiddenRelationshipTypes.includes(type.id);
-      return `
-        <label class="model-explorer-check">
-          <input type="checkbox" data-action="toggle-relationship-type" data-id="${e(type.id)}" ${checked ? "checked" : ""}>
-          ${swatch("relationship", type.swatch)}
-          <span class="model-explorer-check-name">${e(type.name)}${proposedBadge(type.isProposed)}</span>
-          <span class="model-explorer-count">${type.count}</span>
-        </label>`;
-    })
-    .join("");
-
   return `
     <h4>Object types</h4>
-    ${objectRows || '<p class="model-explorer-muted">No object types.</p>'}
+    ${renderObjectTypeRows(facets.objectTypes, state.hiddenObjectTypes)}
     <h4>Relationship types</h4>
-    ${relationshipRows || '<p class="model-explorer-muted">No relationship types.</p>'}`;
+    ${renderRelationshipTypeRows(facets.relationshipTypes, state.hiddenRelationshipTypes)}`;
 }
 
 /** The attribute-filter builder for the chosen type/attribute (either may be empty). */

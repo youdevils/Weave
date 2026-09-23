@@ -24,6 +24,8 @@ import {
   addAttributeFilter,
   clearFilters,
   clearSelection,
+  deselectAllObjectTypes,
+  deselectAllRelationshipTypes,
   describeFilters,
   hasActiveNarrowing,
   includeObjects,
@@ -31,6 +33,8 @@ import {
   reconcile,
   removeChip,
   select,
+  selectAllObjectTypes,
+  selectAllRelationshipTypes,
   toggleObjectType,
   toggleRelationshipType,
 } from "./explorer-state.js";
@@ -43,9 +47,10 @@ import {
   renderEmptyDetails,
   renderFilterBuilder,
   renderNotices,
+  renderObjectTypeRows,
+  renderRelationshipTypeRows,
   renderResults,
   renderSelectionChip,
-  renderTypeFilters,
 } from "./explorer-render.js";
 
 const SEARCH_DEBOUNCE_MS = 220;
@@ -57,12 +62,21 @@ const ELEMENT_IDS = {
   graph: "model-explorer-graph",
   search: "explorer-search",
   results: "explorer-results",
-  typeFilters: "explorer-type-filters",
+  legend: "explorer-legend",
+  legendToggle: "explorer-legend-toggle",
+  objectTypeRows: "explorer-object-type-rows",
+  objectTypeToggle: "explorer-object-type-toggle",
+  relationshipTypeRows: "explorer-relationship-type-rows",
+  relationshipTypeToggle: "explorer-relationship-type-toggle",
+  selectAllObjectTypes: "explorer-select-all-object-types",
+  selectAllRelationshipTypes: "explorer-select-all-relationship-types",
   builder: "explorer-filter-builder",
   builderMessage: "explorer-builder-message",
   counts: "explorer-counts",
   chips: "explorer-chips",
   notices: "explorer-notices",
+  sidebar: "explorer-details-panel",
+  sidebarToggle: "explorer-sidebar-toggle",
   details: "explorer-details",
   error: "explorer-error",
 };
@@ -295,8 +309,52 @@ export function createExplorer({
   }
 
   function renderFilters() {
-    el.typeFilters.innerHTML = renderTypeFilters(facets, state);
+    el.objectTypeRows.innerHTML = renderObjectTypeRows(facets.objectTypes, state.hiddenObjectTypes);
+    el.relationshipTypeRows.innerHTML = renderRelationshipTypeRows(facets.relationshipTypes, state.hiddenRelationshipTypes);
+    syncSelectAll(el.selectAllObjectTypes, facets.objectTypes, state.hiddenObjectTypes);
+    syncSelectAll(el.selectAllRelationshipTypes, facets.relationshipTypes, state.hiddenRelationshipTypes);
     el.builder.innerHTML = renderFilterBuilder(facets, builderDraft);
+  }
+
+  // -- collapsible panels (legend, sidebar, legend sections) ---------------------
+  //
+  // Purely presentational: never touched by graph refreshes, `state`, or
+  // `defaultState`, so it can't be perturbed by filtering/selecting and never
+  // persists across a reload. "Reset view" explicitly re-expands everything.
+
+  function togglePanel(panel, toggle, collapsedClass, label) {
+    const collapsed = panel.classList.toggle(collapsedClass);
+    toggle.setAttribute("aria-expanded", String(!collapsed));
+    toggle.setAttribute("aria-label", `${collapsed ? "Expand" : "Collapse"} ${label}`);
+  }
+
+  function expandPanel(panel, toggle, collapsedClass, label) {
+    panel.classList.remove(collapsedClass);
+    toggle.setAttribute("aria-expanded", "true");
+    toggle.setAttribute("aria-label", `Collapse ${label}`);
+  }
+
+  function toggleSection(rows, toggle) {
+    const collapsed = rows.classList.toggle("collapsed");
+    toggle.setAttribute("aria-expanded", String(!collapsed));
+  }
+
+  function expandSection(rows, toggle) {
+    rows.classList.remove("collapsed");
+    toggle.setAttribute("aria-expanded", "true");
+  }
+
+  function syncSelectAll(checkbox, types, hidden) {
+    const hiddenCount = types.filter((t) => hidden.includes(t.id)).length;
+    checkbox.checked = types.length > 0 && hiddenCount === 0;
+    checkbox.indeterminate = hiddenCount > 0 && hiddenCount < types.length;
+  }
+
+  function expandAllPanels() {
+    expandPanel(el.legend, el.legendToggle, "legend-collapsed", "legend");
+    expandPanel(el.sidebar, el.sidebarToggle, "sidebar-collapsed", "details");
+    expandSection(el.objectTypeRows, el.objectTypeToggle);
+    expandSection(el.relationshipTypeRows, el.relationshipTypeToggle);
   }
 
   function renderDetailsPanel() {
@@ -318,6 +376,14 @@ export function createExplorer({
         await refreshGraph({ fit: true });
       } else if (action === "toggle-relationship-type") {
         state = toggleRelationshipType(state, target.dataset.id);
+        await refreshGraph({ fit: true });
+      } else if (action === "select-all-object-types") {
+        state = target.checked ? selectAllObjectTypes(state) : deselectAllObjectTypes(state, facets.objectTypes);
+        await refreshGraph({ fit: true });
+      } else if (action === "select-all-relationship-types") {
+        state = target.checked
+          ? selectAllRelationshipTypes(state)
+          : deselectAllRelationshipTypes(state, facets.relationshipTypes);
         await refreshGraph({ fit: true });
       } else if (action === "builder-type") {
         builderDraft = { typeId: target.value, key: null };
@@ -366,6 +432,18 @@ export function createExplorer({
           state = clearFilters(state);
           await refreshGraph({ fit: true });
           break;
+        case "toggle-legend":
+          togglePanel(el.legend, el.legendToggle, "legend-collapsed", "legend");
+          break;
+        case "toggle-sidebar":
+          togglePanel(el.sidebar, el.sidebarToggle, "sidebar-collapsed", "details");
+          break;
+        case "toggle-legend-section":
+          toggleSection(
+            id === "object" ? el.objectTypeRows : el.relationshipTypeRows,
+            id === "object" ? el.objectTypeToggle : el.relationshipTypeToggle,
+          );
+          break;
         case "add-filter": {
           const built = readFilterBuilder(el.builder);
           el.builderMessage.textContent = built?.error || "";
@@ -383,6 +461,7 @@ export function createExplorer({
           el.builderMessage.textContent = "";
           builderDraft = { typeId: null, key: null };
           showError("");
+          expandAllPanels();
           await refreshGraph({ fit: true });
           break;
         case "fit-view":

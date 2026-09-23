@@ -143,17 +143,45 @@ class ContentTests(DocumentFixture):
             "model-explorer-graph",
             "explorer-search",
             "explorer-results",
+            "explorer-legend",
             "explorer-type-filters",
+            "explorer-object-type-rows",
+            "explorer-relationship-type-rows",
+            "explorer-select-all-object-types",
+            "explorer-select-all-relationship-types",
             "explorer-filter-builder",
             "explorer-counts",
             "explorer-chips",
             "explorer-notices",
+            "explorer-details-panel",
             "explorer-details",
             "explorer-error",
             DATA_BLOCK_ID,
         ):
             with self.subTest(element_id=element_id):
                 self.assertIn(f'id="{element_id}"', html)
+
+    def test_the_platform_branding_footer_is_shown_by_default(self):
+        html = self.document()
+
+        self.assertIn('<div class="weave-published-brand">', html)
+        self.assertIn('<span class="weave-published-wordmark">OnyxJar</span>', html)
+        self.assertIn("Read-only snapshot of an OnyxJar model.", html)
+
+    def test_the_platform_branding_can_be_hidden_for_a_future_entitlement(self):
+        html = render_document(self.bundle(), show_platform_branding=False)
+
+        self.assertNotIn('<div class="weave-published-brand">', html)
+        self.assertNotIn("weave-published-wordmark", html)
+        # The factual disclosure is not paid-tier branding, so it stays regardless.
+        self.assertIn("Read-only snapshot of an OnyxJar model.", html)
+
+    def test_the_branding_footer_does_not_use_the_model_owners_theme_colour(self):
+        html = self.document({"presentation": {"theme_colour": "#00aa00"}})
+        css = "\n".join(split_document(html)["styles"])
+        brand_rule = re.search(r"\.weave-published-brand\s*\{[^}]*\}", css).group(0)
+
+        self.assertNotIn("var(--weave-theme", brand_rule)
 
     def test_no_edit_or_proposal_surface_is_rendered(self):
         html = self.document()

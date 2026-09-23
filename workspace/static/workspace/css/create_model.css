@@ -17,13 +17,13 @@
     align-items: center;
     gap: 0.35rem;
 
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.875rem;
     text-decoration: none;
 }
 
 .create-model-back:hover {
-    color: var(--bs-body-color);
+    color: var(--weave-ink);
 }
 
 
@@ -41,7 +41,7 @@
 
 .create-model-intro {
     max-width: 680px;
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     margin-bottom: 0;
 }
 
@@ -60,7 +60,7 @@
 .create-model-step {
     display: flex;
     align-items: center;
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.875rem;
     white-space: nowrap;
 }
@@ -75,23 +75,23 @@
 
     margin-right: 0.5rem;
 
-    border: 1px solid var(--bs-border-color);
+    border: 1px solid var(--weave-border);
     border-radius: 50%;
 
-    background: var(--bs-body-bg);
+    background: var(--weave-surface);
 
     font-size: 0.75rem;
     font-weight: 600;
 }
 
 .create-model-step.active {
-    color: var(--bs-body-color);
+    color: var(--weave-ink);
     font-weight: 500;
 }
 
 .create-model-step.active .create-model-step-number {
-    border-color: var(--bs-primary);
-    background: var(--bs-primary);
+    border-color: var(--weave-indigo);
+    background: var(--weave-indigo);
     color: #fff;
 }
 
@@ -100,7 +100,7 @@
     height: 1px;
     margin: 0 0.75rem;
 
-    background: var(--bs-border-color);
+    background: var(--weave-border);
 }
 
 
@@ -128,7 +128,7 @@
 .create-model-aside-label {
     margin-bottom: 0.5rem;
 
-    color: var(--bs-primary);
+    color: var(--weave-indigo);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -141,7 +141,7 @@
 }
 
 .create-model-aside p {
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.9rem;
     line-height: 1.6;
 }
@@ -150,9 +150,9 @@
     margin-top: 1.5rem;
     padding-top: 1.25rem;
 
-    border-top: 1px solid var(--bs-border-color);
+    border-top: 1px solid var(--weave-border);
 
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.8rem;
     line-height: 1.55;
 }
@@ -163,16 +163,16 @@
    ========================================================= */
 
 .create-model-form-panel {
-    background: var(--bs-body-bg);
-    border: 1px solid var(--bs-border-color);
+    background: var(--weave-surface);
+    border: 1px solid var(--weave-border);
     border-radius: 0.6rem;
-    box-shadow: 0 0.125rem 0.35rem rgba(0, 0, 0, 0.04);
+    box-shadow: 0 0.125rem 0.35rem rgba(15, 23, 42, 0.04);
 }
 
 .create-model-form-header {
     padding: 1.5rem 1.75rem;
 
-    border-bottom: 1px solid var(--bs-border-color);
+    border-bottom: 1px solid var(--weave-border);
 }
 
 .create-model-form-header h2 {
@@ -183,7 +183,7 @@
 .create-model-form-header p {
     margin-bottom: 0;
 
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.875rem;
 }
 
@@ -215,7 +215,7 @@
     margin-top: -0.5rem;
     margin-bottom: 1rem;
 
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.825rem;
 }
 
@@ -244,16 +244,13 @@
 }
 
 .create-model-field .form-control:focus {
-    box-shadow: 0 0 0 0.2rem rgba(
-        var(--bs-primary-rgb),
-        0.12
-    );
+    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.12);
 }
 
 .create-model-help {
     margin-top: 0.4rem;
 
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.775rem;
     line-height: 1.45;
 }
@@ -282,7 +279,7 @@
     margin-top: 2rem;
     padding-top: 1.25rem;
 
-    border-top: 1px solid var(--bs-border-color);
+    border-top: 1px solid var(--weave-border);
 }
 
 .create-model-actions .btn {
@@ -343,9 +340,9 @@
     flex-direction: column;
     min-height: 280px;
     padding: 1.4rem;
-    border: 1px solid var(--bs-border-color);
+    border: 1px solid var(--weave-border);
     border-radius: 0.6rem;
-    background: var(--bs-body-bg);
+    background: var(--weave-surface);
     color: inherit;
     text-decoration: none;
     transition:
@@ -356,8 +353,8 @@
 
 
 .starting-point-card:not(.unavailable):hover {
-    border-color: var(--bs-primary);
-    box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.08);
+    border-color: var(--weave-indigo);
+    box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.08);
     transform: translateY(-2px);
 }
 
@@ -370,8 +367,8 @@
     height: 3rem;
     margin-bottom: 1.25rem;
     border-radius: 0.625rem;
-    background: var(--bs-light);
-    color: var(--bs-primary);
+    background: var(--weave-mist);
+    color: var(--weave-indigo);
     font-size: 1.35rem;
 }
 
@@ -382,7 +379,7 @@
 
 
 .starting-point-card-body h3 {
-    color: var(--bs-body-color);
+    color: var(--weave-ink);
 }
 
 
@@ -392,8 +389,8 @@
     justify-content: space-between;
     margin-top: 1.5rem;
     padding-top: 1rem;
-    border-top: 1px solid var(--bs-border-color);
-    color: var(--bs-primary);
+    border-top: 1px solid var(--weave-border);
+    color: var(--weave-indigo);
     font-size: 0.875rem;
     font-weight: 500;
 }
@@ -413,7 +410,7 @@
 /* Unavailable template */
 
 .starting-point-card.unavailable {
-    background: var(--bs-light);
+    background: var(--weave-mist);
     border-color: transparent;
     opacity: 0.7;
 }
@@ -421,8 +418,8 @@
 
 .starting-point-card.unavailable
 .starting-point-card-icon {
-    background: var(--bs-body-bg);
-    color: var(--bs-secondary-color);
+    background: var(--weave-surface);
+    color: var(--weave-text-muted);
 }
 
 
@@ -434,8 +431,8 @@
     gap: 0.5rem;
     padding: 0.875rem 1rem;
     border-radius: 0.5rem;
-    background: var(--bs-light);
-    color: var(--bs-secondary-color);
+    background: var(--weave-mist);
+    color: var(--weave-text-muted);
     font-size: 0.875rem;
 }
 
@@ -482,10 +479,10 @@
 .model-template-review-item {
     padding: 1.1rem 1.2rem;
 
-    border: 1px solid var(--bs-border-color);
+    border: 1px solid var(--weave-border);
     border-radius: 0.5rem;
 
-    background: var(--bs-body-bg);
+    background: var(--weave-surface);
 }
 
 
@@ -500,7 +497,7 @@
 .model-template-review-item-main p {
     margin-bottom: 0;
 
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.825rem;
     line-height: 1.5;
 }
@@ -514,14 +511,14 @@
     margin-top: 1rem;
     padding-top: 0.9rem;
 
-    border-top: 1px solid var(--bs-border-color);
+    border-top: 1px solid var(--weave-border);
 }
 
 
 .model-template-review-detail-label {
     margin-bottom: 0.6rem;
 
-    color: var(--bs-body-color);
+    color: var(--weave-ink);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -548,7 +545,7 @@
 .model-template-review-attribute p {
     margin: 0.15rem 0 0;
 
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.775rem;
     line-height: 1.45;
 }
@@ -557,7 +554,7 @@
 .model-template-review-type {
     flex-shrink: 0;
 
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.725rem;
     text-transform: capitalize;
 }
@@ -571,7 +568,7 @@
     margin-top: 1rem;
     padding-top: 0.9rem;
 
-    border-top: 1px solid var(--bs-border-color);
+    border-top: 1px solid var(--weave-border);
 }
 
 
@@ -595,7 +592,7 @@
 
 
 .model-template-review-rule-flow span {
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
 }
 
 
@@ -606,7 +603,7 @@
     margin-top: 0.5rem;
     padding-left: 0.25rem;
 
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.75rem;
 }
 
@@ -618,12 +615,12 @@
 
 
 .model-template-review-cardinality span {
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
 }
 
 
 .model-template-review-cardinality strong {
-    color: var(--bs-body-color);
+    color: var(--weave-ink);
     font-weight: 500;
 }
 
@@ -640,9 +637,9 @@
     margin-top: 0.9rem;
     padding-top: 0.75rem;
 
-    border-top: 1px solid var(--bs-border-color);
+    border-top: 1px solid var(--weave-border);
 
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.725rem;
 }
 
@@ -659,9 +656,9 @@
 
     border-radius: 0.25rem;
 
-    background: var(--bs-light);
+    background: var(--weave-mist);
 
-    color: var(--bs-secondary-color);
+    color: var(--weave-text-muted);
     font-size: 0.7rem;
 }
 

@@ -222,3 +222,13 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* Shrink the details column when the sidebar is collapsed (see explorer.css
+   for why this is guarded to the desktop breakpoint). The legend isn't part
+   of this grid on this page (it sits inside the "Reader controls" <details>),
+   so no legend rule is needed here. */
+@media (min-width: 1201px) {
+    .publish-preview-body:has(.model-explorer-detail.sidebar-collapsed) {
+        grid-template-columns: minmax(0, 1fr) 44px;
+    }
+}

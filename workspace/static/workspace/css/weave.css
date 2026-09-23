@@ -18,8 +18,12 @@
 
     --weave-bg: #f8fafc;
     --weave-surface: #ffffff;
+    --weave-surface-subtle: #f8fafc;
+    --weave-surface-hover: #f1f5f9;
     --weave-text: var(--weave-ink);
-    --weave-text-muted: #475569;
+    --weave-text-muted: #64748b;
+    --weave-text-secondary: #475569;
+    --weave-accent-soft: #eef2ff;
     --weave-border: #e2e8f0;
     --weave-focus: #4f46e5;
 
@@ -112,4 +116,130 @@ body {
     font-weight: 700;
     letter-spacing: -0.01em;
     color: var(--weave-ink);
+}
+
+.weave-page-eyebrow {
+    margin-bottom: 0.35rem;
+    color: var(--weave-text-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.weave-page-description {
+    max-width: 700px;
+    margin: 0.45rem 0 0;
+    color: var(--weave-text-muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.weave-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--weave-text-muted);
+    font-size: 0.8rem;
+    text-decoration: none;
+}
+
+.weave-back-link:hover {
+    color: var(--weave-ink);
+}
+
+.weave-empty-state {
+    padding: 3rem 2rem;
+    border: 1px solid var(--weave-border);
+    border-radius: var(--weave-radius-sm);
+    background: var(--weave-surface-subtle);
+    text-align: center;
+}
+
+.weave-empty-state .weave-empty-icon {
+    margin-bottom: 0.75rem;
+    font-size: 1.5rem;
+    color: var(--weave-text-muted);
+}
+
+.weave-empty-state h2,
+.weave-empty-state h3 {
+    margin: 0;
+    color: #343a40;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.weave-empty-state p {
+    max-width: 500px;
+    margin: 0.35rem auto 0;
+    color: var(--weave-text-muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.weave-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid var(--weave-border);
+    border-radius: 999px;
+    background: #fff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.weave-status-soon {
+    border-color: #e2e2e2;
+    background: #f7f7f7;
+    color: #6c6c6c;
+}
+
+.weave-avatar {
+    width: 32px;
+    height: 32px;
+}
+
+
+/* ==========================================================
+   Global Bootstrap component polish
+   Applies outside .model-shell (model/publication/ingestion use
+   their own compound classes, e.g. .model-object-type-card, and
+   never bare .card/.modal-content/.alert/.dropdown-menu — verified,
+   so this is safe to apply globally without scoping).
+   ========================================================== */
+
+.card {
+    border: 1px solid var(--weave-border);
+    border-radius: var(--weave-radius-sm);
+    box-shadow: none;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease;
+}
+
+.card.shadow-sm:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    transform: translateY(-1px);
+}
+
+.modal-content {
+    border: 1px solid var(--weave-border);
+    border-radius: var(--weave-radius-sm);
+    box-shadow: var(--weave-shadow-soft);
+}
+
+.alert {
+    border-radius: var(--weave-radius-sm);
+    border-width: 1px;
+}
+
+.dropdown-menu {
+    border: 1px solid var(--weave-border);
+    border-radius: var(--weave-radius-sm);
+    box-shadow: var(--weave-shadow-soft);
 }
