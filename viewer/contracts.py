@@ -1,5 +1,5 @@
 """
-The generic Weave Viewer Payload contract.
+The generic OnyxJar Viewer Payload contract.
 
 This module is the stable boundary between "something that understands a
 domain" (a future Model Graph Compiler, Publication Compiler, etc.) and the

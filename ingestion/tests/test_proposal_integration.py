@@ -138,7 +138,7 @@ class ImportProposalTests(ImportTestCase):
         self.assertEqual(
             sorted(Object.objects.filter(model=self.model).values_list("name", flat=True)), ["One", "Two"]
         )
-        # Created objects carry the imported external id, and a Weave-generated UUID.
+        # Created objects carry the imported external id, and an OnyxJar-generated UUID.
         one = Object.objects.get(name="One")
         self.assertEqual(one.attributes, {"app_id": "A1", "owner": "Finance"})
 

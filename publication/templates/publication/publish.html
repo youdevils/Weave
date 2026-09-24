@@ -38,7 +38,7 @@
     <div class="publish-layout">
 
         <!-- Configure: what is included, and how it is presented -->
-        <aside class="model-explorer-panel model-explorer-side publish-config weave-explorer" id="publish-scope" aria-label="Publication settings">
+        <aside class="model-explorer-panel model-explorer-side publish-config onyxjar-explorer" id="publish-scope" aria-label="Publication settings">
 
             <section class="publish-section">
                 <h3>What to include</h3>
@@ -60,7 +60,7 @@
             <section class="publish-section">
                 <h3>Starting points</h3>
                 <div class="model-explorer-search">
-                    <svg class="weave-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>
+                    <svg class="onyxjar-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>
                     <input
                         id="publish-search"
                         type="search"
@@ -127,7 +127,7 @@
         </aside>
 
         <!-- Preview: the Explorer readers will get, over exactly what will be published -->
-        <div id="model-explorer" class="publish-preview weave-explorer">
+        <div id="model-explorer" class="publish-preview onyxjar-explorer">
 
             <p class="publish-preview-summary" id="publish-summary" aria-live="polite"></p>
             <p class="model-explorer-form-error" id="publish-too-large" role="alert" hidden></p>
@@ -156,7 +156,7 @@
 {% block extra_js %}
 <script src="{% static 'viewer/vendor/vis-network/vis-network.min.js' %}"></script>
 <script type="module">
-  import { WeaveViewer } from "{% static 'viewer/js/weave-viewer.js' %}";
+  import { OnyxJarViewer } from "{% static 'viewer/js/onyxjar-viewer.js' %}";
   import { createExplorer } from "{% static 'model/js/explore/explorer-controller.js' %}";
   import { createLocalSource } from "{% static 'model/js/explore/engine/local-source.js' %}";
   import * as explorerState from "{% static 'model/js/explore/explorer-state.js' %}";
@@ -165,7 +165,7 @@
   import { startPublishing } from "{% static 'publication/js/publish/publish-boot.js' %}";
 
   startPublishing({
-    kit: { WeaveViewer, createExplorer, createLocalSource, explorerState, explorerRender, readFilterBuilder },
+    kit: { OnyxJarViewer, createExplorer, createLocalSource, explorerState, explorerRender, readFilterBuilder },
     bootstrap: JSON.parse(document.getElementById("publish-bootstrap").textContent),
   });
 </script>

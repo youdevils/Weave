@@ -86,7 +86,7 @@ def build_sample_payload() -> ViewerPayload:
         edges=edges,
         metadata=ViewerMetadata(
             title="Viewer foundation sample",
-            description="Static sample payload used to exercise the Weave Viewer foundation.",
+            description="Static sample payload used to exercise the OnyxJar Viewer foundation.",
             source="viewer.services.sample_payload",
         ),
         viewer_config=ViewerConfig(

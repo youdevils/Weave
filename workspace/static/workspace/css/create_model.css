@@ -17,13 +17,13 @@
     align-items: center;
     gap: 0.35rem;
 
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.875rem;
     text-decoration: none;
 }
 
 .create-model-back:hover {
-    color: var(--weave-ink);
+    color: var(--onyxjar-ink);
 }
 
 
@@ -41,7 +41,7 @@
 
 .create-model-intro {
     max-width: 680px;
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     margin-bottom: 0;
 }
 
@@ -60,7 +60,7 @@
 .create-model-step {
     display: flex;
     align-items: center;
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.875rem;
     white-space: nowrap;
 }
@@ -75,23 +75,23 @@
 
     margin-right: 0.5rem;
 
-    border: 1px solid var(--weave-border);
+    border: 1px solid var(--onyxjar-border);
     border-radius: 50%;
 
-    background: var(--weave-surface);
+    background: var(--onyxjar-surface);
 
     font-size: 0.75rem;
     font-weight: 600;
 }
 
 .create-model-step.active {
-    color: var(--weave-ink);
+    color: var(--onyxjar-ink);
     font-weight: 500;
 }
 
 .create-model-step.active .create-model-step-number {
-    border-color: var(--weave-indigo);
-    background: var(--weave-indigo);
+    border-color: var(--onyxjar-indigo);
+    background: var(--onyxjar-indigo);
     color: #fff;
 }
 
@@ -100,7 +100,7 @@
     height: 1px;
     margin: 0 0.75rem;
 
-    background: var(--weave-border);
+    background: var(--onyxjar-border);
 }
 
 
@@ -128,7 +128,7 @@
 .create-model-aside-label {
     margin-bottom: 0.5rem;
 
-    color: var(--weave-indigo);
+    color: var(--onyxjar-indigo);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -141,7 +141,7 @@
 }
 
 .create-model-aside p {
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.9rem;
     line-height: 1.6;
 }
@@ -150,9 +150,9 @@
     margin-top: 1.5rem;
     padding-top: 1.25rem;
 
-    border-top: 1px solid var(--weave-border);
+    border-top: 1px solid var(--onyxjar-border);
 
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.8rem;
     line-height: 1.55;
 }
@@ -163,8 +163,8 @@
    ========================================================= */
 
 .create-model-form-panel {
-    background: var(--weave-surface);
-    border: 1px solid var(--weave-border);
+    background: var(--onyxjar-surface);
+    border: 1px solid var(--onyxjar-border);
     border-radius: 0.6rem;
     box-shadow: 0 0.125rem 0.35rem rgba(15, 23, 42, 0.04);
 }
@@ -172,7 +172,7 @@
 .create-model-form-header {
     padding: 1.5rem 1.75rem;
 
-    border-bottom: 1px solid var(--weave-border);
+    border-bottom: 1px solid var(--onyxjar-border);
 }
 
 .create-model-form-header h2 {
@@ -183,7 +183,7 @@
 .create-model-form-header p {
     margin-bottom: 0;
 
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.875rem;
 }
 
@@ -215,7 +215,7 @@
     margin-top: -0.5rem;
     margin-bottom: 1rem;
 
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.825rem;
 }
 
@@ -250,7 +250,7 @@
 .create-model-help {
     margin-top: 0.4rem;
 
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.775rem;
     line-height: 1.45;
 }
@@ -279,7 +279,7 @@
     margin-top: 2rem;
     padding-top: 1.25rem;
 
-    border-top: 1px solid var(--weave-border);
+    border-top: 1px solid var(--onyxjar-border);
 }
 
 .create-model-actions .btn {
@@ -340,9 +340,9 @@
     flex-direction: column;
     min-height: 280px;
     padding: 1.4rem;
-    border: 1px solid var(--weave-border);
+    border: 1px solid var(--onyxjar-border);
     border-radius: 0.6rem;
-    background: var(--weave-surface);
+    background: var(--onyxjar-surface);
     color: inherit;
     text-decoration: none;
     transition:
@@ -353,7 +353,7 @@
 
 
 .starting-point-card:not(.unavailable):hover {
-    border-color: var(--weave-indigo);
+    border-color: var(--onyxjar-indigo);
     box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.08);
     transform: translateY(-2px);
 }
@@ -367,8 +367,8 @@
     height: 3rem;
     margin-bottom: 1.25rem;
     border-radius: 0.625rem;
-    background: var(--weave-mist);
-    color: var(--weave-indigo);
+    background: var(--onyxjar-mist);
+    color: var(--onyxjar-indigo);
     font-size: 1.35rem;
 }
 
@@ -379,7 +379,7 @@
 
 
 .starting-point-card-body h3 {
-    color: var(--weave-ink);
+    color: var(--onyxjar-ink);
 }
 
 
@@ -388,7 +388,7 @@
     font-size: 1.0625rem;
     font-weight: 600;
     line-height: 1.35;
-    color: var(--weave-ink);
+    color: var(--onyxjar-ink);
     /* Long names (e.g. "Harbour Home Retail EFTPOS Modernisation") wrap
        cleanly on their own line instead of fighting the pills for space. */
     overflow-wrap: break-word;
@@ -404,8 +404,8 @@
 }
 
 
-/* Sizing only -- colour/background come from .weave-status-pill (neutral
-   metadata look) or .weave-status-soon (the existing "coming soon" look),
+/* Sizing only -- colour/background come from .onyxjar-status-pill (neutral
+   metadata look) or .onyxjar-status-soon (the existing "coming soon" look),
    whichever the element also carries, so both stay visually consistent
    with the rest of the design system. */
 .starting-point-pill {
@@ -419,7 +419,7 @@
 
 .starting-point-card-description {
     margin: 0;
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.875rem;
     line-height: 1.5;
 }
@@ -431,8 +431,8 @@
     justify-content: space-between;
     margin-top: 1.5rem;
     padding-top: 1rem;
-    border-top: 1px solid var(--weave-border);
-    color: var(--weave-indigo);
+    border-top: 1px solid var(--onyxjar-border);
+    color: var(--onyxjar-indigo);
     font-size: 0.875rem;
     font-weight: 500;
 }
@@ -452,7 +452,7 @@
 /* Unavailable template */
 
 .starting-point-card.unavailable {
-    background: var(--weave-mist);
+    background: var(--onyxjar-mist);
     border-color: transparent;
     opacity: 0.7;
 }
@@ -460,8 +460,8 @@
 
 .starting-point-card.unavailable
 .starting-point-card-icon {
-    background: var(--weave-surface);
-    color: var(--weave-text-muted);
+    background: var(--onyxjar-surface);
+    color: var(--onyxjar-text-muted);
 }
 
 
@@ -473,8 +473,8 @@
     gap: 0.5rem;
     padding: 0.875rem 1rem;
     border-radius: 0.5rem;
-    background: var(--weave-mist);
-    color: var(--weave-text-muted);
+    background: var(--onyxjar-mist);
+    color: var(--onyxjar-text-muted);
     font-size: 0.875rem;
 }
 
@@ -521,10 +521,10 @@
 .model-template-review-item {
     padding: 1.1rem 1.2rem;
 
-    border: 1px solid var(--weave-border);
+    border: 1px solid var(--onyxjar-border);
     border-radius: 0.5rem;
 
-    background: var(--weave-surface);
+    background: var(--onyxjar-surface);
 }
 
 
@@ -539,7 +539,7 @@
 .model-template-review-item-main p {
     margin-bottom: 0;
 
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.825rem;
     line-height: 1.5;
 }
@@ -553,14 +553,14 @@
     margin-top: 1rem;
     padding-top: 0.9rem;
 
-    border-top: 1px solid var(--weave-border);
+    border-top: 1px solid var(--onyxjar-border);
 }
 
 
 .model-template-review-detail-label {
     margin-bottom: 0.6rem;
 
-    color: var(--weave-ink);
+    color: var(--onyxjar-ink);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -587,7 +587,7 @@
 .model-template-review-attribute p {
     margin: 0.15rem 0 0;
 
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.775rem;
     line-height: 1.45;
 }
@@ -596,7 +596,7 @@
 .model-template-review-type {
     flex-shrink: 0;
 
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.725rem;
     text-transform: capitalize;
 }
@@ -610,7 +610,7 @@
     margin-top: 1rem;
     padding-top: 0.9rem;
 
-    border-top: 1px solid var(--weave-border);
+    border-top: 1px solid var(--onyxjar-border);
 }
 
 
@@ -634,7 +634,7 @@
 
 
 .model-template-review-rule-flow span {
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
 }
 
 
@@ -645,7 +645,7 @@
     margin-top: 0.5rem;
     padding-left: 0.25rem;
 
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.75rem;
 }
 
@@ -657,12 +657,12 @@
 
 
 .model-template-review-cardinality span {
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
 }
 
 
 .model-template-review-cardinality strong {
-    color: var(--weave-ink);
+    color: var(--onyxjar-ink);
     font-weight: 500;
 }
 
@@ -679,9 +679,9 @@
     margin-top: 0.9rem;
     padding-top: 0.75rem;
 
-    border-top: 1px solid var(--weave-border);
+    border-top: 1px solid var(--onyxjar-border);
 
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.725rem;
 }
 
@@ -698,9 +698,9 @@
 
     border-radius: 0.25rem;
 
-    background: var(--weave-mist);
+    background: var(--onyxjar-mist);
 
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.7rem;
 }
 

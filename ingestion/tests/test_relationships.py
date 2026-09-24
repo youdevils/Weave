@@ -55,7 +55,7 @@ class RelationshipImportTests(ImportTestCase):
 
         self.assertEqual(plan.changes[0].after["attributes"], {"since": "2024-01-01"})
 
-    def test_endpoints_can_be_given_by_weave_object_id(self):
+    def test_endpoints_can_be_given_by_onyxjar_object_id(self):
         plan = self.plan(
             [["From", "To"], [str(self.a.id), str(self.b.id)]],
             {"column": 0, "field": "endpoint.subject", "by": "id"},

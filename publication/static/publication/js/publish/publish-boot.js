@@ -112,7 +112,7 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
   }
 
   function applyThemeColour() {
-    el.preview.style.setProperty("--weave-theme", config.presentation.theme_colour);
+    el.preview.style.setProperty("--onyxjar-theme", config.presentation.theme_colour);
   }
 
   function setStatus(text) {
@@ -150,7 +150,7 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
     if (!explorer) {
       const opening = readerState();
       explorer = kit.createExplorer({
-        WeaveViewer: kit.WeaveViewer,
+        OnyxJarViewer: kit.OnyxJarViewer,
         source,
         bootstrap: { graph: source.graphSync(opening), facets: bundle.facets },
         state: opening,

@@ -1,7 +1,7 @@
 """
 Who may use Publishing for a model.
 
-Publishing sends model content out of Weave, so it is stricter than the
+Publishing sends model content out of OnyxJar, so it is stricter than the
 membership-only rule most model pages use:
 
   * not a member of the model's workspace  -> 404 (the model's existence is not revealed);

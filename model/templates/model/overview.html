@@ -725,14 +725,14 @@
 {{ block.super }}
 <script src="{% static 'viewer/vendor/vis-network/vis-network.min.js' %}"></script>
 <script type="module">
-  import { WeaveViewer } from "{% static 'viewer/js/weave-viewer.js' %}";
+  import { OnyxJarViewer } from "{% static 'viewer/js/onyxjar-viewer.js' %}";
 
   const payloadEl = document.getElementById("model-ontology-payload");
   const container = document.getElementById("model-ontology-graph");
 
   if (payloadEl && container) {
     const payload = JSON.parse(payloadEl.textContent);
-    const viewer = new WeaveViewer(container);
+    const viewer = new OnyxJarViewer(container);
     viewer.create(payload);
     viewer.fit();
 

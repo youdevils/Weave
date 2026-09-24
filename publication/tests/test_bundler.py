@@ -145,7 +145,7 @@ class SharedExplorerModulesTests(SimpleTestCase):
             sorted(
                 [
                     "translate.js",
-                    "weave-viewer.js",
+                    "onyxjar-viewer.js",
                     "text.js",
                     "dataset.js",
                     "query.js",

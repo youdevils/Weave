@@ -1,5 +1,5 @@
 /* =========================================================
-   Weave Explorer surfaces (shared)
+   OnyxJar Explorer surfaces (shared)
 
    Used by the live Explorer, the Publishing preview and the portable
    published Explorer. Contains only Explorer-specific rules; page chrome
@@ -7,7 +7,7 @@
    file (which has no .model-shell) renders identically.
    ========================================================= */
 
-.weave-explorer {
+.onyxjar-explorer {
     --model-text: #212529;
     --model-text-secondary: #495057;
     --model-text-muted: #6c757d;
@@ -24,7 +24,7 @@
 }
 
 /* Inline SVG icons (replace the Bootstrap Icons font so nothing loads from a CDN). */
-.weave-icon {
+.onyxjar-icon {
     display: inline-block;
     width: 1em;
     height: 1em;
@@ -78,7 +78,7 @@
     margin-bottom: 0.75rem;
 }
 
-.model-explorer-search .weave-icon {
+.model-explorer-search .onyxjar-icon {
     position: absolute;
     top: 50%;
     left: 0.7rem;
@@ -538,7 +538,7 @@
     gap: 0.35rem;
 }
 
-.model-explorer-evidence-item > .weave-icon {
+.model-explorer-evidence-item > .onyxjar-icon {
     color: var(--model-text-placeholder);
 }
 
@@ -599,7 +599,7 @@
     color: var(--model-text-muted);
 }
 
-.model-explorer-empty-state .weave-icon {
+.model-explorer-empty-state .onyxjar-icon {
     font-size: 1.6rem;
     margin-bottom: 0.4rem;
 }
@@ -647,11 +647,11 @@
     color: var(--model-text);
 }
 
-.model-explorer-panel-toggle .weave-icon {
+.model-explorer-panel-toggle .onyxjar-icon {
     transition: transform 0.15s ease;
 }
 
-.model-explorer-panel-toggle[aria-expanded="false"] .weave-icon {
+.model-explorer-panel-toggle[aria-expanded="false"] .onyxjar-icon {
     transform: rotate(180deg);
 }
 

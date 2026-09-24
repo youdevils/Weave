@@ -242,7 +242,7 @@ class ObjectImportTests(ImportTestCase):
 
     # -- identity: OnyxJar Object ID ----------------------------------------------------
 
-    def test_weave_object_id_identifies_the_existing_object(self):
+    def test_onyxjar_object_id_identifies_the_existing_object(self):
         app = self.make_app("Payroll")
 
         plan = self.plan(

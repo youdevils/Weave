@@ -2,9 +2,9 @@ import os
 
 from celery import Celery
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "weave.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "onyxjar.settings")
 
-app = Celery("weave")
+app = Celery("onyxjar")
 
 app.config_from_object(
     "django.conf:settings",

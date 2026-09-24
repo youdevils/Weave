@@ -19,7 +19,7 @@ from .assets import load_assets
 from .validator import DATA_BLOCK_ID
 
 # What the document is allowed to do. Scripts are pinned by hash; nothing may
-# open a connection, so the file cannot call back to Weave (or anywhere else)
+# open a connection, so the file cannot call back to OnyxJar (or anywhere else)
 # even if a bug or a hostile value tried to.
 _CSP_TEMPLATE = (
     "default-src 'none'; script-src {scripts}; style-src 'unsafe-inline'; img-src data:; font-src data:; "

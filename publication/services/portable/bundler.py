@@ -1,7 +1,7 @@
 """
 Inlines ES modules into one script so the published file needs no module loader.
 
-Weave has no JS build step in production (the image has no Node), and a module
+OnyxJar has no JS build step in production (the image has no Node), and a module
 graph cannot be loaded from a single ``file://`` document anyway. This does the
 one transformation needed, for a deliberately *strict subset* of ES modules:
 

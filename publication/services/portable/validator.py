@@ -12,7 +12,7 @@ What it enforces:
   * exactly one data block, and it parses as JSON;
   * a Content-Security-Policy that forbids every network connection;
   * none of the shipped *code* (scripts, not the data) contains a way to reach a
-    server or edit a model: fetch/XHR/beacon/WebSocket, CSRF handling, Weave
+    server or edit a model: fetch/XHR/beacon/WebSocket, CSRF handling, OnyxJar
     routes, or proposal/appearance-form code.
 """
 
@@ -21,9 +21,9 @@ from __future__ import annotations
 import json
 import re
 
-DATA_BLOCK_ID = "weave-published-data"
+DATA_BLOCK_ID = "onyxjar-published-data"
 
-# Ways code can talk to a server, and Weave-specific edit paths, that must not ship.
+# Ways code can talk to a server, and OnyxJar-specific edit paths, that must not ship.
 FORBIDDEN_CODE = (
     "fetch(",
     "XMLHttpRequest",

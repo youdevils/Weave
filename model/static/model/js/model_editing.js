@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   /*
    * ============================================================
-   * Weave proposal-aware model editing
+   * OnyxJar proposal-aware model editing
    * ============================================================
    *
    * Supports:

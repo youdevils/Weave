@@ -1,8 +1,6 @@
 # Public website (OnyxJar)
 
-The public OnyxJar site: `/`, `/examples/`, `/privacy/`, `/terms/`, `/contact/`. "OnyxJar" is the public brand. The
-Django project package is still named `weave` internally (module paths, `manage.py`, etc.) — this is not user-facing
-and is out of scope for the rebrand.
+The public OnyxJar site: `/`, `/examples/`, `/privacy/`, `/terms/`, `/contact/`. "OnyxJar" is the public brand.
 
 Log-in and sign-up are **stubs in the existing `account` app** (`/login/`, `/signup/`, names `account:login` /
 `account:signup`): real pages that never create users, authenticate, or touch the session. `settings.LOGIN_URL` points at

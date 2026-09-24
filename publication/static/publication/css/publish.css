@@ -5,7 +5,7 @@
    ========================================================= */
 
 .publish-page {
-    --weave-theme: #4c6ef5;
+    --onyxjar-theme: #4c6ef5;
 }
 
 .publish-actions {
@@ -133,7 +133,7 @@
     min-height: 0;
     gap: 0.5rem;
     padding-top: 0.6rem;
-    border-top: 3px solid var(--weave-theme);
+    border-top: 3px solid var(--onyxjar-theme);
     border-radius: 2px;
 }
 

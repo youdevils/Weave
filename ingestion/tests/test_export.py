@@ -43,7 +43,7 @@ class ExportModelTests(ImportTestCase):
 
         payload = json.loads(self._get(self.editor).content)
 
-        self.assertEqual(payload["format"], "weave")
+        self.assertEqual(payload["format"], "onyxjar")
         self.assertEqual(payload["version"], 1)
         self.assertEqual(payload["model"]["name"], "Model")
 

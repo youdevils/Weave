@@ -10,7 +10,7 @@ to the JS engine and requires identical output.
 The committed fixture is ``publication/jstests/fixtures/parity.json``. When the
 Python behaviour changes on purpose, regenerate it with
 
-    WEAVE_UPDATE_PARITY=1 python manage.py test publication.tests.test_parity
+    ONYXJAR_UPDATE_PARITY=1 python manage.py test publication.tests.test_parity
 """
 
 from __future__ import annotations

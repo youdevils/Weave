@@ -44,7 +44,7 @@ Portable Explorer runtime = shared Explorer kit (pure JS) + LocalSource(bundle) 
 The browser-side Explorer logic (`model/static/model/js/explore/engine/`) is a port of
 `model/services/model_graph/`. If you change that Python on purpose, regenerate the golden file and update the JS:
 
-    WEAVE_UPDATE_PARITY=1 python manage.py test publication.tests.test_parity
+    ONYXJAR_UPDATE_PARITY=1 python manage.py test publication.tests.test_parity
     npm test
 
 ## Known limitations

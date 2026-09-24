@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { WeaveViewer, WeaveViewerError } from "../static/viewer/js/weave-viewer.js";
+import { OnyxJarViewer, OnyxJarViewerError } from "../static/viewer/js/onyxjar-viewer.js";
 
 class FakeDataSet {
   constructor(items = []) {
@@ -100,22 +100,22 @@ function payload(overrides = {}) {
   };
 }
 
-test("constructor throws WeaveViewerError without a vis-compatible implementation", () => {
-  assert.throws(() => new WeaveViewer({}, { vis: {} }), WeaveViewerError);
+test("constructor throws OnyxJarViewerError without a vis-compatible implementation", () => {
+  assert.throws(() => new OnyxJarViewer({}, { vis: {} }), OnyxJarViewerError);
 });
 
 test("lifecycle methods throw before create()", () => {
-  const viewer = new WeaveViewer({}, { vis: fakeVis() });
+  const viewer = new OnyxJarViewer({}, { vis: fakeVis() });
 
-  assert.throws(() => viewer.fit(), WeaveViewerError);
-  assert.throws(() => viewer.update(payload()), WeaveViewerError);
-  assert.throws(() => viewer.getSelection(), WeaveViewerError);
+  assert.throws(() => viewer.fit(), OnyxJarViewerError);
+  assert.throws(() => viewer.update(payload()), OnyxJarViewerError);
+  assert.throws(() => viewer.getSelection(), OnyxJarViewerError);
 });
 
 test("create() instantiates exactly one Network with translated data", () => {
   const vis = fakeVis();
   const container = { id: "container" };
-  const viewer = new WeaveViewer(container, { vis });
+  const viewer = new OnyxJarViewer(container, { vis });
 
   viewer.create(payload());
 
@@ -126,7 +126,7 @@ test("create() instantiates exactly one Network with translated data", () => {
 
 test("create() with an invalid payload throws and never touches Network", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
 
   assert.throws(() => viewer.create(payload({ edges: [{ id: "e1", relationship_type_key: "r", source: "n1", target: "missing" }] })));
   assert.equal(viewer._network, null);
@@ -134,7 +134,7 @@ test("create() with an invalid payload throws and never touches Network", () => 
 
 test("create() called twice destroys the prior instance first (idempotent)", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
 
   viewer.create(payload());
   const firstNetwork = viewer._network;
@@ -147,7 +147,7 @@ test("create() called twice destroys the prior instance first (idempotent)", () 
 
 test("update() does not create a new Network instance", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
 
   viewer.create(payload());
   const network = viewer._network;
@@ -160,7 +160,7 @@ test("update() does not create a new Network instance", () => {
 
 test("update() fully replaces a node's rendered representation (no stale properties)", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
 
   viewer.create(payload({
     nodes: [{ id: "n1", type_key: "type.a", label: "Node 1", style: { border_width: 5 } }],
@@ -180,7 +180,7 @@ test("update() fully replaces a node's rendered representation (no stale propert
 
 test("update() removes nodes/edges that are no longer present in the new payload", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
 
   viewer.create(payload());
   assert.equal(viewer.getNode("n2") !== null, true);
@@ -196,7 +196,7 @@ test("update() removes nodes/edges that are no longer present in the new payload
 
 test("update() re-applies translated viewer_config via setOptions", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
 
   viewer.create(payload());
   viewer.update(payload({ viewer_config: { physics: { enabled: false } } }));
@@ -207,7 +207,7 @@ test("update() re-applies translated viewer_config via setOptions", () => {
 
 test("destroy() unregisters every tracked handler and is safe to call twice", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
 
   viewer.create(payload());
   const handler = () => {};
@@ -224,20 +224,20 @@ test("destroy() unregisters every tracked handler and is safe to call twice", ()
   assert.doesNotThrow(() => viewer.destroy());
 });
 
-test("methods throw WeaveViewerError after destroy()", () => {
+test("methods throw OnyxJarViewerError after destroy()", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
 
   viewer.create(payload());
   viewer.destroy();
 
-  assert.throws(() => viewer.fit(), WeaveViewerError);
-  assert.throws(() => viewer.selectNode("n1"), WeaveViewerError);
+  assert.throws(() => viewer.fit(), OnyxJarViewerError);
+  assert.throws(() => viewer.selectNode("n1"), OnyxJarViewerError);
 });
 
 test("selectNode/selectEdge/clearSelection/getSelection delegate to the network", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
   viewer.create(payload());
 
   viewer.selectNode("n1");
@@ -252,7 +252,7 @@ test("selectNode/selectEdge/clearSelection/getSelection delegate to the network"
 
 test("selectNode/selectEdge no-op for unknown ids rather than throwing", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
   viewer.create(payload());
 
   assert.doesNotThrow(() => viewer.selectNode("does-not-exist"));
@@ -263,7 +263,7 @@ test("selectNode/selectEdge no-op for unknown ids rather than throwing", () => {
 
 test("focusNode delegates to network.focus", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
   viewer.create(payload());
 
   viewer.focusNode("n1", { scale: 1.5 });
@@ -273,7 +273,7 @@ test("focusNode delegates to network.focus", () => {
 
 test("focusEdge fits to the edge's endpoint nodes (no native vis-network focusEdge)", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
   viewer.create(payload());
 
   viewer.focusEdge("e1");
@@ -284,7 +284,7 @@ test("focusEdge fits to the edge's endpoint nodes (no native vis-network focusEd
 
 test("on()/off() delegate to the network and update internal bookkeeping", () => {
   const vis = fakeVis();
-  const viewer = new WeaveViewer({}, { vis });
+  const viewer = new OnyxJarViewer({}, { vis });
   viewer.create(payload());
 
   const handler = () => {};

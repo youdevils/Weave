@@ -66,11 +66,11 @@ export function endpointResolvers(objectTypes) {
 }
 
 const HEADER_SYNONYMS = {
-  weaveid: "identity.id",
+  onyxjarid: "identity.id",
   objectid: "identity.id",
-  weaveobjectid: "identity.id",
+  onyxjarobjectid: "identity.id",
   relationshipid: "identity.id",
-  weaverelationshipid: "identity.id",
+  onyxjarrelationshipid: "identity.id",
   isactive: "field.is_active",
   active: "field.is_active",
   source: "endpoint.subject",

@@ -1,5 +1,5 @@
 """
-Turns resolved Weave appearance into viewer-contract styles.
+Turns resolved OnyxJar appearance into viewer-contract styles.
 
 This is the only appearance module that knows about ``viewer.contracts``. The
 resolver stays viewer-independent; every graph compiler (the ontology overview

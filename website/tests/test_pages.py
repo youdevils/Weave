@@ -69,7 +69,7 @@ class PageTests(TestCase):
             html = self.get(name).content.decode()
             self.assertEqual(len(re.findall(r"<h1[\s>]", html)), 1, name)
 
-    def test_no_page_shows_the_internal_project_name(self):
+    def test_no_page_shows_the_former_project_name(self):
         for name in PUBLIC_PAGES:
             text = visible_text(self.get(name).content.decode())
             self.assertNotIn("weave", text.lower(), name)

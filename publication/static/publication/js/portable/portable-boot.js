@@ -7,7 +7,7 @@
  * generated document also forbids network requests with a Content-Security-Policy.
  */
 
-import { WeaveViewer } from "../../../../../viewer/static/viewer/js/weave-viewer.js";
+import { OnyxJarViewer } from "../../../../../viewer/static/viewer/js/onyxjar-viewer.js";
 import { createLocalSource } from "../../../../../model/static/model/js/explore/engine/local-source.js";
 import { createExplorer } from "../../../../../model/static/model/js/explore/explorer-controller.js";
 import { initialState } from "../../../../../model/static/model/js/explore/explorer-state.js";
@@ -30,7 +30,7 @@ export function startPortableExplorer({ bundle }) {
   const state = openingState(bundle.defaultView);
 
   return createExplorer({
-    WeaveViewer,
+    OnyxJarViewer,
     source,
     bootstrap: { graph: source.graphSync(state), facets: bundle.facets },
     state,
@@ -39,7 +39,7 @@ export function startPortableExplorer({ bundle }) {
 }
 
 function boot() {
-  const data = document.getElementById("weave-published-data");
+  const data = document.getElementById("onyxjar-published-data");
   try {
     startPortableExplorer({ bundle: JSON.parse(data.textContent) });
   } catch (error) {

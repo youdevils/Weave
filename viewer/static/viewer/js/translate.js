@@ -1,5 +1,5 @@
 /**
- * Pure translation between the Weave Viewer Payload contract and vis-network's
+ * Pure translation between the OnyxJar Viewer Payload contract and vis-network's
  * data/option shapes. This is the ONLY module that knows both shapes.
  *
  * Renderer-independence rule: only fields this file explicitly understands
@@ -8,9 +8,9 @@
  * translated output — they exist purely as a forward-compatible extension
  * point on the contract itself, not as a vis-network options passthrough.
  *
- * Omission rule: optional fields that are absent/null in the Weave payload
+ * Omission rule: optional fields that are absent/null in the OnyxJar payload
  * are simply left out of the translated object (never emitted as an
- * explicit "unset" placeholder). This is safe because WeaveViewer.update()
+ * explicit "unset" placeholder). This is safe because OnyxJarViewer.update()
  * always removes a DataSet entry before adding its freshly translated
  * replacement, so an omitted key can never survive from a prior version.
  */
@@ -84,7 +84,7 @@ function escapeLabelHtml(text) {
 
 /**
  * vis-network cannot bold a plain label, only markup inside a `multi` label.
- * So a Weave `font.weight: "bold"` becomes an html-multi font plus a <b>-wrapped,
+ * So an OnyxJar `font.weight: "bold"` becomes an html-multi font plus a <b>-wrapped,
  * escaped label; `weight` itself is never passed on to vis-network.
  */
 function translateNodeFont(font, label) {
@@ -103,7 +103,7 @@ export function translateNode(node) {
   const translated = {
     id: node.id,
     label: node.label,
-    weaveData: {
+    onyxjarData: {
       type_key: node.type_key,
       data: node.data || {},
     },
@@ -139,7 +139,7 @@ export function translateEdge(edge) {
     id: edge.id,
     from: edge.source,
     to: edge.target,
-    weaveData: {
+    onyxjarData: {
       relationship_type_key: edge.relationship_type_key,
       data: edge.data || {},
     },

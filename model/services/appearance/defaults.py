@@ -1,5 +1,5 @@
 """
-Weave's built-in visual defaults: the bottom layer of
+OnyxJar's built-in visual defaults: the bottom layer of
 
     built-in default -> model customisation -> Object Type / Relationship Type override
 

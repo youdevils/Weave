@@ -6,7 +6,7 @@
  *     search and details (the live Explorer asks the server; the published
  *     Explorer and the Publishing preview compute from an embedded dataset);
  *   - this controller owns *what the user is investigating* (explorer-state.js);
- *   - WeaveViewer decides *how it is drawn*.
+ *   - OnyxJarViewer decides *how it is drawn*.
  *
  * The controller performs no I/O of its own and never edits the model. Every
  * request goes through the source, which is the only seam between the Explorer
@@ -88,7 +88,7 @@ const defaultApplyBackground = (container, colour) => {
 
 /**
  * @param {object} config
- * @param {Function} config.WeaveViewer
+ * @param {Function} config.OnyxJarViewer
  * @param {object} config.source            see the source contract above
  * @param {{graph: object, facets: object}} config.bootstrap  initial graph response and filter facets
  * @param {object} [config.state]           the state the exploration starts in (default: nothing narrowed)
@@ -97,7 +97,7 @@ const defaultApplyBackground = (container, colour) => {
  * @param {object} [config.elements]        overrides for the elements looked up by id
  */
 export function createExplorer({
-  WeaveViewer,
+  OnyxJarViewer,
   source: initialSource,
   bootstrap,
   state: startState = initialState(),
@@ -120,7 +120,7 @@ export function createExplorer({
   let searchTimer = null;
   let destroyed = false;
 
-  const viewer = new WeaveViewer(el.graph);
+  const viewer = new OnyxJarViewer(el.graph);
   viewer.create(graph.payload);
   viewer.fit();
   applyBackground(el.graph, graph.canvasBackground);

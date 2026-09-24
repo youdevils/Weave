@@ -23,18 +23,18 @@ class ParityFixtureTests(SimpleTestCase):
     def test_the_committed_fixture_matches_the_python_implementation(self):
         expected = _serialise(build_fixture())
 
-        if os.environ.get("WEAVE_UPDATE_PARITY") == "1":
+        if os.environ.get("ONYXJAR_UPDATE_PARITY") == "1":
             FIXTURE.parent.mkdir(parents=True, exist_ok=True)
             FIXTURE.write_text(expected, encoding="utf-8")
             self.skipTest("Parity fixture regenerated.")
 
-        self.assertTrue(FIXTURE.exists(), "Missing fixture: run with WEAVE_UPDATE_PARITY=1 to create it.")
+        self.assertTrue(FIXTURE.exists(), "Missing fixture: run with ONYXJAR_UPDATE_PARITY=1 to create it.")
         actual = FIXTURE.read_text(encoding="utf-8")
         self.assertEqual(
             actual == expected,
             True,
             "publication/jstests/fixtures/parity.json is stale. If the Python Explorer behaviour changed on "
-            "purpose, regenerate it with WEAVE_UPDATE_PARITY=1 and update the JS engine to match.",
+            "purpose, regenerate it with ONYXJAR_UPDATE_PARITY=1 and update the JS engine to match.",
         )
 
     def test_the_fixture_exercises_the_interesting_paths(self):

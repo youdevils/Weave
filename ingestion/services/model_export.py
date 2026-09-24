@@ -16,7 +16,7 @@ from django.utils.text import slugify
 
 from model.services.model_graph.loader import load_effective_dataset
 
-FORMAT = "weave"
+FORMAT = "onyxjar"
 VERSION = 1
 
 

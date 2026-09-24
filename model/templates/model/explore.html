@@ -52,11 +52,11 @@
 {{ block.super }}
 <script src="{% static 'viewer/vendor/vis-network/vis-network.min.js' %}"></script>
 <script type="module">
-  import { WeaveViewer } from "{% static 'viewer/js/weave-viewer.js' %}";
+  import { OnyxJarViewer } from "{% static 'viewer/js/onyxjar-viewer.js' %}";
   import { startExplorer } from "{% static 'model/js/explore/explorer-boot.js' %}";
 
   startExplorer({
-    WeaveViewer,
+    OnyxJarViewer,
     bootstrap: JSON.parse(document.getElementById("model-explorer-bootstrap").textContent),
   });
 </script>

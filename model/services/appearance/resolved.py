@@ -1,5 +1,5 @@
 """
-The resolved appearance contract: Weave-level visual identity, independent of
+The resolved appearance contract: OnyxJar-level visual identity, independent of
 any viewer. Graph compilers turn these into viewer styles through
 ``viewer_adapter``; nothing here knows about vis-network.
 """

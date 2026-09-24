@@ -124,7 +124,7 @@ class ShapeTests(BundleFixture):
         self.assertEqual(compute_digest(stamped), bundle["digest"])
         self.assertNotIn("sequence", bundle["publication"])
 
-    def test_no_link_back_to_weave_is_embedded(self):
+    def test_no_link_back_to_onyxjar_is_embedded(self):
         text = json.dumps(self.bundle())
 
         for needle in (str(self.model.id), str(self.workspace.id), "/model/", "csrf", "explore/graph"):

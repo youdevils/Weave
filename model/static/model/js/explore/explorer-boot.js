@@ -10,9 +10,9 @@ import { applyCanvasBackground } from "../appearance/appearance-form.js";
 import { createExplorer } from "./explorer-controller.js";
 import { createRemoteSource } from "./remote-source.js";
 
-export function startExplorer({ WeaveViewer, bootstrap }) {
+export function startExplorer({ OnyxJarViewer, bootstrap }) {
   return createExplorer({
-    WeaveViewer,
+    OnyxJarViewer,
     bootstrap,
     source: createRemoteSource({ urls: bootstrap.urls }),
     applyBackground: applyCanvasBackground,

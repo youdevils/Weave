@@ -66,7 +66,7 @@ MIDDLEWARE = [
 if DEBUG:
     MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
-ROOT_URLCONF = "weave.urls"
+ROOT_URLCONF = "onyxjar.urls"
 
 TEMPLATES = [
     {
@@ -84,7 +84,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "weave.wsgi.application"
+WSGI_APPLICATION = "onyxjar.wsgi.application"
 
 SESSION_COOKIE_AGE = 3600  # 1 Hour
 SESSION_SAVE_EVERY_REQUEST = True
@@ -146,12 +146,10 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     CSRF_TRUSTED_ORIGINS = [
-        "https://weave.com",
-        "https://www.weave.com",
-        "https://weave.nz",
-        "https://www.weave.nz",
-        "https://weave.co.nz",
-        "https://www.weave.co.nz",
+        "https://onyxjar.com",
+        "https://www.onyxjar.com",
+        "https://onyxjar.co.nz",
+        "https://www.onyxjar.co.nz",
     ]
 
 # Password validation

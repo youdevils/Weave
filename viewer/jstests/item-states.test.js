@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { WeaveViewer, WeaveViewerError } from "../static/viewer/js/weave-viewer.js";
+import { OnyxJarViewer, OnyxJarViewerError } from "../static/viewer/js/onyxjar-viewer.js";
 import { applyEdgeState, applyNodeState, translateNode, withAlpha, ITEM_STATES } from "../static/viewer/js/translate.js";
 
 // ----------------------------------------------------------------------------
@@ -114,7 +114,7 @@ function styledPayload() {
 }
 
 function createViewer() {
-  const viewer = new WeaveViewer({}, { vis: fakeVis() });
+  const viewer = new OnyxJarViewer({}, { vis: fakeVis() });
   viewer.create(styledPayload());
   return viewer;
 }
@@ -229,7 +229,7 @@ test("applyEdgeState resets a missing colour to null so an earlier state cannot 
 });
 
 // ----------------------------------------------------------------------------
-// WeaveViewer: setItemStates / clearItemStates
+// OnyxJarViewer: setItemStates / clearItemStates
 // ----------------------------------------------------------------------------
 
 test("setItemStates styles only the listed items and leaves the rest untouched", () => {
@@ -312,7 +312,7 @@ test("setItemStates ignores unknown ids and unchanged items", () => {
 });
 
 test("setItemStates throws before create()", () => {
-  assert.throws(() => new WeaveViewer({}, { vis: fakeVis() }).setItemStates({}), WeaveViewerError);
+  assert.throws(() => new OnyxJarViewer({}, { vis: fakeVis() }).setItemStates({}), OnyxJarViewerError);
 });
 
 test("item states survive update() for remaining items and are dropped for removed ones", () => {
@@ -349,7 +349,7 @@ test("destroy() clears item states", () => {
 });
 
 // ----------------------------------------------------------------------------
-// WeaveViewer: getConnected, preservePositions, raw events
+// OnyxJarViewer: getConnected, preservePositions, raw events
 // ----------------------------------------------------------------------------
 
 test("getConnected returns the neighbouring nodes and edges of a node", () => {

@@ -70,7 +70,7 @@ test("suggestions match a header to a field label or key, each field once", () =
 test("suggestions use synonyms for endpoints and ids but never turn matching on", () => {
   const options = fieldOptions(KINDS.RELATIONSHIP, target);
 
-  assert.deepEqual(suggestMapping(["From", "To", "Weave ID"], options), {
+  assert.deepEqual(suggestMapping(["From", "To", "OnyxJar ID"], options), {
     0: "endpoint.subject",
     1: "endpoint.object",
     2: "identity.id",

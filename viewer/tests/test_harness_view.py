@@ -11,9 +11,9 @@ class HarnessViewTests(TestCase):
         response = self.client.get(self.harness_url())
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'id="weave-viewer-payload"')
+        self.assertContains(response, 'id="onyxjar-viewer-payload"')
         self.assertContains(response, "vis-network.min.js")
-        self.assertContains(response, "weave-viewer.js")
+        self.assertContains(response, "onyxjar-viewer.js")
 
     @override_settings(DEBUG=False)
     def test_harness_not_found_outside_debug(self):

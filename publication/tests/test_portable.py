@@ -132,9 +132,9 @@ class ContentTests(DocumentFixture):
     def test_the_theme_colour_styles_the_container(self):
         html = self.document({"presentation": {"theme_colour": "#00aa00"}})
 
-        self.assertIn("--weave-theme: #00AA00;", html)
-        self.assertIn("--weave-theme-ink: #ffffff;", html)
-        self.assertIn("--weave-theme-ink: #212529;", self.document({"presentation": {"theme_colour": "#ffee00"}}))
+        self.assertIn("--onyxjar-theme: #00AA00;", html)
+        self.assertIn("--onyxjar-theme-ink: #ffffff;", html)
+        self.assertIn("--onyxjar-theme-ink: #212529;", self.document({"presentation": {"theme_colour": "#ffee00"}}))
 
     def test_the_explorer_surfaces_are_present(self):
         html = self.document()
@@ -165,24 +165,24 @@ class ContentTests(DocumentFixture):
     def test_the_platform_branding_footer_is_shown_by_default(self):
         html = self.document()
 
-        self.assertIn('<div class="weave-published-brand">', html)
-        self.assertIn('<span class="weave-published-wordmark">OnyxJar</span>', html)
+        self.assertIn('<div class="onyxjar-published-brand">', html)
+        self.assertIn('<span class="onyxjar-published-wordmark">OnyxJar</span>', html)
         self.assertIn("Read-only snapshot of an OnyxJar model.", html)
 
     def test_the_platform_branding_can_be_hidden_for_a_future_entitlement(self):
         html = render_document(self.bundle(), show_platform_branding=False)
 
-        self.assertNotIn('<div class="weave-published-brand">', html)
-        self.assertNotIn("weave-published-wordmark", html)
+        self.assertNotIn('<div class="onyxjar-published-brand">', html)
+        self.assertNotIn("onyxjar-published-wordmark", html)
         # The factual disclosure is not paid-tier branding, so it stays regardless.
         self.assertIn("Read-only snapshot of an OnyxJar model.", html)
 
     def test_the_branding_footer_does_not_use_the_model_owners_theme_colour(self):
         html = self.document({"presentation": {"theme_colour": "#00aa00"}})
         css = "\n".join(split_document(html)["styles"])
-        brand_rule = re.search(r"\.weave-published-brand\s*\{[^}]*\}", css).group(0)
+        brand_rule = re.search(r"\.onyxjar-published-brand\s*\{[^}]*\}", css).group(0)
 
-        self.assertNotIn("var(--weave-theme", brand_rule)
+        self.assertNotIn("var(--onyxjar-theme", brand_rule)
 
     def test_no_edit_or_proposal_surface_is_rendered(self):
         html = self.document()
@@ -275,7 +275,7 @@ class ValidatorTests(SimpleTestCase):
         "<!DOCTYPE html><html><head>"
         "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; connect-src 'none'\">"
         "<style>a{background:url(data:image/png;base64,AAAA)}</style></head><body>"
-        "<script type=\"application/json\" id=\"weave-published-data\">{\"a\": 1}</script>"
+        "<script type=\"application/json\" id=\"onyxjar-published-data\">{\"a\": 1}</script>"
         "<script>var x = 1;</script></body></html>"
     )
 
@@ -309,8 +309,8 @@ class ValidatorTests(SimpleTestCase):
 
     def test_the_data_block_must_exist_once_and_parse(self):
         self.bad(self.GOOD.replace('{"a": 1}', "{not json"), "not valid JSON")
-        self.bad(self.GOOD.replace('id="weave-published-data"', 'id="other"'), "Unexpected JSON block")
-        doubled = self.GOOD.replace("</body>", '<script type="application/json" id="weave-published-data">{}</script></body>')
+        self.bad(self.GOOD.replace('id="onyxjar-published-data"', 'id="other"'), "Unexpected JSON block")
+        doubled = self.GOOD.replace("</body>", '<script type="application/json" id="onyxjar-published-data">{}</script></body>')
         self.bad(doubled, "exactly one data block")
 
     def test_the_csp_is_required(self):
@@ -327,10 +327,10 @@ class AssetTests(SimpleTestCase):
         self.assertNotIn("createRemoteSource", assets.app_script)
         self.assertNotIn("sourceMappingURL", assets.vis_script)
         self.assertNotIn("import ", assets.app_script.replace("// import", ""))
-        self.assertIn("weave-icon", assets.app_script)
+        self.assertIn("onyxjar-icon", assets.app_script)
 
     def test_the_css_carries_the_explorer_and_portable_layers(self):
         css = load_assets().css
 
-        for selector in (".model-explorer-layout", ".weave-icon", ".weave-published-header", ".vis-network"):
+        for selector in (".model-explorer-layout", ".onyxjar-icon", ".onyxjar-published-header", ".vis-network"):
             self.assertIn(selector, css)

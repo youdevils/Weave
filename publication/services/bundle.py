@@ -5,7 +5,7 @@ The portable bundle: everything a published Explorer needs, as plain JSON.
 
 The bundle is the only contract between publication *building* (server side)
 and the portable Explorer *runtime* (browser side). It contains no reference to
-Weave: no URLs, no ids of proposals, no model or workspace ids.
+OnyxJar: no URLs, no ids of proposals, no model or workspace ids.
 
 What is deliberately frozen into it at publish time:
   * the published dataset (already scoped and canonical-only);
@@ -40,7 +40,7 @@ from viewer.contracts import (
 
 from ..models import Publication
 
-FORMAT = "weave-portable-explorer"
+FORMAT = "onyxjar-portable-explorer"
 
 # Shown for a relationship's endpoint that is not part of the publication.
 OUTSIDE_PUBLICATION = "an object outside this publication"

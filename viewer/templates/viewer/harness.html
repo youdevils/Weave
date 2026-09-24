@@ -3,31 +3,31 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Weave Viewer — Dev Harness</title>
+  <title>OnyxJar Viewer — Dev Harness</title>
   <link rel="stylesheet" href="{% static 'viewer/vendor/vis-network/vis-network.min.css' %}">
   <style>
     html, body {
       height: 100%;
       margin: 0;
     }
-    #weave-viewer-container {
+    #onyxjar-viewer-container {
       width: 100%;
       height: 100%;
     }
   </style>
 </head>
 <body>
-  {{ payload|json_script:"weave-viewer-payload" }}
-  <div id="weave-viewer-container"></div>
+  {{ payload|json_script:"onyxjar-viewer-payload" }}
+  <div id="onyxjar-viewer-container"></div>
 
   <script src="{% static 'viewer/vendor/vis-network/vis-network.min.js' %}"></script>
   <script type="module">
-    import { WeaveViewer } from "{% static 'viewer/js/weave-viewer.js' %}";
+    import { OnyxJarViewer } from "{% static 'viewer/js/onyxjar-viewer.js' %}";
 
-    const payload = JSON.parse(document.getElementById("weave-viewer-payload").textContent);
-    const container = document.getElementById("weave-viewer-container");
+    const payload = JSON.parse(document.getElementById("onyxjar-viewer-payload").textContent);
+    const container = document.getElementById("onyxjar-viewer-container");
 
-    const viewer = new WeaveViewer(container);
+    const viewer = new OnyxJarViewer(container);
     viewer.create(payload);
     viewer.fit();
   </script>

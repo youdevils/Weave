@@ -2,43 +2,43 @@
    OnyxJar — authenticated app global theme layer
    Mirrors the brand tokens in website/static/website/css/onyxjar.css
    (that file's --ff-* prefix stays specific to the public site;
-   this app-wide layer uses its own --weave-* prefix).
+   this app-wide layer uses its own --onyxjar-* prefix).
    ========================================================== */
 
 :root {
 
     /* Brand palette */
-    --weave-indigo: #4f46e5;
-    --weave-indigo-strong: #4338ca;
-    --weave-teal: #10b981;
-    --weave-sky: #60a5fa;
-    --weave-ink: #0f172a;
-    --weave-slate: #94a3b8;
-    --weave-mist: #f1f5f9;
+    --onyxjar-indigo: #4f46e5;
+    --onyxjar-indigo-strong: #4338ca;
+    --onyxjar-teal: #10b981;
+    --onyxjar-sky: #60a5fa;
+    --onyxjar-ink: #0f172a;
+    --onyxjar-slate: #94a3b8;
+    --onyxjar-mist: #f1f5f9;
 
-    --weave-bg: #f8fafc;
-    --weave-surface: #ffffff;
-    --weave-surface-subtle: #f8fafc;
-    --weave-surface-hover: #f1f5f9;
-    --weave-text: var(--weave-ink);
-    --weave-text-muted: #64748b;
-    --weave-text-secondary: #475569;
-    --weave-accent-soft: #eef2ff;
-    --weave-border: #e2e8f0;
-    --weave-focus: #4f46e5;
+    --onyxjar-bg: #f8fafc;
+    --onyxjar-surface: #ffffff;
+    --onyxjar-surface-subtle: #f8fafc;
+    --onyxjar-surface-hover: #f1f5f9;
+    --onyxjar-text: var(--onyxjar-ink);
+    --onyxjar-text-muted: #64748b;
+    --onyxjar-text-secondary: #475569;
+    --onyxjar-accent-soft: #eef2ff;
+    --onyxjar-border: #e2e8f0;
+    --onyxjar-focus: #4f46e5;
 
-    --weave-radius-sm: 10px;
-    --weave-radius: 16px;
-    --weave-shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 18px rgba(15, 23, 42, 0.05);
+    --onyxjar-radius-sm: 10px;
+    --onyxjar-radius: 16px;
+    --onyxjar-shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 18px rgba(15, 23, 42, 0.05);
 
-    --weave-font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --onyxjar-font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
     /* Bootstrap root-level overrides (reboot/link/focus rules read these live) */
-    --bs-primary: var(--weave-indigo);
+    --bs-primary: var(--onyxjar-indigo);
     --bs-primary-rgb: 79, 70, 229;
-    --bs-link-color: var(--weave-indigo);
+    --bs-link-color: var(--onyxjar-indigo);
     --bs-link-color-rgb: 79, 70, 229;
-    --bs-link-hover-color: var(--weave-indigo-strong);
+    --bs-link-hover-color: var(--onyxjar-indigo-strong);
     --bs-link-hover-color-rgb: 67, 56, 202;
     --bs-focus-ring-color: rgba(79, 70, 229, 0.25);
     --bs-border-radius: 0.5rem;
@@ -53,7 +53,7 @@
    ========================================================== */
 
 body {
-    font-family: var(--weave-font);
+    font-family: var(--onyxjar-font);
 }
 
 
@@ -67,38 +67,38 @@ body {
    ========================================================== */
 
 .btn-primary {
-    --bs-btn-bg: var(--weave-indigo);
-    --bs-btn-border-color: var(--weave-indigo);
-    --bs-btn-hover-bg: var(--weave-indigo-strong);
-    --bs-btn-hover-border-color: var(--weave-indigo-strong);
-    --bs-btn-active-bg: var(--weave-indigo-strong);
-    --bs-btn-active-border-color: var(--weave-indigo-strong);
+    --bs-btn-bg: var(--onyxjar-indigo);
+    --bs-btn-border-color: var(--onyxjar-indigo);
+    --bs-btn-hover-bg: var(--onyxjar-indigo-strong);
+    --bs-btn-hover-border-color: var(--onyxjar-indigo-strong);
+    --bs-btn-active-bg: var(--onyxjar-indigo-strong);
+    --bs-btn-active-border-color: var(--onyxjar-indigo-strong);
     --bs-btn-focus-shadow-rgb: 79, 70, 229;
 }
 
 .btn-outline-primary {
-    --bs-btn-color: var(--weave-indigo);
-    --bs-btn-border-color: var(--weave-indigo);
-    --bs-btn-hover-bg: var(--weave-indigo);
-    --bs-btn-hover-border-color: var(--weave-indigo);
-    --bs-btn-active-bg: var(--weave-indigo);
-    --bs-btn-active-border-color: var(--weave-indigo);
+    --bs-btn-color: var(--onyxjar-indigo);
+    --bs-btn-border-color: var(--onyxjar-indigo);
+    --bs-btn-hover-bg: var(--onyxjar-indigo);
+    --bs-btn-hover-border-color: var(--onyxjar-indigo);
+    --bs-btn-active-bg: var(--onyxjar-indigo);
+    --bs-btn-active-border-color: var(--onyxjar-indigo);
     --bs-btn-focus-shadow-rgb: 79, 70, 229;
 }
 
 .form-control:focus,
 .form-select:focus {
-    border-color: var(--weave-indigo);
+    border-color: var(--onyxjar-indigo);
     box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.15);
 }
 
 .form-check-input:checked {
-    background-color: var(--weave-indigo);
-    border-color: var(--weave-indigo);
+    background-color: var(--onyxjar-indigo);
+    border-color: var(--onyxjar-indigo);
 }
 
 .form-check-input:focus {
-    border-color: var(--weave-indigo);
+    border-color: var(--onyxjar-indigo);
     box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.15);
 }
 
@@ -107,83 +107,83 @@ body {
    Navbar / footer
    ========================================================== */
 
-.weave-navbar-mark {
+.onyxjar-navbar-mark {
     width: 28px;
     height: 28px;
 }
 
-.weave-page-title {
+.onyxjar-page-title {
     font-weight: 700;
     letter-spacing: -0.01em;
-    color: var(--weave-ink);
+    color: var(--onyxjar-ink);
 }
 
-.weave-page-eyebrow {
+.onyxjar-page-eyebrow {
     margin-bottom: 0.35rem;
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
-.weave-page-description {
+.onyxjar-page-description {
     max-width: 700px;
     margin: 0.45rem 0 0;
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.875rem;
     line-height: 1.5;
 }
 
-.weave-back-link {
+.onyxjar-back-link {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.8rem;
     text-decoration: none;
 }
 
-.weave-back-link:hover {
-    color: var(--weave-ink);
+.onyxjar-back-link:hover {
+    color: var(--onyxjar-ink);
 }
 
-.weave-empty-state {
+.onyxjar-empty-state {
     padding: 3rem 2rem;
-    border: 1px solid var(--weave-border);
-    border-radius: var(--weave-radius-sm);
-    background: var(--weave-surface-subtle);
+    border: 1px solid var(--onyxjar-border);
+    border-radius: var(--onyxjar-radius-sm);
+    background: var(--onyxjar-surface-subtle);
     text-align: center;
 }
 
-.weave-empty-state .weave-empty-icon {
+.onyxjar-empty-state .onyxjar-empty-icon {
     margin-bottom: 0.75rem;
     font-size: 1.5rem;
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
 }
 
-.weave-empty-state h2,
-.weave-empty-state h3 {
+.onyxjar-empty-state h2,
+.onyxjar-empty-state h3 {
     margin: 0;
     color: #343a40;
     font-size: 0.95rem;
     font-weight: 600;
 }
 
-.weave-empty-state p {
+.onyxjar-empty-state p {
     max-width: 500px;
     margin: 0.35rem auto 0;
-    color: var(--weave-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.85rem;
     line-height: 1.5;
 }
 
-.weave-status-pill {
+.onyxjar-status-pill {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
     padding: 0.35rem 0.7rem;
-    border: 1px solid var(--weave-border);
+    border: 1px solid var(--onyxjar-border);
     border-radius: 999px;
     background: #fff;
     font-size: 0.72rem;
@@ -191,13 +191,13 @@ body {
     line-height: 1;
 }
 
-.weave-status-soon {
+.onyxjar-status-soon {
     border-color: #e2e2e2;
     background: #f7f7f7;
     color: #6c6c6c;
 }
 
-.weave-avatar {
+.onyxjar-avatar {
     width: 32px;
     height: 32px;
 }
@@ -212,8 +212,8 @@ body {
    ========================================================== */
 
 .card {
-    border: 1px solid var(--weave-border);
-    border-radius: var(--weave-radius-sm);
+    border: 1px solid var(--onyxjar-border);
+    border-radius: var(--onyxjar-radius-sm);
     box-shadow: none;
     transition:
         border-color 0.15s ease,
@@ -228,18 +228,18 @@ body {
 }
 
 .modal-content {
-    border: 1px solid var(--weave-border);
-    border-radius: var(--weave-radius-sm);
-    box-shadow: var(--weave-shadow-soft);
+    border: 1px solid var(--onyxjar-border);
+    border-radius: var(--onyxjar-radius-sm);
+    box-shadow: var(--onyxjar-shadow-soft);
 }
 
 .alert {
-    border-radius: var(--weave-radius-sm);
+    border-radius: var(--onyxjar-radius-sm);
     border-width: 1px;
 }
 
 .dropdown-menu {
-    border: 1px solid var(--weave-border);
-    border-radius: var(--weave-radius-sm);
-    box-shadow: var(--weave-shadow-soft);
+    border: 1px solid var(--onyxjar-border);
+    border-radius: var(--onyxjar-radius-sm);
+    box-shadow: var(--onyxjar-shadow-soft);
 }

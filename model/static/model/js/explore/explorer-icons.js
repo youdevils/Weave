@@ -18,5 +18,5 @@ export const ICON_NAMES = Object.freeze(Object.keys(GLYPHS));
 
 export function icon(name) {
   if (!Object.hasOwn(GLYPHS, name)) throw new Error(`Unknown icon: ${name}`);
-  return `<svg class="weave-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${GLYPHS[name]}</svg>`;
+  return `<svg class="onyxjar-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${GLYPHS[name]}</svg>`;
 }

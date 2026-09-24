@@ -100,14 +100,14 @@
 {{ block.super }}
 <script src="{% static 'viewer/vendor/vis-network/vis-network.min.js' %}"></script>
 <script type="module">
-  import { WeaveViewer } from "{% static 'viewer/js/weave-viewer.js' %}";
+  import { OnyxJarViewer } from "{% static 'viewer/js/onyxjar-viewer.js' %}";
   import { applyCanvasBackground, postAppearance, buildBody } from "{% static 'model/js/appearance/appearance-form.js' %}";
   import { applyResponse } from "{% static 'model/js/appearance/appearance-boot.js' %}";
 
   const container = document.getElementById("model-customise-graph");
   const payload = JSON.parse(document.getElementById("model-customise-payload").textContent);
 
-  const viewer = new WeaveViewer(container);
+  const viewer = new OnyxJarViewer(container);
   viewer.create(payload);
   viewer.fit();
 

@@ -1,9 +1,9 @@
 {
-  "name": "weave",
+  "name": "onyxjar",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "Root package.json for Weave's frontend dependencies (currently: vis-network, used by the viewer app's WeaveViewer wrapper).",
+  "description": "Root package.json for OnyxJar's frontend dependencies (currently: vis-network, used by the viewer app's OnyxJarViewer wrapper).",
   "scripts": {
     "test": "node --test \"viewer/jstests/*.test.js\" \"model/jstests/*.test.js\" \"publication/jstests/*.test.js\" \"ingestion/jstests/*.test.js\" \"website/jstests/*.test.js\""
   },

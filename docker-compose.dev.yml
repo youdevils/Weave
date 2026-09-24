@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15
-    container_name: DEV_weave_db_postgres
+    container_name: DEV_onyxjar_db
     env_file:
       - .env.dev
     environment:
@@ -21,7 +21,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: DEV_weave_redis
+    container_name: DEV_onyxjar_redis
     ports:
       - "6379:6379"
     restart: unless-stopped
@@ -31,14 +31,14 @@ services:
           - redis
 
   web:
-    container_name: DEV_weave_web
+    container_name: DEV_onyxjar_web
     build:
       context: .
     command: python manage.py runserver 0.0.0.0:8000
     ports:
       - "8000:8000"
     volumes:
-      - /c/Users/Leon/Documents/Weave:/app
+      - /c/Users/Leon/Documents/OnyxJar:/app
     env_file:
       - .env.dev
     environment:
@@ -53,12 +53,12 @@ services:
 
 
   celery_worker:
-    container_name: DEV_weave_celery_worker
+    container_name: DEV_onyxjar_celery_worker
     build:
       context: .
-    command: celery -A weave worker -l info --concurrency=4
+    command: celery -A onyxjar worker -l info --concurrency=4
     volumes:
-      - /c/Users/Leon/Documents/Weave:/app
+      - /c/Users/Leon/Documents/OnyxJar:/app
     env_file:
       - .env.dev
     environment:

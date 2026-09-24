@@ -1,10 +1,10 @@
 /**
- * WeaveViewer — a small, documented wrapper around vis-network.
+ * OnyxJarViewer — a small, documented wrapper around vis-network.
  *
- * The rest of Weave should interact with this class rather than instantiate
+ * The rest of OnyxJar should interact with this class rather than instantiate
  * `vis.Network` directly. It knows nothing about where a payload came from
  * (Model Explorer, Publishing Preview, a frozen published HTML artifact) —
- * it only knows how to render a Weave Viewer Payload (see contracts.py and
+ * it only knows how to render an OnyxJar Viewer Payload (see contracts.py and
  * translate.js). It has no Django dependency and makes no network requests
  * of its own, so it can run unmodified inside a self-contained HTML file.
  *
@@ -22,12 +22,12 @@ import {
   translateViewerConfig,
 } from "./translate.js";
 
-export class WeaveViewerError extends Error {}
+export class OnyxJarViewerError extends Error {}
 
-export class WeaveViewer {
+export class OnyxJarViewer {
   constructor(container, { vis = typeof window !== "undefined" ? window.vis : undefined } = {}) {
     if (!vis || !vis.Network || !vis.DataSet) {
-      throw new WeaveViewerError("WeaveViewer requires a vis-network-compatible { Network, DataSet } implementation");
+      throw new OnyxJarViewerError("OnyxJarViewer requires a vis-network-compatible { Network, DataSet } implementation");
     }
 
     this._container = container;
@@ -47,7 +47,7 @@ export class WeaveViewer {
 
   _assertActive() {
     if (!this._network) {
-      throw new WeaveViewerError("WeaveViewer has not been created (or has been destroyed)");
+      throw new OnyxJarViewerError("OnyxJarViewer has not been created (or has been destroyed)");
     }
   }
 

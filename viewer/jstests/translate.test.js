@@ -79,7 +79,7 @@ test("translateNode maps only known style fields that are present", () => {
   assert.equal(translated.color.background, "#fff");
   assert.equal(translated.borderWidth, 2);
   assert.equal(translated.color.border, undefined);
-  assert.deepEqual(translated.weaveData.data, { extra_semantic: true });
+  assert.deepEqual(translated.onyxjarData.data, { extra_semantic: true });
 });
 
 test("translateNode omits absent optional style fields entirely", () => {

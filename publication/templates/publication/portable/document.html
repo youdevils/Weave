@@ -9,19 +9,19 @@
 <title>{{ title }}</title>
 <style>{{ css|safe }}</style>
 </head>
-<body class="weave-published" style="--weave-theme: {{ theme_colour }}; --weave-theme-ink: {{ theme_ink }};">
+<body class="onyxjar-published" style="--onyxjar-theme: {{ theme_colour }}; --onyxjar-theme-ink: {{ theme_ink }};">
 
-<header class="weave-published-header">
-    <div class="weave-published-title">
+<header class="onyxjar-published-header">
+    <div class="onyxjar-published-title">
         <h1>{{ title }}</h1>
         {% if description %}<p>{{ description }}</p>{% endif %}
     </div>
-    <p class="weave-published-meta">
+    <p class="onyxjar-published-meta">
         Revision {{ revision }} &middot; Published <time datetime="{{ published_iso }}">{{ published_display }}</time>
     </p>
 </header>
 
-<main class="weave-published-main weave-explorer" id="model-explorer">
+<main class="onyxjar-published-main onyxjar-explorer" id="model-explorer">
     <noscript><p class="model-explorer-form-error">This published explorer needs JavaScript to run.</p></noscript>
 
     <div class="model-explorer-layout">
@@ -31,10 +31,10 @@
     </div>
 </main>
 
-<footer class="weave-published-footer">
+<footer class="onyxjar-published-footer">
 {% if show_platform_branding %}
-    <div class="weave-published-brand">
-        <svg class="weave-published-sprite" aria-hidden="true" focusable="false">
+    <div class="onyxjar-published-brand">
+        <svg class="onyxjar-published-sprite" aria-hidden="true" focusable="false">
             <defs>
                 <linearGradient id="wpb-indigo" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0" stop-color="#4F46E5"/>
@@ -57,11 +57,11 @@
                 </g>
             </symbol>
         </svg>
-        <svg class="weave-published-mark" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><use href="#wpb-mark"/></svg>
-        <span class="weave-published-wordmark">OnyxJar</span>
+        <svg class="onyxjar-published-mark" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><use href="#wpb-mark"/></svg>
+        <span class="onyxjar-published-wordmark">OnyxJar</span>
     </div>
 {% endif %}
-    <p class="weave-published-footer-text">
+    <p class="onyxjar-published-footer-text">
         Read-only snapshot of an OnyxJar model. It works offline; nothing here can be edited.
     </p>
 </footer>

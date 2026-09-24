@@ -8,7 +8,7 @@ test("every icon is a self-contained inline svg with no external references", ()
   assert.deepEqual([...ICON_NAMES].sort(), ["copy", "cursor", "paperclip", "search", "slash-circle"]);
   for (const name of ICON_NAMES) {
     const svg = icon(name);
-    assert.match(svg, /^<svg class="weave-icon"/);
+    assert.match(svg, /^<svg class="onyxjar-icon"/);
     assert.match(svg, /aria-hidden="true"/);
     assert.doesNotMatch(svg, /https?:|href=|url\(/);
   }
@@ -20,6 +20,6 @@ test("an unknown icon is an error, not empty markup", () => {
 
 test("the render layer uses inline icons rather than the Bootstrap Icons font", () => {
   assert.doesNotMatch(renderEmptyDetails(), /\bbi\b/);
-  assert.match(renderEmptyDetails(), /<svg class="weave-icon"/);
-  assert.match(renderDetailsError("gone"), /<svg class="weave-icon"/);
+  assert.match(renderEmptyDetails(), /<svg class="onyxjar-icon"/);
+  assert.match(renderDetailsError("gone"), /<svg class="onyxjar-icon"/);
 });
