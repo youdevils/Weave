@@ -198,7 +198,10 @@
                                  Start from scratch
                                  ===================================== -->
 
-                            <div class="starting-point-card unavailable">
+                            <a
+                                href="{% url 'workspace:index' %}"
+                                class="starting-point-card"
+                            >
 
                                 <div class="starting-point-card-icon">
                                     <i
@@ -215,8 +218,8 @@
 
                                     <div class="starting-point-card-pills">
 
-                                        <span class="onyxjar-status-pill onyxjar-status-soon starting-point-pill">
-                                            Coming soon
+                                        <span class="onyxjar-status-pill starting-point-pill">
+                                            MODEL
                                         </span>
 
                                     </div>
@@ -228,7 +231,20 @@
 
                                 </div>
 
-                            </div>
+                                <div class="starting-point-card-footer">
+
+                                    <span>
+                                        Start empty
+                                    </span>
+
+                                    <i
+                                        class="bi bi-arrow-right"
+                                        aria-hidden="true"
+                                    ></i>
+
+                                </div>
+
+                            </a>
 
 
                             <!-- =====================================
