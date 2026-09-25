@@ -1,0 +1,72 @@
+{% comment %}
+One endpoint (subject or object) of an existing relationship, edited
+inline through the proposal editor exactly like an Object's Name.
+
+  field_name    "subject_id" | "object_id" (the proposal field)
+  label         "Subject" | "Object"
+  endpoint      the effective endpoint (.id/.name/.object_type_id)
+  choices       permitted Objects, each with .object_type for grouping
+  is_proposed   whether a pending change touches this endpoint
+  placeholder   empty-option text for the picker
+{% endcomment %}
+
+<div
+    class="model-editor-field proposal-editor-field"
+    data-field="{{ field_name }}"
+>
+
+    <div class="model-editor-field-header">
+        <label for="id_{{ field_name }}">{{ label }}</label>
+        <button type="button" class="model-inline-edit-button" data-proposal-action="edit">Edit</button>
+    </div>
+
+    <div class="model-editor-field-display" data-field-display="{{ field_name }}">
+        {% if endpoint %}
+            <a href="{% url 'model:data_object_edit' model.id endpoint.object_type_id endpoint.id %}">{{ endpoint.name }}</a>
+        {% else %}
+            <span class="model-field-empty">Not defined</span>
+        {% endif %}
+    </div>
+
+    <div class="model-editor-field-editor" data-field-editor="{{ field_name }}" hidden>
+
+        <select id="id_{{ field_name }}" class="form-select">
+            <option value="">{{ placeholder }}</option>
+            {% regroup choices by object_type as choice_groups %}
+            {% for group in choice_groups %}
+                <optgroup label="{{ group.grouper.name }}">
+                    {% for choice in group.list %}
+                        <option value="{{ choice.id }}" {% if endpoint and choice.id|stringformat:'s' == endpoint.id|stringformat:'s' %}selected{% endif %}>{{ choice.name }}</option>
+                    {% endfor %}
+                </optgroup>
+            {% endfor %}
+        </select>
+
+        <div class="model-editor-field-error" data-proposal-error hidden></div>
+
+        <div class="model-editor-actions">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-proposal-action="cancel">Cancel</button>
+            <button type="button" class="btn btn-sm btn-primary" data-proposal-action="save">Save</button>
+        </div>
+
+    </div>
+
+    <div
+        class="model-proposed-indicator"
+        data-proposal-indicator
+        {% if not is_proposed %}hidden{% endif %}
+    >
+        <i class="bi bi-pencil-square"></i>
+        Proposed change
+    </div>
+
+    <button
+        type="button"
+        class="model-discard-button"
+        data-proposal-action="discard"
+        {% if not is_proposed %}hidden{% endif %}
+    >
+        Discard
+    </button>
+
+</div>

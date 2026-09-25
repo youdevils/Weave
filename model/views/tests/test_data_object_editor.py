@@ -174,6 +174,32 @@ class UpdateObjectTests(DataObjectEditorTestCase):
         self.assertEqual(get_response.context["proposed_values"]["name"], "Customer S/4HANA")
         self.assertContains(get_response, "Customer S/4HANA")
 
+    def test_field_save_and_discard_responses_are_unchanged(self):
+        # The inline editor shows `value` unless a `display` label is
+        # returned (only relationship endpoints do); Object fields keep
+        # their plain value response.
+        def payload(response):
+            # with_updated_sidebar adds the refreshed sidebar to every JSON reply.
+            return {k: v for k, v in response.json().items() if k != "sidebar_html"}
+
+        save = self.client.post(
+            self.edit_url(self.obj.id), {"field": "name", "value": "Renamed"},
+        )
+        self.assertEqual(
+            payload(save), {"success": True, "value": "Renamed", "proposed": True},
+        )
+
+        discard = self.client.post(
+            self.edit_url(self.obj.id), {"field": "name", "action": "discard"},
+        )
+        self.assertEqual(
+            payload(discard), {"success": True, "value": "SAP S/4HANA", "proposed": False},
+        )
+
+        page = self.client.get(self.edit_url(self.obj.id)).content.decode()
+        for field in ("name", "description", "attributes.owner", "attributes.certified"):
+            self.assertIn(f'data-field="{field}"', page)
+
     def test_repeated_field_save_dedups_to_one_change(self):
         self.client.post(self.edit_url(self.obj.id), {"field": "name", "value": "First"})
         self.client.post(self.edit_url(self.obj.id), {"field": "name", "value": "Second"})

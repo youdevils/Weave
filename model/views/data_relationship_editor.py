@@ -10,6 +10,7 @@ from model.models.proposal import ProposalChange
 from model.models.relationship import Relationship
 from model.services.proposal.proposal import ProposalService
 from model.services.validation.attributes import validate_attribute_value
+from model.services.validation.fields import RELATIONSHIP_ENDPOINT_FIELDS
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
 from model.views.sidebar import with_updated_sidebar
@@ -19,10 +20,20 @@ from model.views.data_context import (
     build_proposed_only_objects,
     build_relationship_attribute_definitions,
     coerce_attribute_value,
-    object_create_change,
     relationship_create_change,
     relationship_effective_values,
+    resolve_relationship_endpoint,
     resolve_working_relationship_type,
+)
+
+_ENDPOINT_REQUIRED_MESSAGES = {
+    "subject_id": "Choose a subject.",
+    "object_id": "Choose an object.",
+}
+
+_ENDPOINT_PAIR_MESSAGE = (
+    "This combination of types is not permitted by the "
+    "relationship's rules."
 )
 
 
@@ -36,34 +47,56 @@ def _serialize_value(value):
     return str(value)
 
 
-def _resolve_relationship_endpoint(object_id, proposal):
+def _endpoint_label(object_id, proposal):
+    endpoint = resolve_relationship_endpoint(object_id, proposal)
+
+    return endpoint.name if endpoint is not None else ""
+
+
+def _effective_endpoint_ids(relationship, proposal, proposal_only):
     """
-    Resolve a Relationship endpoint by id alone: canonical Object
-    first, else a proposal-only Object CREATE change in the same
-    proposal. Used only for display (.name) and building the
-    data_object_edit URL (.object_type_id) — full nested ObjectType
-    resolution isn't needed here.
+    The relationship's current {subject_id, object_id} as strings —
+    from its CREATE payload when proposal-only, otherwise canonical
+    with any pending endpoint UPDATEs applied.
     """
 
-    if not object_id:
-        return None
+    if proposal_only:
+        after = relationship_create_change(relationship.id, proposal).after or {}
 
-    obj = Object.objects.filter(id=object_id).select_related("object_type").first()
+        return {field: str(after.get(field) or "") for field in RELATIONSHIP_ENDPOINT_FIELDS}
 
-    if obj is not None:
-        return obj
+    effective = relationship_effective_values(relationship, proposal)
 
-    create_change = object_create_change(object_id, proposal)
+    return {field: effective[field] for field in RELATIONSHIP_ENDPOINT_FIELDS}
 
-    if create_change is None:
-        return None
 
-    after = create_change.after or {}
+def _with_current_choice(choices, current, object_type_lookup):
+    """
+    Keep the relationship's current endpoint selectable in its picker
+    even when it would no longer be offered for a new relationship
+    (e.g. it has since been retired), so opening the editor never
+    silently shows a different selection from the one recorded.
+    """
 
-    return SimpleNamespace(
-        id=create_change.target_id,
-        name=after.get("name", ""),
-        object_type_id=create_change.parent_id,
+    if current is None or _find_candidate(choices, current.id) is not None:
+        return choices
+
+    working_type = object_type_lookup.get(str(current.object_type_id))
+
+    if working_type is None:
+        return choices
+
+    return sorted(
+        [
+            *choices,
+            SimpleNamespace(
+                id=current.id,
+                name=current.name,
+                object_type_id=current.object_type_id,
+                object_type=working_type,
+            ),
+        ],
+        key=lambda item: (item.object_type.name, item.name),
     )
 
 
@@ -92,8 +125,8 @@ def _get_working_relationship(
 
     after = create_change.after or {}
 
-    subject = _resolve_relationship_endpoint(after.get("subject_id"), proposal)
-    obj = _resolve_relationship_endpoint(after.get("object_id"), proposal)
+    subject = resolve_relationship_endpoint(after.get("subject_id"), proposal)
+    obj = resolve_relationship_endpoint(after.get("object_id"), proposal)
 
     proposed = SimpleNamespace(
         id=create_change.target_id,
@@ -421,11 +454,183 @@ def data_relationship_editor(
         )
 
     # =================================================================
+    # Endpoint editing (subject_id / object_id)
+    #
+    # Mirrors the Object record editor's property editing: a field-level
+    # UPDATE against a canonical Relationship, or an edit of the CREATE
+    # payload of a proposal-only one. The chosen Object must be one the
+    # create form would offer, and the resulting subject/object type pair
+    # must be permitted by the relationship's rules — the same checks the
+    # create form applies. Cardinality is left to submission validation,
+    # exactly as it is for create and retire.
+    # =================================================================
+
+    if (
+        request.method == "POST"
+        and request.POST.get("field", "").strip() in RELATIONSHIP_ENDPOINT_FIELDS
+    ):
+
+        if relationship is None:
+            return JsonResponse(
+                {"success": False, "error": "Relationship not found."},
+                status=404,
+            )
+
+        field = request.POST.get("field", "").strip()
+        other_field = "object_id" if field == "subject_id" else "subject_id"
+
+        action = request.POST.get("action", "").strip()
+
+        canonical_value = None if proposal_only else str(getattr(relationship, field))
+
+        if action == "discard":
+
+            if proposal is None:
+                return JsonResponse(
+                    {"success": False, "error": "There is no working proposal to discard."},
+                    status=400,
+                )
+
+            if proposal_only:
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": (
+                            "Individual property discard is not "
+                            "available for a newly proposed relationship."
+                        ),
+                    },
+                    status=400,
+                )
+
+            ProposalService.discard_change(
+                proposal=proposal,
+                target_type="Relationship",
+                target_id=relationship.id,
+                field=field,
+            )
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "value": canonical_value,
+                    "display": _endpoint_label(canonical_value, proposal),
+                    "proposed": False,
+                }
+            )
+
+        if action:
+            return JsonResponse(
+                {"success": False, "error": "Invalid action."},
+                status=400,
+            )
+
+        value = request.POST.get("value", "").strip()
+
+        if value == canonical_value:
+
+            if proposal is not None:
+                ProposalService.discard_change(
+                    proposal=proposal,
+                    target_type="Relationship",
+                    target_id=relationship.id,
+                    field=field,
+                )
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "value": canonical_value,
+                    "display": _endpoint_label(canonical_value, proposal),
+                    "proposed": False,
+                }
+            )
+
+        subject_choices, object_choices, allowed_pairs = _allowed_endpoint_choices(
+            relationship_type,
+            model,
+            proposal,
+            object_type_lookup,
+        )
+
+        candidate = _find_candidate(
+            subject_choices if field == "subject_id" else object_choices,
+            value,
+        )
+
+        if candidate is None:
+            return JsonResponse(
+                {"success": False, "error": _ENDPOINT_REQUIRED_MESSAGES[field]},
+                status=400,
+            )
+
+        other = resolve_relationship_endpoint(
+            _effective_endpoint_ids(relationship, proposal, proposal_only)[other_field],
+            proposal,
+        )
+
+        if field == "subject_id":
+            pair = (str(candidate.object_type_id), str(getattr(other, "object_type_id", "")))
+        else:
+            pair = (str(getattr(other, "object_type_id", "")), str(candidate.object_type_id))
+
+        if other is None or pair not in allowed_pairs:
+            return JsonResponse(
+                {"success": False, "error": _ENDPOINT_PAIR_MESSAGE},
+                status=400,
+            )
+
+        if proposal is None:
+            proposal, error_response = get_or_create_active_proposal(
+                request,
+                model,
+                request.user,
+            )
+            if error_response is not None:
+                return error_response
+
+        if proposal_only:
+
+            create_change = relationship_create_change(
+                relationship.id,
+                proposal,
+            )
+
+            after = dict(create_change.after or {})
+            after[field] = str(candidate.id)
+            create_change.after = after
+            create_change.save(update_fields=["after", "updated_at"])
+            ProposalService.reset_validation(proposal)
+
+        else:
+
+            ProposalService.record_change(
+                proposal=proposal,
+                operation=ProposalChange.Operation.UPDATE,
+                target_type="Relationship",
+                target_id=relationship.id,
+                parent_type="RelationshipType",
+                parent_id=relationship_type.id,
+                field=field,
+                before={"field": field, "value": canonical_value},
+                after={"field": field, "value": str(candidate.id)},
+            )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "value": str(candidate.id),
+                "display": candidate.name,
+                "proposed": True,
+            }
+        )
+
+    # =================================================================
     # Attribute-value editing
     #
-    # Relationship has no top-level scalar fields other than is_active
-    # (handled above), so the only field editable this way is a
-    # dot-namespaced "attributes.<key>".
+    # Endpoints are handled above and is_active by the lifecycle
+    # actions, so the only field editable this way is a dot-namespaced
+    # "attributes.<key>".
     # =================================================================
 
     if request.method == "POST" and request.POST.get("field"):
@@ -774,10 +979,13 @@ def data_relationship_editor(
     ) if not proposal_only else {
         "is_active": relationship.is_active,
         "attributes": relationship.attributes,
+        **_effective_endpoint_ids(relationship, proposal, proposal_only),
     }
 
     proposed_fields = {
         "is_active": False,
+        "subject_id": False,
+        "object_id": False,
     }
 
     for definition in attribute_definitions:
@@ -801,6 +1009,28 @@ def data_relationship_editor(
             if field in proposed_fields:
                 proposed_fields[field] = True
 
+    # Effective endpoints: the recorded ones unless a pending UPDATE
+    # re-points them.
+    subject_endpoint = relationship.subject
+    object_endpoint = relationship.object
+
+    if proposed_fields["subject_id"] and not proposal_only:
+        subject_endpoint = resolve_relationship_endpoint(
+            effective_values["subject_id"], proposal,
+        ) or subject_endpoint
+
+    if proposed_fields["object_id"] and not proposal_only:
+        object_endpoint = resolve_relationship_endpoint(
+            effective_values["object_id"], proposal,
+        ) or object_endpoint
+
+    subject_choices, object_choices, _allowed_pairs = _allowed_endpoint_choices(
+        relationship_type,
+        model,
+        proposal,
+        object_type_lookup,
+    )
+
     return render(
         request,
         "model/data_relationship_editor.html",
@@ -816,6 +1046,14 @@ def data_relationship_editor(
                 attribute_definitions,
                 effective_values["attributes"],
                 proposed_fields,
+            ),
+            "subject_endpoint": subject_endpoint,
+            "object_endpoint": object_endpoint,
+            "subject_choices": _with_current_choice(
+                subject_choices, subject_endpoint, object_type_lookup,
+            ),
+            "object_choices": _with_current_choice(
+                object_choices, object_endpoint, object_type_lookup,
             ),
             "proposal_update_url": request.path,
         },

@@ -57,58 +57,35 @@
 
     {% if relationship %}
 
-        <!-- ========================================================
-             ENDPOINTS (read-only)
-             ======================================================== -->
-
-        <section class="model-editor-section">
-
-            <div class="model-editor-section-header">
-                <div>
-                    <h2>Relationship</h2>
-                    <p>The subject and object connected by this record.</p>
-                </div>
-            </div>
-
-            <div class="model-relationship-rule">
-
-                <div class="model-relationship-rule-display">
-
-                    <div class="model-relationship-rule-main">
-
-                        <div class="model-relationship-rule-endpoint">
-                            <span class="model-relationship-rule-label">Subject</span>
-                            <a class="model-relationship-rule-type" href="{% url 'model:data_object_edit' model.id relationship.subject.object_type_id relationship.subject.id %}">
-                                {{ relationship.subject.name }}
-                            </a>
-                        </div>
-
-                        <div class="model-relationship-rule-arrow">
-                            <i class="bi bi-arrow-right"></i>
-                        </div>
-
-                        <div class="model-relationship-rule-endpoint">
-                            <span class="model-relationship-rule-label">Object</span>
-                            <a class="model-relationship-rule-type" href="{% url 'model:data_object_edit' model.id relationship.object.object_type_id relationship.object.id %}">
-                                {{ relationship.object.name }}
-                            </a>
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
         <div
             class="proposal-editor"
             data-update-url="{{ proposal_update_url }}"
         >
 
             {% csrf_token %}
+
+            <!-- ====================================================
+                 ENDPOINTS
+                 ==================================================== -->
+
+            <section class="model-editor-section">
+
+                <div class="model-editor-section-header">
+                    <div>
+                        <h2>Relationship</h2>
+                        <p>The subject and object connected by this record.</p>
+                    </div>
+                </div>
+
+                <div class="model-editor-fields">
+
+                    {% include "model/_data_relationship_endpoint_field.html" with field_name="subject_id" label="Subject" endpoint=subject_endpoint choices=subject_choices is_proposed=proposed_fields.subject_id placeholder="Select a subject..." %}
+
+                    {% include "model/_data_relationship_endpoint_field.html" with field_name="object_id" label="Object" endpoint=object_endpoint choices=object_choices is_proposed=proposed_fields.object_id placeholder="Select an object..." %}
+
+                </div>
+
+            </section>
 
             <!-- ====================================================
                  ATTRIBUTES

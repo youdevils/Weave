@@ -22,6 +22,13 @@ NAME_MAX_LENGTH = Object._meta.get_field("name").max_length
 OBJECT_BUILTIN_FIELDS = ("name", "description", "is_active")
 RELATIONSHIP_BUILTIN_FIELDS = ("is_active",)
 
+# A Relationship's endpoints, addressed by a field-level UPDATE exactly as
+# they are keyed in a Relationship CREATE payload. Whether the referenced
+# Object exists (and belongs to the model) needs the database, so it is
+# checked by the proposal apply step; whether the resulting subject/object
+# type pair is permitted is checked by validate_relationship.
+RELATIONSHIP_ENDPOINT_FIELDS = ("subject_id", "object_id")
+
 
 def validate_object_field(field, value) -> ValidationIssue | None:
 

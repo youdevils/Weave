@@ -359,6 +359,20 @@ class ProposalOverlayTests(ModelGraphTestCase):
         self.assertEqual(relationship.attributes["since"], "2020-01-01")
         self.assertTrue(relationship.is_proposed)
 
+    def test_proposed_endpoint_update_re_points_the_relationship(self):
+        dev = self.make_object(self.team_type, "Dev")
+        proposal = self.working_proposal()
+        self.update(proposal, "Relationship", self.membership.id, "object_id", str(dev.id))
+
+        relationship = load_effective_dataset(self.model, proposal).relationship(self.membership.id)
+
+        self.assertEqual((relationship.source_id, relationship.target_id), (str(self.alice.id), str(dev.id)))
+        self.assertTrue(relationship.is_proposed)
+        self.assertEqual(
+            load_effective_dataset(self.model, None).relationship(self.membership.id).target_id,
+            str(self.ops.id),
+        )
+
     def test_another_proposals_changes_are_not_applied(self):
         mine = self.working_proposal()
         other_user = CustomUser.objects.create_user(email="other@example.com", password="test-password")

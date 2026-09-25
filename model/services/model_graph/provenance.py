@@ -98,11 +98,22 @@ def _interpret_create(change, target_type, specs, endpoint_names, missing_endpoi
     )
 
 
-def _interpret_update(change, specs) -> dict:
+def _interpret_update(change, target_type, specs, endpoint_names, missing_endpoint) -> dict:
     payload = change.after or {}
     field = payload.get("field") or ""
     _, after_value = _payload_value(payload)
     has_before, before_value = _payload_value(change.before)
+
+    if target_type == "Relationship" and field in ("subject_id", "object_id"):
+        label = _field_label(field)
+        return _result(
+            "field_changed",
+            f"Changed {label}",
+            field=label,
+            before=endpoint_names.get(str(before_value), missing_endpoint) if before_value else None,
+            after=endpoint_names.get(str(after_value), missing_endpoint) if after_value else None,
+            currentNames=True,
+        )
 
     if field.startswith(ATTRIBUTE_FIELD_PREFIX):
         key = field[len(ATTRIBUTE_FIELD_PREFIX):]
@@ -146,14 +157,15 @@ def interpret_change(change, target_type, specs, endpoint_names=None, missing_en
 
     ``specs`` maps attribute key to ``{"label", "dataType"}``; an attribute
     whose definition no longer exists falls back to its key. ``endpoint_names``
-    maps object ids to (current) names, used for Relationship CREATE;
-    ``missing_endpoint`` is what an endpoint absent from that map is called.
+    maps object ids to (current) names, used for Relationship CREATE and
+    endpoint UPDATE; ``missing_endpoint`` is what an endpoint absent from
+    that map is called.
     """
     if change.operation == Operation.CREATE:
         return _interpret_create(change, target_type, specs, endpoint_names or {}, missing_endpoint)
     if change.operation == Operation.DELETE:
         return _result("deleted", "Deleted")
-    return _interpret_update(change, specs)
+    return _interpret_update(change, target_type, specs, endpoint_names or {}, missing_endpoint)
 
 
 def _entry(proposal) -> dict:

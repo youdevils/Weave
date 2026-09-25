@@ -12,6 +12,7 @@ from model.models.proposal import Proposal, ProposalChange
 from model.models.relationship import Relationship
 from model.models.relationship_type import RelationshipType
 from model.models.relationship_type_rule import RelationshipTypeRule
+from model.services.proposal import submission
 from model.services.proposal.proposal import ProposalService
 from model.views.tests.proposal_test_utils import activate_proposal
 from workspace.models import Workspace, WorkspaceMember
@@ -266,6 +267,374 @@ class UpdateRelationshipTests(DataRelationshipEditorTestCase):
         self.assertFalse(
             ProposalChange.objects.filter(after__field="attributes.criticality").exists()
         )
+
+
+class EndpointEditingTests(DataRelationshipEditorTestCase):
+    """
+    An existing relationship's subject and object are edited in place,
+    through the same inline proposal-editor fields as an Object's Name —
+    never by retiring and recreating the relationship.
+    """
+
+    def setUp(self):
+        super().setUp()
+
+        self.tableau = Object.objects.create(
+            model=self.model, object_type=self.app_type, name="Tableau",
+        )
+        self.payroll = Object.objects.create(
+            model=self.model, object_type=self.process_type, name="Payroll",
+        )
+
+        self.relationship = Relationship.objects.create(
+            model=self.model,
+            relationship_type=self.uses_type,
+            subject=self.finance,
+            object=self.power_bi,
+            attributes={"criticality": "Low"},
+        )
+
+    def set_endpoint(self, field, value, relationship_id=None):
+        return self.client.post(
+            self.edit_url(relationship_id or self.relationship.id),
+            {"field": field, "value": str(value)},
+        )
+
+    @staticmethod
+    def payload(response):
+        # with_updated_sidebar adds the refreshed sidebar to every JSON reply.
+        return {k: v for k, v in response.json().items() if k != "sidebar_html"}
+
+    def endpoint_changes(self):
+        return ProposalChange.objects.filter(
+            target_type="Relationship",
+            target_id=self.relationship.id,
+            after__field__in=["subject_id", "object_id"],
+        )
+
+    # -- controls ------------------------------------------------------------
+
+    def test_existing_relationship_exposes_endpoint_edit_controls(self):
+        response = self.client.get(self.edit_url(self.relationship.id))
+
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+
+        for field in ("subject_id", "object_id"):
+            self.assertIn(f'data-field="{field}"', content)
+            self.assertIn(f'data-field-editor="{field}"', content)
+
+        # Subject, Object and the Criticality attribute each get the same
+        # inline Edit control an Object's fields do; status keeps its toggle.
+        self.assertEqual(content.count('data-proposal-action="edit"'), 3)
+        self.assertIn("data-relationship-lifecycle", content)
+
+        # The pickers offer only Objects the relationship's rules permit.
+        self.assertEqual(
+            {c.name for c in response.context["subject_choices"]},
+            {"Finance Reporting", "Payroll"},
+        )
+        self.assertEqual(
+            {c.name for c in response.context["object_choices"]},
+            {"Power BI", "Tableau"},
+        )
+
+    # -- proposal recording --------------------------------------------------
+
+    def test_changing_object_records_field_update_without_touching_canonical(self):
+        response = self.set_endpoint("object_id", self.tableau.id)
+
+        self.assertEqual(
+            self.payload(response),
+            {
+                "success": True,
+                "value": str(self.tableau.id),
+                "display": "Tableau",
+                "proposed": True,
+            },
+        )
+
+        change = self.endpoint_changes().get()
+        self.assertEqual(change.operation, ProposalChange.Operation.UPDATE)
+        self.assertEqual(change.parent_type, "RelationshipType")
+        self.assertEqual(change.parent_id, self.uses_type.id)
+        self.assertEqual(change.before, {"field": "object_id", "value": str(self.power_bi.id)})
+        self.assertEqual(change.after, {"field": "object_id", "value": str(self.tableau.id)})
+
+        # The same relationship is edited — nothing retired or created.
+        self.assertFalse(
+            ProposalChange.objects.filter(
+                target_type="Relationship",
+                operation__in=[ProposalChange.Operation.CREATE, ProposalChange.Operation.DELETE],
+            ).exists()
+        )
+        self.assertFalse(ProposalChange.objects.filter(after__field="is_active").exists())
+
+        self.relationship.refresh_from_db()
+        self.assertEqual(self.relationship.object_id, self.power_bi.id)
+
+    def test_editor_and_list_show_the_proposed_endpoint(self):
+        self.set_endpoint("subject_id", self.payroll.id)
+
+        response = self.client.get(self.edit_url(self.relationship.id))
+
+        self.assertEqual(response.context["subject_endpoint"].name, "Payroll")
+        self.assertEqual(response.context["object_endpoint"].name, "Power BI")
+        self.assertTrue(response.context["proposed_fields"]["subject_id"])
+        self.assertFalse(response.context["proposed_fields"]["object_id"])
+
+        list_response = self.client.get(
+            reverse("model:data_relationships", args=[self.model.id, self.uses_type.id])
+        )
+        (row,) = list_response.context["rows"]
+        self.assertEqual(row.subject_name, "Payroll")
+        self.assertEqual(row.subject_id, self.payroll.id)
+        self.assertTrue(row.is_proposed)
+
+    def test_repeated_edits_update_one_change(self):
+        self.set_endpoint("object_id", self.tableau.id)
+        self.set_endpoint("object_id", self.tableau.id)
+
+        self.assertEqual(self.endpoint_changes().count(), 1)
+
+    def test_choosing_the_recorded_endpoint_again_discards_the_change(self):
+        self.set_endpoint("object_id", self.tableau.id)
+
+        response = self.set_endpoint("object_id", self.power_bi.id)
+
+        self.assertEqual(response.json()["proposed"], False)
+        self.assertEqual(response.json()["display"], "Power BI")
+        self.assertFalse(self.endpoint_changes().exists())
+
+    def test_discard_restores_the_recorded_endpoint(self):
+        self.set_endpoint("object_id", self.tableau.id)
+
+        response = self.client.post(
+            self.edit_url(self.relationship.id),
+            {"field": "object_id", "action": "discard"},
+        )
+
+        self.assertEqual(
+            self.payload(response),
+            {
+                "success": True,
+                "value": str(self.power_bi.id),
+                "display": "Power BI",
+                "proposed": False,
+            },
+        )
+        self.assertFalse(self.endpoint_changes().exists())
+
+    def test_endpoint_edit_leaves_other_pending_changes_alone(self):
+        self.client.post(
+            self.edit_url(self.relationship.id),
+            {"field": "attributes.criticality", "value": "High"},
+        )
+        self.set_endpoint("object_id", self.tableau.id)
+        self.client.post(
+            self.edit_url(self.relationship.id),
+            {"field": "object_id", "action": "discard"},
+        )
+
+        self.assertTrue(
+            ProposalChange.objects.filter(after__field="attributes.criticality").exists()
+        )
+
+    # -- validation ----------------------------------------------------------
+
+    def test_object_of_a_type_the_rules_do_not_allow_is_rejected(self):
+        response = self.set_endpoint("object_id", self.team.id)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "Choose an object.")
+        self.assertFalse(self.endpoint_changes().exists())
+
+    def test_unknown_object_is_rejected(self):
+        response = self.set_endpoint("subject_id", uuid.uuid4())
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "Choose a subject.")
+        self.assertFalse(self.endpoint_changes().exists())
+
+    def test_retired_object_is_rejected(self):
+        self.tableau.is_active = False
+        self.tableau.save()
+
+        response = self.set_endpoint("object_id", self.tableau.id)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(self.endpoint_changes().exists())
+
+    def test_type_pair_must_be_permitted_with_the_other_endpoint(self):
+        # A second rule makes Team a valid subject, but only towards a
+        # Process — so Team -> Power BI (Application) is not permitted.
+        RelationshipTypeRule.objects.create(
+            relationship_type=self.uses_type,
+            subject_type=self.team_type,
+            object_type=self.process_type,
+        )
+
+        response = self.set_endpoint("subject_id", self.team.id)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["error"],
+            "This combination of types is not permitted by the relationship's rules.",
+        )
+        self.assertFalse(self.endpoint_changes().exists())
+
+    def test_pair_check_uses_the_other_endpoints_pending_value(self):
+        RelationshipTypeRule.objects.create(
+            relationship_type=self.uses_type,
+            subject_type=self.team_type,
+            object_type=self.process_type,
+        )
+
+        # Once the object is (proposed to be) a Process, a Team subject fits.
+        self.assertEqual(self.set_endpoint("object_id", self.payroll.id).status_code, 400)
+
+        self.relationship.subject = self.team
+        self.relationship.save()
+        self.assertTrue(self.set_endpoint("object_id", self.payroll.id).json()["success"])
+
+        response = self.set_endpoint("subject_id", self.finance.id)
+        self.assertEqual(response.status_code, 400)
+
+    def test_unknown_field_is_still_rejected(self):
+        response = self.client.post(
+            self.edit_url(self.relationship.id),
+            {"field": "relationship_type_id", "value": str(self.uses_type.id)},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "Unsupported field.")
+
+    # -- proposal-only data --------------------------------------------------
+
+    def test_proposal_only_relationship_endpoint_edit_mutates_create_change(self):
+        self.client.post(
+            self.create_url(),
+            {"subject_id": str(self.finance.id), "object_id": str(self.power_bi.id)},
+        )
+        create = ProposalChange.objects.get(
+            target_type="Relationship", operation=ProposalChange.Operation.CREATE,
+        )
+
+        response = self.set_endpoint("object_id", self.tableau.id, create.target_id)
+
+        self.assertTrue(response.json()["success"])
+        create.refresh_from_db()
+        self.assertEqual(create.after["object_id"], str(self.tableau.id))
+        self.assertEqual(
+            ProposalChange.objects.filter(target_id=create.target_id).count(), 1,
+        )
+
+    def test_endpoint_can_be_a_proposal_only_object(self):
+        proposal = ProposalService.get_or_create_working(self.model, self.user)
+        activate_proposal(self.client, self.model.id, proposal)
+
+        new_app_id = uuid.uuid4()
+        ProposalService.record_change(
+            proposal=proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="Object",
+            target_id=new_app_id,
+            parent_type="ObjectType",
+            parent_id=self.app_type.id,
+            before=None,
+            after={"name": "New App", "description": "", "is_active": True, "attributes": {}},
+        )
+
+        response = self.set_endpoint("object_id", new_app_id)
+
+        self.assertEqual(response.json()["display"], "New App")
+        self.assertEqual(
+            self.client.get(self.edit_url(self.relationship.id)).context["object_endpoint"].name,
+            "New App",
+        )
+
+        # Discarding that proposed Object drops the re-point with it.
+        self.client.post(
+            reverse("model:data_objects", args=[self.model.id, self.app_type.id]),
+            {"action": "discard_object_proposal", "object_id": str(new_app_id)},
+        )
+
+        self.assertFalse(self.endpoint_changes().exists())
+        self.assertTrue(
+            Relationship.objects.filter(id=self.relationship.id, object=self.power_bi).exists()
+        )
+
+    # -- review --------------------------------------------------------------
+
+    def test_proposal_review_names_the_endpoints(self):
+        self.set_endpoint("object_id", self.tableau.id)
+        proposal = self.working_proposal()
+
+        response = self.client.get(
+            reverse("model:proposal", args=[self.model.id, proposal.id])
+        )
+
+        change = next(
+            c
+            for group in response.context["change_groups"]
+            for c in group["changes"]
+            if c.target_type == "Relationship"
+        )
+        self.assertEqual(change.review_label, "Object")
+        self.assertEqual((change.review_before, change.review_after), ("Power BI", "Tableau"))
+        self.assertNotContains(response, str(self.tableau.id))
+
+    # -- submission ----------------------------------------------------------
+
+    def _submit_and_process(self):
+        proposal = self.working_proposal()
+        ProposalService.submit(proposal)
+        submission.process(submission.claim_next(self.model.id).id)
+        proposal.refresh_from_db()
+        self.relationship.refresh_from_db()
+        return proposal
+
+    def test_submitted_endpoint_edit_updates_the_same_relationship(self):
+        self.set_endpoint("subject_id", self.payroll.id)
+        self.set_endpoint("object_id", self.tableau.id)
+        self.client.post(
+            self.edit_url(self.relationship.id),
+            {"field": "attributes.criticality", "value": "High"},
+        )
+
+        proposal = self._submit_and_process()
+
+        self.assertEqual(proposal.status, Proposal.Status.COMPLETED)
+        self.assertEqual(self.relationship.subject_id, self.payroll.id)
+        self.assertEqual(self.relationship.object_id, self.tableau.id)
+        self.assertEqual(self.relationship.attributes, {"criticality": "High"})
+        self.assertTrue(self.relationship.is_active)
+        self.assertEqual(Relationship.objects.filter(model=self.model).count(), 1)
+
+        self.model.refresh_from_db()
+        self.assertEqual(self.model.revision, 2)
+
+    def test_cardinality_still_applies_on_submission(self):
+        rule = self.uses_type.rules.get()
+        rule.subject_maximum = 1
+        rule.save()
+
+        Relationship.objects.create(
+            model=self.model,
+            relationship_type=self.uses_type,
+            subject=self.payroll,
+            object=self.tableau,
+        )
+
+        # Tableau may have at most one subject; re-pointing gives it a second.
+        self.set_endpoint("object_id", self.tableau.id)
+
+        proposal = self._submit_and_process()
+
+        self.assertEqual(proposal.status, Proposal.Status.FAILED)
+        codes = {e.code for e in proposal.submission_result.errors.all()}
+        self.assertIn("subject_cardinality_maximum", codes)
+        self.assertEqual(self.relationship.object_id, self.power_bi.id)
 
 
 class ProposalOnlyRelationshipTests(DataRelationshipEditorTestCase):

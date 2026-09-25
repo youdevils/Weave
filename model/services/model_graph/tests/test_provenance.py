@@ -547,6 +547,31 @@ class RelationshipInterpretationTests(ProvenanceTestCase):
 
         self.assertEqual(kinds, ["attribute_changed", "deactivated", "deleted"])
 
+    def test_endpoint_change_names_both_objects(self):
+        dev = self.make_object(self.team_type, "Dev")
+        self.field_change(
+            self.proposal(2), self.link.id, "object_id", str(self.ops.id), str(dev.id), target_type="Relationship",
+        )
+
+        change = self.only_change(target_type="Relationship", target=self.link)
+
+        self.assertEqual(
+            (change["kind"], change["summary"], change["field"], change["before"], change["after"]),
+            ("field_changed", "Changed Object", "Object", "Ops", "Dev"),
+        )
+        self.assertTrue(change["currentNames"])
+
+    def test_endpoint_change_to_a_deleted_object_says_so(self):
+        gone = self.make_object(self.team_type, "Gone")
+        self.field_change(
+            self.proposal(2), self.link.id, "object_id", str(gone.id), str(self.ops.id), target_type="Relationship",
+        )
+        gone.delete()
+
+        change = self.only_change(target_type="Relationship", target=self.link)
+
+        self.assertEqual((change["before"], change["after"]), ("an object that no longer exists", "Ops"))
+
     def test_an_objects_chain_does_not_include_its_relationships(self):
         self.create()
         self.field_change(self.proposal(3), self.alice.id, "name", "a", "b")
@@ -617,3 +642,23 @@ class BulkProvenanceTests(ProvenanceTestCase):
 
         (entry,) = bulk[str(relationship.id)]["entries"]
         self.assertEqual(entry["changes"][0]["after"], "Alice → an object outside this publication")
+
+    def test_unlisted_endpoints_of_an_endpoint_change_use_the_supplied_label(self):
+        relationship = self.make_relationship(self.alice, self.ops)
+        self.field_change(
+            self.proposal(2), relationship.id, "subject_id", str(uuid.uuid4()), str(self.alice.id),
+            target_type="Relationship",
+        )
+
+        bulk = build_provenance_bulk(
+            self.model,
+            "Relationship",
+            [relationship.id],
+            lambda _id: {},
+            endpoint_names={str(self.alice.id): "Alice"},
+            missing_endpoint="an object outside this publication",
+        )
+
+        (entry,) = bulk[str(relationship.id)]["entries"]
+        change = entry["changes"][0]
+        self.assertEqual((change["before"], change["after"]), ("an object outside this publication", "Alice"))

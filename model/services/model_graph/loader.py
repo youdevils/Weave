@@ -241,8 +241,9 @@ def _load_relationships(model, changes):
             EffectiveRelationship(
                 id=key[1],
                 type_id=str(relationship.relationship_type_id),
-                source_id=str(relationship.subject_id),
-                target_id=str(relationship.object_id),
+                # Effective endpoints: a pending UPDATE may re-point either one.
+                source_id=values["subject_id"],
+                target_id=values["object_id"],
                 attributes=values["attributes"],
                 valid_from=relationship.valid_from.isoformat() if relationship.valid_from else None,
                 valid_to=relationship.valid_to.isoformat() if relationship.valid_to else None,

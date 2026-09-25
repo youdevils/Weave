@@ -746,6 +746,163 @@ class AttributeUpdateApplyTests(SubmissionTestCase):
         )
 
 
+class RelationshipEndpointUpdateApplyTests(SubmissionTestCase):
+    """
+    A field-level "subject_id" / "object_id" UPDATE re-points an existing
+    Relationship in place. Rules and cardinality are enforced by the same
+    validate_model pass as every other change.
+    """
+
+    def setUp(self):
+        self.model = self._new_model(revision=1)
+
+        self.person_type = ObjectType.objects.create(
+            model=self.model, name="Person", key="person"
+        )
+        self.team_type = ObjectType.objects.create(
+            model=self.model, name="Team", key="team"
+        )
+        self.member_of = RelationshipType.objects.create(
+            model=self.model, name="Member of", key="member_of"
+        )
+        self.rule = RelationshipTypeRule.objects.create(
+            relationship_type=self.member_of,
+            subject_type=self.person_type,
+            object_type=self.team_type,
+        )
+
+        self.alice = Object.objects.create(
+            model=self.model, object_type=self.person_type, name="Alice"
+        )
+        self.bob = Object.objects.create(
+            model=self.model, object_type=self.person_type, name="Bob"
+        )
+        self.ops = Object.objects.create(
+            model=self.model, object_type=self.team_type, name="Ops"
+        )
+        self.dev = Object.objects.create(
+            model=self.model, object_type=self.team_type, name="Dev"
+        )
+        self.membership = Relationship.objects.create(
+            model=self.model,
+            relationship_type=self.member_of,
+            subject=self.alice,
+            object=self.ops,
+            attributes={},
+        )
+
+        self.proposal = ProposalService.get_or_create_working(self.model, self.user)
+
+    def _repoint(self, field, value):
+        return ProposalService.record_change(
+            proposal=self.proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="Relationship",
+            target_id=self.membership.id,
+            parent_type="RelationshipType",
+            parent_id=self.member_of.id,
+            field=field,
+            before={"field": field, "value": str(getattr(self.membership, field))},
+            after={"field": field, "value": str(value)},
+        )
+
+    def _run(self):
+        ProposalService.submit(self.proposal)
+        submission.process(submission.claim_next(self.model.id).id)
+        self.proposal.refresh_from_db()
+        self.model.refresh_from_db()
+        self.membership.refresh_from_db()
+
+    def _codes(self):
+        return sorted(e.code for e in self.proposal.submission_result.errors.all())
+
+    def test_object_endpoint_update_is_applied(self):
+        self._repoint("object_id", self.dev.id)
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.COMPLETED)
+        self.assertEqual(self.model.revision, 2)
+        self.assertEqual(self.membership.object_id, self.dev.id)
+        self.assertEqual(self.membership.subject_id, self.alice.id)
+
+    def test_subject_endpoint_update_is_applied(self):
+        self._repoint("subject_id", self.bob.id)
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.COMPLETED)
+        self.assertEqual(self.membership.subject_id, self.bob.id)
+
+    def test_endpoint_may_be_an_object_created_by_the_same_proposal(self):
+        new_team_id = uuid.uuid4()
+        ProposalService.record_change(
+            proposal=self.proposal,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="Object",
+            target_id=new_team_id,
+            parent_type="ObjectType",
+            parent_id=self.team_type.id,
+            before=None,
+            after={"name": "Platform", "description": "", "is_active": True, "attributes": {}},
+        )
+        self._repoint("object_id", new_team_id)
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.COMPLETED)
+        self.assertEqual(self.membership.object_id, new_team_id)
+
+    def test_type_pair_not_permitted_by_the_rules_fails_validation(self):
+        change = self._repoint("object_id", self.bob.id)
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.FAILED)
+        self.assertEqual(self._codes(), ["invalid_relationship_types"])
+        self.assertEqual(self.membership.object_id, self.ops.id)
+
+        (error,) = self.proposal.submission_result.errors.all()
+        self.assertEqual(error.change_id, change.id)
+
+    def test_missing_endpoint_is_a_validation_issue_not_a_system_error(self):
+        change = self._repoint("subject_id", uuid.uuid4())
+        self._run()
+
+        result = self.proposal.submission_result
+        self.assertEqual(self.proposal.status, Proposal.Status.FAILED)
+        self.assertEqual(result.outcome, result.Outcome.VALIDATION_FAILED)
+        self.assertEqual(self._codes(), ["endpoint_not_found"])
+        self.assertEqual(result.errors.get().change_id, change.id)
+        self.assertEqual(self.membership.subject_id, self.alice.id)
+
+    def test_endpoint_in_another_model_is_rejected(self):
+        other_model = self._new_model(name="Other")
+        other_type = ObjectType.objects.create(model=other_model, name="Team", key="team")
+        stranger = Object.objects.create(model=other_model, object_type=other_type, name="Elsewhere")
+
+        self._repoint("object_id", stranger.id)
+        self._run()
+
+        self.assertEqual(self._codes(), ["endpoint_not_found"])
+        self.assertEqual(self.membership.object_id, self.ops.id)
+
+    def test_cardinality_is_enforced_after_re_pointing(self):
+        self.rule.object_minimum = 1
+        self.rule.save()
+        Relationship.objects.create(
+            model=self.model,
+            relationship_type=self.member_of,
+            subject=self.bob,
+            object=self.dev,
+        )
+
+        # Handing Alice's membership to Bob leaves Alice with no team,
+        # below the rule's minimum of one.
+        self._repoint("subject_id", self.bob.id)
+        self._run()
+
+        self.assertEqual(self.proposal.status, Proposal.Status.FAILED)
+        self.assertEqual(self._codes(), ["object_cardinality_minimum"])
+        self.assertEqual(self.membership.subject_id, self.alice.id)
+
+
 class DeletedModelTaskTests(SubmissionTestCase):
     """A task dispatched before its model was deleted must be a quiet no-op."""
 

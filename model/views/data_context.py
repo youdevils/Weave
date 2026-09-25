@@ -10,6 +10,7 @@ from model.services.field_paths import (  # noqa: F401  (re-exported)
     attribute_field_name,
 )
 from model.services.proposal.proposal import ProposalService
+from model.services.validation.fields import RELATIONSHIP_ENDPOINT_FIELDS
 
 # =====================================================================
 # Working-type resolution
@@ -446,15 +447,19 @@ def build_proposed_only_objects(
 # Relationship effective-value overlay
 #
 # Relationship has no name/description fields of its own (unlike
-# Object) — its only top-level editable field is is_active, handled
-# via the lifecycle actions rather than generic field editing, so the
-# only field-level UPDATE addressing used here is "attributes.<key>".
+# Object). Its top-level editable fields are is_active (handled via the
+# lifecycle actions) and its endpoints, subject_id/object_id, which are
+# addressed by bare field name and carry an Object id as a string —
+# the same shape they have in a Relationship CREATE payload. Attribute
+# values use "attributes.<key>" as for Object.
 # =====================================================================
 
 
 def _canonical_relationship_values(relationship):
     return {
         "is_active": relationship.is_active,
+        "subject_id": str(relationship.subject_id),
+        "object_id": str(relationship.object_id),
         "attributes": dict(relationship.attributes or {}),
     }
 
@@ -542,6 +547,49 @@ def resolve_object_names(ids, proposal=None):
     return names
 
 
+def resolve_relationship_endpoint(object_id, proposal):
+    """
+    Resolve a Relationship endpoint by id alone: canonical Object
+    first, else a proposal-only Object CREATE change in the same
+    proposal. Used only for display (.name) and building the
+    data_object_edit URL (.object_type_id) — full nested ObjectType
+    resolution isn't needed here.
+    """
+
+    if not object_id:
+        return None
+
+    obj = Object.objects.filter(id=object_id).select_related("object_type").first()
+
+    if obj is not None:
+        return obj
+
+    create_change = object_create_change(object_id, proposal)
+
+    if create_change is None:
+        return None
+
+    after = create_change.after or {}
+
+    return SimpleNamespace(
+        id=create_change.target_id,
+        name=after.get("name", ""),
+        object_type_id=create_change.parent_id,
+    )
+
+
+def _effective_endpoint(canonical, effective_id, proposal):
+    """
+    The canonical endpoint, unless a pending UPDATE re-points it — only
+    then is the proposed Object looked up.
+    """
+
+    if effective_id == str(canonical.id):
+        return canonical
+
+    return resolve_relationship_endpoint(effective_id, proposal) or canonical
+
+
 def build_working_relationships(
     queryset,
     proposal,
@@ -555,16 +603,19 @@ def build_working_relationships(
             proposal,
         )
 
+        subject = _effective_endpoint(relationship.subject, effective["subject_id"], proposal)
+        obj = _effective_endpoint(relationship.object, effective["object_id"], proposal)
+
         items.append(
             SimpleNamespace(
                 id=relationship.id,
                 relationship_type_id=relationship.relationship_type_id,
-                subject_id=relationship.subject_id,
-                subject_name=relationship.subject.name,
-                subject_object_type_id=relationship.subject.object_type_id,
-                object_id=relationship.object_id,
-                object_name=relationship.object.name,
-                object_object_type_id=relationship.object.object_type_id,
+                subject_id=subject.id,
+                subject_name=subject.name,
+                subject_object_type_id=subject.object_type_id,
+                object_id=obj.id,
+                object_name=obj.name,
+                object_object_type_id=obj.object_type_id,
                 is_active=effective["is_active"],
                 attributes=effective["attributes"],
                 is_proposed=relationship_is_proposed(
@@ -662,7 +713,9 @@ def discard_relationships_referencing_object(proposal, object_id):
     Discard any proposal-only (CREATE) Relationship whose subject_id
     or object_id references the given Object id, so discarding a
     proposal-only Object doesn't leave a dangling Relationship
-    pointing at it.
+    pointing at it. A pending endpoint UPDATE that re-points an
+    existing Relationship at that Object is discarded too (just that
+    field change — the Relationship itself stays).
     """
 
     if not proposal:
@@ -671,12 +724,24 @@ def discard_relationships_referencing_object(proposal, object_id):
     object_id = str(object_id)
 
     target_ids = set()
+    endpoint_updates = set()
 
     for change in proposal.changes.filter(
         target_type="Relationship",
-        operation=ProposalChange.Operation.CREATE,
+        operation__in=(
+            ProposalChange.Operation.CREATE,
+            ProposalChange.Operation.UPDATE,
+        ),
     ):
         after = change.after or {}
+
+        if change.operation == ProposalChange.Operation.UPDATE:
+            if (
+                after.get("field") in RELATIONSHIP_ENDPOINT_FIELDS
+                and str(after.get("value")) == object_id
+            ):
+                endpoint_updates.add((change.target_id, after["field"]))
+            continue
 
         if str(after.get("subject_id")) == object_id or str(after.get("object_id")) == object_id:
             target_ids.add(change.target_id)
@@ -686,4 +751,15 @@ def discard_relationships_referencing_object(proposal, object_id):
             proposal=proposal,
             target_type="Relationship",
             target_id=target_id,
+        )
+
+    for target_id, field in endpoint_updates:
+        if target_id in target_ids:
+            continue
+
+        ProposalService.discard_change(
+            proposal=proposal,
+            target_type="Relationship",
+            target_id=target_id,
+            field=field,
         )

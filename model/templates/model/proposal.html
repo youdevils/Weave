@@ -547,9 +547,9 @@
 
                                                         <span class="model-proposal-change-value-text">
 
-                                                            {% if change.before.value is not None %}
+                                                            {% if change.review_before is not None %}
 
-                                                                {{ change.before.value }}
+                                                                {{ change.review_before }}
 
                                                             {% else %}
 
@@ -577,9 +577,9 @@
 
                                                         <span class="model-proposal-change-value-text">
 
-                                                            {% if change.after.value is not None %}
+                                                            {% if change.review_after is not None %}
 
-                                                                {{ change.after.value }}
+                                                                {{ change.review_after }}
 
                                                             {% else %}
 

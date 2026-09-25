@@ -781,6 +781,11 @@ def proposal(request, model_id, proposal_id=None):
             change,
         )
 
+        change.review_before, change.review_after = ProposalReviewService.change_values(
+            change,
+            object_names,
+        )
+
         change.review_target = ProposalReviewService.change_target(
             change,
             targets,

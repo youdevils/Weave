@@ -15,6 +15,7 @@ from model.models.proposal_submission_result import (
 from model.services.appearance import AppearanceService
 from model.services.proposal.review import ProposalReviewService
 from model.services.validation.fields import (
+    RELATIONSHIP_ENDPOINT_FIELDS,
     validate_object_builtin_fields,
     validate_object_field,
     validate_relationship_builtin_fields,
@@ -210,23 +211,25 @@ def _create_field_issues(model, change, target_type, kwargs):
             is_active=kwargs.get("is_active", True),
         )
 
-        for field in ("subject_id", "object_id"):
+        for field in RELATIONSHIP_ENDPOINT_FIELDS:
             if not _object_exists_in_model(model, kwargs.get(field)):
-                issues.append(
-                    ValidationIssue(
-                        code="endpoint_not_found",
-                        field=field,
-                        message=(
-                            f"The {'subject' if field == 'subject_id' else 'object'} "
-                            "of this relationship no longer exists in this model."
-                        ),
-                    )
-                )
+                issues.append(_endpoint_not_found_issue(field))
 
     else:
         return []
 
     return [_attributed(issue, target_type, change.target_id) for issue in issues]
+
+
+def _endpoint_not_found_issue(field):
+    return ValidationIssue(
+        code="endpoint_not_found",
+        field=field,
+        message=(
+            f"The {'subject' if field == 'subject_id' else 'object'} "
+            "of this relationship no longer exists in this model."
+        ),
+    )
 
 
 def _object_exists_in_model(model, object_id):
@@ -441,6 +444,18 @@ def _apply_create_or_update(model, change, target_type, issues, proposal_deleted
 
     if field_issue is not None:
         issues.append(_attributed(field_issue, target_type, change.target_id))
+        return
+
+    # Re-pointing a Relationship: the new endpoint must be an Object of this
+    # model, checked before the write for the same reason as on CREATE.
+    if (
+        target_type == "Relationship"
+        and field in RELATIONSHIP_ENDPOINT_FIELDS
+        and not _object_exists_in_model(model, after.get("value"))
+    ):
+        issues.append(
+            _attributed(_endpoint_not_found_issue(field), target_type, change.target_id)
+        )
         return
 
     setattr(instance, field, after.get("value"))

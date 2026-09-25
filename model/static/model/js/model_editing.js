@@ -678,7 +678,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       writeInputValue(input, data.value);
 
-      updateFieldDisplay(field, data.value);
+      updateFieldDisplay(field, displayValue(data));
 
       cancelField(field);
 
@@ -718,7 +718,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       writeInputValue(input, data.value);
 
-      updateFieldDisplay(field, data.value);
+      updateFieldDisplay(field, displayValue(data));
 
       cancelField(field);
 
@@ -742,6 +742,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if (discard) {
       discard.hidden = !proposed;
     }
+  }
+
+  // A field whose stored value is an id (a relationship endpoint) also
+  // returns the label to show for it.
+  function displayValue(data) {
+    return data.display !== undefined ? data.display : data.value;
   }
 
   function updateFieldDisplay(field, value) {

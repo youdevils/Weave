@@ -47,6 +47,14 @@ class ProposalReviewService:
     FIELD_LABEL_OVERRIDES = {
         "subject_type_id": "Subject Type",
         "object_type_id": "Object Type",
+        "subject_id": "Subject",
+        "object_id": "Object",
+    }
+
+    # Field-level UPDATEs whose value is an Object id (a re-pointed
+    # Relationship endpoint), shown to the reviewer by Object name.
+    OBJECT_REFERENCE_FIELDS = {
+        "Relationship": ("subject_id", "object_id"),
     }
 
     # -----------------------------------------------------------------
@@ -173,12 +181,32 @@ class ProposalReviewService:
         return names
 
     @staticmethod
+    def _is_object_reference(change):
+        field = (change.after or {}).get("field")
+
+        return field in ProposalReviewService.OBJECT_REFERENCE_FIELDS.get(change.target_type, ())
+
+    @staticmethod
+    def _object_reference_values(change):
+        """Object ids named by a field-level endpoint UPDATE (before and after)."""
+
+        if not ProposalReviewService._is_object_reference(change):
+            return ()
+
+        return tuple(
+            str(payload["value"])
+            for payload in (change.before or {}, change.after or {})
+            if payload.get("value")
+        )
+
+    @staticmethod
     def resolve_object_names(changes, create_lookup):
         """
         Resolve Object names referenced by a Relationship CREATE
-        payload's subject_id/object_id, with a CREATE-lookup fallback
-        for endpoints that are themselves only proposal-only Objects
-        in the same working proposal.
+        payload's subject_id/object_id or by an endpoint UPDATE's
+        before/after values, with a CREATE-lookup fallback for
+        endpoints that are themselves only proposal-only Objects in the
+        same working proposal.
         """
 
         ids = set()
@@ -187,6 +215,8 @@ class ProposalReviewService:
 
             if change.target_type != "Relationship":
                 continue
+
+            ids.update(ProposalReviewService._object_reference_values(change))
 
             payload = create_lookup.get(
                 ("Relationship", str(change.target_id))
@@ -255,6 +285,31 @@ class ProposalReviewService:
             field,
             field.replace("_", " ").title(),
         )
+
+    # -----------------------------------------------------------------
+    # Field-changed values (field-level UPDATE changes only)
+    # -----------------------------------------------------------------
+
+    @staticmethod
+    def change_values(change, object_names):
+        """
+        (before, after) values to show for a field-level UPDATE. Stored
+        values as-is, except an Object id (a re-pointed Relationship
+        endpoint), which is shown by that Object's name.
+        """
+
+        before = (change.before or {}).get("value")
+        after = (change.after or {}).get("value")
+
+        if not ProposalReviewService._is_object_reference(change):
+            return before, after
+
+        def name(value):
+            if value is None:
+                return None
+            return object_names.get(str(value), "Unknown")
+
+        return name(before), name(after)
 
     # -----------------------------------------------------------------
     # RelationshipTypeRule identity
