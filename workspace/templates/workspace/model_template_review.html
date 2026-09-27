@@ -198,25 +198,6 @@
 
                     <div class="create-model-form-body">
 
-                        <!-- =====================================
-                             Information note
-                             ===================================== -->
-
-                        <div class="starting-point-note mt-4">
-
-                            <i
-                                class="bi bi-info-circle"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                This is the starting structure only.
-                                After creation, you can modify the
-                                ontology in the model editor.
-                            </span>
-
-                        </div>
-
 
                         <!-- =====================================
                              Actions
@@ -257,17 +238,42 @@
 
                         <section class="create-model-section">
 
-                            <h3 class="create-model-section-title">
-                                Object types
-                            </h3>
-
                             <p class="create-model-section-description">
-                                The types of things that can exist in
-                                this model.
+                                Types of things that will be created
+                                from this template.
                             </p>
 
+                            <button
+                                type="button"
+                                class="model-template-review-toggle"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#templateReviewObjectTypes"
+                                aria-expanded="false"
+                                aria-controls="templateReviewObjectTypes"
+                            >
 
-                            <div class="model-template-review-list">
+                                <span class="model-template-review-toggle-title">
+
+                                    <i
+                                        class="bi bi-chevron-down"
+                                        aria-hidden="true"
+                                    ></i>
+
+                                    Object types
+
+                                </span>
+
+                                <span class="model-template-review-count">
+                                    {{ template.object_types|length }}
+                                </span>
+
+                            </button>
+
+
+                            <div
+                                class="model-template-review-list collapse"
+                                id="templateReviewObjectTypes"
+                            >
 
                                 {% for object_type in template.object_types %}
 
@@ -393,17 +399,42 @@
 
                         <section class="create-model-section">
 
-                            <h3 class="create-model-section-title">
-                                Relationship types
-                            </h3>
-
                             <p class="create-model-section-description">
-                                The relationships that can exist between
-                                objects in this model.
+                                Relationships that will be created
+                                from this template.
                             </p>
 
+                            <button
+                                type="button"
+                                class="model-template-review-toggle"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#templateReviewRelationshipTypes"
+                                aria-expanded="false"
+                                aria-controls="templateReviewRelationshipTypes"
+                            >
 
-                            <div class="model-template-review-list">
+                                <span class="model-template-review-toggle-title">
+
+                                    <i
+                                        class="bi bi-chevron-down"
+                                        aria-hidden="true"
+                                    ></i>
+
+                                    Relationship types
+
+                                </span>
+
+                                <span class="model-template-review-count">
+                                    {{ template.relationship_types|length }}
+                                </span>
+
+                            </button>
+
+
+                            <div
+                                class="model-template-review-list collapse"
+                                id="templateReviewRelationshipTypes"
+                            >
 
                                 {% for relationship_type in template.relationship_types %}
 

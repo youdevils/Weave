@@ -197,15 +197,8 @@
   margin-bottom: 0;
 }
 
-.create-model-section-title {
-  margin-bottom: 1rem;
-
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
 .create-model-section-description {
-  margin-top: -0.5rem;
+  margin-top: 0;
   margin-bottom: 1rem;
 
   color: var(--onyxjar-text-muted);
@@ -265,12 +258,10 @@
   display: flex;
   align-items: left;
 
-  margin-top: 2rem;
+  margin-top: 0rem;
   margin-bottom: 2rem;
-  padding-top: 1.25rem;
+  padding-top: 0.25rem;
   padding-bottom: 1.25rem;
-
-  border-top: 1px solid var(--onyxjar-border);
 }
 
 .create-model-actions .btn {
@@ -475,6 +466,59 @@
 /* =========================================================
    Template Review
    ========================================================= */
+
+.model-template-review-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.75rem;
+
+  border: none;
+  border-radius: 0.4rem;
+
+  background: transparent;
+
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.model-template-review-toggle:hover {
+  background: var(--onyxjar-mist);
+}
+
+.model-template-review-toggle-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.model-template-review-toggle i {
+  font-size: 0.75rem;
+  color: var(--onyxjar-text-muted);
+  transition: transform 0.15s ease;
+}
+
+.model-template-review-toggle[aria-expanded="false"] i {
+  transform: rotate(-90deg);
+}
+
+.model-template-review-count {
+  padding: 0.15rem 0.55rem;
+
+  border-radius: 1rem;
+
+  background: var(--onyxjar-mist);
+
+  color: var(--onyxjar-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
 
 .model-template-review-list {
   display: flex;
