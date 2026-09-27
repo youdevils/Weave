@@ -108,18 +108,6 @@ def model_starting_point(request, model_id):
             "available": True,
         }
         for key, template in TEMPLATES.items()
-    ] + [
-        {
-            "key": "application_landscape",
-            "name": "Application Landscape",
-            "description": (
-                "Map applications, capabilities and technology "
-                "across your organisation."
-            ),
-            "icon": "bi-grid-3x3-gap",
-            "has_data": False,
-            "available": False,
-        },
     ]
 
     return render(

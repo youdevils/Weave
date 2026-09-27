@@ -105,7 +105,7 @@
 
             <a
                 class="navbar-brand fw-semibold d-inline-flex align-items-center gap-2"
-                href="{% url 'workspace:index' %}"
+                href="{% url 'website:home' %}"
                 aria-label="OnyxJar home"
             >
                 <svg
@@ -456,7 +456,7 @@
                     </div>
 
                     <div class="small text-muted">
-                        A governed semantic model engine.
+                        Build a living model of complex work.
                     </div>
 
                 </div>
@@ -469,21 +469,21 @@
                     <div class="small">
 
                         <a
-                            href="#"
+                            href="{% url 'website:examples' %}"
                             class="text-decoration-none text-muted me-3"
                         >
                             Help
                         </a>
 
                         <a
-                            href="#"
+                            href="{% url 'website:privacy' %}"
                             class="text-decoration-none text-muted me-3"
                         >
                             Privacy
                         </a>
 
                         <a
-                            href="#"
+                            href="{% url 'website:terms' %}"
                             class="text-decoration-none text-muted"
                         >
                             Terms

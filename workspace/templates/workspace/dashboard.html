@@ -252,7 +252,7 @@
                                     </p>
 
                                     <a
-                                        href="#"
+                                        href="{% url 'workspace:create_model' %}"
                                         class="btn btn-primary"
                                     >
                                         <i
@@ -271,48 +271,6 @@
                     {% endfor %}
 
                 {% endfor %}
-
-            </div>
-
-        {% else %}
-
-            <!-- =====================================================
-                 No Workspace
-                 ===================================================== -->
-
-            <div class="card shadow-sm">
-
-                <div class="card-body text-center py-5">
-
-                    <div
-                        class="mb-3 text-muted onyxjar-empty-icon"
-                    >
-                        <i
-                            class="bi bi-diagram-3"
-                            aria-hidden="true"
-                        ></i>
-                    </div>
-
-                    <h2 class="h5">
-                        No workspace available
-                    </h2>
-
-                    <p class="text-muted mb-4">
-                        Create a workspace to start building your first model.
-                    </p>
-
-                    <a
-                        href="#"
-                        class="btn btn-primary"
-                    >
-                        <i
-                            class="bi bi-plus-lg me-1"
-                            aria-hidden="true"
-                        ></i>
-                        Create workspace
-                    </a>
-
-                </div>
 
             </div>
 

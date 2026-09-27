@@ -148,14 +148,12 @@
                 </h2>
 
                 <p>
-                    OnyxJar will use this template to establish the
-                    initial ontology for your model.
+                    OnyxJar will establish the following for your model.
                 </p>
 
                 <p>
-                    The structure below is provided as a starting
-                    point. You will be able to modify and extend
-                    the model after it has been created.
+                    The structure provided as a starting point. 
+                    You will be able to modify and extend it after creation.
                 </p>
 
                 <div class="create-model-aside-note">
@@ -166,9 +164,7 @@
 
                     <br>
 
-                    The template defaults will be used as shown.
-                    Once your model is created, you can change the
-                    ontology in the model editor.
+                    This is for your review only. Changes can be made in the model editors later.
 
                 </div>
 
@@ -182,7 +178,6 @@
             <main>
 
                 <div class="create-model-form-panel">
-
 
                     <!-- Panel header -->
 
@@ -202,6 +197,58 @@
                     <!-- Panel body -->
 
                     <div class="create-model-form-body">
+
+                        <!-- =====================================
+                             Information note
+                             ===================================== -->
+
+                        <div class="starting-point-note mt-4">
+
+                            <i
+                                class="bi bi-info-circle"
+                                aria-hidden="true"
+                            ></i>
+
+                            <span>
+                                This is the starting structure only.
+                                After creation, you can modify the
+                                ontology in the model editor.
+                            </span>
+
+                        </div>
+
+
+                        <!-- =====================================
+                             Actions
+                             ===================================== -->
+
+                        <div class="create-model-actions">
+
+                            <a
+                                href="{% url 'workspace:model_starting_point' model_id=model.id %}"
+                                class="btn btn-outline-secondary"
+                            >
+                                Back
+                            </a>
+
+                            <form
+                                method="post"
+                                action="#"
+                                class="m-0"
+                            >
+
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+                                    Create model
+                                </button>
+
+                            </form>
+
+                        </div>
 
 
                         <!-- =====================================
@@ -536,57 +583,7 @@
                         </section>
 
 
-                        <!-- =====================================
-                             Information note
-                             ===================================== -->
 
-                        <div class="starting-point-note mt-4">
-
-                            <i
-                                class="bi bi-info-circle"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                This is the starting structure only.
-                                After creation, you can modify the
-                                ontology in the model editor.
-                            </span>
-
-                        </div>
-
-
-                        <!-- =====================================
-                             Actions
-                             ===================================== -->
-
-                        <div class="create-model-actions">
-
-                            <a
-                                href="{% url 'workspace:model_starting_point' model_id=model.id %}"
-                                class="btn btn-outline-secondary"
-                            >
-                                Back
-                            </a>
-
-                            <form
-                                method="post"
-                                action="#"
-                                class="m-0"
-                            >
-
-                                {% csrf_token %}
-
-                                <button
-                                    type="submit"
-                                    class="btn btn-primary"
-                                >
-                                    Create model
-                                </button>
-
-                            </form>
-
-                        </div>
 
                     </div>
 

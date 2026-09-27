@@ -26,7 +26,7 @@
         <div class="mb-4">
 
             <a
-                href="#"
+                href="{% url 'workspace:index' %}"
                 class="create-model-back"
             >
                 <i
@@ -52,7 +52,7 @@
 
             <p class="create-model-intro">
                 Define what your model represents and the boundaries
-                it should cover. You'll choose a starting ontology next.
+                it should cover. 
             </p>
 
         </header>
@@ -133,8 +133,6 @@
 
                 <p>
                     Start by describing what this model is about.
-                    This information provides context for the ontology
-                    you build later.
                 </p>
 
                 <p>
@@ -148,8 +146,8 @@
 
                     <br>
 
-                    Keep the scope specific enough that the model has
-                    a clear purpose and useful boundaries.
+                    This information provides context for you and helps the
+                    application's AI tools understand what you want to model.
 
                 </div>
 
@@ -193,10 +191,6 @@
 
                             <section class="create-model-section">
 
-                                <h3 class="create-model-section-title">
-                                    Identity
-                                </h3>
-
                                 <div class="create-model-field">
 
                                     <label
@@ -231,7 +225,7 @@
                                         for="id_description"
                                         class="form-label"
                                     >
-                                        Description
+                                        Model description
                                     </label>
 
                                     <textarea
@@ -242,8 +236,7 @@
                                     ></textarea>
 
                                     <div class="create-model-help">
-                                        A short description of what this model
-                                        represents.
+                                        Give a short overview of the subject, domain or area being modelled.
                                     </div>
 
                                 </div>
@@ -256,15 +249,6 @@
                                  ================================= -->
 
                             <section class="create-model-section">
-
-                                <h3 class="create-model-section-title">
-                                    Purpose
-                                </h3>
-
-                                <p class="create-model-section-description">
-                                    What are you trying to understand,
-                                    document, or manage with this model?
-                                </p>
 
                                 <div class="create-model-field">
 
@@ -283,10 +267,7 @@
                                     ></textarea>
 
                                     <div class="create-model-help">
-                                        For example, documenting a
-                                        transformation, understanding an
-                                        application landscape, or mapping
-                                        business processes.
+                                        Describe what you want to understand, explore or achieve with the model.
                                     </div>
 
                                 </div>
@@ -299,16 +280,6 @@
                                  ================================= -->
 
                             <section class="create-model-section">
-
-                                <h3 class="create-model-section-title">
-                                    Boundaries
-                                </h3>
-
-                                <p class="create-model-section-description">
-                                    Define what belongs in the model and
-                                    what deliberately does not.
-                                </p>
-
 
                                 <div class="create-model-boundaries">
 
@@ -332,7 +303,7 @@
                                         ></textarea>
 
                                         <div class="create-model-help">
-                                            What should this model represent?
+                                            Describe which parts of the subject are relevant to this model. Focus on the area being covered, rather than listing specific objects or relationships.
                                         </div>
 
                                     </div>
@@ -357,8 +328,7 @@
                                         ></textarea>
 
                                         <div class="create-model-help">
-                                            What is explicitly outside
-                                            the model's scope?
+                                            Mention related areas that could otherwise be considered part of the model but should not be included.
                                         </div>
 
                                     </div>
@@ -375,7 +345,7 @@
                             <div class="create-model-actions">
 
                                 <a
-                                    href="#"
+                                    href="{% url 'workspace:index' %}"
                                     class="btn btn-outline-secondary"
                                 >
                                     Cancel

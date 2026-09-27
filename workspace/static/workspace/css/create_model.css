@@ -3,324 +3,313 @@
    ========================================================= */
 
 .create-model-page {
-    max-width: 1180px;
-    margin: 0 auto;
+  max-width: 1180px;
+  margin: 0 auto;
 }
-
 
 /* =========================================================
    Back navigation
    ========================================================= */
 
 .create-model-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 
-    color: var(--onyxjar-text-muted);
-    font-size: 0.875rem;
-    text-decoration: none;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.875rem;
+  text-decoration: none;
 }
 
 .create-model-back:hover {
-    color: var(--onyxjar-ink);
+  color: var(--onyxjar-ink);
 }
-
 
 /* =========================================================
    Header
    ========================================================= */
 
 .create-model-header {
-    margin-bottom: 2rem;
+  margin-bottom: 2rem;
 }
 
 .create-model-title {
-    margin-bottom: 0.4rem;
+  margin-bottom: 0.4rem;
 }
 
 .create-model-intro {
-    max-width: 680px;
-    color: var(--onyxjar-text-muted);
-    margin-bottom: 0;
+  max-width: 680px;
+  color: var(--onyxjar-text-muted);
+  margin-bottom: 0;
 }
-
 
 /* =========================================================
    Progress
    ========================================================= */
 
 .create-model-progress {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 2rem;
 }
 
 .create-model-step {
-    display: flex;
-    align-items: center;
-    color: var(--onyxjar-text-muted);
-    font-size: 0.875rem;
-    white-space: nowrap;
+  display: flex;
+  align-items: center;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.875rem;
+  white-space: nowrap;
 }
 
 .create-model-step-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-    width: 1.75rem;
-    height: 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
 
-    margin-right: 0.5rem;
+  margin-right: 0.5rem;
 
-    border: 1px solid var(--onyxjar-border);
-    border-radius: 50%;
+  border: 1px solid var(--onyxjar-border);
+  border-radius: 50%;
 
-    background: var(--onyxjar-surface);
+  background: var(--onyxjar-surface);
 
-    font-size: 0.75rem;
-    font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .create-model-step.active {
-    color: var(--onyxjar-ink);
-    font-weight: 500;
+  color: var(--onyxjar-ink);
+  font-weight: 500;
 }
 
 .create-model-step.active .create-model-step-number {
-    border-color: var(--onyxjar-indigo);
-    background: var(--onyxjar-indigo);
-    color: #fff;
+  border-color: var(--onyxjar-indigo);
+  background: var(--onyxjar-indigo);
+  color: #fff;
 }
 
 .create-model-step-line {
-    width: 48px;
-    height: 1px;
-    margin: 0 0.75rem;
+  width: 48px;
+  height: 1px;
+  margin: 0 0.75rem;
 
-    background: var(--onyxjar-border);
+  background: var(--onyxjar-border);
 }
-
 
 /* =========================================================
    Main layout
    ========================================================= */
 
 .create-model-layout {
-    display: grid;
-    grid-template-columns: 250px minmax(0, 1fr);
-    gap: 3rem;
-    align-items: start;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 3rem;
+  align-items: start;
 }
-
 
 /* =========================================================
    Side information
    ========================================================= */
 
 .create-model-aside {
-    position: sticky;
-    top: 1.5rem;
+  position: sticky;
+  top: 1.5rem;
 }
 
 .create-model-aside-label {
-    margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
 
-    color: var(--onyxjar-indigo);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+  color: var(--onyxjar-indigo);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .create-model-aside h2 {
-    margin-bottom: 0.75rem;
-    font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
 }
 
 .create-model-aside p {
-    color: var(--onyxjar-text-muted);
-    font-size: 0.9rem;
-    line-height: 1.6;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
 .create-model-aside-note {
-    margin-top: 1.5rem;
-    padding-top: 1.25rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
 
-    border-top: 1px solid var(--onyxjar-border);
+  border-top: 1px solid var(--onyxjar-border);
 
-    color: var(--onyxjar-text-muted);
-    font-size: 0.8rem;
-    line-height: 1.55;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
 }
-
 
 /* =========================================================
    Form panel
    ========================================================= */
 
 .create-model-form-panel {
-    background: var(--onyxjar-surface);
-    border: 1px solid var(--onyxjar-border);
-    border-radius: 0.6rem;
-    box-shadow: 0 0.125rem 0.35rem rgba(15, 23, 42, 0.04);
+  background: var(--onyxjar-surface);
+  border: 1px solid var(--onyxjar-border);
+  border-radius: 0.6rem;
+  box-shadow: 0 0.125rem 0.35rem rgba(15, 23, 42, 0.04);
 }
 
 .create-model-form-header {
-    padding: 1.5rem 1.75rem;
+  padding: 1.5rem 1.75rem;
 
-    border-bottom: 1px solid var(--onyxjar-border);
+  border-bottom: 1px solid var(--onyxjar-border);
 }
 
 .create-model-form-header h2 {
-    margin-bottom: 0.25rem;
-    font-size: 1.05rem;
+  margin-bottom: 0.25rem;
+  font-size: 1.05rem;
 }
 
 .create-model-form-header p {
-    margin-bottom: 0;
+  margin-bottom: 0;
 
-    color: var(--onyxjar-text-muted);
-    font-size: 0.875rem;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.875rem;
 }
 
 .create-model-form-body {
-    padding: 1.75rem;
+  padding: 1.75rem;
 }
-
 
 /* =========================================================
    Form sections
    ========================================================= */
 
 .create-model-section {
-    margin-bottom: 2rem;
+  margin-bottom: 2rem;
 }
 
 .create-model-section:last-child {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .create-model-section-title {
-    margin-bottom: 1rem;
+  margin-bottom: 1rem;
 
-    font-size: 0.9rem;
-    font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .create-model-section-description {
-    margin-top: -0.5rem;
-    margin-bottom: 1rem;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
 
-    color: var(--onyxjar-text-muted);
-    font-size: 0.825rem;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.825rem;
 }
-
 
 /* =========================================================
    Fields
    ========================================================= */
 
 .create-model-field {
-    margin-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 .create-model-field:last-child {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .create-model-field .form-label {
-    margin-bottom: 0.4rem;
+  margin-bottom: 0.4rem;
 
-    font-size: 0.875rem;
-    font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .create-model-field .form-control {
-    border-radius: 0.4rem;
+  border-radius: 0.4rem;
 }
 
 .create-model-field .form-control:focus {
-    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.12);
+  box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.12);
 }
 
 .create-model-help {
-    margin-top: 0.4rem;
+  margin-top: 0.4rem;
 
-    color: var(--onyxjar-text-muted);
-    font-size: 0.775rem;
-    line-height: 1.45;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.775rem;
+  line-height: 1.45;
 }
-
 
 /* =========================================================
    Boundaries
    ========================================================= */
 
 .create-model-boundaries {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
 }
-
 
 /* =========================================================
    Actions
    ========================================================= */
 
 .create-model-actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: left;
 
-    margin-top: 2rem;
-    padding-top: 1.25rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
 
-    border-top: 1px solid var(--onyxjar-border);
+  border-top: 1px solid var(--onyxjar-border);
 }
 
 .create-model-actions .btn {
-    padding: 0.45rem 0.9rem;
-    font-size: 0.875rem;
+  padding: 0.45rem 0.9rem;
+  margin-right: 1rem;
+  font-size: 0.875rem;
 }
-
 
 /* =========================================================
    Responsive
    ========================================================= */
 
 @media (max-width: 767.98px) {
+  .create-model-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
 
-    .create-model-layout {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
+  .create-model-aside {
+    position: static;
+  }
 
-    .create-model-aside {
-        position: static;
-    }
+  .create-model-progress {
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
 
-    .create-model-progress {
-        overflow-x: auto;
-        padding-bottom: 0.25rem;
-    }
+  .create-model-step-line {
+    width: 24px;
+  }
 
-    .create-model-step-line {
-        width: 24px;
-    }
+  .create-model-form-header,
+  .create-model-form-body {
+    padding: 1.25rem;
+  }
 
-    .create-model-form-header,
-    .create-model-form-body {
-        padding: 1.25rem;
-    }
-
-    .create-model-boundaries {
-        grid-template-columns: 1fr;
-    }
-
+  .create-model-boundaries {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* =========================================================
@@ -328,398 +317,349 @@
    ========================================================= */
 
 .starting-point-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
 }
-
 
 .starting-point-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    min-height: 280px;
-    padding: 1.4rem;
-    border: 1px solid var(--onyxjar-border);
-    border-radius: 0.6rem;
-    background: var(--onyxjar-surface);
-    color: inherit;
-    text-decoration: none;
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease,
-        transform 0.15s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+  padding: 1.4rem;
+  border: 1px solid var(--onyxjar-border);
+  border-radius: 0.6rem;
+  background: var(--onyxjar-surface);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
-
 
 .starting-point-card:not(.unavailable):hover {
-    border-color: var(--onyxjar-indigo);
-    box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.08);
-    transform: translateY(-2px);
+  border-color: var(--onyxjar-indigo);
+  box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
 }
-
 
 .starting-point-card-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 3rem;
-    height: 3rem;
-    margin-bottom: 1.25rem;
-    border-radius: 0.625rem;
-    background: var(--onyxjar-mist);
-    color: var(--onyxjar-indigo);
-    font-size: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1.25rem;
+  border-radius: 0.625rem;
+  background: var(--onyxjar-mist);
+  color: var(--onyxjar-indigo);
+  font-size: 1.35rem;
 }
-
 
 .starting-point-card-body {
-    flex: 1;
+  flex: 1;
 }
-
 
 .starting-point-card-body h3 {
-    color: var(--onyxjar-ink);
+  color: var(--onyxjar-ink);
 }
-
 
 .starting-point-card-title {
-    margin: 0 0 0.5rem;
-    font-size: 1.0625rem;
-    font-weight: 600;
-    line-height: 1.35;
-    color: var(--onyxjar-ink);
-    /* Long names (e.g. "Harbour Home Retail EFTPOS Modernisation") wrap
+  margin: 0 0 0.5rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--onyxjar-ink);
+  /* Long names (e.g. "Harbour Home Retail EFTPOS Modernisation") wrap
        cleanly on their own line instead of fighting the pills for space. */
-    overflow-wrap: break-word;
+  overflow-wrap: break-word;
 }
-
 
 .starting-point-card-pills {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem;
-    margin-bottom: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
 }
-
 
 /* Sizing only -- colour/background come from .onyxjar-status-pill (neutral
    metadata look) or .onyxjar-status-soon (the existing "coming soon" look),
    whichever the element also carries, so both stay visually consistent
    with the rest of the design system. */
 .starting-point-pill {
-    padding: 0.2rem 0.55rem;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
-
 
 .starting-point-card-description {
-    margin: 0;
-    color: var(--onyxjar-text-muted);
-    font-size: 0.875rem;
-    line-height: 1.5;
+  margin: 0;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
-
 
 .starting-point-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--onyxjar-border);
-    color: var(--onyxjar-indigo);
-    font-size: 0.875rem;
-    font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--onyxjar-border);
+  color: var(--onyxjar-indigo);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
-
 
 .starting-point-card-footer i {
-    transition: transform 0.15s ease;
+  transition: transform 0.15s ease;
 }
 
-
-.starting-point-card:not(.unavailable):hover
-.starting-point-card-footer i {
-    transform: translateX(3px);
+.starting-point-card:not(.unavailable):hover .starting-point-card-footer i {
+  transform: translateX(3px);
 }
-
 
 /* Unavailable template */
 
 .starting-point-card.unavailable {
-    background: var(--onyxjar-mist);
-    border-color: transparent;
-    opacity: 0.7;
+  background: var(--onyxjar-mist);
+  border-color: transparent;
+  opacity: 0.7;
 }
 
-
-.starting-point-card.unavailable
-.starting-point-card-icon {
-    background: var(--onyxjar-surface);
-    color: var(--onyxjar-text-muted);
+.starting-point-card.unavailable .starting-point-card-icon {
+  background: var(--onyxjar-surface);
+  color: var(--onyxjar-text-muted);
 }
-
 
 /* Informational note */
 
 .starting-point-note {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    padding: 0.875rem 1rem;
-    border-radius: 0.5rem;
-    background: var(--onyxjar-mist);
-    color: var(--onyxjar-text-muted);
-    font-size: 0.875rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--onyxjar-mist);
+  color: var(--onyxjar-text-muted);
+  font-size: 0.875rem;
 }
-
 
 .starting-point-note i {
-    margin-top: 0.1rem;
+  margin-top: 0.1rem;
 }
-
 
 /* Responsive */
 
 @media (max-width: 991.98px) {
-
-    .starting-point-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
+  .starting-point-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 767.98px) {
+  .starting-point-grid {
+    grid-template-columns: 1fr;
+  }
 
-    .starting-point-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .starting-point-card {
-        min-height: 240px;
-    }
-
+  .starting-point-card {
+    min-height: 240px;
+  }
 }
-
 
 /* =========================================================
    Template Review
    ========================================================= */
 
 .model-template-review-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
-
 
 .model-template-review-item {
-    padding: 1.1rem 1.2rem;
+  padding: 1.1rem 1.2rem;
 
-    border: 1px solid var(--onyxjar-border);
-    border-radius: 0.5rem;
+  border: 1px solid var(--onyxjar-border);
+  border-radius: 0.5rem;
 
-    background: var(--onyxjar-surface);
+  background: var(--onyxjar-surface);
 }
-
 
 .model-template-review-item-main h4 {
-    margin-bottom: 0.3rem;
+  margin-bottom: 0.3rem;
 
-    font-size: 0.925rem;
-    font-weight: 600;
+  font-size: 0.925rem;
+  font-weight: 600;
 }
-
 
 .model-template-review-item-main p {
-    margin-bottom: 0;
+  margin-bottom: 0;
 
-    color: var(--onyxjar-text-muted);
-    font-size: 0.825rem;
-    line-height: 1.5;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.825rem;
+  line-height: 1.5;
 }
-
 
 /* ---------------------------------------------------------
    Attributes
    --------------------------------------------------------- */
 
 .model-template-review-attributes {
-    margin-top: 1rem;
-    padding-top: 0.9rem;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
 
-    border-top: 1px solid var(--onyxjar-border);
+  border-top: 1px solid var(--onyxjar-border);
 }
-
 
 .model-template-review-detail-label {
-    margin-bottom: 0.6rem;
+  margin-bottom: 0.6rem;
 
-    color: var(--onyxjar-ink);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+  color: var(--onyxjar-ink);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
-
 
 .model-template-review-attribute {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
 
-    padding: 0.55rem 0;
+  padding: 0.55rem 0;
 
-    font-size: 0.825rem;
+  font-size: 0.825rem;
 }
-
 
 .model-template-review-attribute strong {
-    font-weight: 500;
+  font-weight: 500;
 }
-
 
 .model-template-review-attribute p {
-    margin: 0.15rem 0 0;
+  margin: 0.15rem 0 0;
 
-    color: var(--onyxjar-text-muted);
-    font-size: 0.775rem;
-    line-height: 1.45;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.775rem;
+  line-height: 1.45;
 }
-
 
 .model-template-review-type {
-    flex-shrink: 0;
+  flex-shrink: 0;
 
-    color: var(--onyxjar-text-muted);
-    font-size: 0.725rem;
-    text-transform: capitalize;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.725rem;
+  text-transform: capitalize;
 }
-
 
 /* ---------------------------------------------------------
    Relationship rules
    --------------------------------------------------------- */
 
 .model-template-review-rules {
-    margin-top: 1rem;
-    padding-top: 0.9rem;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
 
-    border-top: 1px solid var(--onyxjar-border);
+  border-top: 1px solid var(--onyxjar-border);
 }
-
 
 .model-template-review-rule {
-    padding: 0.65rem 0;
+  padding: 0.65rem 0;
 }
-
 
 .model-template-review-rule-flow {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 
-    font-size: 0.8rem;
+  font-size: 0.8rem;
 }
-
 
 .model-template-review-rule-flow strong {
-    font-weight: 500;
+  font-weight: 500;
 }
-
 
 .model-template-review-rule-flow span {
-    color: var(--onyxjar-text-muted);
+  color: var(--onyxjar-text-muted);
 }
-
 
 .model-template-review-cardinality {
-    display: flex;
-    gap: 1.5rem;
+  display: flex;
+  gap: 1.5rem;
 
-    margin-top: 0.5rem;
-    padding-left: 0.25rem;
+  margin-top: 0.5rem;
+  padding-left: 0.25rem;
 
-    color: var(--onyxjar-text-muted);
-    font-size: 0.75rem;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.75rem;
 }
-
 
 .model-template-review-cardinality div {
-    display: flex;
-    gap: 0.4rem;
+  display: flex;
+  gap: 0.4rem;
 }
-
 
 .model-template-review-cardinality span {
-    color: var(--onyxjar-text-muted);
+  color: var(--onyxjar-text-muted);
 }
-
 
 .model-template-review-cardinality strong {
-    color: var(--onyxjar-ink);
-    font-weight: 500;
+  color: var(--onyxjar-ink);
+  font-weight: 500;
 }
-
 
 /* ---------------------------------------------------------
    Technical metadata
    --------------------------------------------------------- */
 
 .model-template-review-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
 
-    margin-top: 0.9rem;
-    padding-top: 0.75rem;
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
 
-    border-top: 1px solid var(--onyxjar-border);
+  border-top: 1px solid var(--onyxjar-border);
 
-    color: var(--onyxjar-text-muted);
-    font-size: 0.725rem;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.725rem;
 }
-
 
 .model-template-review-meta > div {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
-
 
 .model-template-review-meta code {
-    padding: 0.1rem 0.3rem;
+  padding: 0.1rem 0.3rem;
 
-    border-radius: 0.25rem;
+  border-radius: 0.25rem;
 
-    background: var(--onyxjar-mist);
+  background: var(--onyxjar-mist);
 
-    color: var(--onyxjar-text-muted);
-    font-size: 0.7rem;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.7rem;
 }
-
 
 /* ---------------------------------------------------------
    Responsive
    --------------------------------------------------------- */
 
 @media (max-width: 767.98px) {
+  .model-template-review-attribute {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 
-    .model-template-review-attribute {
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .model-template-review-cardinality {
-        flex-direction: column;
-        gap: 0.3rem;
-    }
-
+  .model-template-review-cardinality {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
 }
-
