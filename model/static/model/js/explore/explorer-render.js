@@ -220,7 +220,12 @@ function renderCopyButton(canCopy) {
   return `<button type="button" class="btn btn-outline-secondary btn-sm" data-action="copy-details">${icon("copy")} Copy</button>`;
 }
 
-function renderObjectDetails(details, canCopy) {
+function renderEditButton(editHref) {
+  if (!editHref) return "";
+  return `<a class="btn btn-outline-secondary btn-sm model-explorer-edit-link" href="${e(editHref)}">${icon("edit")} Edit</a>`;
+}
+
+function renderObjectDetails(details, canCopy, editHref) {
   const groups = details.relationships
     .map((group) => {
       const items = group.items
@@ -256,7 +261,7 @@ function renderObjectDetails(details, canCopy) {
     <header class="model-explorer-details-header">
       <div class="model-explorer-details-heading-row">
         <h3>${e(details.name)}</h3>
-        ${renderCopyButton(canCopy)}
+        ${renderCopyButton(canCopy)}${renderEditButton(editHref)}
       </div>
       <div>${typePill(details.type.name)}${proposedBadge(details.isProposed)}</div>
     </header>
@@ -271,7 +276,7 @@ function renderObjectDetails(details, canCopy) {
     ${renderProvenance(details.provenance, "object")}`;
 }
 
-function renderRelationshipDetails(details) {
+function renderRelationshipDetails(details, editHref) {
   const cardinality = details.cardinality
     ? `<p class="model-explorer-muted">Allowed: ${e(details.source.typeName)} ${formatCardinality(details.cardinality.subject.minimum, details.cardinality.subject.maximum)} &rarr; ${formatCardinality(details.cardinality.object.minimum, details.cardinality.object.maximum)} ${e(details.target.typeName)}</p>`
     : "";
@@ -281,7 +286,10 @@ function renderRelationshipDetails(details) {
       : "";
   return `
     <header class="model-explorer-details-header">
-      <h3>${e(details.type.name)}</h3>
+      <div class="model-explorer-details-heading-row">
+        <h3>${e(details.type.name)}</h3>
+        ${renderEditButton(editHref)}
+      </div>
       <div>${typePill("Relationship")}${proposedBadge(details.isProposed)}</div>
     </header>
     ${hiddenNotice("relationship", details.inView)}
@@ -412,9 +420,11 @@ export function renderProvenance(provenance, kind = "object") {
     </section>`;
 }
 
-export function renderDetails(details, { canCopy = false } = {}) {
+export function renderDetails(details, { canCopy = false, editHref = null } = {}) {
   if (!details) return renderEmptyDetails();
-  return details.kind === "object" ? renderObjectDetails(details, canCopy) : renderRelationshipDetails(details);
+  return details.kind === "object"
+    ? renderObjectDetails(details, canCopy, editHref)
+    : renderRelationshipDetails(details, editHref);
 }
 
 // ---------------------------------------------------------------------------

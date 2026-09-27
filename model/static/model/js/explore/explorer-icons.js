@@ -12,6 +12,7 @@ const GLYPHS = {
   "slash-circle": '<circle cx="8" cy="8" r="6"/><path d="M3.8 12.2 12.2 3.8"/>',
   paperclip: '<path d="M11.5 6.5 7 11a2 2 0 0 1-2.8-2.8l4.6-4.6a3.2 3.2 0 0 1 4.5 4.5l-4.6 4.6a4.4 4.4 0 0 1-6.2-6.2"/>',
   copy: '<rect x="3" y="3" width="9" height="9" rx="1.3"/><rect x="6.5" y="6.5" width="9" height="9" rx="1.3"/>',
+  edit: '<path d="M11 2.5 13.5 5 5 13.5 2 14l0.5-3z"/><path d="M9.5 4 12 6.5"/>',
 };
 
 export const ICON_NAMES = Object.freeze(Object.keys(GLYPHS));

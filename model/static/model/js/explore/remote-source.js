@@ -44,6 +44,13 @@ export function createRemoteSource({ urls, fetchFn = globalThis.fetch?.bind(glob
       return getJson("details", template.replace(urls.placeholder, selection.id), toQueryParams(state));
     },
 
+    /** Where to edit this record's data, or null if the bootstrap carries no edit route. */
+    editUrl(kind, id, typeId) {
+      const template = kind === "object" ? urls.objectEdit : urls.relationshipEdit;
+      if (!template) return null;
+      return template.replace(urls.placeholderType, typeId).replace(urls.placeholder, id);
+    },
+
     cancel: (kind) => inFlight[kind]?.abort(),
   };
 }

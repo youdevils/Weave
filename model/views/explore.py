@@ -27,6 +27,7 @@ from model.views.appearance import scoped_model
 from model.views.common_context import get_model_context
 
 _PLACEHOLDER_ID = "00000000-0000-0000-0000-000000000000"
+_PLACEHOLDER_TYPE_ID = "00000000-0000-0000-0000-000000000001"
 
 
 def _exploration(request, model_id):
@@ -64,7 +65,12 @@ def explore(request, model_id):
         "search": reverse("model:explore_search", args=[model.id]),
         "object": reverse("model:explore_object", args=[model.id, _PLACEHOLDER_ID]),
         "relationship": reverse("model:explore_relationship", args=[model.id, _PLACEHOLDER_ID]),
+        "objectEdit": reverse("model:data_object_edit", args=[model.id, _PLACEHOLDER_TYPE_ID, _PLACEHOLDER_ID]),
+        "relationshipEdit": reverse(
+            "model:data_relationship_edit", args=[model.id, _PLACEHOLDER_TYPE_ID, _PLACEHOLDER_ID]
+        ),
         "placeholder": _PLACEHOLDER_ID,
+        "placeholderType": _PLACEHOLDER_TYPE_ID,
     }
 
     graph = _graph_response(model, exploration)

@@ -366,8 +366,12 @@ export function createExplorer({
   }
 
   function renderDetailsPanel() {
+    const editHref =
+      state.selection && details && source.editUrl ? source.editUrl(details.kind, details.id, details.type.id) : null;
     el.details.innerHTML =
-      state.selection && details ? renderDetails(details, { canCopy: Boolean(source.dataset) }) : renderEmptyDetails();
+      state.selection && details
+        ? renderDetails(details, { canCopy: Boolean(source.dataset), editHref })
+        : renderEmptyDetails();
   }
 
   /** Copies a human-readable extract of the selected object; a published-viewer-only convenience. */
