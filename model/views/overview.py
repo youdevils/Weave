@@ -300,6 +300,7 @@ def overview(
             "scope_proposed": ("scope" in proposed_fields),
             "exclusions_value": working_values["exclusions"],
             "exclusions_proposed": ("exclusions" in proposed_fields),
+            "publications_count": model.publications.count(),
         }
     )
 
