@@ -650,8 +650,8 @@
 
 .model-explorer-panel-title {
   font-size: 0.72rem;
-  font-weight: 500;
-  color: var(--model-text-muted);
+  font-weight: 800;
+  color: var(--model-text);
   white-space: nowrap;
 }
 
@@ -707,7 +707,7 @@
 
 .model-explorer-side.legend-collapsed .model-explorer-panel-title,
 .model-explorer-detail.sidebar-collapsed .model-explorer-panel-title {
-  writing-mode: vertical-lr;
+  writing-mode: sideways-rl;
   text-orientation: upright;
 }
 
