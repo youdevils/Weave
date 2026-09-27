@@ -1,7 +1,7 @@
 # Data Import
 
 Data Import populates an **existing canonical model** from one structured file (CSV, XLSX or legacy XLS).
-It is reached from **Import/Export** in the model sidebar, alongside Model Export (see `services/model_export.py`).
+It is reached from **Import/Export** in the model sidebar (the page is titled *Import & Export*), presented as a five-step guided workflow alongside Model Export (see `services/model_export.py`).
 
 ```
 upload ─► target ─► map ─► preview ─► ONE Working Proposal ─► (existing) review ─► validate ─► commit

@@ -17,147 +17,245 @@
 
         <div>
 
-            <div class="model-page-eyebrow">Import/Export</div>
+            <div class="model-page-eyebrow">Understand</div>
 
-            <h1 class="model-page-title">Import/Export</h1>
+            <h1 class="model-page-title">Import &amp; Export</h1>
+
+            <p class="model-page-description">
+                Move model data into and out of this model.
+            </p>
 
         </div>
 
     </div>
 
-    <section class="import-export-section" aria-labelledby="data-import-heading">
 
-    <h2 id="data-import-heading">Data Import</h2>
+    <!-- ============================================================
+         IMPORT DATA
+         ============================================================ -->
 
-    <p class="model-page-description">
-        Populate this model from a CSV, Excel (.xlsx) or legacy Excel (.xls) file with a single
-        table or worksheet. An import never changes the model directly: it creates one proposal
-        that you review, and the usual validation decides what is allowed. It fills in the
-        types you have already defined; it does not create or change them.
-    </p>
+    <section class="import-section" aria-labelledby="import-data-heading">
 
-    <div id="import-banner" aria-live="polite"></div>
+        <div class="import-section-header">
 
-    <!-- 1. Upload -->
-    <section class="import-step" data-step="upload">
+            <div class="model-overview-section-heading">
 
-        <h2><span class="import-step-number">1</span> Upload</h2>
+                <h2 id="import-data-heading">Import data</h2>
 
-        <div class="import-step-body">
+                <p class="model-overview-section-description">
+                    Add data to an existing object or relationship type from a CSV or Excel file.
+                    Imports create a proposal for review; they do not change the model directly.
+                </p>
 
-            <label class="import-file-label" for="import-file">File</label>
-
-            <div class="import-upload-row">
-                <input
-                    type="file"
-                    id="import-file"
-                    class="form-control form-control-sm"
-                    accept=".csv,.xlsx,.xls"
-                >
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="import-reset" hidden>Start over</button>
             </div>
 
-            <p class="import-muted">
-                CSV must be UTF-8. Workbooks must have exactly one worksheet. Up to
-                {{ import_bootstrap.limits.max_rows }} data rows and
-                {{ import_bootstrap.limits.max_file_mb }} MB.
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="import-reset" hidden>Start over</button>
+
+        </div>
+
+        <div id="import-banner" aria-live="polite"></div>
+
+        <div class="import-workflow" id="import-workflow">
+
+            <ol class="import-progress" aria-label="Import progress">
+                <li class="import-progress-item">
+                    <button type="button" class="import-progress-step" data-goto="upload">
+                        <span class="import-step-number">1</span>
+                        <span class="import-progress-label">Upload file</span>
+                    </button>
+                </li>
+                <li class="import-progress-item">
+                    <button type="button" class="import-progress-step" data-goto="target">
+                        <span class="import-step-number">2</span>
+                        <span class="import-progress-label">Choose destination</span>
+                    </button>
+                </li>
+                <li class="import-progress-item">
+                    <button type="button" class="import-progress-step" data-goto="map">
+                        <span class="import-step-number">3</span>
+                        <span class="import-progress-label">Map columns</span>
+                    </button>
+                </li>
+                <li class="import-progress-item">
+                    <button type="button" class="import-progress-step" data-goto="preview">
+                        <span class="import-step-number">4</span>
+                        <span class="import-progress-label">Preview changes</span>
+                    </button>
+                </li>
+                <li class="import-progress-item">
+                    <button type="button" class="import-progress-step" data-goto="create">
+                        <span class="import-step-number">5</span>
+                        <span class="import-progress-label">Create proposal</span>
+                    </button>
+                </li>
+            </ol>
+
+            <!-- 1. Upload file -->
+            <section class="import-step" data-step="upload" aria-labelledby="import-title-upload">
+
+                <h3 class="import-step-title" id="import-title-upload" tabindex="-1">Upload file</h3>
+
+                <p class="import-step-purpose">Select the file you want to import.</p>
+
+                <div class="import-step-body">
+
+                    <label class="import-file-label" for="import-file">File</label>
+
+                    <div class="import-upload-row">
+                        <input
+                            type="file"
+                            id="import-file"
+                            class="form-control form-control-sm"
+                            accept=".csv,.xlsx,.xls"
+                        >
+                    </div>
+
+                    <p class="import-muted">
+                        CSV (UTF-8), Excel (.xlsx) or legacy Excel (.xls), with a single table or
+                        worksheet. Up to {{ import_bootstrap.limits.max_rows }} data rows and
+                        {{ import_bootstrap.limits.max_file_mb }} MB.
+                    </p>
+
+                    <div id="import-upload-result"></div>
+
+                </div>
+
+                <div class="import-step-actions">
+                    <button type="button" class="btn btn-primary btn-sm" data-nav="next" disabled>Continue</button>
+                </div>
+
+            </section>
+
+            <!-- 2. Choose destination -->
+            <section class="import-step" data-step="target" aria-labelledby="import-title-target" hidden>
+
+                <h3 class="import-step-title" id="import-title-target" tabindex="-1">Choose destination</h3>
+
+                <p class="import-step-purpose">
+                    Tell OnyxJar what kind of data the file contains and where it belongs.
+                </p>
+
+                <div class="import-step-body">
+
+                    <div class="import-kind" role="radiogroup" aria-label="What are you importing?">
+                        <label><input type="radio" name="import-kind" value="object" checked> Objects</label>
+                        <label><input type="radio" name="import-kind" value="relationship"> Relationships</label>
+                    </div>
+
+                    <label class="import-file-label" for="import-type" id="import-type-label">Object type</label>
+                    <select id="import-type" class="form-select form-select-sm import-type-select"></select>
+
+                    <p class="import-muted">
+                        Choose a type that already exists in this model. Importing adds data to it and
+                        never creates or changes types.
+                    </p>
+
+                </div>
+
+                <div class="import-step-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-nav="back">Back</button>
+                    <button type="button" class="btn btn-primary btn-sm" data-nav="next" disabled>Continue</button>
+                </div>
+
+            </section>
+
+            <!-- 3. Map columns -->
+            <section class="import-step" data-step="map" aria-labelledby="import-title-map" hidden>
+
+                <h3 class="import-step-title" id="import-title-map" tabindex="-1">Map columns</h3>
+
+                <p class="import-step-purpose">
+                    Choose which model field each column should populate. Columns you leave unmapped
+                    are ignored.
+                </p>
+
+                <div class="import-step-body">
+
+                    <ul class="import-guidance">
+                        <li>
+                            To update records that already exist, map a column that identifies them: an
+                            OnyxJar ID, or one of the type&rsquo;s own attributes (such as an application
+                            id from your source system) marked &ldquo;Use to identify&rdquo;.
+                        </li>
+                        <li>Names are never used to match records.</li>
+                        <li>A blank cell clears the corresponding value.</li>
+                    </ul>
+
+                    <div id="import-mapping" class="import-mapping"></div>
+
+                </div>
+
+                <div class="import-step-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-nav="back">Back</button>
+                    <button type="button" class="btn btn-primary btn-sm" data-nav="next" disabled>Continue</button>
+                </div>
+
+            </section>
+
+            <!-- 4. Preview changes -->
+            <section class="import-step" data-step="preview" aria-labelledby="import-title-preview" hidden>
+
+                <h3 class="import-step-title" id="import-title-preview" tabindex="-1">Preview changes</h3>
+
+                <p class="import-step-purpose">
+                    Review the changes this import would propose before creating it.
+                </p>
+
+                <div class="import-step-body">
+
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="import-preview-button" disabled>Show preview</button>
+
+                    <div id="import-preview" class="import-preview" aria-live="polite"></div>
+
+                </div>
+
+                <div class="import-step-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-nav="back">Back</button>
+                    <button type="button" class="btn btn-primary btn-sm" data-nav="next" disabled>Continue</button>
+                </div>
+
+            </section>
+
+            <!-- 5. Create proposal -->
+            <section class="import-step" data-step="create" aria-labelledby="import-title-create" hidden>
+
+                <h3 class="import-step-title" id="import-title-create" tabindex="-1">Create proposal</h3>
+
+                <p class="import-step-purpose">
+                    Create one proposal containing these changes. The imported file is retained as
+                    evidence, and nothing is committed until the proposal is submitted.
+                </p>
+
+                <div class="import-step-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-nav="back">Back</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="import-create-button" disabled>Create proposal</button>
+                    <span class="import-status" id="import-status" aria-live="polite"></span>
+                </div>
+
+            </section>
+
+        </div>
+
+    </section>
+
+
+    <!-- ============================================================
+         EXPORT DATA
+         ============================================================ -->
+
+    <section class="import-section" aria-labelledby="export-data-heading">
+
+        <div class="model-overview-section-heading">
+
+            <h2 id="export-data-heading">Export data</h2>
+
+            <p class="model-overview-section-description">
+                Export the complete model, including its types, relationships and data, as a JSON file.
             </p>
 
-            <div id="import-upload-result"></div>
-
         </div>
 
-    </section>
-
-    <!-- 2. Target -->
-    <section class="import-step" data-step="target">
-
-        <h2><span class="import-step-number">2</span> Target</h2>
-
-        <div class="import-step-body">
-
-            <p class="import-muted">Each import fills in one existing type.</p>
-
-            <div class="import-kind" role="radiogroup" aria-label="What are you importing?">
-                <label><input type="radio" name="import-kind" value="object" checked> Objects</label>
-                <label><input type="radio" name="import-kind" value="relationship"> Relationships</label>
-            </div>
-
-            <label class="import-file-label" for="import-type">Type</label>
-            <select id="import-type" class="form-select form-select-sm import-type-select"></select>
-
-        </div>
-
-    </section>
-
-    <!-- 3. Map -->
-    <section class="import-step" data-step="map">
-
-        <h2><span class="import-step-number">3</span> Map columns</h2>
-
-        <div class="import-step-body">
-
-            <p class="import-muted">
-                Choose the field each column feeds. Columns you leave alone are ignored. To update
-                records that already exist, map a column that identifies them: an OnyxJar ID, or one of the
-                type&rsquo;s own attributes (such as an application id from your source system) marked
-                &ldquo;use to identify&rdquo;. Names are never used to match records. A blank cell sets
-                that value to empty.
-            </p>
-
-            <div id="import-mapping" class="import-mapping"></div>
-
-        </div>
-
-    </section>
-
-    <!-- 4. Preview -->
-    <section class="import-step" data-step="preview">
-
-        <h2><span class="import-step-number">4</span> Preview changes</h2>
-
-        <div class="import-step-body">
-
-            <button type="button" class="btn btn-outline-primary btn-sm" id="import-preview-button" disabled>Preview changes</button>
-
-            <div id="import-preview" class="import-preview" aria-live="polite"></div>
-
-        </div>
-
-    </section>
-
-    <!-- 5. Create -->
-    <section class="import-step" data-step="create">
-
-        <h2><span class="import-step-number">5</span> Create proposal</h2>
-
-        <div class="import-step-body">
-
-            <p class="import-muted">
-                Creates one working proposal containing these changes, each linked to your file as
-                evidence, and opens it for review. Nothing is committed until you submit it.
-            </p>
-
-            <button type="button" class="btn btn-primary btn-sm" id="import-create-button" disabled>Create proposal</button>
-
-            <span class="import-status" id="import-status" aria-live="polite"></span>
-
-        </div>
-
-    </section>
-
-    </section>
-
-    <section class="import-export-section" aria-labelledby="model-export-heading">
-
-        <h2 id="model-export-heading">Model Export</h2>
-
-        <p class="model-page-description">
-            Exports the complete model &mdash; its object types, relationship types and canonical
-            data &mdash; as a single JSON file, for backup or moving into another OnyxJar workspace.
-        </p>
-
-        <a class="btn btn-primary btn-sm" href="{% url 'ingestion:export_model' model.id %}">Export Model</a>
+        <a class="btn btn-primary btn-sm" href="{% url 'ingestion:export_model' model.id %}">Export model</a>
 
     </section>
 

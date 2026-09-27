@@ -5,42 +5,86 @@
    ========================================================= */
 
 .import-page {
-    max-width: 62rem;
+    margin: 0 auto;
+    padding: 2.5rem 2.5rem 4rem;
 }
 
-.import-export-section {
-    margin-bottom: 2.5rem;
-    padding-bottom: 2rem;
+@media (max-width: 768px) {
+    .import-page {
+        padding: 2rem 1.25rem 3rem;
+    }
+}
+
+/* -- Sections (Import data / Export data) -------------------------------- */
+
+.import-section + .import-section {
+    margin-top: 3rem;
+    padding-top: 2.25rem;
+    border-top: 1px solid var(--model-border-light);
+}
+
+.import-section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+/* -- Guided workflow ------------------------------------------------------ */
+
+.import-progress {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0;
+    margin: 0 0 1.75rem;
+    padding: 0 0 1.25rem;
     border-bottom: 1px solid var(--model-border-light);
+    list-style: none;
 }
 
-.import-export-section:last-of-type {
-    border-bottom: none;
-}
-
-.import-export-section h2 {
-    margin: 0 0 0.5rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--model-text);
-}
-
-.import-step {
-    margin-bottom: 1rem;
-    border: 1px solid var(--model-border);
-    border-radius: 0.5rem;
-    background: var(--model-surface);
-}
-
-.import-step h2 {
+.import-progress-item {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    margin: 0;
-    padding: 0.8rem 1rem;
-    border-bottom: 1px solid var(--model-border-light);
+}
+
+.import-progress-item:not(:last-child)::after {
+    content: "";
+    width: 1.75rem;
+    height: 1px;
+    margin: 0 0.5rem;
+    background: var(--model-border);
+}
+
+.import-progress-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem 0.35rem;
+    border: 0;
+    border-radius: 0.375rem;
+    background: transparent;
+    color: var(--model-text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.import-progress-step:hover:not(:disabled) {
+    background: var(--model-surface-hover);
     color: var(--model-text);
-    font-size: 0.95rem;
+}
+
+.import-progress-step:focus-visible {
+    outline: 2px solid var(--model-focus);
+    outline-offset: 1px;
+}
+
+.import-progress-step:disabled {
+    color: var(--model-text-faint);
+    cursor: default;
+}
+
+.import-progress-step.is-current {
+    color: var(--model-text);
     font-weight: 600;
 }
 
@@ -48,22 +92,65 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 auto;
     width: 1.5rem;
     height: 1.5rem;
     border-radius: 50%;
     background: var(--model-surface-hover);
     color: var(--model-text-secondary);
     font-size: 0.75rem;
+    font-weight: 600;
 }
 
-.import-step-body {
-    padding: 1rem;
+.import-progress-step:disabled .import-step-number {
+    background: var(--model-surface-subtle);
+    color: var(--model-text-faint);
 }
 
-/* A step that cannot be used yet (or is finished) is visible but inert. */
-.import-step.is-disabled .import-step-body {
-    opacity: 0.5;
-    pointer-events: none;
+.import-progress-step.is-complete .import-step-number {
+    background: var(--model-accent-soft);
+    color: var(--model-accent-strong);
+}
+
+.import-progress-step.is-current .import-step-number {
+    background: var(--model-accent);
+    color: #fff;
+}
+
+.import-step-title {
+    margin: 0;
+    color: var(--model-text);
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.import-step-title:focus {
+    outline: none;
+}
+
+.import-step-purpose {
+    max-width: 700px;
+    margin: 0.3rem 0 1.1rem;
+    color: var(--model-text-muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.import-step-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.import-guidance {
+    max-width: 700px;
+    margin: 0 0 1rem;
+    padding-left: 1.1rem;
+    color: var(--model-text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.5;
 }
 
 .import-muted {
@@ -294,7 +381,6 @@
 }
 
 .import-status {
-    margin-left: 0.75rem;
     color: var(--model-text-muted);
     font-size: 0.8rem;
 }

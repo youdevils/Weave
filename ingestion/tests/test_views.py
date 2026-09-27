@@ -50,9 +50,13 @@ class PageAccessTests(ViewTestCase):
             response = self.login(user).get(self.url("assets"))
 
             self.assertEqual(response.status_code, 200, user.email)
-            self.assertContains(response, "Import/Export")
-            self.assertContains(response, "Data Import")
-            self.assertContains(response, "Model Export")
+            self.assertContains(response, "Import &amp; Export")
+            self.assertContains(response, "Import data")
+            self.assertContains(response, "Export data")
+            self.assertContains(response, self.url("export_model"))
+
+            for step in ("upload", "target", "map", "preview", "create"):
+                self.assertContains(response, f'data-step="{step}"')
 
     def test_a_viewer_cannot(self):
         self.assertEqual(self.login(self.viewer).get(self.url("assets")).status_code, 403)

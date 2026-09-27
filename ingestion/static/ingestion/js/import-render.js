@@ -246,7 +246,7 @@ export function previewPanel(preview) {
     </dl>
     ${none}
     ${itemList(preview.items)}
-    <p class="import-muted">This shows what changes would be proposed, not whether they are allowed. The proposal is checked by the normal validation when you review and submit it.</p>`;
+    <p class="import-muted">This shows the changes that would be proposed. They are checked when you review and submit the proposal.</p>`;
 }
 
 export function problemsFromError(data) {

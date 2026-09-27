@@ -3,6 +3,9 @@
  *
  *   Upload -> Target -> Map -> Preview -> Create Proposal
  *
+ * Presented as a guided workflow that shows one step at a time (`model.step`);
+ * moving between steps is presentation only and never discards the person's work.
+ *
  * The page holds only what the person has chosen (the staged upload, the target
  * and the per-column mapping). Every interpretation of that choice -- parsing,
  * identity, what would change -- is done by the server, from the persisted
@@ -30,9 +33,15 @@ export function startImport({ bootstrap, api = createImportApi({ urls: bootstrap
     status: $("import-status"),
     banner: $("import-banner"),
     steps: document.querySelectorAll("[data-step]"),
+    workflow: $("import-workflow"),
+    typeLabel: $("import-type-label"),
+    progress: document.querySelectorAll("[data-goto]"),
+    next: document.querySelectorAll("[data-nav=next]"),
+    back: document.querySelectorAll("[data-nav=back]"),
   };
 
   const model = {
+    step: "upload",
     source: null,
     columns: [],
     sampleRows: [],
@@ -73,12 +82,39 @@ export function startImport({ bootstrap, api = createImportApi({ urls: bootstrap
     const hasTarget = hasSource && Boolean(target());
     const mapped = state.canPreview({ source: model.source, target: target(), mapping: mapping() });
 
-    el.steps.forEach((step) => {
-      const enabled = { upload: true, target: hasSource, map: hasTarget, preview: mapped, create: mapped }[step.dataset.step];
-      step.classList.toggle("is-disabled", !enabled || model.done);
+    // Only one step is shown at a time; the person's work lives in `model`, so
+    // moving between steps never discards it. A step whose prerequisites were
+    // undone (say the mapping was edited, discarding the preview) closes again.
+    const open = state.availableSteps({
+      source: model.source,
+      target: target(),
+      mapping: mapping(),
+      preview: model.preview,
+      previewIsFresh: model.fresh,
+    });
+    const order = state.WIZARD_STEPS;
+
+    if (!open[model.step]) {
+      model.step = [...order].reverse().find((name) => open[name] && order.indexOf(name) < order.indexOf(model.step)) ?? "upload";
+    }
+
+    const current = order.indexOf(model.step);
+
+    el.workflow.hidden = model.done;
+    el.steps.forEach((step) => (step.hidden = step.dataset.step !== model.step));
+
+    el.progress.forEach((button) => {
+      const index = order.indexOf(button.dataset.goto);
+      button.disabled = !open[button.dataset.goto];
+      button.classList.toggle("is-current", index === current);
+      button.classList.toggle("is-complete", index !== current && Boolean(open[order[index + 1]]));
+      if (index === current) button.setAttribute("aria-current", "step");
+      else button.removeAttribute("aria-current");
     });
 
-    el.reset.hidden = !hasSource;
+    el.next.forEach((button) => (button.disabled = !open[order[current + 1]]));
+
+    el.reset.hidden = !hasSource && !model.done;
 
     el.uploadResult.innerHTML = hasSource
       ? view.uploadSummary({
@@ -89,6 +125,7 @@ export function startImport({ bootstrap, api = createImportApi({ urls: bootstrap
         })
       : "";
 
+    el.typeLabel.textContent = model.kind === state.KINDS.RELATIONSHIP ? "Relationship type" : "Object type";
     el.type.innerHTML = view.typeOptions(types(), model.typeId);
     el.type.disabled = !hasSource || model.done;
     el.kind.forEach((input) => {
@@ -105,7 +142,7 @@ export function startImport({ bootstrap, api = createImportApi({ urls: bootstrap
           rows: model.rows,
           objectTypes: bootstrap.targets.object_types,
         })
-      : '<p class="import-muted">Choose what you are importing to map the columns.</p>';
+      : '<p class="import-muted">Choose a destination to map the columns.</p>';
 
     el.previewButton.disabled = !mapped || model.busy || model.done;
     el.preview.innerHTML = model.preview ? view.previewPanel(model.preview) : "";
@@ -119,6 +156,7 @@ export function startImport({ bootstrap, api = createImportApi({ urls: bootstrap
 
   function resetAll() {
     Object.assign(model, {
+      step: "upload",
       source: null,
       columns: [],
       sampleRows: [],
@@ -147,6 +185,24 @@ export function startImport({ bootstrap, api = createImportApi({ urls: bootstrap
       field: suggestion[column.index] ?? "",
     }));
   }
+
+  // -- Navigation ----------------------------------------------------------
+
+  function goTo(step) {
+    model.step = step;
+    render();
+    document.querySelector(`[data-step="${step}"] .import-step-title`)?.focus();
+  }
+
+  el.progress.forEach((button) =>
+    button.addEventListener("click", () => {
+      if (!button.disabled) goTo(button.dataset.goto);
+    }),
+  );
+
+  const move = (offset) => () => goTo(state.WIZARD_STEPS[state.WIZARD_STEPS.indexOf(model.step) + offset]);
+  el.next.forEach((button) => button.addEventListener("click", move(1)));
+  el.back.forEach((button) => button.addEventListener("click", move(-1)));
 
   // -- Upload --------------------------------------------------------------
 

@@ -164,6 +164,27 @@ export function canCreate({ preview, previewIsFresh }) {
   return Boolean(preview && previewIsFresh && !preview.blocked);
 }
 
+/** The steps of the guided workflow, in order. */
+export const WIZARD_STEPS = ["upload", "target", "map", "preview", "create"];
+
+/**
+ * Which workflow steps can be opened right now. A step is available once what it
+ * depends on has been provided; presentation only, it never gates the server.
+ * Returns {upload, target, map, preview, create} booleans.
+ */
+export function availableSteps({ source, target, mapping, preview, previewIsFresh }) {
+  const hasSource = Boolean(source);
+  const hasTarget = hasSource && Boolean(target);
+
+  return {
+    upload: true,
+    target: hasSource,
+    map: hasTarget,
+    preview: canPreview({ source, target, mapping }),
+    create: canCreate({ preview, previewIsFresh }),
+  };
+}
+
 /** "92 created, 31 updated, 24 unchanged" for the summary line. */
 export function describeSummary(summary) {
   const noun = summary.kind === KINDS.RELATIONSHIP ? "relationships" : "objects";

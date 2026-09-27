@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  availableSteps,
   buildMapping,
   canCreate,
   canPreview,
@@ -12,6 +13,7 @@ import {
   KINDS,
   normaliseHeader,
   suggestMapping,
+  WIZARD_STEPS,
 } from "../static/ingestion/js/import-state.js";
 
 const target = {
@@ -138,4 +140,23 @@ test("the summary line names the kind of record", () => {
     "92 objects to create, 31 to update, 24 unchanged",
   );
   assert.match(describeSummary({ kind: "relationship", creates: 1, updates: 0, no_ops: 0 }), /relationships/);
+});
+
+test("the workflow opens one step further at a time as its prerequisites are met", () => {
+  const mapping = { columns: [{ column: 0, field: "field.name" }] };
+  const previewed = { blocked: false, change_count: 1 };
+  const open = (input) => WIZARD_STEPS.filter((step) => availableSteps(input)[step]);
+
+  assert.deepEqual(open({}), ["upload"]);
+  assert.deepEqual(open({ source: {} }), ["upload", "target"]);
+  assert.deepEqual(open({ source: {}, target: {}, mapping: { columns: [] } }), ["upload", "target", "map"]);
+  assert.deepEqual(open({ source: {}, target: {}, mapping }), ["upload", "target", "map", "preview"]);
+  assert.deepEqual(open({ source: {}, target: {}, mapping, preview: previewed, previewIsFresh: true }), WIZARD_STEPS);
+});
+
+test("a stale or blocked preview does not open the final step", () => {
+  const base = { source: {}, target: {}, mapping: { columns: [{ column: 0, field: "field.name" }] } };
+
+  assert.equal(availableSteps({ ...base, preview: { blocked: false }, previewIsFresh: false }).create, false);
+  assert.equal(availableSteps({ ...base, preview: { blocked: true }, previewIsFresh: true }).create, false);
 });
