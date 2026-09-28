@@ -45,7 +45,7 @@ class Model(models.Model):
     )
 
     revision = models.PositiveIntegerField(
-        default=1,
+        default=0,
     )
 
     # Visual customisation document. Its structure is private to
