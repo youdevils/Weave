@@ -146,10 +146,16 @@ def data_relationships(
         "",
     ).strip()
 
-    queryset = Relationship.objects.filter(
+    # Active | All. Active means canonically active; a proposed change
+    # never moves a record in or out of the Active view.
+    show = "all" if request.GET.get("show") == "all" else "active"
+
+    type_queryset = Relationship.objects.filter(
         model=model,
         relationship_type_id=relationship_type.id,
-    ).select_related(
+    )
+
+    queryset = type_queryset.select_related(
         "subject",
         "object",
     )
@@ -159,6 +165,11 @@ def data_relationships(
         queryset = queryset.filter(
             Q(subject__name__icontains=search) | Q(object__name__icontains=search)
         )
+
+    search_queryset = queryset
+
+    if show == "active":
+        queryset = queryset.filter(is_active=True)
 
     # -------------------------------------------------------------
     # Sort
@@ -199,6 +210,8 @@ def data_relationships(
         proposal,
     )
 
+    has_records = bool(pending_rows) or type_queryset.exists()
+
     if search:
 
         needle = search.lower()
@@ -208,6 +221,16 @@ def data_relationships(
             for row in pending_rows
             if needle in row.subject_name.lower() or needle in row.object_name.lower()
         ]
+
+    if show == "active":
+        pending_rows = [row for row in pending_rows if row.is_active]
+
+    has_inactive_matches = (
+        show == "active"
+        and not rows
+        and not pending_rows
+        and search_queryset.filter(is_active=False).exists()
+    )
 
     columns = build_relationship_attribute_definitions(
         relationship_type,
@@ -229,6 +252,9 @@ def data_relationships(
             "page": page,
             "search": search,
             "sort": sort,
+            "show": show,
+            "has_records": has_records,
+            "has_inactive_matches": has_inactive_matches,
             "total_count": paginator.count,
         }
     )

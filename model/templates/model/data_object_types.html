@@ -1,21 +1,23 @@
-
 {% extends "model/model_base.html" %}
+
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'model/css/index.css' %}">
+{% endblock %}
 
 {% block model_content %}
 
-<div class="model-object-types">
+<div class="model-index" data-model-index data-noun="object types">
 
     <div class="model-page-header">
 
         <div>
 
-            <div class="model-page-eyebrow">
-                Data
-            </div>
+            <div class="model-page-eyebrow">Model data</div>
 
-            <h1 class="model-page-title">
-                Objects
-            </h1>
+            <h1 class="model-page-title">Objects</h1>
 
             <p class="model-page-description">
                 Browse and edit records for each object type in this model.
@@ -26,97 +28,92 @@
     </div>
 
 
-    <div class="model-object-type-list">
+    {% if object_types %}
 
-        {% for object_type in object_types %}
+        {% include "model/_index_controls.html" with noun="object types" placeholder="Search object types..." %}
 
-            <a
-                href="{% url 'model:data_objects' model.id object_type.id %}"
-                class="model-object-type-card model-object-type-card-link"
-            >
+        <div class="model-index-grid">
 
-                <div class="model-object-type-card-main">
+            {% for object_type in object_types %}
 
-                    <div class="model-object-type-card-heading">
+                <article
+                    class="model-index-card"
+                    data-index-item
+                    data-active="{{ object_type.canonical_is_active|yesno:'true,false' }}"
+                    data-search="{{ object_type.name|lower }} {{ object_type.key|lower }}"
+                    {% if not object_type.canonical_is_active %}hidden{% endif %}
+                >
 
-                        <h2 class="model-object-type-card-title">
-                            {{ object_type.name }}
+                    <div class="model-index-card-top">
+
+                        <h2 class="model-index-card-title">
+                            <a
+                                href="{% url 'model:data_objects' model.id object_type.id %}"
+                                class="model-index-card-link"
+                            >
+                                {{ object_type.name|default:"Untitled" }}
+                            </a>
                         </h2>
 
-                        {% if not object_type.is_active %}
-                            <span class="model-object-type-card-status">
-                                Retired
-                            </span>
-                        {% endif %}
+                        <div class="model-index-card-badges">
+
+                            {% if not object_type.is_active %}
+                                <span class="model-index-badge">Retired</span>
+                            {% endif %}
+
+                        </div>
 
                     </div>
-
 
                     {% if object_type.description %}
-
-                        <p class="model-object-type-card-description">
-                            {{ object_type.description }}
-                        </p>
-
+                        <p class="model-index-card-description">{{ object_type.description }}</p>
                     {% else %}
-
-                        <p class="model-object-type-card-description
-                                  model-object-type-card-description-empty">
-                            No description
-                        </p>
-
+                        <p class="model-index-card-description model-index-card-description-empty">No description</p>
                     {% endif %}
 
-
-                    <div class="model-object-type-card-meta">
-
-                        <span>
-                            <i class="bi bi-database"></i>
-                            {{ object_type.record_count }}
-                            record{{ object_type.record_count|pluralize }}
-                        </span>
-
+                    <div class="model-index-card-meta">
+                        <span>{{ object_type.record_count }} record{{ object_type.record_count|pluralize }}</span>
                     </div>
 
-                </div>
+                </article>
 
+            {% endfor %}
 
-                <div class="model-object-type-card-action">
-                    <i class="bi bi-chevron-right"></i>
-                </div>
+        </div>
 
-            </a>
+        {% include "model/_index_noresults.html" %}
 
-        {% empty %}
+    {% else %}
 
-            <div class="model-empty-state">
+        <div class="model-empty-state">
 
-                <div class="model-empty-state-icon">
-                    <i class="bi bi-database"></i>
-                </div>
-
-                <h2>
-                    No object types yet
-                </h2>
-
-                <p>
-                    Define an object type in the model's ontology before
-                    adding data records.
-                </p>
-
-                <a
-                    href="{% url 'model:object_types' model.id %}"
-                    class="btn btn-primary"
-                >
-                    Go to object types
-                </a>
-
+            <div class="model-empty-state-icon">
+                <i class="bi bi-database"></i>
             </div>
 
-        {% endfor %}
+            <h2>No object types yet</h2>
 
-    </div>
+            <p>
+                Define an object type in the model's ontology before
+                adding data records.
+            </p>
+
+            <a
+                href="{% url 'model:object_types' model.id %}"
+                class="btn btn-primary"
+            >
+                Go to object types
+            </a>
+
+        </div>
+
+    {% endif %}
 
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script type="module" src="{% static 'model/js/model-index.js' %}"></script>
 {% endblock %}

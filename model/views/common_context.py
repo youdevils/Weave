@@ -218,6 +218,7 @@ def _build_working_object_types(
                 description=effective_values["description"],
                 sort_order=effective_values["sort_order"],
                 is_active=effective_values["is_active"],
+                canonical_is_active=object_type.is_active,
                 attribute_count=_attribute_count(
                     object_type,
                     proposal,
@@ -275,6 +276,10 @@ def _build_working_object_types(
                     0,
                 ),
                 is_active=after.get(
+                    "is_active",
+                    True,
+                ),
+                canonical_is_active=after.get(
                     "is_active",
                     True,
                 ),
@@ -774,6 +779,7 @@ def _build_working_relationship_types(
                 description=effective_values["description"],
                 sort_order=effective_values["sort_order"],
                 is_active=effective_values["is_active"],
+                canonical_is_active=relationship_type.is_active,
                 attribute_count=_relationship_attribute_count(
                     relationship_type,
                     proposal,
@@ -833,6 +839,10 @@ def _build_working_relationship_types(
                     0,
                 ),
                 is_active=after.get(
+                    "is_active",
+                    True,
+                ),
+                canonical_is_active=after.get(
                     "is_active",
                     True,
                 ),

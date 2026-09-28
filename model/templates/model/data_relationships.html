@@ -1,9 +1,15 @@
-
 {% extends "model/model_base.html" %}
+
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'model/css/index.css' %}">
+{% endblock %}
 
 {% block model_content %}
 
-<div class="model-data-index">
+<div class="model-index model-data-index">
 
     <div class="model-page-header">
 
@@ -18,7 +24,7 @@
             </a>
 
             <div class="model-page-eyebrow">
-                Data
+                Model data
             </div>
 
             <h1 class="model-page-title">
@@ -26,11 +32,7 @@
             </h1>
 
             <p class="model-page-description">
-                {% if relationship_type.description %}
-                    {{ relationship_type.description }}
-                {% else %}
-                    Browse and edit {{ relationship_type.name }} relationships.
-                {% endif %}
+                Browse and edit the data recorded for this relationship type.
             </p>
 
         </div>
@@ -85,9 +87,41 @@
                 </select>
 
 
-                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                <button
+                    type="submit"
+                    name="show"
+                    value="{{ show }}"
+                    class="btn btn-sm btn-outline-secondary"
+                >
                     Apply
                 </button>
+
+
+                <div
+                    class="model-index-filter model-data-toolbar-filter"
+                    role="group"
+                    aria-label="Show relationships"
+                >
+
+                    <button
+                        type="submit"
+                        name="show"
+                        value="active"
+                        aria-pressed="{% if show == 'active' %}true{% else %}false{% endif %}"
+                    >
+                        Active
+                    </button>
+
+                    <button
+                        type="submit"
+                        name="show"
+                        value="all"
+                        aria-pressed="{% if show == 'all' %}true{% else %}false{% endif %}"
+                    >
+                        All
+                    </button>
+
+                </div>
 
             </div>
 
@@ -197,29 +231,61 @@
 
                                 <div class="model-empty-state">
 
-                                    <div class="model-empty-state-icon">
-                                        <i class="bi bi-database"></i>
-                                    </div>
+                                    {% if has_records %}
 
-                                    <h2>
-                                        No {{ relationship_type.name|lower }} relationships yet
-                                    </h2>
+                                        <p role="status">
+                                            {% if search %}
+                                                No {% if show == 'active' %}active {% endif %}relationships match &ldquo;{{ search }}&rdquo;.
+                                            {% else %}
+                                                No active relationships.
+                                            {% endif %}
+                                        </p>
 
-                                    <p>
-                                        {% if search %}
-                                            No relationships match your search.
-                                        {% else %}
+                                        <div class="model-data-empty-actions">
+
+                                            {% if search %}
+                                                <a
+                                                    href="?sort={{ sort|urlencode }}&show={{ show }}"
+                                                    class="btn btn-sm btn-outline-secondary"
+                                                >
+                                                    Clear search
+                                                </a>
+                                            {% endif %}
+
+                                            {% if has_inactive_matches %}
+                                                <a
+                                                    href="?q={{ search|urlencode }}&sort={{ sort|urlencode }}&show=all"
+                                                    class="btn btn-sm btn-outline-secondary"
+                                                >
+                                                    Show all
+                                                </a>
+                                            {% endif %}
+
+                                        </div>
+
+                                    {% else %}
+
+                                        <div class="model-empty-state-icon">
+                                            <i class="bi bi-database"></i>
+                                        </div>
+
+                                        <h2>
+                                            No {{ relationship_type.name|lower }} relationships yet
+                                        </h2>
+
+                                        <p>
                                             Create the first {{ relationship_type.name }} relationship.
-                                        {% endif %}
-                                    </p>
+                                        </p>
 
-                                    <a
-                                        href="{% url 'model:data_relationship_create' model.id relationship_type.id %}"
-                                        class="btn btn-primary"
-                                    >
-                                        <i class="bi bi-plus-lg"></i>
-                                        New {{ relationship_type.name }}
-                                    </a>
+                                        <a
+                                            href="{% url 'model:data_relationship_create' model.id relationship_type.id %}"
+                                            class="btn btn-primary"
+                                        >
+                                            <i class="bi bi-plus-lg"></i>
+                                            New {{ relationship_type.name }}
+                                        </a>
+
+                                    {% endif %}
 
                                 </div>
 
@@ -249,7 +315,7 @@
                     {% if page.has_previous %}
                         <a
                             class="btn btn-sm btn-outline-secondary"
-                            href="?q={{ search }}&sort={{ sort }}&page={{ page.previous_page_number }}"
+                            href="?q={{ search|urlencode }}&sort={{ sort|urlencode }}&show={{ show }}&page={{ page.previous_page_number }}"
                         >
                             Previous
                         </a>
@@ -258,7 +324,7 @@
                     {% if page.has_next %}
                         <a
                             class="btn btn-sm btn-outline-secondary"
-                            href="?q={{ search }}&sort={{ sort }}&page={{ page.next_page_number }}"
+                            href="?q={{ search|urlencode }}&sort={{ sort|urlencode }}&show={{ show }}&page={{ page.next_page_number }}"
                         >
                             Next
                         </a>

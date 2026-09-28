@@ -1,0 +1,299 @@
+/* =========================================================
+   Model index pages
+   Object types, relationship types and the two data type choosers.
+   Tokens (--model-*) come from .model-shell in model.css.
+   ========================================================= */
+
+.model-index {
+  margin: 0 auto;
+  padding: 2.5rem 2.5rem 4rem;
+}
+
+@media (max-width: 768px) {
+  .model-index {
+    padding: 2rem 1.25rem 3rem;
+  }
+}
+
+/* -- Controls: search, then Active | All -- */
+
+.model-index-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.model-index .model-index-search {
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+
+.model-index-search input {
+  padding-right: 2rem;
+}
+
+.model-index-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.model-index-search-clear {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--model-text-faint);
+  font-size: 0.7rem;
+  transform: translateY(-50%);
+}
+
+.model-index-search-clear[hidden] {
+  display: none;
+}
+
+.model-index-search-clear:hover {
+  background: var(--model-surface-hover);
+  color: var(--model-text);
+}
+
+.model-index-filter {
+  display: inline-flex;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--model-border);
+  border-radius: 0.375rem;
+  background: var(--model-surface);
+}
+
+.model-index-filter button {
+  height: 29px;
+  padding: 0 0.85rem;
+  border: 0;
+  background: transparent;
+  color: var(--model-text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.model-index-filter button + button {
+  border-left: 1px solid var(--model-border);
+}
+
+.model-index-filter button:hover {
+  color: var(--model-text);
+}
+
+.model-index-filter button[aria-pressed="true"] {
+  background: var(--model-accent-soft);
+  color: var(--model-accent-strong);
+  font-weight: 600;
+}
+
+.model-index-filter button:focus-visible {
+  position: relative;
+  outline: 2px solid var(--model-focus);
+  outline-offset: -2px;
+}
+
+/* -- Card grid -- */
+
+.model-index-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.model-index-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--model-border);
+  border-radius: 10px;
+  background: var(--model-surface);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.model-index-card[hidden] {
+  display: none;
+}
+
+.model-index-card:hover,
+.model-index-card:focus-within {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+.model-index-card-proposed {
+  border-color: #c7d2fe;
+}
+
+.model-index-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.model-index-card-title {
+  min-width: 0;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.model-index-card-link {
+  color: var(--model-text);
+  text-decoration: none;
+}
+
+/* The whole card is the link; Discard sits above it. */
+.model-index-card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.model-index-card-link:hover {
+  color: var(--model-accent-strong);
+}
+
+.model-index-card-link:focus-visible {
+  outline: none;
+}
+
+.model-index-card-link:focus-visible::after {
+  outline: 2px solid var(--model-focus);
+  outline-offset: 2px;
+}
+
+.model-index-card-badges {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.model-index-card-badges:empty {
+  display: none;
+}
+
+.model-index-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--model-border-lighter);
+  color: var(--model-text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.model-index-badge i {
+  font-size: 0.72rem;
+}
+
+.model-index-badge-proposed {
+  background: var(--model-accent-soft);
+  color: var(--model-accent-strong);
+}
+
+.model-index-card-badges .model-discard-button {
+  position: relative;
+  z-index: 1;
+  margin-left: 0;
+}
+
+.model-index-card-description {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--model-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.model-index-card-description-empty {
+  color: var(--model-text-faint);
+  font-style: italic;
+}
+
+.model-index-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  color: var(--model-text-faint);
+  font-size: 0.75rem;
+}
+
+.model-index-card-key {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
+/* -- No results -- */
+
+.model-index-noresults[hidden] {
+  display: none;
+}
+
+.model-index-noresults-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.model-index-noresults-actions:not(:has(button:not([hidden]))) {
+  display: none;
+}
+
+/* =========================================================
+   Record pages (data for a single object / relationship type)
+   Search, sort and Active | All share one server-side GET form.
+   ========================================================= */
+
+.model-data-toolbar-filter {
+  margin-left: auto;
+}
+
+.model-data-empty-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.model-data-empty-actions:not(:has(a)) {
+  display: none;
+}

@@ -147,16 +147,27 @@ def data_objects(
         "",
     ).strip()
 
-    queryset = Object.objects.filter(
+    # Active | All. Active means canonically active; a proposed change
+    # never moves a record in or out of the Active view.
+    show = "all" if request.GET.get("show") == "all" else "active"
+
+    type_queryset = Object.objects.filter(
         model=model,
         object_type_id=object_type.id,
     )
+
+    queryset = type_queryset
 
     if search:
 
         queryset = queryset.filter(
             Q(name__icontains=search) | Q(description__icontains=search)
         )
+
+    search_queryset = queryset
+
+    if show == "active":
+        queryset = queryset.filter(is_active=True)
 
     # -------------------------------------------------------------
     # Sort
@@ -197,6 +208,8 @@ def data_objects(
         proposal,
     )
 
+    has_records = bool(pending_rows) or type_queryset.exists()
+
     if search:
 
         needle = search.lower()
@@ -206,6 +219,16 @@ def data_objects(
             for row in pending_rows
             if needle in row.name.lower() or needle in row.description.lower()
         ]
+
+    if show == "active":
+        pending_rows = [row for row in pending_rows if row.is_active]
+
+    has_inactive_matches = (
+        show == "active"
+        and not rows
+        and not pending_rows
+        and search_queryset.filter(is_active=False).exists()
+    )
 
     columns = build_object_attribute_definitions(
         object_type,
@@ -227,6 +250,9 @@ def data_objects(
             "page": page,
             "search": search,
             "sort": sort,
+            "show": show,
+            "has_records": has_records,
+            "has_inactive_matches": has_inactive_matches,
             "total_count": paginator.count,
         }
     )

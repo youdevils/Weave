@@ -163,7 +163,7 @@ class DataObjectsIndexViewTests(TestCase):
             is_active=False,
         )
 
-        response = self.client.get(self._url())
+        response = self.client.get(self._url() + "?show=all")
 
         self.assertContains(response, "Retired")
 

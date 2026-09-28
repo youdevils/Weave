@@ -1,0 +1,33 @@
+{% comment %}
+    Shown by model-index.js when the search / Active | All view is empty.
+    The message and buttons are filled in and toggled by the script.
+{% endcomment %}
+
+<div class="model-empty-state model-index-noresults" data-index-noresults hidden>
+
+    <p class="model-index-noresults-message" data-index-noresults-message
+       role="status" aria-live="polite"></p>
+
+    <div class="model-index-noresults-actions">
+
+        <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            data-index-action="clear-search"
+            hidden
+        >
+            Clear search
+        </button>
+
+        <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            data-index-action="show-all"
+            hidden
+        >
+            Show all
+        </button>
+
+    </div>
+
+</div>

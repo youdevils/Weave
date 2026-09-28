@@ -1,0 +1,60 @@
+{% comment %}
+    Shared control bar for the model index pages: search, then Active | All.
+    Behaviour lives in model/js/model-index.js and is page-local.
+
+    Parameters:
+      noun         plural noun for the aria label, e.g. "object types"
+      placeholder  placeholder text for the search field
+{% endcomment %}
+
+<div class="model-index-controls">
+
+    <div class="model-proposal-search model-index-search">
+
+        <i class="bi bi-search"></i>
+
+        <input
+            type="search"
+            autocomplete="off"
+            data-index-search
+            placeholder="{{ placeholder }}"
+            aria-label="Search {{ noun }}"
+        >
+
+        <button
+            type="button"
+            class="model-index-search-clear"
+            data-index-clear
+            aria-label="Clear search"
+            hidden
+        >
+            <i class="bi bi-x-lg"></i>
+        </button>
+
+    </div>
+
+    <div
+        class="model-index-filter"
+        role="group"
+        aria-label="Show {{ noun }}"
+    >
+
+        <button
+            type="button"
+            data-index-filter-value="active"
+            aria-pressed="true"
+        >
+            Active
+        </button>
+
+        <button
+            type="button"
+            data-index-filter-value="all"
+            aria-pressed="false"
+        >
+            All
+        </button>
+
+    </div>
+
+</div>

@@ -1,21 +1,23 @@
-
 {% extends "model/model_base.html" %}
+
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'model/css/index.css' %}">
+{% endblock %}
 
 {% block model_content %}
 
-<div class="model-object-types">
+<div class="model-index" data-model-index data-noun="relationship types">
 
     <div class="model-page-header">
 
         <div>
 
-            <div class="model-page-eyebrow">
-                Data
-            </div>
+            <div class="model-page-eyebrow">Model data</div>
 
-            <h1 class="model-page-title">
-                Relationships
-            </h1>
+            <h1 class="model-page-title">Relationships</h1>
 
             <p class="model-page-description">
                 Browse and edit relationship records for each relationship type in this model.
@@ -26,97 +28,92 @@
     </div>
 
 
-    <div class="model-object-type-list">
+    {% if relationship_types %}
 
-        {% for relationship_type in relationship_types %}
+        {% include "model/_index_controls.html" with noun="relationship types" placeholder="Search relationship types..." %}
 
-            <a
-                href="{% url 'model:data_relationships' model.id relationship_type.id %}"
-                class="model-object-type-card model-object-type-card-link"
-            >
+        <div class="model-index-grid">
 
-                <div class="model-object-type-card-main">
+            {% for relationship_type in relationship_types %}
 
-                    <div class="model-object-type-card-heading">
+                <article
+                    class="model-index-card"
+                    data-index-item
+                    data-active="{{ relationship_type.canonical_is_active|yesno:'true,false' }}"
+                    data-search="{{ relationship_type.name|lower }} {{ relationship_type.key|lower }}"
+                    {% if not relationship_type.canonical_is_active %}hidden{% endif %}
+                >
 
-                        <h2 class="model-object-type-card-title">
-                            {{ relationship_type.name }}
+                    <div class="model-index-card-top">
+
+                        <h2 class="model-index-card-title">
+                            <a
+                                href="{% url 'model:data_relationships' model.id relationship_type.id %}"
+                                class="model-index-card-link"
+                            >
+                                {{ relationship_type.name|default:"Untitled" }}
+                            </a>
                         </h2>
 
-                        {% if not relationship_type.is_active %}
-                            <span class="model-object-type-card-status">
-                                Retired
-                            </span>
-                        {% endif %}
+                        <div class="model-index-card-badges">
+
+                            {% if not relationship_type.is_active %}
+                                <span class="model-index-badge">Retired</span>
+                            {% endif %}
+
+                        </div>
 
                     </div>
-
 
                     {% if relationship_type.description %}
-
-                        <p class="model-object-type-card-description">
-                            {{ relationship_type.description }}
-                        </p>
-
+                        <p class="model-index-card-description">{{ relationship_type.description }}</p>
                     {% else %}
-
-                        <p class="model-object-type-card-description
-                                  model-object-type-card-description-empty">
-                            No description
-                        </p>
-
+                        <p class="model-index-card-description model-index-card-description-empty">No description</p>
                     {% endif %}
 
-
-                    <div class="model-object-type-card-meta">
-
-                        <span>
-                            <i class="bi bi-database"></i>
-                            {{ relationship_type.record_count }}
-                            record{{ relationship_type.record_count|pluralize }}
-                        </span>
-
+                    <div class="model-index-card-meta">
+                        <span>{{ relationship_type.record_count }} record{{ relationship_type.record_count|pluralize }}</span>
                     </div>
 
-                </div>
+                </article>
 
+            {% endfor %}
 
-                <div class="model-object-type-card-action">
-                    <i class="bi bi-chevron-right"></i>
-                </div>
+        </div>
 
-            </a>
+        {% include "model/_index_noresults.html" %}
 
-        {% empty %}
+    {% else %}
 
-            <div class="model-empty-state">
+        <div class="model-empty-state">
 
-                <div class="model-empty-state-icon">
-                    <i class="bi bi-database"></i>
-                </div>
-
-                <h2>
-                    No relationship types yet
-                </h2>
-
-                <p>
-                    Define a relationship type in the model's ontology before
-                    adding relationship records.
-                </p>
-
-                <a
-                    href="{% url 'model:relationship_types' model.id %}"
-                    class="btn btn-primary"
-                >
-                    Go to relationship types
-                </a>
-
+            <div class="model-empty-state-icon">
+                <i class="bi bi-database"></i>
             </div>
 
-        {% endfor %}
+            <h2>No relationship types yet</h2>
 
-    </div>
+            <p>
+                Define a relationship type in the model's ontology before
+                adding relationship records.
+            </p>
+
+            <a
+                href="{% url 'model:relationship_types' model.id %}"
+                class="btn btn-primary"
+            >
+                Go to relationship types
+            </a>
+
+        </div>
+
+    {% endif %}
 
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script type="module" src="{% static 'model/js/model-index.js' %}"></script>
 {% endblock %}
