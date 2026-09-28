@@ -19,6 +19,7 @@
  */
 
 import { createPublishApi, saveDownload } from "./publish-api.js";
+import { detachedExplorerElements } from "./publish-panels.js";
 import * as view from "./publish-render.js";
 import * as state from "./publish-state.js";
 
@@ -32,7 +33,11 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
     scope: $("publish-scope"),
     notices: $("publish-notices"),
     chips: $("publish-scope-chips"),
-    typeFilters: $("publish-type-filters"),
+    objectTypeRows: $("publish-object-type-rows"),
+    relationshipTypeRows: $("publish-relationship-type-rows"),
+    selectAllObjectTypes: $("publish-select-all-object-types"),
+    selectAllRelationshipTypes: $("publish-select-all-relationship-types"),
+    filterNote: $("publish-filter-note"),
     builder: $("publish-filter-builder"),
     builderMessage: $("publish-builder-message"),
     search: $("publish-search"),
@@ -57,7 +62,8 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
   };
 
   let config = bootstrap.config;
-  const facets = bootstrap.facets; // of the whole canonical model: what can be excluded or filtered
+  const facets = bootstrap.facets; // of the whole active model: which types exist, and what an excluded type holds
+  let scoped = null; // facets of the last preview: what each type holds in the current effective result
   let rootNames = { ...bootstrap.roots };
   let notices = bootstrap.notices;
   let previous = bootstrap.previous;
@@ -77,8 +83,36 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
 
   const startingIds = () => config.scope.traversal.roots;
 
+  /** A type group's types, counted over the current result, and the explicit exclusions among them. */
+  function typeGroup(kind) {
+    const object = kind === "object";
+    const excluded = (object ? config.scope.object_types : config.scope.relationship_types).excluded;
+    const scopedTypes = scoped && (object ? scoped.objectTypes : scoped.relationshipTypes);
+    const types = state.typesForScope(object ? facets.objectTypes : facets.relationshipTypes, excluded, scopedTypes);
+    return { types, excluded };
+  }
+
+  function renderTypeGroup(kind, rows, selectAll) {
+    const { types, excluded } = typeGroup(kind);
+    rows.innerHTML =
+      kind === "object"
+        ? explorerRender.renderObjectTypeRows(types, excluded)
+        : explorerRender.renderRelationshipTypeRows(types, excluded);
+
+    // A selected type with nothing in the current result is muted, not unticked: it is not an exclusion.
+    for (const type of types.filter((t) => t.empty)) {
+      const label = rows.querySelector(`input[data-id="${CSS.escape(type.id)}"]`)?.closest("label");
+      label?.classList.add("publish-type-empty");
+      label?.setAttribute("title", view.EMPTY_TYPE_TITLE);
+    }
+
+    Object.assign(selectAll, state.selectAllState(types, excluded));
+  }
+
   function renderScope() {
-    el.typeFilters.innerHTML = explorerRender.renderTypeFilters(facets, state.scopeAsExplorerState(config));
+    renderTypeGroup("object", el.objectTypeRows, el.selectAllObjectTypes);
+    renderTypeGroup("relationship", el.relationshipTypeRows, el.selectAllRelationshipTypes);
+    el.filterNote.innerHTML = view.renderFilterNote(config.scope.attribute_filters.length);
     el.builder.innerHTML = explorerRender.renderFilterBuilder(facets, builderDraft);
     el.chips.innerHTML = view.renderScopeChips(
       state.describeScope(config, facets, rootNames, explorerState.describeAttributeFilter),
@@ -155,6 +189,8 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
         bootstrap: { graph: source.graphSync(opening), facets: bundle.facets },
         state: opening,
         defaultState: opening,
+        // The page shows only the graph and its state bar; the controller still needs the rest (see publish-panels.js).
+        elements: detachedExplorerElements((tag) => document.createElement(tag)),
       });
     } else {
       explorer.setDefaultState(readerState());
@@ -181,6 +217,7 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
     config = state.adoptServerDocuments(config, data.config);
     rootNames = { ...rootNames, ...data.roots };
     notices = data.notices;
+    scoped = data.bundle?.facets ?? null;
     renderScope();
     renderOpening();
 
@@ -197,7 +234,7 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
     await showPreview(data.bundle);
     if (token !== previewToken) return;
     preview = { revision: data.revision, digest: data.digest };
-    setStatus("Preview is up to date.");
+    setStatus(""); // nothing to report when all is well
     updateButton();
   }
 
@@ -252,6 +289,16 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
       case "toggle-relationship-type":
         scopeChanged(state.toggleRelationshipType(config, target.dataset.id));
         break;
+      case "select-all-object-types":
+      case "select-all-relationship-types": {
+        // "All" acts on the types that can be in the result, and only on the explicit exclusions.
+        const kind = target.dataset.action === "select-all-object-types" ? "object" : "relationship";
+        const ids = typeGroup(kind)
+          .types.filter((type) => type.applicable)
+          .map((type) => type.id);
+        scopeChanged(state.setTypesIncluded(config, kind, ids, target.checked));
+        break;
+      }
       case "builder-type":
         builderDraft = { typeId: target.value, key: null };
         el.builder.innerHTML = explorerRender.renderFilterBuilder(facets, builderDraft);
@@ -285,6 +332,11 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
       case "remove-root":
         scopeChanged(state.removeRoot(config, id));
         break;
+      case "toggle-legend-section": {
+        const rows = id === "object" ? el.objectTypeRows : el.relationshipTypeRows;
+        actionElement.setAttribute("aria-expanded", String(!rows.classList.toggle("collapsed")));
+        break;
+      }
       case "remove-scope-chip":
         scopeChanged(
           state.removeScopeChip(config, { kind: actionElement.dataset.chipKind, key: actionElement.dataset.chipKey }),

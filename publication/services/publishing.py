@@ -144,6 +144,14 @@ def _size_problem(published, bundle=None) -> str | None:
     return None
 
 
+def load_publishable_dataset(model):
+    """
+    The active data a publication is built from: active objects and relationships only
+    (never inactive ones), including the active records of an inactive type.
+    """
+    return load_effective_dataset(model, None, keep_inactive_types=True)
+
+
 def load_canonical(model_id):
     """
     ``(model, canonical_dataset)`` at one consistent revision, without locking.
@@ -153,7 +161,7 @@ def load_canonical(model_id):
     """
     for attempt in range(2):
         model = Model.objects.get(pk=model_id)
-        canonical = load_effective_dataset(model, None)
+        canonical = load_publishable_dataset(model)
         current = Model.objects.values_list("revision", flat=True).get(pk=model_id)
         if current == model.revision or attempt == 1:
             return model, canonical
@@ -204,7 +212,7 @@ def publish(model_id, user, raw_config, expected) -> PublishedArtifact:
             # The same lock a proposal commit and a model deletion take: the revision
             # and the data read below belong together, and nothing changes underneath.
             locked = Model.objects.select_for_update().get(pk=model_id)
-            canonical = load_effective_dataset(locked, None)
+            canonical = load_publishable_dataset(locked)
             result = _normalise(locked, raw_config, canonical)
 
             problem = _size_problem(result.published)

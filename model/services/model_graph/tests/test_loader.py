@@ -92,6 +92,84 @@ class CanonicalLoadingTests(ModelGraphTestCase):
         self.assertEqual(len(dataset.objects), 2)
         self.assertEqual(dataset.relationships, {})
 
+    # -- keep_inactive_types (publishing): an inactive type is judged by its active records ------
+
+    def retire(self, *types):
+        for retired in types:
+            retired.is_active = False
+            retired.save()
+
+    def test_inactive_types_are_still_dropped_by_default(self):
+        alice = self.make_object(self.person_type, "Alice")
+        ops = self.make_object(self.team_type, "Ops")
+        self.make_relationship(alice, ops)
+        self.retire(self.team_type, self.member_of)
+
+        default = load_effective_dataset(self.model)
+        explicit = load_effective_dataset(self.model, keep_inactive_types=False)
+
+        for dataset in (default, explicit):
+            self.assertEqual(set(dataset.object_types), {str(self.person_type.id)})
+            self.assertEqual(dataset.relationship_types, {})
+            self.assertEqual(set(dataset.objects), {str(alice.id)})
+            self.assertEqual(dataset.relationships, {})
+
+    def test_an_active_type_without_records_is_kept_with_nothing_in_it(self):
+        dataset = load_effective_dataset(self.model, keep_inactive_types=True)
+
+        self.assertEqual(set(dataset.object_types), {str(self.person_type.id), str(self.team_type.id)})
+        self.assertEqual(set(dataset.relationship_types), {str(self.member_of.id)})
+        self.assertEqual((dataset.objects, dataset.relationships), ({}, {}))
+
+    def test_an_inactive_type_with_active_records_is_kept_with_them(self):
+        alice = self.make_object(self.person_type, "Alice")
+        ops = self.make_object(self.team_type, "Ops")
+        relationship = self.make_relationship(alice, ops)
+        self.retire(self.team_type, self.member_of)
+
+        dataset = load_effective_dataset(self.model, keep_inactive_types=True)
+
+        self.assertIn(str(self.team_type.id), dataset.object_types)
+        self.assertIn(str(self.member_of.id), dataset.relationship_types)
+        self.assertEqual(set(dataset.objects), {str(alice.id), str(ops.id)})
+        self.assertIsNotNone(dataset.relationship(relationship.id))
+
+    def test_an_inactive_type_with_no_active_records_is_omitted(self):
+        alice = self.make_object(self.person_type, "Alice")
+        self.make_object(self.team_type, "Retired team", is_active=False)
+        ghost_ops = self.make_object(self.team_type, "Ops")
+        self.make_relationship(alice, ghost_ops, is_active=False)
+        ghost_ops.is_active = False
+        ghost_ops.save()
+        self.retire(self.team_type, self.member_of)
+
+        dataset = load_effective_dataset(self.model, keep_inactive_types=True)
+
+        self.assertEqual(set(dataset.object_types), {str(self.person_type.id)})
+        self.assertEqual(dataset.relationship_types, {})
+        self.assertEqual(set(dataset.objects), {str(alice.id)})
+
+    def test_an_inactive_relationship_type_with_only_inactive_relationships_is_omitted(self):
+        alice = self.make_object(self.person_type, "Alice")
+        ops = self.make_object(self.team_type, "Ops")
+        self.make_relationship(alice, ops, is_active=False)
+        self.retire(self.member_of)
+
+        dataset = load_effective_dataset(self.model, keep_inactive_types=True)
+
+        self.assertEqual(dataset.relationship_types, {})
+        self.assertEqual(len(dataset.objects), 2)
+
+    def test_inactive_records_stay_out_even_when_their_type_is_kept(self):
+        self.make_object(self.team_type, "Ops")
+        gone = self.make_object(self.team_type, "Gone", is_active=False)
+        self.retire(self.team_type)
+
+        dataset = load_effective_dataset(self.model, keep_inactive_types=True)
+
+        self.assertIn(str(self.team_type.id), dataset.object_types)
+        self.assertNotIn(str(gone.id), dataset.objects)
+
     def test_other_models_data_is_never_loaded(self):
         other = Model.objects.create(workspace=self.workspace, name="Other", revision=1)
         other_type = ObjectType.objects.create(model=other, name="Thing", key="thing", is_active=True)

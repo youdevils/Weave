@@ -58,7 +58,8 @@ const SEARCH_DEBOUNCE_MS = 220;
 const FOCUS_OPTIONS = { scale: 1, animation: { duration: 400, easingFunction: "easeInOutQuad" } };
 const FIT_OPTIONS = { animation: { duration: 400, easingFunction: "easeInOutQuad" } };
 
-const ELEMENT_IDS = {
+/** Every element ``createExplorer`` resolves (none is null-guarded); consumers that omit some must supply them via ``elements``. */
+export const ELEMENT_IDS = {
   root: "model-explorer",
   graph: "model-explorer-graph",
   search: "explorer-search",

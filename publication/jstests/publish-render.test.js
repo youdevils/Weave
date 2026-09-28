@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  EMPTY_TYPE_TITLE,
   renderBanner,
+  renderFilterNote,
   renderLocatorResults,
   renderNotices,
   renderOpeningViewSummary,
@@ -23,11 +25,32 @@ test("scope chips carry the action, kind and key, and escape their label", () =>
   assert.doesNotMatch(html, /<img/);
 });
 
-test("with no starting points the whole model is published", () => {
+test("with no starting point the publication starts from the whole model", () => {
   const html = renderTraversal([], {}, 1, { max: 5 });
 
-  assert.match(html, /whole model is published/);
+  assert.match(html, /No starting point set/);
+  assert.match(html, /whole model/);
   assert.doesNotMatch(html, /<select/);
+});
+
+test("the depth options say how many steps from the starting objects are included", () => {
+  const html = renderTraversal(["o1"], {}, 1, { max: 2 });
+
+  assert.match(html, /Only the starting objects/);
+  assert.match(html, /Up to 1 step away/);
+  assert.match(html, /Up to 2 steps away/);
+  assert.match(html, /Everything connected/);
+  assert.doesNotMatch(html, /hop/);
+});
+
+test("a type with nothing in the current result is described as such, never as inactive", () => {
+  assert.match(EMPTY_TYPE_TITLE, /No matching data in the current result/);
+  assert.doesNotMatch(EMPTY_TYPE_TITLE, /inactive/i);
+});
+
+test("the object filter note appears only while no filter is applied", () => {
+  assert.match(renderFilterNote(0), /No object filters applied/);
+  assert.equal(renderFilterNote(1), "");
 });
 
 test("starting points list their names and offer every depth including unlimited", () => {

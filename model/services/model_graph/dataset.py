@@ -8,10 +8,12 @@ hand-built datasets and a future list/table view can consume the same data.
 
 Invariants enforced by ``EffectiveDataset`` itself (so a hand-built dataset
 cannot violate them):
-  * an object's type is a known (active) object type;
-  * a relationship's type is a known (active) relationship type;
+  * an object's type is a known object type;
+  * a relationship's type is a known relationship type;
   * both endpoints of a relationship are objects in the dataset.
-Inactive data never enters the dataset.
+Inactive Objects and Relationships never enter the dataset. Inactive *types*
+are known only when the loader was asked to keep those that still hold active
+records (``keep_inactive_types``); by default only active types are known.
 """
 
 from __future__ import annotations

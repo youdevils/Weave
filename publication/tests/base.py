@@ -1,8 +1,8 @@
 from account.models import CustomUser
-from model.services.model_graph.loader import load_effective_dataset
 from model.services.model_graph.tests.base import ModelGraphTestCase
 from publication.models import Publication
 from publication.services.normalise import normalise_config
+from publication.services.publishing import load_publishable_dataset
 from workspace.models import Workspace, WorkspaceMember
 
 
@@ -33,7 +33,7 @@ class PublicationTestCase(ModelGraphTestCase):
 
     def canonical(self):
         """The canonical dataset, exactly as Publishing loads it (no proposal)."""
-        return load_effective_dataset(self.model, None)
+        return load_publishable_dataset(self.model)
 
     def normalised(self, raw=None):
         return normalise_config(self.model, raw or {}, self.canonical())

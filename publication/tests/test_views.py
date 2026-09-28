@@ -8,6 +8,7 @@ from django.test import Client
 from django.urls import reverse
 
 from model.models.model import Model
+from model.models.object_type import ObjectType
 from model.services.appearance import AppearanceService
 from publication.models import Publication
 from publication.services import publishing
@@ -196,6 +197,59 @@ class PageTests(ViewFixture):
         self.assertIn("proposed changes are never included", html)
         self.assertIn("email address", html)
         self.assertIn('id="publish-button"', html)
+
+    def test_the_page_is_settings_then_scope_then_preview(self):
+        html = self.client.get(self.url("publish")).content.decode()
+
+        order = [html.index(marker) for marker in ('id="publish-settings-title"', 'id="publish-scope"', 'id="model-explorer"')]
+        self.assertEqual(order, sorted(order))
+        # The scope controls come in the agreed order.
+        controls = [
+            html.index(marker)
+            for marker in ('id="publish-start-title"', 'id="publish-object-type-rows"', 'id="publish-relationship-type-rows"', 'id="publish-filters-title"')
+        ]
+        self.assertEqual(controls, sorted(controls))
+        # Publication details and the opening view live in the settings, above the scope panel.
+        for marker in ('id="publish-title"', 'id="publish-theme-colour"', 'id="publish-opening-set"'):
+            self.assertLess(html.index(marker), html.index('id="publish-scope"'))
+        # The whole-model reset is part of the scope panel, not the viewer.
+        self.assertGreater(html.index('id="publish-clear-scope"'), html.index('id="publish-scope"'))
+        self.assertLess(html.index('id="publish-clear-scope"'), html.index('id="publish-start-title"'))
+
+    def test_the_preview_keeps_what_the_explorer_needs_and_drops_the_explorer_panels(self):
+        html = self.client.get(self.url("publish")).content.decode()
+
+        for retained in ("model-explorer", "model-explorer-graph", "explorer-counts", "explorer-chips", "explorer-notices", "explorer-error"):
+            self.assertIn(f'id="{retained}"', html)
+        for dropped in ("explorer-legend", "explorer-details", "explorer-search", "explorer-filter-builder"):
+            self.assertNotIn(f'id="{dropped}"', html)
+        self.assertNotIn("Reader controls", html)
+        self.assertNotIn('data-action="fit-view"', html)
+        self.assertNotIn('data-action="reset-view"', html)
+
+    def test_the_type_selectors_offer_all_and_are_independently_collapsible(self):
+        html = self.client.get(self.url("publish")).content.decode()
+
+        for kind in ("object", "relationship"):
+            self.assertIn(f'id="publish-{kind}-type-toggle"', html)
+            self.assertIn(f'data-action="select-all-{kind}-types"', html)
+            self.assertIn(f'id="publish-select-all-{kind}-types"', html)
+        self.assertNotIn('id="publish-scope-toggle"', html)
+
+    def test_inactive_records_and_types_follow_the_publishing_rules_in_the_page_facets(self):
+        legacy = ObjectType.objects.create(model=self.model, name="Legacy", key="legacy", is_active=False)
+        self.make_object(legacy, "Old thing", is_active=False)
+        ObjectType.objects.create(model=self.model, name="Place", key="place", is_active=True)
+        self.team_type.is_active = False  # inactive, but Ops (from the fixture) is an active team
+        self.team_type.save()
+        self.make_object(self.person_type, "Dormant", is_active=False)
+
+        types = {t["name"]: t for t in self.bootstrap(self.client.get(self.url("publish")))["facets"]["objectTypes"]}
+
+        self.assertNotIn("Legacy", types)  # inactive, nothing active in it
+        self.assertEqual(types["Team"]["count"], 1)  # inactive, but still holds an active record
+        self.assertEqual(types["Person"]["count"], 1)  # the inactive Dormant is not counted
+        self.assertEqual(types["Place"]["count"], 0)  # active type without records: still listed
 
     def test_the_publishing_sidebar_replaces_the_model_sidebar(self):
         html = self.client.get(self.url("publish")).content.decode()

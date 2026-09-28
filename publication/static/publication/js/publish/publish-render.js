@@ -29,10 +29,20 @@ export function renderScopeChips(chips) {
     .join("");
 }
 
+/** Shown on a type that is selected but has nothing in the current result (it is not an exclusion, and not "inactive"). */
+export const EMPTY_TYPE_TITLE = "No matching data in the current result";
+
+/** The Object filters section's note when nothing narrows objects by attribute. */
+export function renderFilterNote(filterCount) {
+  return filterCount === 0
+    ? `<p class="model-explorer-muted publish-hint">No object filters applied. Every object that passes the rest of the scope is included.</p>`
+    : "";
+}
+
 /** Starting points and how far to follow their connections. */
 export function renderTraversal(roots, rootNames, depth, limits) {
   if (roots.length === 0) {
-    return `<p class="model-explorer-muted">No starting points: the whole model is published (after the exclusions above). Search for an object and choose it to publish just its neighbourhood.</p>`;
+    return `<p class="model-explorer-muted publish-hint">No starting point set: the publication starts from the whole model.</p>`;
   }
 
   const list = roots
@@ -48,7 +58,7 @@ export function renderTraversal(roots, rootNames, depth, limits) {
 
   const options = [];
   for (let hops = 0; hops <= limits.max; hops += 1) {
-    const label = hops === 0 ? "Starting points only" : `Up to ${plural(hops, "hop", "hops")} away`;
+    const label = hops === 0 ? "Only the starting objects" : `Up to ${plural(hops, "step", "steps")} away`;
     options.push(`<option value="${hops}" ${depth === hops ? "selected" : ""}>${label}</option>`);
   }
   options.push(`<option value="all" ${depth === null ? "selected" : ""}>Everything connected</option>`);
@@ -56,8 +66,8 @@ export function renderTraversal(roots, rootNames, depth, limits) {
   return `
     <ul class="publish-roots">${list}</ul>
     <label class="publish-field">
-      <span class="publish-label">Follow connections</span>
-      <select class="form-select form-select-sm" data-action="set-depth" aria-label="How far to follow connections">${options.join("")}</select>
+      <span class="publish-label">Include what is connected</span>
+      <select class="form-select form-select-sm" data-action="set-depth" aria-label="How many steps from the starting objects to include">${options.join("")}</select>
     </label>`;
 }
 
@@ -93,7 +103,7 @@ export function renderLocatorResults(response, startingIds) {
   const footer = response.truncated
     ? `Showing ${response.results.length} of ${response.total}. Refine your search to narrow these down.`
     : plural(response.total, "match", "matches");
-  return `<p class="model-explorer-muted publish-hint">Choose an object to use it as a starting point.</p>
+  return `<p class="model-explorer-muted publish-hint">Choose an object to start from.</p>
     <ul class="model-explorer-result-list">${items}</ul>
     <p class="model-explorer-result-footer">${footer}</p>`;
 }

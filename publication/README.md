@@ -4,7 +4,7 @@ Publishing turns one **canonical revision** of a model into a single, self-conta
 (a "portable Explorer") that works offline, and records that it happened.
 
 ```
-canonical DB ──load_effective_dataset(model, None)──► apply_scope ──► build_bundle ─┬─► preview JSON (Publishing page)
+canonical DB ──load_publishable_dataset(model)──► apply_scope ──► build_bundle ─┬─► preview JSON (Publishing page)
                                                        (Python,          (Python)    └─► render_document ─► one .html (download)
                                                     authoritative)
 Portable Explorer runtime = shared Explorer kit (pure JS) + LocalSource(bundle)   ← same code in the preview and in the file
@@ -12,7 +12,13 @@ Portable Explorer runtime = shared Explorer kit (pure JS) + LocalSource(bundle) 
 
 ## Rules that must keep holding
 
-- **Canonical only.** Data is read with `load_effective_dataset(model, None)`. No code path takes a proposal.
+- **Canonical only.** Data is read with `publishing.load_publishable_dataset(model)`
+  (`load_effective_dataset(model, None, keep_inactive_types=True)`). No code path takes a proposal.
+- **Active data only.** Inactive objects and relationships (`is_active`) never appear in the preview, the counts,
+  starting-point traversal, filter results or the file, and the page has no switch for them. A type is judged
+  separately from its records: an active type is always listed (count 0 when empty); an inactive type is kept, with
+  its active records, only while it still has some. (`valid_from`/`valid_to` are not considered; that is a separate
+  design.)
 - **A Publication is immutable.** `save()` on an existing row and queryset `update()`/`bulk_update()` raise. There
   is no update endpoint and the admin is read-only.
 - **The HTML is never stored.** It is generated in memory, returned once (`Cache-Control: no-store`) and dropped.

@@ -35,6 +35,24 @@ export const toggleObjectType = (config, typeId) =>
 export const toggleRelationshipType = (config, typeId) =>
   withScope(config, { relationship_types: { excluded: toggled(config.scope.relationship_types.excluded, typeId) } });
 
+const EXCLUSION_KEYS = { object: "object_types", relationship: "relationship_types" };
+
+/**
+ * Include (or exclude) several types at once: what the "All" selector does.
+ *
+ * Only the ids given are touched, and only the explicit exclusion list changes:
+ * the starting point, its depth and the object filters are never involved, and a
+ * type that merely has nothing in the current result is never added here.
+ */
+export function setTypesIncluded(config, kind, ids, included) {
+  const key = EXCLUSION_KEYS[kind];
+  const current = config.scope[key].excluded;
+  const next = included
+    ? current.filter((id) => !ids.includes(id))
+    : [...current, ...ids.filter((id) => !current.includes(id))];
+  return withScope(config, { [key]: { excluded: next } });
+}
+
 /** One filter per (type, attribute): adding again replaces the earlier one. */
 export function addAttributeFilter(config, filter) {
   const kept = config.scope.attribute_filters.filter((f) => !(f.type_id === filter.type_id && f.key === filter.key));
@@ -88,6 +106,42 @@ export const scopeAsExplorerState = (config) => ({
   include: [],
   selection: null,
 });
+
+/**
+ * The types for one selector group, with counts of what would actually be published.
+ *
+ * Two sources, deliberately never derived from one another:
+ *   - ``modelTypes``: the whole model's active facets. They decide which types are
+ *     eligible to appear at all, and give the count of a type the user excluded
+ *     (an excluded type is absent from the scoped facets, but still needs a count).
+ *   - ``scopedTypes``: the facets of the latest preview, i.e. the effective result of
+ *     starting point + type selections + object filters. ``null`` when there is none
+ *     (nothing previewed yet, or too large), in which case model counts are shown.
+ *
+ * ``empty`` marks a type the user has *not* excluded that has nothing in the current
+ * result (because of the starting point, a filter, or another exclusion). It is not
+ * an explicit exclusion and never becomes one; ``applicable`` is what "All" acts on.
+ */
+export function typesForScope(modelTypes, excludedIds, scopedTypes) {
+  const scoped = scopedTypes ? new Map(scopedTypes.map((type) => [type.id, type])) : null;
+  return modelTypes.map((type) => {
+    const excluded = excludedIds.includes(type.id);
+    const count = excluded || !scoped ? type.count : (scoped.get(type.id)?.count ?? 0);
+    const empty = !excluded && count === 0;
+    return { ...type, count, empty, applicable: !empty };
+  });
+}
+
+/** The state of an "All" selector over the applicable types of a group. */
+export function selectAllState(types, excludedIds) {
+  const applicable = types.filter((type) => type.applicable);
+  const excluded = applicable.filter((type) => excludedIds.includes(type.id)).length;
+  return {
+    checked: applicable.length > 0 && excluded === 0,
+    indeterminate: excluded > 0 && excluded < applicable.length,
+    disabled: applicable.length === 0,
+  };
+}
 
 // -- metadata and presentation ---------------------------------------------------
 

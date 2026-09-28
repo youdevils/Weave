@@ -17,12 +17,15 @@ import {
   removeRoot,
   removeScopeChip,
   scopeAsExplorerState,
+  selectAllState,
   setDepth,
   setMetadata,
   setOpeningView,
   setThemeColour,
+  setTypesIncluded,
   toggleObjectType,
   toggleRelationshipType,
+  typesForScope,
 } from "../static/publication/js/publish/publish-state.js";
 
 const config = () => ({
@@ -95,6 +98,132 @@ test("clearScope removes what narrows the publication and keeps everything else"
   assert.equal(cleared.title, "Kept");
   assert.equal(cleared.presentation.theme_colour, "#00AA00");
   assert.equal(cleared.scope.traversal.depth, 1);
+});
+
+test("a full reset clears every scope restriction and leaves the details and opening view exactly as they were", () => {
+  let next = toggleObjectType(config(), "t1");
+  next = toggleRelationshipType(next, "r1");
+  next = addAttributeFilter(next, roleFilter);
+  next = addRoot(next, "o1");
+  next = setMetadata(setMetadata(setMetadata(next, "title", "Kept"), "description", "Also kept"), "filename", "kept.html");
+  next = setThemeColour(next, "#00AA00");
+  next = setOpeningView(next, {
+    hiddenObjectTypes: ["t1"],
+    hiddenRelationshipTypes: [],
+    attributeFilters: [],
+    include: [],
+    selection: { kind: "object", id: "o9" },
+  });
+
+  const cleared = clearScope(next);
+
+  assert.equal(hasScope(cleared), false);
+  assert.deepEqual(cleared.scope.object_types.excluded, []);
+  assert.deepEqual(cleared.scope.relationship_types.excluded, []);
+  assert.deepEqual(cleared.scope.attribute_filters, []);
+  assert.deepEqual(cleared.scope.traversal.roots, []);
+  for (const field of ["title", "description", "filename", "presentation", "default_view"]) {
+    assert.deepEqual(cleared[field], next[field], field);
+  }
+});
+
+test("a starting point never changes the explicit type selections or filters, and they never remove it", () => {
+  const start = addRoot(config(), "o1");
+
+  assert.deepEqual(start.scope.object_types.excluded, []);
+  assert.deepEqual(start.scope.relationship_types.excluded, []);
+  assert.deepEqual(start.scope.attribute_filters, []);
+
+  let refined = toggleObjectType(start, "t1");
+  refined = toggleRelationshipType(refined, "r1");
+  refined = addAttributeFilter(refined, roleFilter);
+  assert.deepEqual(refined.scope.traversal, { roots: ["o1"], depth: 1 });
+
+  refined = setTypesIncluded(refined, "object", ["t1"], true);
+  refined = removeAttributeFilter(refined, 0);
+  assert.deepEqual(refined.scope.traversal, { roots: ["o1"], depth: 1 });
+  assert.equal(hasScope(refined), true); // the exclusion of r1 and the starting point remain
+});
+
+const modelTypes = [
+  { id: "t1", name: "Person", count: 40 },
+  { id: "t2", name: "Team", count: 12 },
+  { id: "t3", name: "Place", count: 0 },
+];
+
+test("selector counts come from the scoped result, and an excluded type keeps its whole-model count", () => {
+  const scoped = [
+    { id: "t1", count: 3 },
+    { id: "t3", count: 0 },
+  ]; // t2 is excluded so it is absent from the scoped facets
+
+  const types = typesForScope(modelTypes, ["t2"], scoped);
+
+  assert.deepEqual(
+    types.map((t) => [t.id, t.count]),
+    [["t1", 3], ["t2", 12], ["t3", 0]],
+  );
+  assert.equal(types.find((t) => t.id === "t2").applicable, true);
+});
+
+test("an active type with nothing in the result stays listed, marked empty, and is not an exclusion", () => {
+  const scoped = [{ id: "t1", count: 3 }, { id: "t2", count: 0 }, { id: "t3", count: 0 }];
+  const start = addRoot(config(), "o1");
+
+  const types = typesForScope(modelTypes, start.scope.object_types.excluded, scoped);
+
+  assert.deepEqual(types.map((t) => [t.id, t.empty, t.applicable]), [
+    ["t1", false, true],
+    ["t2", true, false],
+    ["t3", true, false],
+  ]);
+  assert.deepEqual(start.scope.object_types.excluded, []);
+});
+
+test("an included type missing from the scoped result counts as zero; with no scoped result the model counts show", () => {
+  assert.equal(typesForScope(modelTypes, [], [{ id: "t1", count: 3 }]).find((t) => t.id === "t2").count, 0);
+  assert.deepEqual(typesForScope(modelTypes, [], null).map((t) => t.count), [40, 12, 0]);
+});
+
+test("All acts only on applicable types and only on the explicit exclusions", () => {
+  const start = addRoot(toggleRelationshipType(config(), "r1"), "o1");
+  const scoped = [{ id: "t1", count: 3 }, { id: "t2", count: 0 }, { id: "t3", count: 0 }];
+  const applicable = typesForScope(modelTypes, [], scoped).filter((t) => t.applicable).map((t) => t.id);
+
+  const none = setTypesIncluded(start, "object", applicable, false);
+
+  assert.deepEqual(none.scope.object_types.excluded, ["t1"]); // t2/t3 have no matching data: not excluded
+  assert.deepEqual(none.scope.relationship_types.excluded, ["r1"]);
+  assert.deepEqual(none.scope.traversal, { roots: ["o1"], depth: 1 });
+  assert.deepEqual(none.scope.attribute_filters, []);
+  assert.deepEqual(setTypesIncluded(none, "object", applicable, true).scope.object_types.excluded, []);
+  assert.deepEqual(setTypesIncluded(none, "object", ["t1"], false).scope.object_types.excluded, ["t1"]);
+});
+
+test("All re-including leaves other exclusions alone and never touches the input", () => {
+  const before = toggleObjectType(toggleObjectType(config(), "t1"), "t2");
+
+  const after = setTypesIncluded(before, "object", ["t1"], true);
+
+  assert.deepEqual(after.scope.object_types.excluded, ["t2"]);
+  assert.deepEqual(before.scope.object_types.excluded, ["t1", "t2"]);
+  assert.deepEqual(setTypesIncluded(config(), "relationship", ["r1"], false).scope.relationship_types.excluded, ["r1"]);
+});
+
+test("the All checkbox reflects the applicable types only", () => {
+  const scoped = [{ id: "t1", count: 3 }, { id: "t2", count: 5 }, { id: "t3", count: 0 }];
+
+  const all = typesForScope(modelTypes, [], scoped);
+  assert.deepEqual(selectAllState(all, []), { checked: true, indeterminate: false, disabled: false });
+
+  const some = typesForScope(modelTypes, ["t1"], scoped);
+  assert.deepEqual(selectAllState(some, ["t1"]), { checked: false, indeterminate: true, disabled: false });
+
+  const noneLeft = typesForScope(modelTypes, ["t1", "t2"], scoped);
+  assert.deepEqual(selectAllState(noneLeft, ["t1", "t2"]), { checked: false, indeterminate: false, disabled: false });
+
+  const nothing = typesForScope([{ id: "t3", name: "Place", count: 0 }], [], []);
+  assert.equal(selectAllState(nothing, []).disabled, true);
 });
 
 test("the scope maps onto the shared Explorer filter state", () => {

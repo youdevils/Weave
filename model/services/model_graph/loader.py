@@ -104,7 +104,7 @@ def _attribute_specs(definitions) -> tuple[AttributeSpec, ...]:
     return tuple(specs)
 
 
-def _load_types(model, proposal):
+def _load_types(model, proposal, keep_inactive_types=False):
     working_object_types = _build_working_object_types(
         ObjectType.objects.filter(model=model).order_by("sort_order", "name"),
         proposal,
@@ -125,9 +125,10 @@ def _load_types(model, proposal):
             attributes=_attribute_specs(build_object_attribute_definitions(t, proposal)),
         )
         for t in working_object_types
-        if t.is_active
+        if t.is_active or keep_inactive_types
     ]
-    active_object_type_ids = {t.id for t in object_types}
+    known_object_type_ids = {t.id for t in object_types}
+    inactive = {str(t.id) for t in working_object_types if not t.is_active} if keep_inactive_types else set()
 
     relationship_types = [
         EffectiveRelationshipType(
@@ -150,13 +151,17 @@ def _load_types(model, proposal):
             ),
         )
         for t in working_relationship_types
-        if t.is_active
+        if t.is_active or keep_inactive_types
     ]
 
-    return object_types, relationship_types, active_object_type_ids
+    if keep_inactive_types:
+        inactive |= {str(t.id) for t in working_relationship_types if not t.is_active}
+
+    # ``inactive``: the ids of the inactive types kept only if they turn out to hold active records.
+    return object_types, relationship_types, known_object_type_ids, inactive
 
 
-def _load_objects(model, changes, active_object_type_ids):
+def _load_objects(model, changes, known_object_type_ids):
     objects = []
     canonical_ids = set()
 
@@ -211,7 +216,7 @@ def _load_objects(model, changes, active_object_type_ids):
             )
         )
 
-    return [o for o in objects if o.type_id in active_object_type_ids]
+    return [o for o in objects if o.type_id in known_object_type_ids]
 
 
 def _load_relationships(model, changes):
@@ -283,14 +288,39 @@ def _load_relationships(model, changes):
     return relationships
 
 
-def load_effective_dataset(model, proposal=None) -> EffectiveDataset:
-    """Effective (canonical + proposal) active Objects and Relationships of a Model."""
-    object_types, relationship_types, active_object_type_ids = _load_types(model, proposal)
+def load_effective_dataset(model, proposal=None, *, keep_inactive_types=False) -> EffectiveDataset:
+    """
+    Effective (canonical + proposal) active Objects and Relationships of a Model.
+
+    By default an inactive (retired) type is left out together with everything
+    of that type. With ``keep_inactive_types`` the *active* records of an
+    inactive type are kept along with the type itself, so they can still be
+    published; an inactive type left with no active records is still omitted
+    (there is nothing to describe or publish), while an active type is always
+    kept, even when it has none.
+    """
+    object_types, relationship_types, known_object_type_ids, inactive = _load_types(
+        model, proposal, keep_inactive_types
+    )
     changes = _ChangeIndex(proposal)
 
-    return EffectiveDataset(
+    dataset = EffectiveDataset(
         object_types=object_types,
         relationship_types=relationship_types,
-        objects=_load_objects(model, changes, active_object_type_ids),
+        objects=_load_objects(model, changes, known_object_type_ids),
         relationships=_load_relationships(model, changes),
+    )
+    if not inactive:
+        return dataset
+
+    # Judged on what survived the dataset's own invariants (known type, both endpoints present).
+    used = {o.type_id for o in dataset.objects.values()} | {r.type_id for r in dataset.relationships.values()}
+    unused = inactive - used
+    if not unused:
+        return dataset
+    return EffectiveDataset(
+        object_types=[t for t in dataset.object_types.values() if t.id not in unused],
+        relationship_types=[t for t in dataset.relationship_types.values() if t.id not in unused],
+        objects=list(dataset.objects.values()),
+        relationships=list(dataset.relationships.values()),
     )

@@ -1,4 +1,4 @@
-{# The graph and where we are: state bar and canvas. Expects canvas_background; optionally explorer_show_proposed + explorer_legend. #}
+{# The graph and where we are: state bar and canvas. Expects canvas_background; optionally explorer_show_proposed + explorer_legend, and explorer_hide_view_controls (no Fit / Reset view). #}
 <section class="model-explorer-main" aria-label="Graph">
 
     <div class="model-explorer-statebar">
@@ -12,8 +12,10 @@
                     Proposed change
                 </span>
                 {% endif %}
+                {% if not explorer_hide_view_controls %}
                 <button type="button" class="btn btn-primary btn-sm" data-action="fit-view">Fit</button>
                 <button type="button" class="btn btn-primary btn-sm" data-action="reset-view">Reset view</button>
+                {% endif %}
             </div>
         </div>
 

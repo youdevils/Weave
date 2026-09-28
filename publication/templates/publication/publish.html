@@ -35,47 +35,14 @@
 
     <div id="publish-banner"></div>
 
-    <div class="publish-layout">
+    <!-- Publication settings: about the publication as a whole, not what is in it -->
+    <section class="publish-settings" aria-labelledby="publish-settings-title">
 
-        <!-- Configure: what is included, and how it is presented -->
-        <aside class="model-explorer-panel model-explorer-side publish-config onyxjar-explorer" id="publish-scope" aria-label="Publication settings">
+        <h2 class="publish-settings-title" id="publish-settings-title">Publication settings</h2>
 
-            <section class="publish-section">
-                <h3>What to include</h3>
-                <p class="model-explorer-muted publish-hint">
-                    Untick a type to leave it out. Filters and starting points only ever remove content;
-                    nothing you exclude can appear in the file.
-                </p>
+        <div class="publish-settings-grid">
 
-                <div id="publish-notices"></div>
-                <div id="publish-scope-chips" class="model-explorer-chips"></div>
-
-                <div id="publish-type-filters"></div>
-
-                <h4>Only include objects where&hellip;</h4>
-                <div id="publish-filter-builder"></div>
-                <p id="publish-builder-message" class="model-explorer-form-error" role="alert"></p>
-            </section>
-
-            <section class="publish-section">
-                <h3>Starting points</h3>
-                <div class="model-explorer-search">
-                    <svg class="onyxjar-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>
-                    <input
-                        id="publish-search"
-                        type="search"
-                        class="form-control"
-                        placeholder="Find an object&hellip;"
-                        aria-label="Find an object to use as a starting point"
-                        autocomplete="off"
-                    >
-                </div>
-                <div id="publish-results" aria-live="polite"></div>
-                <div id="publish-traversal"></div>
-            </section>
-
-            <section class="publish-section">
-                <h3>Publication details</h3>
+            <div class="publish-settings-group">
 
                 <label class="publish-field">
                     <span class="publish-label">Title</span>
@@ -83,14 +50,14 @@
                 </label>
 
                 <label class="publish-field">
-                    <span class="publish-label">Description <span class="model-explorer-muted">(optional)</span></span>
-                    <textarea class="form-control form-control-sm" id="publish-description" rows="2" maxlength="1000"></textarea>
-                </label>
-
-                <label class="publish-field">
                     <span class="publish-label">Suggested file name</span>
                     <input type="text" class="form-control form-control-sm" id="publish-filename" maxlength="120" autocomplete="off">
                     <span class="model-explorer-muted publish-hint">Your browser decides where the file is saved.</span>
+                </label>
+
+                <label class="publish-field">
+                    <span class="publish-label">Description <span class="model-explorer-muted">(optional)</span></span>
+                    <textarea class="form-control form-control-sm" id="publish-description" rows="2" maxlength="1000"></textarea>
                 </label>
 
                 <div class="publish-field">
@@ -101,27 +68,132 @@
                     </div>
                     <span class="model-explorer-muted publish-hint">Colours the header of the published file.</span>
                 </div>
-            </section>
 
-            <section class="publish-section">
-                <h3>Opening view</h3>
-                <p class="model-explorer-muted publish-hint" id="publish-opening-summary"></p>
-                <div class="publish-button-row">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="publish-opening-set">Use the preview view</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="publish-opening-clear">Reset</button>
+            </div>
+
+            <div class="publish-settings-group publish-opening">
+
+                <div class="publish-field">
+                    <span class="publish-label">Opening view</span>
+                    <p class="publish-opening-summary" id="publish-opening-summary"></p>
+                    <div class="publish-button-row">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="publish-opening-set">Use the preview view</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="publish-opening-clear">Reset</button>
+                    </div>
+                    <span class="model-explorer-muted publish-hint">
+                        Select an object in the preview, then use it as what readers open on.
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="publish-settings-notes">
+            <p class="model-explorer-muted publish-hint" id="publish-previous"></p>
+            <p class="model-explorer-muted publish-hint">
+                <strong>Please note:</strong> the published file includes each item's history and evidence, including
+                the email address of whoever proposed each change. Anyone with the file can read it.
+            </p>
+        </div>
+
+    </section>
+
+    <div class="publish-layout">
+
+        <!-- Publication scope: everything here narrows what is published, and all of it applies together -->
+        <aside class="model-explorer-side publish-scope-panel" id="publish-scope" aria-label="Publication scope">
+
+            <header class="publish-scope-header">
+                <div class="publish-scope-heading">
+                    <h3>Publication scope</h3>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="publish-clear-scope" hidden>Include the whole model again</button>
                 </div>
                 <p class="model-explorer-muted publish-hint">
-                    Hide types, add filters or select something in the preview, then use it as the view readers open on.
+                    What goes into the publication. The starting point, types and filters below all apply together;
+                    nothing you leave out can appear in the file.
                 </p>
+                <div id="publish-notices"></div>
+                <div id="publish-scope-chips" class="model-explorer-chips"></div>
+            </header>
+
+            <section class="publish-scope-section" aria-labelledby="publish-start-title">
+                <h4 id="publish-start-title">Starting point</h4>
+                <p class="model-explorer-muted publish-hint">
+                    Start the publication from a specific object. Only that object and everything connected to it
+                    within the selected number of steps will be included. Leave it empty to start from the whole
+                    model. The types and filters below still apply within this result.
+                </p>
+                <div class="model-explorer-search">
+                    <svg class="onyxjar-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>
+                    <input
+                        id="publish-search"
+                        type="search"
+                        class="form-control"
+                        placeholder="Find an object to start from&hellip;"
+                        aria-label="Find an object to start the publication from"
+                        autocomplete="off"
+                    >
+                </div>
+                <div id="publish-results" aria-live="polite"></div>
+                <div id="publish-traversal"></div>
             </section>
 
-            <section class="publish-section publish-section-quiet">
-                <p class="model-explorer-muted publish-hint" id="publish-previous"></p>
+            <section class="publish-scope-section" aria-label="Types to include">
+
+                <div class="model-explorer-legend-section" data-legend-section="object">
+                    <div class="model-explorer-legend-header">
+                        <button
+                            type="button"
+                            id="publish-object-type-toggle"
+                            class="model-explorer-legend-toggle"
+                            data-action="toggle-legend-section"
+                            data-id="object"
+                            aria-expanded="true"
+                        >
+                            <svg class="onyxjar-icon model-explorer-legend-chevron" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 6l4 4 4-4"/></svg>
+                            <h4>Object types</h4>
+                        </button>
+                        <label class="model-explorer-select-all">
+                            <input type="checkbox" id="publish-select-all-object-types" data-action="select-all-object-types" aria-label="Include all object types">
+                            All
+                        </label>
+                    </div>
+                    <div id="publish-object-type-rows" class="model-explorer-legend-rows"></div>
+                </div>
+
+                <div class="model-explorer-legend-section" data-legend-section="relationship">
+                    <div class="model-explorer-legend-header">
+                        <button
+                            type="button"
+                            id="publish-relationship-type-toggle"
+                            class="model-explorer-legend-toggle"
+                            data-action="toggle-legend-section"
+                            data-id="relationship"
+                            aria-expanded="true"
+                        >
+                            <svg class="onyxjar-icon model-explorer-legend-chevron" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 6l4 4 4-4"/></svg>
+                            <h4>Relationship types</h4>
+                        </button>
+                        <label class="model-explorer-select-all">
+                            <input type="checkbox" id="publish-select-all-relationship-types" data-action="select-all-relationship-types" aria-label="Include all relationship types">
+                            All
+                        </label>
+                    </div>
+                    <div id="publish-relationship-type-rows" class="model-explorer-legend-rows"></div>
+                </div>
+
+            </section>
+
+            <section class="publish-scope-section" aria-labelledby="publish-filters-title">
+                <h4 id="publish-filters-title">Object filters</h4>
                 <p class="model-explorer-muted publish-hint">
-                    <strong>Please note:</strong> the published file includes each item's history and evidence, including
-                    the email address of whoever proposed each change. Anyone with the file can read it.
+                    Limit which objects are published by an attribute value, for example only Stores whose Status is
+                    Active. Filters apply on top of the starting point and the types above, and only to objects.
                 </p>
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="publish-clear-scope">Include the whole model again</button>
+                <div id="publish-filter-note"></div>
+                <div id="publish-filter-builder"></div>
+                <p id="publish-builder-message" class="model-explorer-form-error" role="alert"></p>
             </section>
 
         </aside>
@@ -132,15 +204,7 @@
             <p class="publish-preview-summary" id="publish-summary" aria-live="polite"></p>
             <p class="model-explorer-form-error" id="publish-too-large" role="alert" hidden></p>
 
-            <details class="publish-reader">
-                <summary>Reader controls (the search and filters the file will have)</summary>
-                {% include "model/_explorer_search_panel.html" %}
-            </details>
-
-            <div class="publish-preview-body">
-                {% include "model/_explorer_main.html" %}
-                {% include "model/_explorer_details.html" %}
-            </div>
+            {% include "model/_explorer_main.html" with explorer_hide_view_controls=True %}
 
         </div>
 
