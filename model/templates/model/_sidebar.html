@@ -404,83 +404,52 @@
 
             <div class="model-nav-children">
 
-                <div class="model-nav-group">
+                {% for p in proposals %}
 
-                    <div class="model-nav-parent-row">
-
-                        <a
-                            href="{% url 'model:proposal_list' model.id %}"
-                            class="
-                                    model-nav-item
-                                    model-nav-parent
-                                    {% if active_url_name == 'proposal_list' or active_url_name == 'proposal' or active_url_name == 'proposal_create' %}
-                                        active
-                                    {% endif %}
-                                "
-                        >
-                            <span>Proposals</span>
-
-                            {% if proposals|length > 0 %}
-                                <span class="model-nav-count">
-                                    {{ proposals|length }}
-                                </span>
+                    <a
+                        href="{% url 'model:proposal' model.id p.id %}"
+                        class="
+                            model-nav-item
+                            model-nav-proposal
+                            model-nav-proposal-status-{{ p.status }}
+                            {% if active_proposal and p.id == active_proposal.id %}
+                                active
                             {% endif %}
-                        </a>
+                        "
+                    >
+                        <span class="model-nav-proposal-main">
+                            <span class="model-nav-proposal-title">
+                                {{ p.title|default:"Untitled proposal" }}
+                            </span>
+                            <span class="model-nav-proposal-meta">
+                                {{ p.get_source_display }} &middot; {{ p.get_status_display }}
+                            </span>
+                        </span>
 
+                        {% if p.change_count > 0 %}
+                            <span class="model-nav-count">
+                                {{ p.change_count }}
+                            </span>
+                        {% endif %}
+                    </a>
+
+                {% empty %}
+
+                    <div class="model-nav-empty">
+                        No open proposals
                     </div>
 
-                    <div class="model-nav-children">
+                {% endfor %}
 
-                        {% for p in proposals %}
-
-                            <a
-                                href="{% url 'model:proposal' model.id p.id %}"
-                                class="
-                                    model-nav-item
-                                    model-nav-proposal
-                                    model-nav-proposal-status-{{ p.status }}
-                                    {% if active_proposal and p.id == active_proposal.id %}
-                                        active
-                                    {% endif %}
-                                "
-                            >
-                                <span class="model-nav-proposal-main">
-                                    <span class="model-nav-proposal-title">
-                                        {{ p.title|default:"Untitled proposal" }}
-                                    </span>
-                                    <span class="model-nav-proposal-meta">
-                                        {{ p.get_source_display }} &middot; {{ p.get_status_display }}
-                                    </span>
-                                </span>
-
-                                {% if p.change_count > 0 %}
-                                    <span class="model-nav-count">
-                                        {{ p.change_count }}
-                                    </span>
-                                {% endif %}
-                            </a>
-
-                        {% empty %}
-
-                            <div class="model-nav-empty">
-                                No open proposals
-                            </div>
-
-                        {% endfor %}
-
-                        <button
-                            type="button"
-                            class="model-nav-item model-nav-new-proposal"
-                            id="model-new-proposal-btn"
-                            data-create-url="{% url 'model:proposal_create' model.id %}"
-                        >
-                            <i class="bi bi-plus-lg"></i>
-                            New proposal
-                        </button>
-
-                    </div>
-
-                </div>
+                <button
+                    type="button"
+                    class="model-nav-item model-nav-new-proposal"
+                    id="model-new-proposal-btn"
+                    data-create-url="{% url 'model:proposal_create' model.id %}"
+                >
+                    <i class="bi bi-plus-lg"></i>
+                    New proposal
+                </button>
 
             </div>
 
@@ -513,18 +482,6 @@
                     "
                 >
                     <span>Publish</span>
-                </a>
-
-                <a
-                    href="{% url 'publication:publication_history' model.id %}"
-                    class="
-                        model-nav-item
-                        {% if active_url_name == 'publication_history' %}
-                            active
-                        {% endif %}
-                    "
-                >
-                    <span>Publications</span>
                 </a>
 
             </div>

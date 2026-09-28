@@ -186,8 +186,46 @@ class SidebarTests(TestCase):
         # Only the four toggled groups are collapsed, never the proposals.
         self.assertEqual(parser.collapsed_group_blocks, 4)
 
-    def test_proposals_link_and_new_proposal_button_are_kept(self):
+    def test_proposals_heading_has_no_link_or_count_but_keeps_new_proposal_button(self):
+        Proposal.objects.create(
+            model=self.model,
+            created_by=self.user,
+            title="Add a thing",
+        )
+
+        parser, html = self.sidebar("model:overview")
+
+        self.assertIn("Proposals", parser.section_labels)
+        list_url = reverse("model:proposal_list", args=[self.model.id])
+        self.assertNotIn(f'href="{list_url}"', html)
+        proposals_section = html.split("GOVERN", 1)[1].split("PUBLISHING", 1)[0]
+        self.assertNotIn("model-nav-parent", proposals_section)
+        self.assertNotIn("model-nav-group", proposals_section)
+        self.assertIn('id="model-new-proposal-btn"', html)
+
+    def test_proposal_items_link_to_their_proposal(self):
+        proposal = Proposal.objects.create(model=self.model, created_by=self.user)
+
         _, html = self.sidebar("model:overview")
 
-        self.assertIn(reverse("model:proposal_list", args=[self.model.id]), html)
+        self.assertIn(reverse("model:proposal", args=[self.model.id, proposal.id]), html)
+
+    def test_sidebar_represents_the_empty_state(self):
+        parser, html = self.sidebar("model:overview")
+
+        self.assertEqual(parser.proposal_links, 0)
+        self.assertIn("No open proposals", html)
         self.assertIn('id="model-new-proposal-btn"', html)
+
+    def test_completed_proposal_is_listed_with_its_status(self):
+        Proposal.objects.create(
+            model=self.model,
+            created_by=self.user,
+            status=Proposal.Status.COMPLETED,
+        )
+
+        parser, html = self.sidebar("model:overview")
+
+        self.assertEqual(parser.proposal_links, 1)
+        self.assertIn("model-nav-proposal-status-completed", html)
+        self.assertNotIn("No open proposals", html)

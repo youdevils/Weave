@@ -90,8 +90,7 @@ def proposal(request, model_id, proposal_id=None):
 
     # -------------------------------------------------------------
     # No proposal specified: resolve to the active one, else the
-    # most recently touched live proposal, else render the empty
-    # workspace state directly.
+    # most recently touched live proposal, else Model Overview.
     # -------------------------------------------------------------
 
     if proposal_id is None:
@@ -114,22 +113,9 @@ def proposal(request, model_id, proposal_id=None):
                 proposal_id=proposals[0].id,
             )
 
-        context.update(
-            {
-                "proposal": None,
-                "changes": [],
-                "change_groups": [],
-                "reviewed_count": 0,
-                "unreviewed_count": 0,
-                "total_count": 0,
-            }
-        )
-
-        return render(
-            request,
-            "model/proposal.html",
-            context,
-        )
+        # Nothing live: the sidebar carries the "No open proposals"
+        # state, so there is no proposals page to show.
+        return redirect("model:overview", model_id=model.id)
 
     target_proposal = get_object_or_404(
         Proposal,
@@ -216,7 +202,7 @@ def proposal(request, model_id, proposal_id=None):
                 {
                     "success": True,
                     "redirect_url": reverse(
-                        "model:proposal_list",
+                        "model:overview",
                         args=[model.id],
                     ),
                 }

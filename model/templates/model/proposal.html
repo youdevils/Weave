@@ -13,71 +13,44 @@
                 Changes
             </div>
 
-            {% if proposal %}
+            <div class="model-proposal-title-edit">
 
-                <div class="model-proposal-title-edit">
-
-                    <h1 class="model-page-title model-proposal-title-display">
-                        {{ proposal.title|default:"Untitled proposal" }}
-                    </h1>
-
-                    <button
-                        type="button"
-                        class="model-proposal-rename-btn"
-                        aria-label="Rename proposal"
-                    >
-                        <i class="bi bi-pencil"></i>
-                    </button>
-
-                    <input
-                        type="text"
-                        class="model-proposal-title-input form-control form-control-sm"
-                        style="display:none"
-                        value="{{ proposal.title }}"
-                        maxlength="200"
-                    >
-
-                </div>
-
-            {% else %}
-
-                <h1 class="model-page-title">
-                    No open changes
+                <h1 class="model-page-title model-proposal-title-display">
+                    {{ proposal.title|default:"Untitled proposal" }}
                 </h1>
 
-            {% endif %}
+                <button
+                    type="button"
+                    class="model-proposal-rename-btn"
+                    aria-label="Rename proposal"
+                >
+                    <i class="bi bi-pencil"></i>
+                </button>
 
-            {% if proposal %}
+                <input
+                    type="text"
+                    class="model-proposal-title-input form-control form-control-sm"
+                    style="display:none"
+                    value="{{ proposal.title }}"
+                    maxlength="200"
+                >
 
-                <p class="model-page-description">
-                    Review proposed changes before they are submitted
-                    for validation.
-                </p>
+            </div>
 
-            {% else %}
-
-                <p class="model-page-description">
-                    Changes you make to the model will appear here for
-                    review before they are submitted.
-                </p>
-
-            {% endif %}
+            <p class="model-page-description">
+                Review proposed changes before they are submitted
+                for validation.
+            </p>
 
         </div>
 
-        {% if proposal %}
-
-            <div class="model-proposal-status model-proposal-status-{{ proposal.status }}">
-                <span class="model-proposal-status-dot"></span>
-                {{ proposal.get_status_display }}
-            </div>
-
-        {% endif %}
+        <div class="model-proposal-status model-proposal-status-{{ proposal.status }}">
+            <span class="model-proposal-status-dot"></span>
+            {{ proposal.get_status_display }}
+        </div>
 
     </div>
 
-
-    {% if proposal %}
 
     {% if proposal.summary and proposal.status != "working" and proposal.status != "failed" %}
 
@@ -969,17 +942,17 @@
 
     {% elif proposal.status == "completed" %}
 
-        <div class="model-empty-state model-proposal-success-state">
+        <section class="model-proposal-success-state">
 
-            <div class="model-empty-state-icon">
+            <div class="model-proposal-success-icon">
                 <i class="bi bi-check2-circle"></i>
             </div>
 
-            <div class="model-empty-state-title">
+            <h2 class="model-proposal-success-title">
                 Committed successfully
-            </div>
+            </h2>
 
-            <div class="model-empty-state-description">
+            <p class="model-proposal-success-description">
 
                 {% if submission_result %}
                     Model revision {{ submission_result.before_revision }}
@@ -988,7 +961,7 @@
 
                 {{ total_count }} change{{ total_count|pluralize }} applied.
 
-            </div>
+            </p>
 
             {% if not proposal.acknowledged_at %}
 
@@ -1007,35 +980,7 @@
 
             {% endif %}
 
-        </div>
-
-    {% endif %}
-
-    {% else %}
-
-        <div class="model-empty-state model-proposal-empty-state">
-
-            <div class="model-empty-state-icon">
-                <i class="bi bi-check2-circle"></i>
-            </div>
-
-            <div class="model-empty-state-title">
-                No open changes
-            </div>
-
-            <div class="model-empty-state-description">
-                Changes you make to the model will appear here for
-                review before they are submitted.
-            </div>
-
-            <a
-                href="{% url 'model:overview' model.id %}"
-                class="btn btn-outline-secondary"
-            >
-                Back to overview
-            </a>
-
-        </div>
+        </section>
 
     {% endif %}
 

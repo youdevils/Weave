@@ -74,11 +74,13 @@ class ProposalViewTestCase(TestCase):
 
 class ProposalListRedirectTests(ProposalViewTestCase):
 
-    def test_no_proposals_renders_empty_state(self):
+    def test_no_proposals_redirects_to_overview(self):
         response = self.client.get(self.list_url())
 
-        self.assertEqual(response.status_code, 200)
-        self.assertIsNone(response.context["proposal"])
+        self.assertRedirects(
+            response,
+            reverse("model:overview", args=[self.model.id]),
+        )
 
     def test_redirects_to_active_proposal_when_one_is_active(self):
         proposal = self._make_proposal()
@@ -250,6 +252,23 @@ class ProposalAbandonTests(ProposalViewTestCase):
         self.assertEqual(data["redirect_url"], self.list_url())
         self.assertFalse(Proposal.objects.filter(id=proposal.id).exists())
 
+    def test_abandoning_the_last_proposal_ends_on_model_overview(self):
+        proposal = self._make_proposal()
+        activate_proposal(self.client, self.model.id, proposal)
+
+        data = self.client.post(
+            self.detail_url(proposal),
+            {"action": "abandon"},
+        ).json()
+
+        response = self.client.get(data["redirect_url"], follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.redirect_chain[-1][0],
+            reverse("model:overview", args=[self.model.id]),
+        )
+
     def test_abandon_is_rejected_for_a_locked_proposal(self):
         proposal = self._make_proposal(status=Proposal.Status.COMPLETED)
 
@@ -274,6 +293,10 @@ class ProposalAcknowledgeTests(ProposalViewTestCase):
         data = response.json()
 
         self.assertTrue(data["success"])
+        self.assertEqual(
+            data["redirect_url"],
+            reverse("model:overview", args=[self.model.id]),
+        )
         proposal.refresh_from_db()
         self.assertIsNotNone(proposal.acknowledged_at)
 
@@ -282,6 +305,15 @@ class ProposalAcknowledgeTests(ProposalViewTestCase):
             proposal.id,
             live_proposals_queryset(self.model, self.user).values_list("id", flat=True),
         )
+
+    def test_completed_proposal_page_offers_acknowledge(self):
+        proposal = self._make_proposal(status=Proposal.Status.COMPLETED)
+
+        response = self.client.get(self.detail_url(proposal))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "model-proposal-acknowledge")
+        self.assertContains(response, "Committed successfully")
 
     def test_acknowledge_is_rejected_for_a_non_completed_proposal(self):
         proposal = self._make_proposal(status=Proposal.Status.WORKING)
