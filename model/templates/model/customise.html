@@ -14,33 +14,39 @@
 
 <div class="model-customise">
 
-    <div class="model-page-header">
-
-        <div>
-
-            <div class="model-page-eyebrow">Understand</div>
-
-            <h1 class="model-page-title">Customise</h1>
-
-            <p class="model-page-description">
-                Set the visual language of this model. These settings apply everywhere
-                the model is drawn, and each type can override them from its own editor.
-                Changes save immediately and are not part of a proposal.
-            </p>
-
-        </div>
-
-    </div>
-
     <div class="model-customise-layout">
 
         <div class="model-customise-controls">
 
-            {% for scope in appearance_form.scopes %}
-            <section class="model-customise-scope">
+            <div class="model-page-header">
 
-                <h2>{{ scope.title }}</h2>
-                <p>{{ scope.description }}</p>
+                <div>
+
+                    <div class="model-page-eyebrow">Understand</div>
+
+                    <h1 class="model-page-title">Customise</h1>
+
+                    <p class="model-page-description">
+                        Customise how this model looks when it is displayed. Model-wide
+                        settings apply by default, while individual object and relationship
+                        types can override them. Changes are saved automatically and are
+                        not part of a proposal.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- ============================================================
+                 THEME
+                 ============================================================ -->
+
+            {% for scope in appearance_form.scopes %}
+            {% if scope.scope == "theme" %}
+            <section class="model-customise-section" aria-labelledby="customise-theme-heading">
+
+                <h2 id="customise-theme-heading">Theme</h2>
+                <p>Define the overall visual language of the model.</p>
 
                 {% url 'model:customise' model.id as customise_endpoint %}
                 {% with initial_id="appearance-"|add:scope.scope %}
@@ -48,7 +54,63 @@
                 {% endwith %}
 
             </section>
+            {% endif %}
             {% endfor %}
+
+            <!-- ============================================================
+                 TYPE DEFAULTS
+                 ============================================================ -->
+
+            <section class="model-customise-section" aria-labelledby="customise-type-defaults-heading">
+
+                <h2 id="customise-type-defaults-heading">Type defaults</h2>
+                <p>
+                    Set the defaults for object and relationship types. Individual types
+                    can override them from their own editor.
+                </p>
+
+                <div class="model-customise-tabs" role="tablist" aria-label="Type defaults" data-customise-tabs>
+                    {% for scope in appearance_form.scopes %}
+                    {% if scope.scope != "theme" %}
+                    <button
+                        type="button"
+                        role="tab"
+                        class="model-customise-tab"
+                        id="customise-tab-{{ scope.scope }}"
+                        aria-controls="customise-panel-{{ scope.scope }}"
+                        aria-selected="{% if scope.scope == 'object' %}true{% else %}false{% endif %}"
+                        {% if scope.scope != 'object' %}tabindex="-1"{% endif %}
+                    >{{ scope.title|lower|capfirst }}</button>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% for scope in appearance_form.scopes %}
+                {% if scope.scope != "theme" %}
+                <div
+                    class="model-customise-tabpanel"
+                    role="tabpanel"
+                    id="customise-panel-{{ scope.scope }}"
+                    aria-labelledby="customise-tab-{{ scope.scope }}"
+                    {% if scope.scope != 'object' %}hidden{% endif %}
+                >
+
+                    <p class="model-customise-tabpanel-description">{{ scope.description }}</p>
+
+                    {% url 'model:customise' model.id as customise_endpoint %}
+                    {% with initial_id="appearance-"|add:scope.scope %}
+                    {% include "model/_appearance_controls.html" with groups=scope.groups endpoint=customise_endpoint scope=scope.scope initial_id=initial_id inherited_label="Default" %}
+                    {% endwith %}
+
+                </div>
+                {% endif %}
+                {% endfor %}
+
+            </section>
+
+            <!-- ============================================================
+                 RESET
+                 ============================================================ -->
 
             <div class="model-customise-reset">
 
@@ -70,9 +132,19 @@
 
         </div>
 
-        <aside class="model-customise-preview">
+        <!-- ============================================================
+             PREVIEW
+             ============================================================ -->
 
-            <h2 class="model-customise-preview-title">Preview</h2>
+        <aside class="model-customise-preview" aria-labelledby="customise-preview-heading">
+
+            <div class="model-customise-preview-header">
+
+                <h2 id="customise-preview-heading">Preview</h2>
+
+                <p>See how the current appearance settings are applied to the model.</p>
+
+            </div>
 
             {% if not has_types %}
             <p class="appearance-help">
@@ -103,6 +175,9 @@
   import { OnyxJarViewer } from "{% static 'viewer/js/onyxjar-viewer.js' %}";
   import { applyCanvasBackground, postAppearance, buildBody } from "{% static 'model/js/appearance/appearance-form.js' %}";
   import { applyResponse } from "{% static 'model/js/appearance/appearance-boot.js' %}";
+  import { initTabs } from "{% static 'model/js/appearance/customise-tabs.js' %}";
+
+  initTabs(document.querySelector("[data-customise-tabs]"));
 
   const container = document.getElementById("model-customise-graph");
   const payload = JSON.parse(document.getElementById("model-customise-payload").textContent);

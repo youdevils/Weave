@@ -844,47 +844,111 @@ a.model-activity-stat:hover .model-activity-stat-value {
   margin-bottom: 1rem;
 }
 
+/* =========================================================
+   Customise
+   A two-pane workspace: settings on the left, live preview pinned on the
+   right. The document scrolls (the navbar is not sticky), so the preview
+   sticks to the viewport top and is sized to the space left below the
+   navbar and page padding (~9rem) so it fits without initial scrolling.
+   ========================================================= */
+
+.model-customise {
+  margin: 0 auto;
+  padding: 2.5rem 2.5rem 4rem;
+}
+
+@media (max-width: 768px) {
+  .model-customise {
+    padding: 2rem 1.25rem 3rem;
+  }
+}
+
 .model-customise-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-  gap: 1.75rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2.5rem;
   align-items: start;
 }
 
 .model-customise-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  min-width: 0;
 }
 
-.model-customise-scope h2 {
-  margin: 0 0 0.15rem;
+.model-customise-section {
+  margin-top: 2.25rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--model-border-light);
+}
+
+.model-customise-controls > .model-page-header + .model-customise-section {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.model-customise-section > h2,
+.model-customise-preview-header h2 {
+  margin: 0 0 0.2rem;
+  color: var(--model-text);
   font-size: 1.05rem;
+  font-weight: 600;
 }
 
-.model-customise-scope > p {
-  margin: 0 0 0.85rem;
-  font-size: 0.85rem;
+.model-customise-section > p {
+  margin: 0 0 1.1rem;
   color: var(--model-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
-.model-customise-preview-title {
-  margin: 0 0 0.6rem;
-  font-size: 1.05rem;
+/* -- Type defaults tabs -- */
+
+.model-customise-tabs {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--model-border);
 }
 
-.model-customise-preview {
-  position: sticky;
-  top: 1rem;
+.model-customise-tab {
+  margin-bottom: -1px;
+  padding: 0.5rem 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--model-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
 }
 
-.model-customise-preview .model-ontology-graph-canvas {
-  height: 60vh;
+.model-customise-tab:hover {
+  color: var(--model-text);
 }
+
+.model-customise-tab[aria-selected="true"] {
+  border-bottom-color: var(--model-accent);
+  color: var(--model-accent-strong);
+  font-weight: 600;
+}
+
+.model-customise-tab:focus-visible {
+  outline: 2px solid var(--model-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.model-customise-tabpanel-description {
+  margin: 0 0 1rem;
+  color: var(--model-text-muted);
+  font-size: 0.8rem;
+}
+
+/* -- Reset -- */
 
 .model-customise-reset {
-  margin-top: 0.5rem;
-  padding-top: 1rem;
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
   border-top: 1px solid var(--model-border-light);
 }
 
@@ -894,13 +958,54 @@ a.model-activity-stat:hover .model-activity-stat-value {
   color: var(--model-text-muted);
 }
 
-@media (max-width: 1100px) {
+/* -- Preview pane -- */
+
+.model-customise-preview {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: calc(100vh - 9rem);
+  min-height: 420px;
+}
+
+.model-customise-preview-header {
+  margin-bottom: 0.75rem;
+}
+
+.model-customise-preview-header p {
+  margin: 0;
+  color: var(--model-text-muted);
+  font-size: 0.78rem;
+}
+
+.model-customise-preview > .appearance-help {
+  margin: 0 0 0.6rem;
+}
+
+.model-customise-preview .model-ontology-graph-canvas {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+}
+
+@media (max-width: 1200px) {
   .model-customise-layout {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .model-customise-preview {
     position: static;
+    height: auto;
+    min-height: 0;
+  }
+
+  .model-customise-preview .model-ontology-graph-canvas {
+    flex: none;
+    height: 60vh;
+    min-height: 360px;
   }
 }
 
