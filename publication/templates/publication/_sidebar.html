@@ -28,14 +28,6 @@
                     <span>Publish</span>
                 </a>
 
-                <a
-                    href="{% url 'publication:publication_history' model.id %}"
-                    class="model-nav-item {% if active_url_name == 'publication_history' %}active{% endif %}"
-                    {% if active_url_name == 'publication_history' %}aria-current="page"{% endif %}
-                >
-                    <span>Publishing History</span>
-                </a>
-
             </div>
 
         </div>
