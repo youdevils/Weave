@@ -244,6 +244,9 @@ IMPORT_PROBLEMS_SHOWN = 100
 WEBSITE_LEGAL_ENTITY = os.getenv("WEBSITE_LEGAL_ENTITY", "OnyxJar")
 WEBSITE_CONTACT_EMAIL = os.getenv("WEBSITE_CONTACT_EMAIL", "")
 
+# Where contact-form submissions are sent (Resend -> Cloudflare Email Routing).
+WEBSITE_CONTACT_FORM_RECIPIENT = os.getenv("WEBSITE_CONTACT_FORM_RECIPIENT", "support@onyxjar.com")
+
 # ------------------------------------------------------------------------------------
 # DEFAULT AUTO FIELD
 # ------------------------------------------------------------------------------------

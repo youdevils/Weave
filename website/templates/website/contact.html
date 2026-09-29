@@ -30,6 +30,12 @@
             <form method="post" action="{% url 'website:contact' %}" novalidate>
                 {% csrf_token %}
 
+                {% if send_error %}
+                    <p class="ff-error ff-error--summary" role="alert">
+                        Something went wrong sending your message. Please try again in a moment.
+                    </p>
+                {% endif %}
+
                 {% if form.errors %}
                     <p class="ff-error ff-error--summary" role="alert">Please check the highlighted fields and try again.</p>
                 {% endif %}

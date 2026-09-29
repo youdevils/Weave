@@ -19,20 +19,24 @@ from account.tokens import email_verification_token
 logger = logging.getLogger(__name__)
 
 
-def send_email(*, to, subject, html):
+def send_email(*, to, subject, html, reply_to=None):
     resend.api_key = settings.RESEND_API_KEY
 
+    payload = {
+        "from": settings.DEFAULT_FROM_EMAIL,
+        "to": [to],
+        "subject": subject,
+        "html": html,
+    }
+    if reply_to:
+        payload["reply_to"] = reply_to
+
     try:
-        resend.Emails.send(
-            {
-                "from": settings.DEFAULT_FROM_EMAIL,
-                "to": [to],
-                "subject": subject,
-                "html": html,
-            }
-        )
+        resend.Emails.send(payload)
+        return True
     except Exception:
         logger.exception("Failed to send email to %s", to)
+        return False
 
 
 def send_verification_email(request, user):

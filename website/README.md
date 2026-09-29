@@ -31,7 +31,9 @@ The shipped entry uses an illustrative placeholder image and a placeholder URL (
 
 ## Stubs and things to fill in
 
-- **Contact form:** validates and shows a success state, then does nothing. Nothing is logged, stored or sent (asserted by tests).
+- **Contact form:** validates and, on success, emails the submission via the existing Resend integration
+  (`account.services.emails.send_email`) to `settings.WEBSITE_CONTACT_FORM_RECIPIENT` (defaults to `support@onyxjar.com`),
+  with Reply-To set to the visitor's address. Nothing is stored in the database.
 - **`WEBSITE_LEGAL_ENTITY` / `WEBSITE_CONTACT_EMAIL`** (env vars): footer and legal pages.
 - **Privacy and Terms** are plain-language drafts limited to facts evident from the code; get them reviewed before launch.
 - Not included: sitemap, robots.txt, analytics, rate-limiting on the contact form.

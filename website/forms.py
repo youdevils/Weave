@@ -5,8 +5,8 @@ class ContactForm(forms.Form):
     """
     The public contact / feedback form.
 
-    This slice is a stub: a valid submission shows a success state and nothing
-    else happens to it. It is never logged, stored or sent anywhere.
+    A valid submission is emailed to WEBSITE_CONTACT_FORM_RECIPIENT via the
+    existing Resend integration; it is not stored.
     """
 
     name = forms.CharField(max_length=100, strip=True)

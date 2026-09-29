@@ -12,6 +12,7 @@ from django.views.decorators.http import require_http_methods, require_safe
 
 from .examples import EXAMPLES
 from .forms import ContactForm
+from .services.emails import send_contact_notification
 
 TAGLINE = "Build a living model of complex work."
 
@@ -81,16 +82,21 @@ def terms(request):
 @require_http_methods(["GET", "HEAD", "POST"])
 def contact(request):
     """
-    A stub: a valid submission shows a success state and nothing else happens.
-    The submitted content and personal details are deliberately never logged,
-    stored or sent anywhere (redirect-after-POST keeps a reload from resubmitting).
+    A valid submission is emailed to WEBSITE_CONTACT_FORM_RECIPIENT via the
+    existing Resend integration (redirect-after-POST keeps a reload from
+    resubmitting). If the send fails, the form is re-shown with the visitor's
+    input intact and a generic error, rather than a false success state.
     """
+
+    send_error = False
 
     if request.method == "POST":
         form = ContactForm(request.POST)
 
         if form.is_valid():
-            return redirect(f"{reverse('website:contact')}?sent=1")
+            if send_contact_notification(**form.cleaned_data):
+                return redirect(f"{reverse('website:contact')}?sent=1")
+            send_error = True
     else:
         form = ContactForm()
 
@@ -101,6 +107,7 @@ def contact(request):
             "nav_active": "contact",
             "form": form,
             "sent": request.method != "POST" and request.GET.get("sent") == "1",
+            "send_error": send_error,
             "page_title": "Contact & feedback — OnyxJar",
             "page_description": "Questions, ideas or feedback about OnyxJar? Send us a note.",
         },
