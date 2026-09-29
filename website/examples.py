@@ -33,16 +33,16 @@ class Example:
 
 EXAMPLES = (
     Example(
-        title="EFTPOS modernisation project",
+        title="Complex Delivery Project",
         description=(
-            "A fictional retail technology delivery project showing how OnyxJar can connect projects, "
-            "workstreams, changes, deliverables, tests, releases, processes, applications, teams and "
-            "capabilities into a single model. Explore how the project is structured, what it affects, "
-            "how delivery is progressing, and how the existing payment environment transitions to the "
-            "target state."
+            "A fictional example showing how OnyxJar can model a complex delivery project as a connected, "
+            "governed model. It follows the Harbour Home Retail EFTPOS Replacement project, linking workstreams, "
+            "changes, deliverables, tests, releases, processes, applications, teams and capabilities to show "
+            "how the work fits together, what it affects, how it is progressing, and how the existing environment "
+            "will transition to the target state."
         ),
-        category="Delivery projects",
+        category="Complex | State Transition",
         images=("website/examples/business-process-1.png",),
-        url="/published/harbour-home-retail-r3.html",
+        url="/published/complex_project_exmaple.html",
     ),
 )
