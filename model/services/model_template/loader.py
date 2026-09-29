@@ -14,11 +14,16 @@ from model.model_templates.delivery_project import (
     DELIVERY_PROJECT_TEMPLATE,
 )
 
+from model.model_templates.new_zealand_farm_operations import (
+    NEW_ZEALAND_FARM_OPERATIONS_TEMPLATE,
+)
+
 from .builder import TemplateDefinitionError, build_template_changes
 
 TEMPLATES = {
     BUSINESS_PROCESS_TEMPLATE["key"]: BUSINESS_PROCESS_TEMPLATE,
     DELIVERY_PROJECT_TEMPLATE["key"]: DELIVERY_PROJECT_TEMPLATE,
+    NEW_ZEALAND_FARM_OPERATIONS_TEMPLATE["key"]: NEW_ZEALAND_FARM_OPERATIONS_TEMPLATE,
 }
 
 
@@ -96,9 +101,7 @@ def instantiate_template_via_proposal(model, template_key: str, user):
     proposal.refresh_from_db()
 
     if proposal.status != Proposal.Status.COMPLETED:
-        issues = list(
-            ProposalValidationError.objects.filter(result__proposal=proposal)
-        )
+        issues = list(ProposalValidationError.objects.filter(result__proposal=proposal))
         raise TemplateInstantiationFailure(
             f"Template '{template_key}' failed validation.",
             issues,
@@ -138,4 +141,6 @@ def apply_template_appearance(model, template, change_set):
             ) from None
 
         for field, value in style.items():
-            AppearanceService.set_type_style(model, RELATIONSHIP_TYPE, type_id, field, value)
+            AppearanceService.set_type_style(
+                model, RELATIONSHIP_TYPE, type_id, field, value
+            )

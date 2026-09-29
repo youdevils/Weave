@@ -96,6 +96,7 @@ def model_starting_point(request, model_id):
     template_icons = {
         "business_process": "bi-diagram-3",
         "delivery_project": "bi-shop",
+        "new_zealand_farm_operations": "bi-tree",
     }
 
     starting_points = [
