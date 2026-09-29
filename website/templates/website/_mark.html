@@ -1,5 +1,5 @@
+{% load static %}
 {% comment %}
-    The OnyxJar mark. References the single <symbol> defined once in base.html, so the
-    gradients exist once per page. Decorative (the wordmark carries the name); size it with CSS.
+    The OnyxJar mark. Decorative (the wordmark carries the name elsewhere); size it with CSS.
 {% endcomment %}
-<svg class="ff-mark" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><use href="#ff-mark-symbol"/></svg>
+<img class="ff-mark" src="{% static 'onyxjar/brand/logos/mark.svg' %}" alt="" aria-hidden="true">

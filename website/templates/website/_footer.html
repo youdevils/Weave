@@ -1,10 +1,10 @@
+{% load static %}
 <footer class="ff-footer">
     <div class="ff-container ff-footer-inner">
 
         <div>
             <a class="ff-brand" href="{% url 'website:home' %}" aria-label="OnyxJar home">
-                {% include "website/_mark.html" %}
-                <span>Onyx<span class="ff-wordmark-fold">Jar</span></span>
+                <img class="ff-logo" src="{% static 'onyxjar/brand/logos/logo-horizontal.svg' %}" alt="OnyxJar">
             </a>
             <p class="ff-footer-tagline">Build a living model of complex work.</p>
         </div>

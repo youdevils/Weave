@@ -1,3 +1,4 @@
+{% load static %}
 {% comment %}
     The two-state header. On the homepage it starts quiet over the hero (data-ff-hero) and
     turns compact on scroll (site.js). Every other page renders it compact from the start.
@@ -10,8 +11,7 @@
     <div class="ff-container ff-header-inner">
 
         <a class="ff-brand" href="{% url 'website:home' %}" aria-label="OnyxJar home">
-            {% include "website/_mark.html" %}
-            <span>Onyx<span class="ff-wordmark-fold">Jar</span></span>
+            <img class="ff-logo" src="{% static 'onyxjar/brand/logos/logo-horizontal.svg' %}" alt="OnyxJar">
         </a>
 
         <button

@@ -10,10 +10,11 @@ real flow (email verification, Resend) replaces view bodies, not links. The appl
 ## Design language
 
 `static/website/css/onyxjar.css` is a reusable, namespaced system (`--ff-*` tokens, `.ff-*` components): the palette from the
-brand board (Indigo `#4F46E5` primary, Teal accent used decoratively, Sky, Ink, Slate, Mist), Plus Jakarta Sans, radii,
-buttons, cards, the two-state header, the facet motif. The authenticated app can adopt it page by page. The mark is defined
-once as an SVG `<symbol>` in `base.html` (`_mark.html` references it); `img/onyxjar-mark.svg` is the standalone copy used as the
-favicon. Raster favicons and the social image were rendered once from that artwork.
+brand board (Indigo `#1F1B43` primary, Plum `#540054` secondary, Teal/Sky decorative accents, Ink, Slate, Mist), Plus Jakarta
+Sans, radii, buttons, cards, the two-state header, the facet motif. The authenticated app can adopt it page by page. The mark
+and horizontal logo are the canonical brand assets at `static/onyxjar/brand/` (`_mark.html` references the standalone mark for
+the hero; the header/footer reference the horizontal logo directly). The favicon is `onyxjar/brand/icons/favicon.svg` /
+`favicon-512.png` from that same asset set.
 
 `static/website/js/site.js` is the only script: the header's hero → compact scroll state and the mobile menu (ES module with pure,
 tested helpers; `website/jstests/`). Every page works without it.

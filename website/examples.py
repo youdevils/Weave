@@ -42,7 +42,7 @@ EXAMPLES = (
             "will transition to the target state."
         ),
         category="Complex | State Transition",
-        images=("website/examples/business-process-1.png",),
+        images=("website/examples/complex_project.png",),
         url="/published/complex_project_example.html",
     ),
 )

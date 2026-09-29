@@ -155,20 +155,21 @@ class PageTests(TestCase):
 
             self.assertEqual(len(ids), len(set(ids)), f"{name}: {sorted(i for i in set(ids) if ids.count(i) > 1)}")
 
-    def test_the_mark_is_defined_once_and_referenced_wherever_it_appears(self):
+    def test_the_brand_mark_and_logo_appear_wherever_expected(self):
         html = self.get("website:home").content.decode()
 
-        self.assertEqual(html.count('<symbol id="ff-mark-symbol"'), 1)
-        self.assertGreaterEqual(html.count('<use href="#ff-mark-symbol"/>'), 3)  # header, hero, footer
+        self.assertGreaterEqual(html.count("onyxjar/brand/logos/mark.svg"), 1)  # hero
+        self.assertGreaterEqual(html.count("onyxjar/brand/logos/logo-horizontal.svg"), 2)  # header, footer
 
     def test_the_social_and_icon_assets_exist(self):
         from django.contrib.staticfiles import finders
 
         for path in (
             "website/img/og-image.png",
-            "website/img/favicon-32.png",
-            "website/img/apple-touch-icon.png",
-            "website/img/onyxjar-mark.svg",
+            "onyxjar/brand/icons/favicon.svg",
+            "onyxjar/brand/icons/favicon-512.png",
+            "onyxjar/brand/logos/logo-horizontal.svg",
+            "onyxjar/brand/logos/mark.svg",
             "website/css/onyxjar.css",
             "website/js/site.js",
         ):

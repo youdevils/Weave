@@ -8,10 +8,20 @@
 :root {
 
     /* Brand palette */
-    --onyxjar-indigo: #4f46e5;
-    --onyxjar-indigo-strong: #4338ca;
-    --onyxjar-teal: #10b981;
-    --onyxjar-sky: #60a5fa;
+    --onyxjar-indigo: #1F1B43;
+    --onyxjar-indigo-strong: #191636;
+    --onyxjar-secondary: #540054;
+    --onyxjar-secondary-strong: #430043;
+    --onyxjar-success: #2F7A5D;
+    --onyxjar-success-strong: #26624A;
+    --onyxjar-danger: #B23A45;
+    --onyxjar-danger-strong: #8E2E37;
+    --onyxjar-warning: #CD912D;
+    --onyxjar-warning-strong: #A47424;
+    --onyxjar-info: #3694A3;
+    --onyxjar-info-strong: #2B7682;
+    --onyxjar-teal: #2F7A5D; /* decorative accent, aligned to the Success token */
+    --onyxjar-sky: #3694A3; /* decorative accent, aligned to the Info token */
     --onyxjar-ink: #0f172a;
     --onyxjar-slate: #94a3b8;
     --onyxjar-mist: #f1f5f9;
@@ -25,7 +35,7 @@
     --onyxjar-text-secondary: #475569;
     --onyxjar-accent-soft: #eef2ff;
     --onyxjar-border: #e2e8f0;
-    --onyxjar-focus: #4f46e5;
+    --onyxjar-focus: #1F1B43;
 
     --onyxjar-radius-sm: 10px;
     --onyxjar-radius: 16px;
@@ -33,14 +43,25 @@
 
     --onyxjar-font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-    /* Bootstrap root-level overrides (reboot/link/focus rules read these live) */
+    /* Bootstrap root-level overrides (reboot/link/focus rules, and the .bg-*/.text-*/.border-*
+       utility classes, read these live) */
     --bs-primary: var(--onyxjar-indigo);
-    --bs-primary-rgb: 79, 70, 229;
+    --bs-primary-rgb: 31, 27, 67;
+    --bs-secondary: var(--onyxjar-secondary);
+    --bs-secondary-rgb: 84, 0, 84;
+    --bs-success: var(--onyxjar-success);
+    --bs-success-rgb: 47, 122, 93;
+    --bs-danger: var(--onyxjar-danger);
+    --bs-danger-rgb: 178, 58, 69;
+    --bs-warning: var(--onyxjar-warning);
+    --bs-warning-rgb: 205, 145, 45;
+    --bs-info: var(--onyxjar-info);
+    --bs-info-rgb: 54, 148, 163;
     --bs-link-color: var(--onyxjar-indigo);
-    --bs-link-color-rgb: 79, 70, 229;
+    --bs-link-color-rgb: 31, 27, 67;
     --bs-link-hover-color: var(--onyxjar-indigo-strong);
-    --bs-link-hover-color-rgb: 67, 56, 202;
-    --bs-focus-ring-color: rgba(79, 70, 229, 0.25);
+    --bs-link-hover-color-rgb: 25, 22, 54;
+    --bs-focus-ring-color: rgba(31, 27, 67, 0.25);
     --bs-border-radius: 0.5rem;
     --bs-border-radius-sm: 0.375rem;
     --bs-border-radius-lg: 0.75rem;
@@ -61,9 +82,9 @@ body {
    Bootstrap component overrides
    Bootstrap 5.3's compiled CDN CSS bakes component colours as
    literal hex inside component-scoped custom properties, so the
-   root --bs-primary override above does not by itself retheme
-   .btn-primary/.form-control etc. — redeclare explicitly.
-   Semantic colours (success/warning/danger/info) are untouched.
+   root --bs-* overrides above do not by themselves retheme
+   .btn-*/.alert-*/.form-control etc. — redeclare explicitly,
+   the same way, for all six theme colours.
    ========================================================== */
 
 .btn-primary {
@@ -73,7 +94,7 @@ body {
     --bs-btn-hover-border-color: var(--onyxjar-indigo-strong);
     --bs-btn-active-bg: var(--onyxjar-indigo-strong);
     --bs-btn-active-border-color: var(--onyxjar-indigo-strong);
-    --bs-btn-focus-shadow-rgb: 79, 70, 229;
+    --bs-btn-focus-shadow-rgb: 31, 27, 67;
 }
 
 .btn-outline-primary {
@@ -83,13 +104,113 @@ body {
     --bs-btn-hover-border-color: var(--onyxjar-indigo);
     --bs-btn-active-bg: var(--onyxjar-indigo);
     --bs-btn-active-border-color: var(--onyxjar-indigo);
-    --bs-btn-focus-shadow-rgb: 79, 70, 229;
+    --bs-btn-focus-shadow-rgb: 31, 27, 67;
+}
+
+.btn-secondary {
+    --bs-btn-bg: var(--onyxjar-secondary);
+    --bs-btn-border-color: var(--onyxjar-secondary);
+    --bs-btn-hover-bg: var(--onyxjar-secondary-strong);
+    --bs-btn-hover-border-color: var(--onyxjar-secondary-strong);
+    --bs-btn-active-bg: var(--onyxjar-secondary-strong);
+    --bs-btn-active-border-color: var(--onyxjar-secondary-strong);
+    --bs-btn-focus-shadow-rgb: 84, 0, 84;
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: var(--onyxjar-secondary);
+    --bs-btn-border-color: var(--onyxjar-secondary);
+    --bs-btn-hover-bg: var(--onyxjar-secondary);
+    --bs-btn-hover-border-color: var(--onyxjar-secondary);
+    --bs-btn-active-bg: var(--onyxjar-secondary);
+    --bs-btn-active-border-color: var(--onyxjar-secondary);
+    --bs-btn-focus-shadow-rgb: 84, 0, 84;
+}
+
+.btn-success {
+    --bs-btn-bg: var(--onyxjar-success);
+    --bs-btn-border-color: var(--onyxjar-success);
+    --bs-btn-hover-bg: var(--onyxjar-success-strong);
+    --bs-btn-hover-border-color: var(--onyxjar-success-strong);
+    --bs-btn-active-bg: var(--onyxjar-success-strong);
+    --bs-btn-active-border-color: var(--onyxjar-success-strong);
+    --bs-btn-focus-shadow-rgb: 47, 122, 93;
+}
+
+.btn-outline-success {
+    --bs-btn-color: var(--onyxjar-success);
+    --bs-btn-border-color: var(--onyxjar-success);
+    --bs-btn-hover-bg: var(--onyxjar-success);
+    --bs-btn-hover-border-color: var(--onyxjar-success);
+    --bs-btn-active-bg: var(--onyxjar-success);
+    --bs-btn-active-border-color: var(--onyxjar-success);
+    --bs-btn-focus-shadow-rgb: 47, 122, 93;
+}
+
+.btn-danger {
+    --bs-btn-bg: var(--onyxjar-danger);
+    --bs-btn-border-color: var(--onyxjar-danger);
+    --bs-btn-hover-bg: var(--onyxjar-danger-strong);
+    --bs-btn-hover-border-color: var(--onyxjar-danger-strong);
+    --bs-btn-active-bg: var(--onyxjar-danger-strong);
+    --bs-btn-active-border-color: var(--onyxjar-danger-strong);
+    --bs-btn-focus-shadow-rgb: 178, 58, 69;
+}
+
+.btn-outline-danger {
+    --bs-btn-color: var(--onyxjar-danger);
+    --bs-btn-border-color: var(--onyxjar-danger);
+    --bs-btn-hover-bg: var(--onyxjar-danger);
+    --bs-btn-hover-border-color: var(--onyxjar-danger);
+    --bs-btn-active-bg: var(--onyxjar-danger);
+    --bs-btn-active-border-color: var(--onyxjar-danger);
+    --bs-btn-focus-shadow-rgb: 178, 58, 69;
+}
+
+.btn-warning {
+    --bs-btn-bg: var(--onyxjar-warning);
+    --bs-btn-border-color: var(--onyxjar-warning);
+    --bs-btn-hover-bg: var(--onyxjar-warning-strong);
+    --bs-btn-hover-border-color: var(--onyxjar-warning-strong);
+    --bs-btn-active-bg: var(--onyxjar-warning-strong);
+    --bs-btn-active-border-color: var(--onyxjar-warning-strong);
+    --bs-btn-focus-shadow-rgb: 205, 145, 45;
+}
+
+.btn-outline-warning {
+    --bs-btn-color: var(--onyxjar-warning);
+    --bs-btn-border-color: var(--onyxjar-warning);
+    --bs-btn-hover-bg: var(--onyxjar-warning);
+    --bs-btn-hover-border-color: var(--onyxjar-warning);
+    --bs-btn-active-bg: var(--onyxjar-warning);
+    --bs-btn-active-border-color: var(--onyxjar-warning);
+    --bs-btn-focus-shadow-rgb: 205, 145, 45;
+}
+
+.btn-info {
+    --bs-btn-bg: var(--onyxjar-info);
+    --bs-btn-border-color: var(--onyxjar-info);
+    --bs-btn-hover-bg: var(--onyxjar-info-strong);
+    --bs-btn-hover-border-color: var(--onyxjar-info-strong);
+    --bs-btn-active-bg: var(--onyxjar-info-strong);
+    --bs-btn-active-border-color: var(--onyxjar-info-strong);
+    --bs-btn-focus-shadow-rgb: 54, 148, 163;
+}
+
+.btn-outline-info {
+    --bs-btn-color: var(--onyxjar-info);
+    --bs-btn-border-color: var(--onyxjar-info);
+    --bs-btn-hover-bg: var(--onyxjar-info);
+    --bs-btn-hover-border-color: var(--onyxjar-info);
+    --bs-btn-active-bg: var(--onyxjar-info);
+    --bs-btn-active-border-color: var(--onyxjar-info);
+    --bs-btn-focus-shadow-rgb: 54, 148, 163;
 }
 
 .form-control:focus,
 .form-select:focus {
     border-color: var(--onyxjar-indigo);
-    box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.15);
+    box-shadow: 0 0 0 0.25rem rgba(31, 27, 67, 0.15);
 }
 
 .form-check-input:checked {
@@ -99,7 +220,35 @@ body {
 
 .form-check-input:focus {
     border-color: var(--onyxjar-indigo);
-    box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.15);
+    box-shadow: 0 0 0 0.25rem rgba(31, 27, 67, 0.15);
+}
+
+/* Soft-tint alert overrides (Django messages), following Bootstrap's own
+   soft-alert convention: a light tint background, a slightly stronger
+   border, and the darkened "-strong" shade for readable body text. */
+
+.alert-success {
+    --bs-alert-color: var(--onyxjar-success-strong);
+    --bs-alert-bg: color-mix(in srgb, var(--onyxjar-success) 12%, white);
+    --bs-alert-border-color: color-mix(in srgb, var(--onyxjar-success) 35%, white);
+}
+
+.alert-danger {
+    --bs-alert-color: var(--onyxjar-danger-strong);
+    --bs-alert-bg: color-mix(in srgb, var(--onyxjar-danger) 12%, white);
+    --bs-alert-border-color: color-mix(in srgb, var(--onyxjar-danger) 35%, white);
+}
+
+.alert-warning {
+    --bs-alert-color: var(--onyxjar-warning-strong);
+    --bs-alert-bg: color-mix(in srgb, var(--onyxjar-warning) 15%, white);
+    --bs-alert-border-color: color-mix(in srgb, var(--onyxjar-warning) 40%, white);
+}
+
+.alert-info {
+    --bs-alert-color: var(--onyxjar-info-strong);
+    --bs-alert-bg: color-mix(in srgb, var(--onyxjar-info) 12%, white);
+    --bs-alert-border-color: color-mix(in srgb, var(--onyxjar-info) 35%, white);
 }
 
 
@@ -107,9 +256,14 @@ body {
    Navbar / footer
    ========================================================== */
 
-.onyxjar-navbar-mark {
-    width: 28px;
+.onyxjar-navbar-logo {
     height: 28px;
+    width: auto;
+}
+
+.onyxjar-footer-logo {
+    height: 24px;
+    width: auto;
 }
 
 .onyxjar-page-title {

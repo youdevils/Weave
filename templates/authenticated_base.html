@@ -35,8 +35,14 @@
 
     <link
         rel="icon"
-        href="{% static 'workspace/favicon.ico' %}"
-        type="image/x-icon"
+        href="{% static 'onyxjar/brand/icons/favicon.svg' %}"
+        type="image/svg+xml"
+    >
+    <link
+        rel="icon"
+        href="{% static 'onyxjar/brand/icons/favicon-512.png' %}"
+        type="image/png"
+        sizes="512x512"
     >
 
     <!-- =========================================================
@@ -104,37 +110,15 @@
             <!-- Brand -->
 
             <a
-                class="navbar-brand fw-semibold d-inline-flex align-items-center gap-2"
+                class="navbar-brand d-inline-flex align-items-center"
                 href="{% url 'website:home' %}"
                 aria-label="OnyxJar home"
             >
-                <svg
-                    class="onyxjar-navbar-mark"
-                    viewBox="0 0 120 120"
-                    aria-hidden="true"
-                    focusable="false"
+                <img
+                    class="onyxjar-navbar-logo"
+                    src="{% static 'onyxjar/brand/logos/logo-horizontal.svg' %}"
+                    alt="OnyxJar"
                 >
-                    <defs>
-                        <linearGradient id="onyxjar-mark-indigo" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0" stop-color="#4F46E5"/>
-                            <stop offset="1" stop-color="#3B6FE0"/>
-                        </linearGradient>
-                        <linearGradient id="onyxjar-mark-teal" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0" stop-color="#1CCBA3"/>
-                            <stop offset="1" stop-color="#10B981"/>
-                        </linearGradient>
-                        <linearGradient id="onyxjar-mark-sky" x1="0.2" y1="0" x2="0.8" y2="1">
-                            <stop offset="0" stop-color="#A9CDFC" stop-opacity="0.92"/>
-                            <stop offset="1" stop-color="#4C97F4"/>
-                        </linearGradient>
-                    </defs>
-                    <g stroke-linejoin="round" stroke-width="7">
-                        <polygon points="8,44 44,30 44,92 8,105" fill="url(#onyxjar-mark-indigo)" stroke="url(#onyxjar-mark-indigo)"/>
-                        <polygon points="60,15 112,8 112,46 60,53" fill="url(#onyxjar-mark-teal)" stroke="url(#onyxjar-mark-teal)"/>
-                        <polygon points="42,68 96,62 86,102 62,112 40,98" fill="url(#onyxjar-mark-sky)" stroke="url(#onyxjar-mark-sky)"/>
-                    </g>
-                </svg>
-                OnyxJar
             </a>
 
 
@@ -451,11 +435,13 @@
 
                 <div class="col-12 col-md-4">
 
-                    <div class="fw-semibold">
-                        OnyxJar
-                    </div>
+                    <img
+                        class="onyxjar-footer-logo"
+                        src="{% static 'onyxjar/brand/logos/logo-horizontal.svg' %}"
+                        alt="OnyxJar"
+                    >
 
-                    <div class="small text-muted">
+                    <div class="small text-muted mt-2">
                         Build a living model of complex work.
                     </div>
 
