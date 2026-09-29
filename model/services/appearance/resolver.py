@@ -29,7 +29,11 @@ def resolve_object(
 ) -> ResolvedObjectAppearance:
     # The border falls back to the theme accent rather than a fixed colour.
     values = {"border": theme.accent, **defaults.OBJECT_DEFAULTS, **model_layer, **type_layer}
-    return ResolvedObjectAppearance(font_family=theme.font_family, **values)
+    return ResolvedObjectAppearance(
+        font_family=theme.font_family,
+        label_halo=theme.canvas_background,
+        **values,
+    )
 
 
 def resolve_relationship(

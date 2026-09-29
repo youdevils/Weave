@@ -31,6 +31,10 @@ class ResolvedObjectAppearance:
     font_size: float
     font_weight: str
     icon: str | None
+    # Colour drawn around node labels so they stay legible where an edge
+    # crosses behind them; always the canvas background, so it is invisible
+    # against it.
+    label_halo: str
     background_source: str = "type"
     background_attribute: str | None = None
     # value -> hex, populated only when background_source == "attribute".

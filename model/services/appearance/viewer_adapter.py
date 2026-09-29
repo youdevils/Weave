@@ -91,6 +91,10 @@ def node_style(
         "color": appearance.font_colour,
         "size": appearance.font_size,
         "face": appearance.font_family,
+        # A canvas-coloured stroke around the label, so it stays readable
+        # where an edge crosses behind it without drawing a background box.
+        "strokeColor": appearance.label_halo,
+        "strokeWidth": 3,
     }
     if appearance.font_weight == "bold":
         font["weight"] = "bold"
@@ -139,5 +143,6 @@ def edge_style(
             "size": appearance.label_size,
             "face": appearance.font_family,
             "strokeColor": appearance.label_halo,
+            "strokeWidth": 2,
         },
     )

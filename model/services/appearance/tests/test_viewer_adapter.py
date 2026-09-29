@@ -31,6 +31,15 @@ class NodeStyleTests(SimpleTestCase):
         style = node_style(resolve_object(theme, {}, {}))
         self.assertEqual(style.font["face"], "'Courier New', Courier, monospace")
 
+    def test_label_halo_follows_the_canvas_background(self):
+        style = node_style(self.node())
+        self.assertEqual(style.font["strokeColor"], "#FFFFFF")
+        self.assertEqual(style.font["strokeWidth"], 3)
+
+        dark = resolve_theme({"canvas_background": "#101010"})
+        style = node_style(resolve_object(dark, {}, {}))
+        self.assertEqual(style.font["strokeColor"], "#101010")
+
     def test_bold_is_carried_as_font_weight(self):
         self.assertEqual(node_style(self.node(font_weight="bold")).font["weight"], "bold")
 
@@ -212,7 +221,13 @@ class EdgeStyleTests(SimpleTestCase):
         style = edge_style(resolve_relationship(theme, {"label_colour": "#010101", "label_size": 16}, {}))
         self.assertEqual(
             style.font,
-            {"color": "#010101", "size": 16, "face": "Verdana, Geneva, sans-serif", "strokeColor": "#FFFFFF"},
+            {
+                "color": "#010101",
+                "size": 16,
+                "face": "Verdana, Geneva, sans-serif",
+                "strokeColor": "#FFFFFF",
+                "strokeWidth": 2,
+            },
         )
 
     def test_label_halo_follows_the_canvas_background(self):
