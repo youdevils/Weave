@@ -116,22 +116,20 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 105 * 1024 * 1024  # 105MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 105 * 1024 * 1024  # 105MB
 
 # ------------------------------------------------------------------------------------
-# STATIC FILES (Dev vs Prod)
+# STATIC FILES
 # ------------------------------------------------------------------------------------
+
 PUBLISHED_ROOT = BASE_DIR / "published"
 
 STATIC_URL = "/static/"
 
-# In production, collectstatic will store here
+# Source static files used by Django in all environments
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+# collectstatic destination
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# Allow overwriting static behaviour in Docker
-STATICFILES_DIRS = []
-
-if DEBUG:
-    STATICFILES_DIRS = [
-        BASE_DIR / "static",
-    ]
 
 # ------------------------------------------------------------------------------------
 # SECURITY (Enabled automatically when DEBUG=False)
