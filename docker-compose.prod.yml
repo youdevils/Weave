@@ -1,40 +1,8 @@
 services:
-  web:
-    container_name: mahimate_web_prod
-    build:
-      context: .
-    command:
-      - gunicorn
-      - mahimate.wsgi:application
-      - --bind
-      - 0.0.0.0:8000
-      - --workers
-      - "3"
-      - --timeout
-      - "60"
-      - --access-logfile
-      - "-"
-      - --error-logfile
-      - "-"
-    ports:
-      - "127.0.0.1:8000:8000"
-    volumes:
-      - /var/www/mahimate/static:/app/staticfiles
-      - /var/www/mahimate/media:/app/media
-    env_file:
-      - .env.prod
-    environment:
-      DJANGO_ENV: prod
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
 
   db:
     image: postgres:15
-    container_name: mahimate_db_prod
+    container_name: PROD_onyxjar_db
     env_file:
       - .env.prod
     environment:
@@ -52,7 +20,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: mahimate_redis_prod
+    container_name: PROD_onyxjar_redis
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -60,15 +28,30 @@ services:
       retries: 10
     restart: unless-stopped
 
-  celery:
-    container_name: mahimate_celery_prod
+  web:
+    container_name: PROD_onyxjar_web
     build:
       context: .
-    command: celery -A mahimate worker -l info --concurrency=2
+    command:
+      - gunicorn
+      - onyxjar.wsgi:application
+      - --bind
+      - 0.0.0.0:8000
+      - --workers
+      - "3"
+      - --timeout
+      - "60"
+      - --access-logfile
+      - "-"
+      - --error-logfile
+      - "-"
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - /var/www/onyxjar/static:/app/staticfiles
+      - /var/www/onyxjar/media:/app/media
     env_file:
       - .env.prod
-    volumes:
-      - /var/www/mahimate/media:/app/media
     environment:
       DJANGO_ENV: prod
     depends_on:
@@ -76,19 +59,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      web:
-        condition: service_started
     restart: unless-stopped
 
-  celery_beat:
-    container_name: mahimate_celery_beat_prod
+  celery_worker:
+    container_name: PROD_onyxjar_celery_worker
     build:
       context: .
-    command: celery -A mahimate beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    command: celery -A onyxjar worker -l info --concurrency=2
     env_file:
       - .env.prod
     volumes:
-      - /var/www/mahimate/media:/app/media
+      - /var/www/onyxjar/media:/app/media
     environment:
       DJANGO_ENV: prod
     depends_on:
@@ -96,8 +77,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      web:
-        condition: service_started
     restart: unless-stopped
 
 volumes:

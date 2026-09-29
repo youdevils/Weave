@@ -141,15 +141,13 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "true").lower() == "true"
-    SECURE_HSTS_SECONDS = 60
+    SECURE_HSTS_SECONDS = 0
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     CSRF_TRUSTED_ORIGINS = [
         "https://onyxjar.com",
         "https://www.onyxjar.com",
-        "https://onyxjar.co.nz",
-        "https://www.onyxjar.co.nz",
     ]
 
 # Password validation
@@ -257,8 +255,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ------------------------------------------------------------------------------------
 # for settings import
 # ------------------------------------------------------------------------------------
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+
+if not RESEND_API_KEY:
+    raise RuntimeError("RESEND_API_KEY is not set")
 
 LOGGING = {
     "version": 1,
