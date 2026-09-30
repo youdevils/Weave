@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from django.apps import apps
+from django.conf import settings
 
 from .bundler import bundle_modules
 
@@ -28,6 +29,11 @@ STYLESHEETS = (
     ("model", "css/explorer.css"),
     ("publication", "css/portable.css"),
 )
+
+# The OnyxJar brand mark lives under the project's own static/ directory (a
+# STATICFILES_DIRS root), not inside any app's static/<app_label>/ tree, so it
+# is read separately from the app-static files above.
+BRAND_MARK = Path("onyxjar/brand/logos/mark-inline.svg")
 
 
 class AssetMissing(Exception):
@@ -50,11 +56,20 @@ def read_static(app_label: str, relative: str) -> str:
     return _SOURCE_MAP_COMMENT.sub("", text)
 
 
+def read_project_static(relative: Path) -> str:
+    """A file's text from the project's own static/ directory (STATICFILES_DIRS), not an app's."""
+    path = Path(settings.BASE_DIR) / "static" / relative
+    if not path.is_file():
+        raise AssetMissing(f"Missing static asset: {relative}")
+    return path.read_text(encoding="utf-8")
+
+
 @dataclass(frozen=True)
 class PortableAssets:
     css: str
     vis_script: str
     app_script: str
+    brand_mark: str
     modules: tuple  # the JS modules inlined into ``app_script``
 
 
@@ -64,5 +79,6 @@ def load_assets() -> PortableAssets:
         css="\n".join(read_static(*sheet) for sheet in STYLESHEETS),
         vis_script=read_static(*VIS_SCRIPT),
         app_script=bundled.code,
+        brand_mark=read_project_static(BRAND_MARK),
         modules=tuple(path.name for path in bundled.modules),
     )

@@ -35,6 +35,9 @@ export function startPortableExplorer({ bundle }) {
     bootstrap: { graph: source.graphSync(state), facets: bundle.facets },
     state,
     defaultState: state,
+    panelLabels: { legend: "Explore", sidebar: "Details", controls: "Graph Controls" },
+    detailsSectioned: true,
+    exclusivePanelsBelow: 900,
   });
 }
 

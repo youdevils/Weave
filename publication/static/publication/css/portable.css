@@ -7,6 +7,9 @@
 .onyxjar-published {
     --onyxjar-theme: #4c6ef5;
     --onyxjar-theme-ink: #ffffff;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     margin: 0;
     color: #212529;
     background: #f8f9fa;
@@ -23,6 +26,7 @@
 
 .onyxjar-published-header {
     display: flex;
+    flex: 0 0 auto;
     flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
@@ -53,12 +57,11 @@
 }
 
 .onyxjar-published-main {
-    padding: 1rem 1.25rem 0.5rem;
-}
-
-.onyxjar-published .model-explorer-layout {
-    height: calc(100vh - 9.5rem);
-    min-height: 480px;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 /* explorer.css pads the icon side of the search box; the generic control padding must not undo it. */
@@ -66,13 +69,251 @@
     padding-left: 2.1rem;
 }
 
+/* =========================================================
+   Graph workspace: the canvas is the dominant, full-bleed
+   surface, with Explore/Details/Graph Controls floating over
+   it instead of explorer.css's fixed three-column grid.
+   ========================================================= */
+
+.onyxjar-published .model-explorer-layout {
+    /* explorer.css's shared rule makes this a 3-column grid; escaping that (and its
+       :has()-based collapse track-resizing) is what lets .model-explorer-main span
+       the full width below, rather than being auto-placed into the first ~280px
+       grid column. */
+    display: block;
+    position: relative;
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 480px;
+}
+
+.onyxjar-published .model-explorer-main {
+    position: relative;
+    display: block;
+    height: 100%;
+}
+
+.onyxjar-published .model-explorer-canvas {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    border-radius: 0;
+}
+
+.onyxjar-published .model-explorer-side,
+.onyxjar-published .model-explorer-detail {
+    position: absolute;
+    top: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 10;
+    max-width: calc(100% - 1.5rem);
+    max-height: none;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
+}
+
+.onyxjar-published .model-explorer-side {
+    left: 0.75rem;
+    width: 336px;
+    /* Reserve room for Graph Controls below; :has() rule further down shrinks this to
+       0.75rem once Graph Controls is collapsed. */
+    bottom: calc(30% + 1.5rem);
+}
+
+.onyxjar-published .model-explorer-detail {
+    right: 0.75rem;
+    width: 420px;
+}
+
+/* Collapsed: hide the floating panel entirely and return its space to the graph,
+   rather than the shared 44px rail explorer.css uses for the other hosts. */
+.onyxjar-published .model-explorer-side.legend-collapsed,
+.onyxjar-published .model-explorer-detail.sidebar-collapsed,
+.onyxjar-published .model-explorer-controls-panel.controls-collapsed {
+    display: none;
+}
+
+.onyxjar-published .model-explorer-reopen-tab {
+    position: absolute;
+    z-index: 10;
+    background: #fff;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.14);
+}
+
+.onyxjar-published #explorer-legend-reopen {
+    top: 0.75rem;
+    left: 0.75rem;
+}
+
+.onyxjar-published #explorer-sidebar-reopen {
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+.onyxjar-published #explorer-controls-reopen {
+    bottom: 0.75rem;
+    left: 0.75rem;
+}
+
+.onyxjar-published .model-explorer-layout:has(.model-explorer-side.legend-collapsed) #explorer-legend-reopen {
+    display: inline-flex;
+}
+
+.onyxjar-published .model-explorer-layout:has(.model-explorer-detail.sidebar-collapsed) #explorer-sidebar-reopen {
+    display: inline-flex;
+}
+
+.onyxjar-published .model-explorer-layout:has(.model-explorer-controls-panel.controls-collapsed) #explorer-controls-reopen {
+    display: inline-flex;
+}
+
+/* =========================================================
+   Graph Controls: a bottom-left floating panel beneath
+   Explore, wrapping the shared statebar (counts, filters,
+   Fit, Reset) in a panel shell with its own collapse/reopen.
+   ========================================================= */
+
+.onyxjar-published .model-explorer-controls-panel {
+    position: absolute;
+    left: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 10;
+    width: 336px;
+    max-width: calc(100% - 1.5rem);
+    max-height: 30%;
+    overflow-y: auto;
+    padding: 0.75rem;
+    border: 1px solid var(--model-border);
+    border-radius: 10px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
+}
+
+/* explorer.css hides this header by default (Data Explorer/Publishing Viewer's toolbar
+   has never had one); only the published workspace's Graph Controls panel shows it. */
+.onyxjar-published .model-explorer-controls-panel > .model-explorer-panel-header {
+    display: flex;
+    margin-bottom: 0.6rem;
+}
+
+/* Reclaim Explore's reserved bottom space once Graph Controls is collapsed. */
+.onyxjar-published .model-explorer-layout:has(.model-explorer-controls-panel.controls-collapsed) .model-explorer-side {
+    bottom: 0.75rem;
+}
+
+/* Below this width the JS (createExplorer's `exclusivePanelsBelow`) keeps Explore/Details
+   mutually exclusive, so only one drawer is ever open here; it becomes a bottom sheet.
+   Graph Controls moves to a top bar so it never collides with that bottom sheet. */
+@media (max-width: 900px) {
+    .onyxjar-published .model-explorer-side,
+    .onyxjar-published .model-explorer-detail {
+        top: auto;
+        bottom: 0.5rem;
+        left: 0.5rem;
+        right: 0.5rem;
+        width: auto;
+        max-width: none;
+        max-height: 70vh;
+    }
+
+    .onyxjar-published .model-explorer-controls-panel {
+        top: 0.5rem;
+        bottom: auto;
+        left: 0.5rem;
+        right: 0.5rem;
+        width: auto;
+        max-width: none;
+    }
+
+    .onyxjar-published #explorer-controls-reopen {
+        top: 0.5rem;
+        bottom: auto;
+        left: 0.5rem;
+    }
+}
+
+/* =========================================================
+   Details panel: two-column attribute presentation and
+   distinct node-reference vs relationship-details colours.
+   ========================================================= */
+
+/* Overlays keep a small amount of visual awareness of the graph underneath them --
+   a slight translucency plus blur, never a heavily-transparent glassmorphism look,
+   with a solid white fallback for browsers without backdrop-filter support. */
+.onyxjar-published .model-explorer-side,
+.onyxjar-published .model-explorer-detail,
+.onyxjar-published .model-explorer-controls-panel {
+    background: #ffffff;
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .onyxjar-published .model-explorer-side,
+    .onyxjar-published .model-explorer-detail {
+        background: rgb(255 255 255 / 94%);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .onyxjar-published .model-explorer-controls-panel {
+        background: rgb(255 255 255 / 90%);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+}
+
+/* Details section headings (Attributes/Connections/History, and Graph Controls'
+   "Active filters") read as strong headings, not muted metadata -- the shared
+   explorer.css rule for h4 inside .model-explorer-detail/.model-explorer-side
+   is muted/small-caps, which is right for the legend but wrong here. The count
+   badge is a separate child span and keeps its own muted styling regardless. */
+.onyxjar-published .model-explorer-detail-section-toggle h4 {
+    margin: 0.9rem 0 0.4rem;
+    color: #1a1d21;
+    font-weight: 700;
+}
+
+.onyxjar-published .model-explorer-attribute {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+}
+
+.onyxjar-published .model-explorer-attribute dt {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--model-text-muted);
+}
+
+.onyxjar-published .model-explorer-attribute dd {
+    width: 100%;
+    text-align: left;
+}
+
+.onyxjar-published .model-explorer-link {
+    color: var(--onyxjar-interactive);
+}
+
+.onyxjar-published .model-explorer-link:hover {
+    text-decoration: underline;
+}
+
+.onyxjar-published .model-explorer-link-quiet {
+    color: #6c757d;
+}
+
+.onyxjar-published .model-explorer-link-quiet:hover {
+    color: #495057;
+    text-decoration: underline;
+}
+
 .onyxjar-published-footer {
     display: flex;
+    flex: 0 0 auto;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.4rem 1rem;
-    padding: 0.6rem 1.25rem 0.9rem;
+    gap: 0.5rem 1rem;
+    padding: 0.6rem 1.25rem;
     border-top: 1px solid #e9ecef;
 }
 
@@ -81,22 +322,20 @@
 .onyxjar-published-brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.5rem;
     color: #1e1b4b;
     font-weight: 700;
     font-size: 0.82rem;
 }
 
-.onyxjar-published-sprite {
-    position: absolute;
-    width: 0;
-    height: 0;
+.onyxjar-published-mark {
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 auto;
 }
 
-.onyxjar-published-mark {
-    width: 1.1rem;
-    height: 1.1rem;
-    flex: 0 0 auto;
+.onyxjar-published-wordmark {
+    font-size: 1.1rem;
 }
 
 .onyxjar-published-footer-text {
@@ -150,6 +389,16 @@
     background: #6c757d;
 }
 
+.onyxjar-published .btn-primary {
+    border-color: var(--onyxjar-theme);
+    background: var(--onyxjar-theme);
+    color: var(--onyxjar-theme-ink);
+}
+
+.onyxjar-published .btn-primary:hover {
+    filter: brightness(0.94);
+}
+
 .onyxjar-published .form-control,
 .onyxjar-published .form-select {
     display: block;
@@ -183,12 +432,6 @@
 
 .onyxjar-published input[type="checkbox"] {
     accent-color: var(--onyxjar-theme);
-}
-
-@media (max-width: 1200px) {
-    .onyxjar-published .model-explorer-layout {
-        height: auto;
-    }
 }
 
 @media print {

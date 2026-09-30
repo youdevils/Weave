@@ -215,6 +215,23 @@ function objectButton(ref) {
   return `<button type="button" class="model-explorer-link" data-action="select-object" data-id="${e(ref.id)}">${e(ref.name)}</button> ${typePill(ref.typeName)}${proposedBadge(ref.isProposed)}${hidden}`;
 }
 
+/**
+ * A collapsible Details section (Attributes / Connections / History) for hosts that opt in via
+ * `sectioned: true`. Owns the heading and the toggle button; `bodyHtml` must be body content only
+ * -- never something that already renders its own heading/section wrapper.
+ */
+function renderDetailSection({ id, title, count, defaultOpen, bodyHtml }) {
+  const countBadge = count != null ? ` <span class="model-explorer-count">${count}</span>` : "";
+  return `
+    <section class="model-explorer-detail-section" data-section="${e(id)}">
+      <button type="button" class="model-explorer-detail-section-toggle" data-action="toggle-details-section" aria-expanded="${defaultOpen ? "true" : "false"}">
+        <svg class="onyxjar-icon model-explorer-detail-section-chevron" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 6l4 4 4-4"/></svg>
+        <h4>${e(title)}${countBadge}</h4>
+      </button>
+      <div class="model-explorer-detail-section-body${defaultOpen ? "" : " collapsed"}">${bodyHtml}</div>
+    </section>`;
+}
+
 function renderCopyButton(canCopy) {
   if (!canCopy) return "";
   return `<button type="button" class="btn btn-outline-secondary btn-sm" data-action="copy-details">${icon("copy")} Copy</button>`;
@@ -225,7 +242,7 @@ function renderEditButton(editHref) {
   return `<a class="btn btn-outline-secondary btn-sm model-explorer-edit-link" href="${e(editHref)}">${icon("edit")} Edit</a>`;
 }
 
-function renderObjectDetails(details, canCopy, editHref) {
+function renderObjectDetails(details, canCopy, editHref, sectioned = false) {
   const groups = details.relationships
     .map((group) => {
       const items = group.items
@@ -256,6 +273,40 @@ function renderObjectDetails(details, canCopy, editHref) {
     hiddenCount > 0
       ? `<button type="button" class="btn btn-outline-secondary btn-sm" data-action="include-connected" data-ids="${e(details.hiddenConnectionIds.join(","))}">Show ${hiddenCount} hidden ${hiddenCount === 1 ? "connection" : "connections"}</button>`
       : "";
+  const connectionsBody = `${expand}${groups || '<p class="model-explorer-muted">This object has no relationships.</p>'}`;
+
+  const attributesHtml = renderAttributes(details.attributes);
+  const attributesBlock =
+    sectioned && attributesHtml
+      ? renderDetailSection({ id: "attributes", title: "Attributes", defaultOpen: true, bodyHtml: attributesHtml })
+      : attributesHtml;
+
+  const connectionsBlock = sectioned
+    ? renderDetailSection({
+        id: "connections",
+        title: "Connections",
+        count: details.connectionCount,
+        defaultOpen: true,
+        bodyHtml: connectionsBody,
+      })
+    : `
+    <div class="model-explorer-connections-header">
+      <h4>Connections <span class="model-explorer-count">${details.connectionCount}</span></h4>
+      ${expand}
+    </div>
+    ${groups || '<p class="model-explorer-muted">This object has no relationships.</p>'}`;
+
+  const historyBlock = sectioned
+    ? details.provenance
+      ? renderDetailSection({
+          id: "history",
+          title: "History",
+          count: details.provenance.entries.length,
+          defaultOpen: false,
+          bodyHtml: renderProvenanceBody(details.provenance, "object"),
+        })
+      : ""
+    : renderProvenance(details.provenance, "object");
 
   return `
     <header class="model-explorer-details-header">
@@ -267,16 +318,12 @@ function renderObjectDetails(details, canCopy, editHref) {
     </header>
     ${hiddenNotice("object", details.inView)}
     ${details.description ? `<p class="model-explorer-description">${e(details.description)}</p>` : ""}
-    ${renderAttributes(details.attributes)}
-    <div class="model-explorer-connections-header">
-      <h4>Connections <span class="model-explorer-count">${details.connectionCount}</span></h4>
-      ${expand}
-    </div>
-    ${groups || '<p class="model-explorer-muted">This object has no relationships.</p>'}
-    ${renderProvenance(details.provenance, "object")}`;
+    ${attributesBlock}
+    ${connectionsBlock}
+    ${historyBlock}`;
 }
 
-function renderRelationshipDetails(details, editHref) {
+function renderRelationshipDetails(details, editHref, sectioned = false) {
   const cardinality = details.cardinality
     ? `<p class="model-explorer-muted">Allowed: ${e(details.source.typeName)} ${formatCardinality(details.cardinality.subject.minimum, details.cardinality.subject.maximum)} &rarr; ${formatCardinality(details.cardinality.object.minimum, details.cardinality.object.maximum)} ${e(details.target.typeName)}</p>`
     : "";
@@ -284,6 +331,25 @@ function renderRelationshipDetails(details, editHref) {
     details.validFrom || details.validTo
       ? `<p class="model-explorer-muted">Valid ${details.validFrom ? `from ${e(details.validFrom)}` : ""} ${details.validTo ? `to ${e(details.validTo)}` : ""}</p>`
       : "";
+
+  const attributesHtml = renderAttributes(details.attributes);
+  const attributesBlock =
+    sectioned && attributesHtml
+      ? renderDetailSection({ id: "attributes", title: "Attributes", defaultOpen: true, bodyHtml: attributesHtml })
+      : attributesHtml;
+
+  const historyBlock = sectioned
+    ? details.provenance
+      ? renderDetailSection({
+          id: "history",
+          title: "History",
+          count: details.provenance.entries.length,
+          defaultOpen: false,
+          bodyHtml: renderProvenanceBody(details.provenance, "relationship"),
+        })
+      : ""
+    : renderProvenance(details.provenance, "relationship");
+
   return `
     <header class="model-explorer-details-header">
       <div class="model-explorer-details-heading-row">
@@ -297,10 +363,10 @@ function renderRelationshipDetails(details, editHref) {
       <div><span class="model-explorer-label">From</span> ${objectButton(details.source)}</div>
       <div><span class="model-explorer-label">To</span> ${objectButton(details.target)}</div>
     </div>
-    ${renderAttributes(details.attributes)}
+    ${attributesBlock}
     ${validity}
     ${cardinality}
-    ${renderProvenance(details.provenance, "relationship")}`;
+    ${historyBlock}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -393,38 +459,39 @@ function renderProvenanceEntry(entry) {
     </li>`;
 }
 
-/**
- * The record's history, oldest first. Renders nothing when the response carried
- * no provenance at all, and an explicit empty state when there is none to show.
- */
-export function renderProvenance(provenance, kind = "object") {
-  if (!provenance) return "";
-
+/** The record's history body -- no heading, no wrapping `<section>`; see `renderProvenance`. */
+export function renderProvenanceBody(provenance, kind = "object") {
   if (provenance.entries.length === 0) {
-    return `
-      <section class="model-explorer-provenance">
-        <h4>History</h4>
-        <p class="model-explorer-muted">No approved proposals have changed this ${e(kind)}.</p>
-      </section>`;
+    return `<p class="model-explorer-muted">No approved proposals have changed this ${e(kind)}.</p>`;
   }
 
   const older = provenance.truncated
     ? '<p class="model-explorer-muted">Older history is not shown.</p>'
     : "";
 
+  return `${older}<ol class="model-explorer-provenance-list">${provenance.entries.map(renderProvenanceEntry).join("")}</ol>`;
+}
+
+/**
+ * The record's history, oldest first, in its own `<section>` with its own heading. Renders
+ * nothing when the response carried no provenance at all, and an explicit empty state when
+ * there is none to show. Used by unsectioned (flat) Details rendering; sectioned rendering
+ * instead wraps `renderProvenanceBody` in a `renderDetailSection` so the heading is not doubled.
+ */
+export function renderProvenance(provenance, kind = "object") {
+  if (!provenance) return "";
   return `
     <section class="model-explorer-provenance">
-      <h4>History <span class="model-explorer-count">${provenance.entries.length}</span></h4>
-      ${older}
-      <ol class="model-explorer-provenance-list">${provenance.entries.map(renderProvenanceEntry).join("")}</ol>
+      <h4>History${provenance.entries.length ? ` <span class="model-explorer-count">${provenance.entries.length}</span>` : ""}</h4>
+      ${renderProvenanceBody(provenance, kind)}
     </section>`;
 }
 
-export function renderDetails(details, { canCopy = false, editHref = null } = {}) {
+export function renderDetails(details, { canCopy = false, editHref = null, sectioned = false } = {}) {
   if (!details) return renderEmptyDetails();
   return details.kind === "object"
-    ? renderObjectDetails(details, canCopy, editHref)
-    : renderRelationshipDetails(details, editHref);
+    ? renderObjectDetails(details, canCopy, editHref, sectioned)
+    : renderRelationshipDetails(details, editHref, sectioned);
 }
 
 // ---------------------------------------------------------------------------

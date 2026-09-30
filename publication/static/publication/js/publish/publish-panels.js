@@ -10,7 +10,17 @@
  */
 
 /** Present on the page (publish.html and model/_explorer_main.html). */
-export const RETAINED_ELEMENTS = ["root", "graph", "counts", "chips", "notices", "error"];
+export const RETAINED_ELEMENTS = [
+  "root",
+  "graph",
+  "counts",
+  "chips",
+  "notices",
+  "error",
+  "controls",
+  "controlsToggle",
+  "controlsReopen",
+];
 
 /** Not shown on the page: element name -> the tag of the detached stand-in. */
 const DETACHED_TAGS = {
@@ -18,6 +28,7 @@ const DETACHED_TAGS = {
   results: "div",
   legend: "aside",
   legendToggle: "button",
+  legendReopen: "button",
   objectTypeRows: "div",
   objectTypeToggle: "button",
   relationshipTypeRows: "div",
@@ -28,6 +39,7 @@ const DETACHED_TAGS = {
   builderMessage: "p",
   sidebar: "aside",
   sidebarToggle: "button",
+  sidebarReopen: "button",
   details: "div",
 };
 

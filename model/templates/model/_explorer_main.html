@@ -1,27 +1,57 @@
 {# The graph and where we are: state bar and canvas. Expects canvas_background; optionally explorer_show_proposed + explorer_legend, and explorer_hide_view_controls (no Fit / Reset view). #}
+<button
+    type="button"
+    id="explorer-controls-reopen"
+    class="model-explorer-reopen-tab"
+    data-action="toggle-controls"
+    aria-controls="explorer-controls-panel"
+    aria-expanded="true"
+    aria-label="Graph Controls panel"
+>
+    <svg class="onyxjar-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 4l-4 4 4 4"/></svg>
+    <span>Graph Controls</span>
+</button>
 <section class="model-explorer-main" aria-label="Graph">
 
-    <div class="model-explorer-statebar">
+    <div id="explorer-controls-panel" class="model-explorer-controls-panel">
 
-        <div class="model-explorer-statebar-row">
-            <div id="explorer-counts" class="model-explorer-counts"></div>
-            <div class="model-explorer-statebar-actions">
-                {% if explorer_show_proposed %}
-                <span class="model-ontology-legend-item">
-                    <span class="model-ontology-legend-swatch model-ontology-legend-swatch-proposed" style="--legend-proposed: {{ explorer_legend.proposed_colour }};"></span>
-                    Proposed change
-                </span>
-                {% endif %}
-                {% if not explorer_hide_view_controls %}
-                <button type="button" class="btn btn-primary btn-sm" data-action="fit-view">Fit</button>
-                <button type="button" class="btn btn-primary btn-sm" data-action="reset-view">Reset view</button>
-                {% endif %}
-            </div>
+        <div class="model-explorer-panel-header">
+            <span class="model-explorer-panel-title">Graph Controls</span>
+            <button
+                type="button"
+                id="explorer-controls-toggle"
+                class="model-explorer-panel-toggle"
+                data-action="toggle-controls"
+                aria-expanded="true"
+                aria-label="Collapse Graph Controls"
+            >
+                <svg class="onyxjar-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 4l4 4-4 4"/></svg>
+            </button>
         </div>
 
-        <div id="explorer-chips" class="model-explorer-chips"></div>
-        <div id="explorer-notices"></div>
-        <p id="explorer-error" class="model-explorer-form-error" role="alert" hidden></p>
+        <div class="model-explorer-statebar">
+
+            <div class="model-explorer-statebar-row">
+                <div id="explorer-counts" class="model-explorer-counts"></div>
+                <div class="model-explorer-statebar-actions">
+                    {% if explorer_show_proposed %}
+                    <span class="model-ontology-legend-item">
+                        <span class="model-ontology-legend-swatch model-ontology-legend-swatch-proposed" style="--legend-proposed: {{ explorer_legend.proposed_colour }};"></span>
+                        Proposed change
+                    </span>
+                    {% endif %}
+                    {% if not explorer_hide_view_controls %}
+                    <button type="button" class="btn btn-primary btn-sm" data-action="fit-view">Fit</button>
+                    <button type="button" class="btn btn-primary btn-sm" data-action="reset-view">Reset view</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div id="explorer-chips" class="model-explorer-chips"></div>
+            <div id="explorer-notices"></div>
+            <p id="explorer-error" class="model-explorer-form-error" role="alert" hidden></p>
+
+        </div>
 
     </div>
 

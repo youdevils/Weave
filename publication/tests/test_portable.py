@@ -173,7 +173,7 @@ class ContentTests(DocumentFixture):
         html = render_document(self.bundle(), show_platform_branding=False)
 
         self.assertNotIn('<div class="onyxjar-published-brand">', html)
-        self.assertNotIn("onyxjar-published-wordmark", html)
+        self.assertNotIn('<span class="onyxjar-published-wordmark">', html)
         # The factual disclosure is not paid-tier branding, so it stays regardless.
         self.assertIn("Read-only snapshot of an OnyxJar model.", html)
 

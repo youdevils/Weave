@@ -79,6 +79,11 @@ export const ELEMENT_IDS = {
   notices: "explorer-notices",
   sidebar: "explorer-details-panel",
   sidebarToggle: "explorer-sidebar-toggle",
+  legendReopen: "explorer-legend-reopen",
+  sidebarReopen: "explorer-sidebar-reopen",
+  controls: "explorer-controls-panel",
+  controlsToggle: "explorer-controls-toggle",
+  controlsReopen: "explorer-controls-reopen",
   details: "explorer-details",
   error: "explorer-error",
 };
@@ -96,6 +101,15 @@ const defaultApplyBackground = (container, colour) => {
  * @param {object} [config.defaultState]    what "Reset view" returns to (default: ``config.state``)
  * @param {Function} [config.applyBackground]  (container, colour) => void
  * @param {object} [config.elements]        overrides for the elements looked up by id
+ * @param {{legend: string, sidebar: string, controls: string}} [config.panelLabels]  words used in
+ *   the panels' aria-labels ("Collapse {label}" / "Expand {label}"); a host with different panel
+ *   names (e.g. the published Explorer's "Explore"/"Graph Controls") passes its own without
+ *   changing default behaviour
+ * @param {boolean} [config.detailsSectioned]  render Attributes/Connections/History as independently
+ *   collapsible sections instead of one flat panel (default: flat, unchanged)
+ * @param {number|null} [config.exclusivePanelsBelow]  a viewport width (px) below which opening one
+ *   of the legend/sidebar panels collapses the other, so at most one is ever open at once; `null`
+ *   (default) never does this
  */
 export function createExplorer({
   OnyxJarViewer,
@@ -105,6 +119,9 @@ export function createExplorer({
   defaultState = startState,
   applyBackground = defaultApplyBackground,
   elements = {},
+  panelLabels = { legend: "legend", sidebar: "details", controls: "controls" },
+  detailsSectioned = false,
+  exclusivePanelsBelow = null,
 }) {
   const el = {};
   for (const [name, id] of Object.entries(ELEMENT_IDS)) el[name] = elements[name] ?? document.getElementById(id);
@@ -331,16 +348,40 @@ export function createExplorer({
   // `defaultState`, so it can't be perturbed by filtering/selecting and never
   // persists across a reload. "Reset view" explicitly re-expands everything.
 
-  function togglePanel(panel, toggle, collapsedClass, label) {
+  function togglePanel(panel, toggle, reopen, collapsedClass, label) {
     const collapsed = panel.classList.toggle(collapsedClass);
     toggle.setAttribute("aria-expanded", String(!collapsed));
     toggle.setAttribute("aria-label", `${collapsed ? "Expand" : "Collapse"} ${label}`);
+    reopen?.setAttribute("aria-expanded", String(!collapsed));
   }
 
-  function expandPanel(panel, toggle, collapsedClass, label) {
+  function expandPanel(panel, toggle, reopen, collapsedClass, label) {
     panel.classList.remove(collapsedClass);
     toggle.setAttribute("aria-expanded", "true");
     toggle.setAttribute("aria-label", `Collapse ${label}`);
+    reopen?.setAttribute("aria-expanded", "true");
+  }
+
+  function collapsePanel(panel, toggle, reopen, collapsedClass, label) {
+    panel.classList.add(collapsedClass);
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", `Expand ${label}`);
+    reopen?.setAttribute("aria-expanded", "false");
+  }
+
+  /** True when the viewport is narrow enough that the legend/sidebar panels must stay exclusive. */
+  function isNarrowViewport() {
+    return Boolean(exclusivePanelsBelow) && matchMedia(`(max-width: ${exclusivePanelsBelow}px)`).matches;
+  }
+
+  /** On a narrow viewport, collapse the *other* panel before the one named here expands. */
+  function closeOtherPanelIfNarrow(opening) {
+    if (!isNarrowViewport()) return;
+    if (opening === "legend" && !el.sidebar.classList.contains("sidebar-collapsed")) {
+      collapsePanel(el.sidebar, el.sidebarToggle, el.sidebarReopen, "sidebar-collapsed", panelLabels.sidebar);
+    } else if (opening === "sidebar" && !el.legend.classList.contains("legend-collapsed")) {
+      collapsePanel(el.legend, el.legendToggle, el.legendReopen, "legend-collapsed", panelLabels.legend);
+    }
   }
 
   function toggleSection(rows, toggle) {
@@ -359,9 +400,17 @@ export function createExplorer({
     checkbox.indeterminate = hiddenCount > 0 && hiddenCount < types.length;
   }
 
+  /** What "Reset view" restores the legend/sidebar panels to: both open, unless the viewport
+   * is narrow enough that only one panel may ever be open, in which case Explore/legend wins
+   * and Details/sidebar is left collapsed rather than leaving both open at once. */
   function expandAllPanels() {
-    expandPanel(el.legend, el.legendToggle, "legend-collapsed", "legend");
-    expandPanel(el.sidebar, el.sidebarToggle, "sidebar-collapsed", "details");
+    expandPanel(el.legend, el.legendToggle, el.legendReopen, "legend-collapsed", panelLabels.legend);
+    if (isNarrowViewport()) {
+      collapsePanel(el.sidebar, el.sidebarToggle, el.sidebarReopen, "sidebar-collapsed", panelLabels.sidebar);
+    } else {
+      expandPanel(el.sidebar, el.sidebarToggle, el.sidebarReopen, "sidebar-collapsed", panelLabels.sidebar);
+    }
+    expandPanel(el.controls, el.controlsToggle, el.controlsReopen, "controls-collapsed", panelLabels.controls);
     expandSection(el.objectTypeRows, el.objectTypeToggle);
     expandSection(el.relationshipTypeRows, el.relationshipTypeToggle);
   }
@@ -371,7 +420,7 @@ export function createExplorer({
       state.selection && details && source.editUrl ? source.editUrl(details.kind, details.id, details.type.id) : null;
     el.details.innerHTML =
       state.selection && details
-        ? renderDetails(details, { canCopy: Boolean(source.dataset), editHref })
+        ? renderDetails(details, { canCopy: Boolean(source.dataset), editHref, sectioned: detailsSectioned })
         : renderEmptyDetails();
   }
 
@@ -479,10 +528,15 @@ export function createExplorer({
           await refreshGraph({ fit: true });
           break;
         case "toggle-legend":
-          togglePanel(el.legend, el.legendToggle, "legend-collapsed", "legend");
+          if (el.legend.classList.contains("legend-collapsed")) closeOtherPanelIfNarrow("legend");
+          togglePanel(el.legend, el.legendToggle, el.legendReopen, "legend-collapsed", panelLabels.legend);
           break;
         case "toggle-sidebar":
-          togglePanel(el.sidebar, el.sidebarToggle, "sidebar-collapsed", "details");
+          if (el.sidebar.classList.contains("sidebar-collapsed")) closeOtherPanelIfNarrow("sidebar");
+          togglePanel(el.sidebar, el.sidebarToggle, el.sidebarReopen, "sidebar-collapsed", panelLabels.sidebar);
+          break;
+        case "toggle-controls":
+          togglePanel(el.controls, el.controlsToggle, el.controlsReopen, "controls-collapsed", panelLabels.controls);
           break;
         case "toggle-legend-section":
           toggleSection(
@@ -490,6 +544,15 @@ export function createExplorer({
             id === "object" ? el.objectTypeToggle : el.relationshipTypeToggle,
           );
           break;
+        case "toggle-details-section": {
+          const section = actionElement.closest(".model-explorer-detail-section");
+          const body = section?.querySelector(".model-explorer-detail-section-body");
+          if (body) {
+            const collapsed = body.classList.toggle("collapsed");
+            actionElement.setAttribute("aria-expanded", String(!collapsed));
+          }
+          break;
+        }
         case "add-filter": {
           const built = readFilterBuilder(el.builder);
           el.builderMessage.textContent = built?.error || "";

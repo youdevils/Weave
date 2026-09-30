@@ -1,15 +1,27 @@
 {# Understand the selection. #}
+<button
+    type="button"
+    id="explorer-sidebar-reopen"
+    class="model-explorer-reopen-tab"
+    data-action="toggle-sidebar"
+    aria-controls="explorer-details-panel"
+    aria-expanded="true"
+    aria-label="{{ explorer_panel_title|default:'Details' }} panel"
+>
+    <svg class="onyxjar-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 4l-4 4 4 4"/></svg>
+    <span>{{ explorer_panel_title|default:"Details" }}</span>
+</button>
 <aside id="explorer-details-panel" class="model-explorer-panel model-explorer-detail" aria-label="Details">
 
     <div class="model-explorer-panel-header">
-        <span class="model-explorer-panel-title">Details</span>
+        <span class="model-explorer-panel-title">{{ explorer_panel_title|default:"Details" }}</span>
         <button
             type="button"
             id="explorer-sidebar-toggle"
             class="model-explorer-panel-toggle"
             data-action="toggle-sidebar"
             aria-expanded="true"
-            aria-label="Collapse details"
+            aria-label="Collapse {{ explorer_panel_title|default:"details" }}"
         >
             <svg class="onyxjar-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 4l-4 4 4 4"/></svg>
         </button>

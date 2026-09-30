@@ -711,6 +711,81 @@
   text-orientation: upright;
 }
 
+/* Reopen tab for a collapsed panel -----------------------------------------
+   Always present in the markup (both panels ship one), but only ever shown
+   by a host that overrides this to display:flex/inline-flex for its own
+   collapsed-panel treatment -- the shared default keeps it fully inert. */
+
+.model-explorer-reopen-tab {
+  display: none;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--model-border);
+  border-radius: 999px;
+  background: var(--model-surface);
+  color: var(--model-text-secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.model-explorer-reopen-tab:hover {
+  background: var(--model-surface-hover);
+  color: var(--model-text);
+}
+
+.model-explorer-reopen-tab .onyxjar-icon {
+  flex: 0 0 auto;
+}
+
+/* Graph Controls wraps the existing statebar in a panel shell so it can gain the same
+   collapse/reopen affordance as Explore/Details -- but only Published Output shows the
+   header/toggle; every other host keeps today's always-visible, chrome-less toolbar. */
+.model-explorer-controls-panel > .model-explorer-panel-header {
+  display: none;
+}
+
+/* Collapsible Details sections (Attributes, Connections, History) ---------
+   Structural only; a host opts into rendering these at all via the render
+   layer's `sectioned` flag (off by default). Reuses the legend section's
+   chevron-rotation language so both read as the same interaction pattern. */
+
+.model-explorer-detail-section {
+  margin-top: 0.5rem;
+}
+
+.model-explorer-detail-section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.model-explorer-detail-section-toggle h4 {
+  margin: 0;
+}
+
+.model-explorer-detail-section-chevron {
+  transition: transform 0.15s ease;
+}
+
+.model-explorer-detail-section-toggle[aria-expanded="false"] .model-explorer-detail-section-chevron {
+  transform: rotate(-90deg);
+}
+
+.model-explorer-detail-section-body.collapsed {
+  display: none;
+}
+
 /* Collapsible legend sections (object types, relationship types) ---------- */
 
 .model-explorer-legend-header {
