@@ -259,3 +259,14 @@ test("translateViewerConfig defaults produce a standard (non-hierarchical) layou
   assert.equal(options.layout.hierarchical.enabled, false);
   assert.equal(options.physics.enabled, true);
 });
+
+test("translateViewerConfig always keeps arrow/edge termini a couple of pixels off the node boundary", () => {
+  const withDefaults = translateViewerConfig({});
+  const withCustomPhysics = translateViewerConfig({
+    physics: { solver: "repulsion" },
+    layout: { mode: "hierarchical" },
+  });
+
+  assert.deepEqual(withDefaults.edges.endPointOffset, { from: 2, to: 2 });
+  assert.deepEqual(withCustomPhysics.edges.endPointOffset, { from: 2, to: 2 });
+});

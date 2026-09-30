@@ -1,5 +1,6 @@
 from model.models.proposal import ProposalChange
 from model.services.appearance import OBJECT_TYPE, RELATIONSHIP_TYPE, AppearanceService
+from model.services.appearance import defaults as appearance_defaults
 from model.services.model_graph.compiler import compile_model_graph
 from model.services.model_graph.explorer import explore
 from viewer.contracts import ViewerPayload, validate_payload
@@ -187,7 +188,11 @@ class AppearanceInheritanceTests(CompilerTestCase):
         self.assertEqual(self.node(payload, self.alice).style.border, "#00AA00")
         self.assertEqual(self.node(payload, self.alice).style.font["face"], stack)
         self.assertEqual(self.edge(payload, self.membership).style.font["face"], stack)
-        self.assertEqual(self.edge(payload, self.membership).style.arrows, "to, from")
+        scale = appearance_defaults.ARROW_SCALE_FACTOR
+        self.assertEqual(
+            self.edge(payload, self.membership).style.arrows,
+            {"to": {"enabled": True, "scaleFactor": scale}, "from": {"enabled": True, "scaleFactor": scale}},
+        )
 
     def test_canvas_background_is_exposed(self):
         AppearanceService.update_customisation(self.model, "theme", "canvas_background", "#101010")

@@ -44,6 +44,10 @@ RELATIONSHIP_DEFAULTS = {
     "label_size": 11,
 }
 
+# Shrinks the drawn arrowhead so it covers less area where it can land on a
+# node label (vis-network always paints arrowheads last, on top of labels).
+ARROW_SCALE_FACTOR = 0.6
+
 # The restrained treatment for elements that exist only in the active
 # proposal. It is a proposal-state cue, not part of a type's visual identity,
 # so it is not user-customisable and never stored.

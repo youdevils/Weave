@@ -27,7 +27,9 @@ export function assertValidPayload(payload) {
   }
 
   if (typeof payload.schema_version !== "string" || !payload.schema_version) {
-    throw new ViewerPayloadValidationError("payload.schema_version is required");
+    throw new ViewerPayloadValidationError(
+      "payload.schema_version is required",
+    );
   }
 
   if (!Array.isArray(payload.nodes)) {
@@ -41,7 +43,9 @@ export function assertValidPayload(payload) {
   const nodeIds = new Set();
   for (const node of payload.nodes) {
     if (!isPlainObject(node) || typeof node.id !== "string" || !node.id) {
-      throw new ViewerPayloadValidationError("every node requires a non-empty string id");
+      throw new ViewerPayloadValidationError(
+        "every node requires a non-empty string id",
+      );
     }
     if (nodeIds.has(node.id)) {
       throw new ViewerPayloadValidationError(`duplicate node id: ${node.id}`);
@@ -49,37 +53,55 @@ export function assertValidPayload(payload) {
     nodeIds.add(node.id);
 
     if (typeof node.type_key !== "string" || !node.type_key) {
-      throw new ViewerPayloadValidationError(`node ${node.id} is missing type_key`);
+      throw new ViewerPayloadValidationError(
+        `node ${node.id} is missing type_key`,
+      );
     }
     if (typeof node.label !== "string") {
-      throw new ViewerPayloadValidationError(`node ${node.id} is missing label`);
+      throw new ViewerPayloadValidationError(
+        `node ${node.id} is missing label`,
+      );
     }
   }
 
   const edgeIds = new Set();
   for (const edge of payload.edges) {
     if (!isPlainObject(edge) || typeof edge.id !== "string" || !edge.id) {
-      throw new ViewerPayloadValidationError("every edge requires a non-empty string id");
+      throw new ViewerPayloadValidationError(
+        "every edge requires a non-empty string id",
+      );
     }
     if (edgeIds.has(edge.id)) {
       throw new ViewerPayloadValidationError(`duplicate edge id: ${edge.id}`);
     }
     edgeIds.add(edge.id);
 
-    if (typeof edge.relationship_type_key !== "string" || !edge.relationship_type_key) {
-      throw new ViewerPayloadValidationError(`edge ${edge.id} is missing relationship_type_key`);
+    if (
+      typeof edge.relationship_type_key !== "string" ||
+      !edge.relationship_type_key
+    ) {
+      throw new ViewerPayloadValidationError(
+        `edge ${edge.id} is missing relationship_type_key`,
+      );
     }
     if (!nodeIds.has(edge.source)) {
-      throw new ViewerPayloadValidationError(`edge ${edge.id} source ${edge.source} does not reference an existing node`);
+      throw new ViewerPayloadValidationError(
+        `edge ${edge.id} source ${edge.source} does not reference an existing node`,
+      );
     }
     if (!nodeIds.has(edge.target)) {
-      throw new ViewerPayloadValidationError(`edge ${edge.id} target ${edge.target} does not reference an existing node`);
+      throw new ViewerPayloadValidationError(
+        `edge ${edge.id} target ${edge.target} does not reference an existing node`,
+      );
     }
   }
 }
 
 function escapeLabelHtml(text) {
-  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 /**
@@ -112,7 +134,8 @@ export function translateNode(node) {
   if (style.shape != null) translated.shape = style.shape;
   if (style.background != null || style.border != null) {
     translated.color = {};
-    if (style.background != null) translated.color.background = style.background;
+    if (style.background != null)
+      translated.color.background = style.background;
     if (style.border != null) translated.color.border = style.border;
     // vis-network recolours a selected/hovered node with its own blue by default,
     // which would override the item's semantic colours. Selection and hover keep
@@ -150,7 +173,8 @@ export function translateEdge(edge) {
   if (style.width != null) translated.width = style.width;
   if (style.dashes != null) translated.dashes = style.dashes;
   if (style.arrows != null) translated.arrows = style.arrows;
-  if (style.font && Object.keys(style.font).length > 0) translated.font = style.font;
+  if (style.font && Object.keys(style.font).length > 0)
+    translated.font = style.font;
 
   return translated;
 }
@@ -171,6 +195,12 @@ export function translateEdge(edge) {
 
 export const ITEM_STATES = Object.freeze(["selected", "related", "dimmed"]);
 
+// Purely a drawing-time offset (vis-network stops the edge/arrow this many
+// pixels short of the node's actual boundary) — it does not move nodes or
+// feed into physics, so it keeps arrow tips off node-adjacent labels without
+// changing layout/spread.
+const EDGE_END_POINT_OFFSET = 2;
+
 const DIMMED_ITEM_OPACITY = 0.18;
 const DIMMED_LABEL_ALPHA = 0.22;
 const VIS_DEFAULT_BORDER_WIDTH = 1;
@@ -182,13 +212,19 @@ export function withAlpha(colour, alpha) {
   const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(colour.trim());
   if (!match) return colour;
   let hex = match[1];
-  if (hex.length === 3) hex = hex.split("").map((c) => c + c).join("");
+  if (hex.length === 3)
+    hex = hex
+      .split("")
+      .map((c) => c + c)
+      .join("");
   const channel = (i) => parseInt(hex.slice(i, i + 2), 16);
   return `rgba(${channel(0)}, ${channel(2)}, ${channel(4)}, ${alpha})`;
 }
 
 function fadedFont(font) {
-  return font && font.color ? { ...font, color: withAlpha(font.color, DIMMED_LABEL_ALPHA) } : font;
+  return font && font.color
+    ? { ...font, color: withAlpha(font.color, DIMMED_LABEL_ALPHA) }
+    : font;
 }
 
 export function applyNodeState(base, state) {
@@ -197,7 +233,13 @@ export function applyNodeState(base, state) {
 
   if (state === "selected") {
     item.borderWidth = borderWidth + 2;
-    item.shadow = { enabled: true, color: "rgba(0, 0, 0, 0.35)", size: 14, x: 0, y: 2 };
+    item.shadow = {
+      enabled: true,
+      color: "rgba(0, 0, 0, 0.35)",
+      size: 14,
+      x: 0,
+      y: 2,
+    };
   } else if (state === "related") {
     item.borderWidth = borderWidth + 1;
   } else if (state === "dimmed") {
@@ -217,7 +259,11 @@ export function applyEdgeState(base, state) {
   } else if (state === "related") {
     item.width = width + 1;
   } else if (state === "dimmed") {
-    item.color = { color: base.color, opacity: DIMMED_ITEM_OPACITY, inherit: false };
+    item.color = {
+      color: base.color,
+      opacity: DIMMED_ITEM_OPACITY,
+      inherit: false,
+    };
     if (base.font) item.font = fadedFont(base.font);
   }
   return item;
@@ -252,6 +298,12 @@ export function translateViewerConfig(config) {
       dragView: interaction.drag_view_enabled !== false,
       dragNodes: interaction.drag_nodes_enabled !== false,
       multiselect: interaction.multi_select === true,
+    },
+    edges: {
+      endPointOffset: {
+        from: EDGE_END_POINT_OFFSET,
+        to: EDGE_END_POINT_OFFSET,
+      },
     },
   };
 

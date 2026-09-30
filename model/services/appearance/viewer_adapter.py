@@ -26,9 +26,16 @@ _DASHES = {
 
 _ARROWS = {
     "none": None,
-    "to": "to",
-    "from": "from",
-    "both": "to, from",
+    # vis-network only defaults `enabled` to true for the plain string
+    # shorthand ("to"/"from"/"to, from"); the object form needed to carry a
+    # scaleFactor must set `enabled: True` itself, or it silently inherits
+    # the library's `enabled: False` default and draws no arrow at all.
+    "to": {"to": {"enabled": True, "scaleFactor": defaults.ARROW_SCALE_FACTOR}},
+    "from": {"from": {"enabled": True, "scaleFactor": defaults.ARROW_SCALE_FACTOR}},
+    "both": {
+        "to": {"enabled": True, "scaleFactor": defaults.ARROW_SCALE_FACTOR},
+        "from": {"enabled": True, "scaleFactor": defaults.ARROW_SCALE_FACTOR},
+    },
 }
 
 
@@ -94,7 +101,7 @@ def node_style(
         # A canvas-coloured stroke around the label, so it stays readable
         # where an edge crosses behind it without drawing a background box.
         "strokeColor": appearance.label_halo,
-        "strokeWidth": 3,
+        "strokeWidth": 4,
     }
     if appearance.font_weight == "bold":
         font["weight"] = "bold"
@@ -143,6 +150,6 @@ def edge_style(
             "size": appearance.label_size,
             "face": appearance.font_family,
             "strokeColor": appearance.label_halo,
-            "strokeWidth": 2,
+            "strokeWidth": 3,
         },
     )

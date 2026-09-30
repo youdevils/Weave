@@ -9,6 +9,7 @@ from model.models.proposal import Proposal, ProposalChange
 from model.models.relationship_type import RelationshipType
 from model.models.relationship_type_rule import RelationshipTypeRule
 from model.services.appearance import OBJECT_TYPE, RELATIONSHIP_TYPE, AppearanceService
+from model.services.appearance import defaults as appearance_defaults
 from model.services.ontology_graph.compiler import compile_ontology_graph
 from viewer.contracts import ViewerPayload, validate_payload
 from workspace.models import Workspace
@@ -82,7 +83,10 @@ class CompilerAppearanceTests(TestCase):
         self.assertEqual((style.font["color"], style.font["size"]), ("#212529", 14))
 
         edge = self.edge(payload).style
-        self.assertEqual((edge.colour, edge.width, edge.arrows), ("#495057", 1.5, "to"))
+        self.assertEqual(
+            (edge.colour, edge.width, edge.arrows),
+            ("#495057", 1.5, {"to": {"enabled": True, "scaleFactor": appearance_defaults.ARROW_SCALE_FACTOR}}),
+        )
         self.assertIsNone(edge.dashes)
         self.assertEqual((edge.font["color"], edge.font["size"]), ("#495057", 11))
 
@@ -144,7 +148,11 @@ class CompilerAppearanceTests(TestCase):
 
         self.assertEqual((style.colour, style.width), ("#C92A2A", 4))
         self.assertEqual(style.dashes, [2, 4])
-        self.assertEqual(style.arrows, "to, from")
+        scale = appearance_defaults.ARROW_SCALE_FACTOR
+        self.assertEqual(
+            style.arrows,
+            {"to": {"enabled": True, "scaleFactor": scale}, "from": {"enabled": True, "scaleFactor": scale}},
+        )
         self.assertEqual((style.font["color"], style.font["size"]), ("#111111", 16))
 
     def test_model_customisation_applies_to_types_without_overrides(self):
@@ -245,7 +253,11 @@ class CompilerAppearanceTests(TestCase):
 
         proposed_edge = next(edge for edge in payload.edges if edge.id == str(rule_id))
         self.assertEqual((proposed_edge.style.colour, proposed_edge.style.dashes), (AMBER, True))
-        self.assertEqual((proposed_edge.style.width, proposed_edge.style.arrows), (4, "to, from"))
+        scale = appearance_defaults.ARROW_SCALE_FACTOR
+        self.assertEqual(
+            (proposed_edge.style.width, proposed_edge.style.arrows),
+            (4, {"to": {"enabled": True, "scaleFactor": scale}, "from": {"enabled": True, "scaleFactor": scale}}),
+        )
         # The canonical rule of the same type is untouched.
         canonical_edge = self.edge(payload)
         self.assertEqual(canonical_edge.style.colour, "#495057")

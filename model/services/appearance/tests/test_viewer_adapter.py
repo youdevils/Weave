@@ -34,7 +34,7 @@ class NodeStyleTests(SimpleTestCase):
     def test_label_halo_follows_the_canvas_background(self):
         style = node_style(self.node())
         self.assertEqual(style.font["strokeColor"], "#FFFFFF")
-        self.assertEqual(style.font["strokeWidth"], 3)
+        self.assertEqual(style.font["strokeWidth"], 4)
 
         dark = resolve_theme({"canvas_background": "#101010"})
         style = node_style(resolve_object(dark, {}, {}))
@@ -194,7 +194,7 @@ class EdgeStyleTests(SimpleTestCase):
         self.assertEqual(style.colour, "#495057")
         self.assertEqual(style.width, 1.5)
         self.assertIsNone(style.dashes)
-        self.assertEqual(style.arrows, "to")
+        self.assertEqual(style.arrows, {"to": {"enabled": True, "scaleFactor": defaults.ARROW_SCALE_FACTOR}})
         self.assertEqual(style.font["color"], "#495057")
         self.assertEqual(style.font["size"], 11)
 
@@ -204,17 +204,27 @@ class EdgeStyleTests(SimpleTestCase):
         self.assertEqual(edge_style(self.edge(line_style="dotted")).dashes, [2, 4])
 
     def test_arrow_options(self):
+        scale = defaults.ARROW_SCALE_FACTOR
         self.assertIsNone(edge_style(self.edge(arrows="none")).arrows)
-        self.assertEqual(edge_style(self.edge(arrows="to")).arrows, "to")
-        self.assertEqual(edge_style(self.edge(arrows="from")).arrows, "from")
-        self.assertEqual(edge_style(self.edge(arrows="both")).arrows, "to, from")
+        self.assertEqual(edge_style(self.edge(arrows="to")).arrows, {"to": {"enabled": True, "scaleFactor": scale}})
+        self.assertEqual(edge_style(self.edge(arrows="from")).arrows, {"from": {"enabled": True, "scaleFactor": scale}})
+        self.assertEqual(
+            edge_style(self.edge(arrows="both")).arrows,
+            {"to": {"enabled": True, "scaleFactor": scale}, "from": {"enabled": True, "scaleFactor": scale}},
+        )
 
     def test_proposed_edge_is_amber_and_dashed_but_keeps_width_and_arrows(self):
         style = edge_style(self.edge(width=4, arrows="both", colour="#123456"), is_proposed=True)
         self.assertEqual(style.colour, defaults.PROPOSED_EDGE_COLOUR)
         self.assertIs(style.dashes, True)
         self.assertEqual(style.width, 4)
-        self.assertEqual(style.arrows, "to, from")
+        self.assertEqual(
+            style.arrows,
+            {
+                "to": {"enabled": True, "scaleFactor": defaults.ARROW_SCALE_FACTOR},
+                "from": {"enabled": True, "scaleFactor": defaults.ARROW_SCALE_FACTOR},
+            },
+        )
 
     def test_font_face_and_label_style(self):
         theme = resolve_theme({"font_family": "Verdana, Geneva, sans-serif"})
@@ -226,7 +236,7 @@ class EdgeStyleTests(SimpleTestCase):
                 "size": 16,
                 "face": "Verdana, Geneva, sans-serif",
                 "strokeColor": "#FFFFFF",
-                "strokeWidth": 2,
+                "strokeWidth": 3,
             },
         )
 
