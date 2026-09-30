@@ -432,6 +432,9 @@ export function createExplorer({
     const originalLabel = button.innerHTML;
 
     try {
+      // Clipboard permission is scoped per-origin and file:// origins are unique per navigation
+      // (and some enterprise policies block the API there outright), so this can legitimately
+      // fail in the portable file even though it works in the live app — hence the soft fallback below.
       if (globalThis.ClipboardItem && navigator.clipboard?.write) {
         const html = buildObjectCopyHtml(details, source.dataset);
         await navigator.clipboard.write([

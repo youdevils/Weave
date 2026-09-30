@@ -297,6 +297,7 @@ class ValidatorTests(SimpleTestCase):
             "form": ("</body>", '<form action="x"></form></body>', "external resource"),
             "import": ("<style>", "<style>@import 'x.css';", "imports"),
             "css url": ("url(data:image/png;base64,AAAA)", "url(https://x/y.png)", "by URL"),
+            "xlink": ("</body>", '<svg><use xlink:href="#x"/></svg></body>', "xlink:"),
         }
         for name, (old, new, fragment) in cases.items():
             with self.subTest(name):

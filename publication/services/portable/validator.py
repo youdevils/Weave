@@ -9,6 +9,8 @@ generation.
 What it enforces:
   * no stylesheet, script, image, frame, form or link references anything by URL;
   * no ``@import`` and no ``url()`` other than ``data:`` in the CSS;
+  * no legacy ``xlink:`` attribute (inline SVG must use unprefixed ``href``,
+    which never depends on a namespace declaration or the document's base URI);
   * exactly one data block, and it parses as JSON;
   * a Content-Security-Policy that forbids every network connection;
   * none of the shipped *code* (scripts, not the data) contains a way to reach a
@@ -46,6 +48,7 @@ _SCRIPT_BLOCK = re.compile(r"<script\b(?P<attrs>[^>]*)>(?P<body>.*?)</script>", 
 _STYLE_BLOCK = re.compile(r"<style\b[^>]*>(?P<body>.*?)</style>", re.DOTALL | re.IGNORECASE)
 _EXTERNAL_TAGS = re.compile(r"<(link|img|iframe|frame|embed|object|source|video|audio|form|base)\b", re.IGNORECASE)
 _SRC_ATTRIBUTE = re.compile(r"<script\b[^>]*\ssrc\s*=", re.IGNORECASE)
+_XLINK_ATTRIBUTE = re.compile(r"\bxlink:", re.IGNORECASE)
 _CSP_META = re.compile(
     r"<meta\s+http-equiv=\"Content-Security-Policy\"\s+content=\"[^\"]*default-src 'none'[^\"]*connect-src 'none'[^\"]*\"",
     re.IGNORECASE,
@@ -96,6 +99,8 @@ def validate_document(html: str) -> dict:
         _fail("A script is loaded from a URL.")
     if _EXTERNAL_TAGS.search(shell):
         _fail("The document references an external resource.")
+    if _XLINK_ATTRIBUTE.search(shell):
+        _fail("The document uses a legacy xlink: reference.")
     if not _CSP_META.search(shell):
         _fail("The Content-Security-Policy that blocks network access is missing.")
 
