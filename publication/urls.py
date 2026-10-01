@@ -10,4 +10,10 @@ urlpatterns = [
     path("<uuid:model_id>/publish/preview/", views.publish_preview, name="publish_preview"),
     path("<uuid:model_id>/publish/submit/", views.publish_submit, name="publish_submit"),
     path("<uuid:model_id>/publications/", views.publication_history, name="publication_history"),
+    path("<uuid:model_id>/publications/<uuid:publication_id>/view/", views.publication_view, name="publication_view"),
+    path(
+        "<uuid:model_id>/publications/<uuid:publication_id>/download/",
+        views.publication_download,
+        name="publication_download",
+    ),
 ]

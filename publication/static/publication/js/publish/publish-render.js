@@ -129,6 +129,19 @@ export function renderBanner(kind, message) {
   return `<div class="publish-banner publish-banner-${e(kind)}" role="${role}">${e(message)}</div>`;
 }
 
+/** The success banner after a publish: what was created, and where to go next. */
+export function renderPublishSuccess(publication, urls) {
+  return `
+    <div class="publish-banner publish-banner-success" role="status">
+      <p>Published revision ${e(publication.revision)} as publication #${e(publication.sequence)}.</p>
+      <div class="publish-success-actions">
+        <a href="${e(urls.view)}" class="btn btn-sm btn-primary">View this publication</a>
+        <a href="${e(urls.index)}" class="btn btn-sm btn-outline-secondary">View Publications</a>
+        <a href="${e(urls.download)}" class="btn btn-sm btn-outline-secondary">Download</a>
+      </div>
+    </div>`;
+}
+
 export function renderPreviousNote(previous) {
   if (!previous) return `This is the first publication of this model, so these settings are the defaults.`;
   return `Started from publication #${e(previous.sequence)} (&ldquo;${e(previous.title)}&rdquo;, revision ${e(previous.revision)}). That publication is not changed.`;

@@ -9,6 +9,7 @@ import {
   renderNotices,
   renderOpeningViewSummary,
   renderPreviousNote,
+  renderPublishSuccess,
   renderScopeChips,
   renderSummary,
   renderTraversal,
@@ -111,6 +112,22 @@ test("banners are alerts unless they report success, and escape their message", 
   assert.match(renderBanner("error", "Bad"), /role="alert"/);
   assert.equal(renderBanner("error", ""), "");
   assert.doesNotMatch(renderBanner("error", HOSTILE), /<img/);
+});
+
+test("the publish success banner links to View, the index and Download", () => {
+  const html = renderPublishSuccess(
+    { sequence: 3, revision: 9, title: HOSTILE },
+    { view: "/v/", index: "/i/", download: "/d/" },
+  );
+
+  assert.match(html, /revision 9/);
+  assert.match(html, /publication #3/);
+  assert.match(html, /href="\/v\/"/);
+  assert.match(html, /href="\/i\/"/);
+  assert.match(html, /href="\/d\/"/);
+  assert.match(html, /View this publication/);
+  assert.match(html, /View Publications/);
+  assert.match(html, /Download/);
 });
 
 test("the previous publication is described without suggesting it changes", () => {

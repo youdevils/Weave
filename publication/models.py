@@ -24,12 +24,13 @@ class Publication(models.Model):
     An immutable snapshot of one canonical revision of a Model, plus the scope
     and presentation it was published with.
 
-    The record *describes* the publication (what revision, which scope, how it
-    was presented, what it contained via ``content_digest``). The generated HTML
-    is never stored: it is produced once, returned to the publisher as a
-    download, and forgotten. Canonical state has no history, so the file cannot
-    be regenerated later unless the model is still at ``source_revision`` with
-    the same appearance.
+    The record both *describes* the publication (what revision, which scope, how
+    it was presented, what it contained via ``content_digest``) and *is* the
+    snapshot: ``bundle`` holds the fully resolved graph, facets and provenance,
+    so a View or a Download later reads back exactly what was published, never
+    the live model. The rendered HTML itself is still never stored: it is
+    produced on demand from ``bundle`` (at publish time, for validation; at View
+    or Download time, for display), and forgotten again afterwards.
 
     A row only exists for a publication that generated successfully: publishing
     is a single transaction, so a failed attempt leaves nothing behind. "The most
@@ -70,6 +71,14 @@ class Publication(models.Model):
     scope = models.JSONField(default=dict)
     presentation = models.JSONField(default=dict)
     default_view = models.JSONField(default=dict)
+
+    # The resolved snapshot: everything the portable Explorer needs, exactly as
+    # published (see publication.services.bundle.build_bundle). This is what makes
+    # the publication reproducible later, independent of the live model. A row
+    # written before this field existed has ``{}`` here: there is no way to
+    # reconstruct its bundle after the fact, so View/Download treat that as "no
+    # snapshot available" rather than falling back to the live model.
+    bundle = models.JSONField(default=dict)
 
     # Model.appearance as it was resolved into the file. Appearance is not
     # governed by revisions, so this is what makes the styling reproducible.

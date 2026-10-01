@@ -18,7 +18,7 @@
  * model app's static files; this module imports nothing across apps.
  */
 
-import { createPublishApi, saveDownload } from "./publish-api.js";
+import { createPublishApi } from "./publish-api.js";
 import { detachedExplorerElements } from "./publish-panels.js";
 import * as view from "./publish-render.js";
 import * as state from "./publish-state.js";
@@ -159,7 +159,7 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
 
   function updateButton() {
     el.button.disabled = !preview || publishing || previewTimer !== null;
-    el.button.textContent = publishing ? "Publishing…" : "Publish and download";
+    el.button.textContent = publishing ? "Publishing…" : "Publish";
   }
 
   // -- preview ---------------------------------------------------------------------
@@ -401,19 +401,16 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
 
     const response = await api.publish(config, { revision: preview.revision, digest: preview.digest });
 
-    if (response.ok) {
-      const filename = state.filenameFromDisposition(response.headers.get("Content-Disposition"), config.filename);
-      saveDownload(response.blob, filename);
-      const sequence = response.headers.get("X-Publication-Sequence");
-      const revision = response.headers.get("X-Publication-Revision");
+    if (response.ok && response.data?.success) {
+      const { publication, urls } = response.data;
       previous = {
-        sequence,
-        title: config.title,
-        revision,
-        publishedAt: response.headers.get("X-Publication-Published-At"),
+        sequence: publication.sequence,
+        title: publication.title,
+        revision: publication.revision,
+        publishedAt: publication.publishedAt,
       };
       el.previous.innerHTML = view.renderPreviousNote(previous);
-      showBanner("success", `Published revision ${revision} as publication #${sequence}. Your browser downloaded ${filename}.`);
+      el.banner.innerHTML = view.renderPublishSuccess(publication, urls);
       setStatus("Published.");
     } else if (response.status === 409) {
       showBanner("changed", response.data?.error ?? "The model changed since your preview. Please review it and publish again.");

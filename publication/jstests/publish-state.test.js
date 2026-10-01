@@ -9,7 +9,6 @@ import {
   clearOpeningView,
   clearScope,
   describeScope,
-  filenameFromDisposition,
   hasOpeningView,
   hasScope,
   openingExplorerState,
@@ -308,15 +307,4 @@ test("the server's sanitised documents replace ours, but typed metadata is left 
   assert.equal(merged.title, "Half-typed title  ");
   assert.equal(merged.filename, "half");
   assert.equal(adoptServerDocuments(typing, null), typing);
-});
-
-test("filenames are read from Content-Disposition headers", () => {
-  assert.equal(filenameFromDisposition('attachment; filename="board.html"', "x.html"), "board.html");
-  assert.equal(filenameFromDisposition("attachment; filename=board.html", "x.html"), "board.html");
-  assert.equal(
-    filenameFromDisposition("attachment; filename*=utf-8''%C3%9Cbersicht%20Stra%C3%9Fe.html", "x.html"),
-    "Übersicht Straße.html",
-  );
-  assert.equal(filenameFromDisposition("attachment", "x.html"), "x.html");
-  assert.equal(filenameFromDisposition(null, "x.html"), "x.html");
 });

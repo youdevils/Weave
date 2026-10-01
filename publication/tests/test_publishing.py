@@ -153,6 +153,41 @@ class SuccessfulPublishTests(PublishFixture):
         self.assertEqual((first.sequence, second.sequence), (1, 2))
         self.assertEqual(Publication.objects.filter(pk=first.pk).values().get(), snapshot)
 
+    def test_the_bundle_is_stored_with_the_publications_identity_already_merged_in(self):
+        artifact = self.publish()
+        publication = artifact.publication
+
+        (block,) = split_document(artifact.html)["data"]
+        embedded = json.loads(block)
+        self.assertEqual(publication.bundle, embedded)
+        self.assertEqual(publication.bundle["publication"]["id"], str(publication.id))
+        self.assertEqual(publication.bundle["publication"]["sequence"], publication.sequence)
+        self.assertEqual(publication.bundle["digest"], publication.content_digest)
+
+    def test_publishing_an_unchanged_model_twice_creates_two_distinct_rows(self):
+        raw = self.raw()
+
+        first = self.publish(raw).publication
+        second = self.publish(raw).publication
+
+        self.assertNotEqual(first.id, second.id)
+        self.assertEqual((first.sequence, second.sequence), (1, 2))
+        self.assertEqual(first.content_digest, second.content_digest)  # same content...
+        self.assertEqual(first.bundle["publication"]["id"], str(first.id))  # ...but each keeps its own identity
+        self.assertEqual(second.bundle["publication"]["id"], str(second.id))
+
+    def test_a_later_model_change_does_not_alter_an_earlier_publications_bundle(self):
+        first = self.publish().publication
+        bundle_before = first.bundle
+
+        self.make_object(self.team_type, "Later Team")  # bumps nothing on its own, but simulates drift
+        self.model.revision += 1
+        self.model.save(update_fields=["revision"])
+
+        reloaded = Publication.objects.get(pk=first.pk)
+        self.assertEqual(reloaded.bundle, bundle_before)
+        self.assertNotIn("Later Team", json.dumps(reloaded.bundle))
+
     def test_the_model_row_is_locked_while_publishing(self):
         with CaptureQueriesContext(connection) as queries:
             self.publish()
@@ -300,3 +335,43 @@ class DefaultsAfterPublishTests(PublishFixture):
         self.assertEqual(config.filename, "quarterly.html")
         self.assertEqual(config.scope.excluded_object_types, (str(self.team_type.id),))
         self.assertEqual(config.presentation.theme_colour, "#123456")
+
+
+class RenderForDownloadTests(PublishFixture):
+    """Download renders fresh from the stored bundle - never from the live model."""
+
+    def test_it_reproduces_the_document_published_at_the_time(self):
+        artifact = self.publish()
+
+        html = publishing.render_for_download(artifact.publication)
+
+        (published_block,) = split_document(artifact.html)["data"]
+        (downloaded_block,) = split_document(html)["data"]
+        self.assertEqual(json.loads(downloaded_block), json.loads(published_block))
+
+    def test_it_reflects_model_changes_made_after_publishing_not_at_all(self):
+        publication = self.publish().publication
+
+        self.make_object(self.team_type, "Added after publishing")
+
+        html = publishing.render_for_download(publication)
+
+        self.assertNotIn("Added after publishing", html)
+
+    def test_it_re_validates_the_rendered_document(self):
+        publication = self.publish().publication
+
+        html = publishing.render_for_download(publication)
+
+        # No exception means it passed publication.services.portable.validator.validate_document;
+        # the data block is present and parses, matching the original publish-time guarantee.
+        (block,) = split_document(html)["data"]
+        json.loads(block)
+
+    def test_a_publication_with_no_stored_bundle_cannot_be_rendered(self):
+        legacy = self.make_publication()  # bundle defaults to {}: predates snapshot storage
+
+        with self.assertRaises(publishing.PublicationSnapshotMissing) as caught:
+            publishing.render_for_download(legacy)
+
+        self.assertEqual(caught.exception.status, 404)

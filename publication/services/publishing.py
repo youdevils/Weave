@@ -13,13 +13,16 @@ generates the document and hands it back, all in one transaction:
       -> render document -> validate document -> commit
 
 Anything that fails rolls the whole transaction back, so a failed attempt leaves
-no Publication row (and consumes no sequence number). The generated HTML is
-never stored: it lives in memory until the caller has sent it.
+no Publication row (and consumes no sequence number). The bundle itself *is*
+stored, on the Publication row, so a later View or Download reads it back
+unchanged; the rendered HTML is not stored, only produced on demand (here, to
+validate before committing; later, by ``render_for_download``).
 """
 
 from __future__ import annotations
 
 import logging
+import uuid
 from dataclasses import dataclass
 
 from django.conf import settings
@@ -75,6 +78,13 @@ class PublicationTooLarge(PublicationError):
 class PublicationGenerationFailed(PublicationError):
     status = 500
     code = "generation_failed"
+
+
+class PublicationSnapshotMissing(PublicationError):
+    """A publication predates snapshot storage (or was created without one in a test)."""
+
+    status = 404
+    code = "snapshot_missing"
 
 
 def max_objects() -> int:
@@ -227,7 +237,14 @@ def publish(model_id, user, raw_config, expected) -> PublishedArtifact:
 
             config = result.config
             sequence = (Publication.objects.filter(model=locked).aggregate(top=Max("sequence"))["top"] or 0) + 1
+            publication_id = uuid.uuid4()
+            published_at = timezone.now()
+            identified_bundle = with_publication(
+                bundle,
+                {"id": str(publication_id), "sequence": sequence, "publishedAt": published_at.isoformat()},
+            )
             publication = Publication.objects.create(
+                id=publication_id,
                 model=locked,
                 sequence=sequence,
                 source_revision=locked.revision,
@@ -241,20 +258,13 @@ def publish(model_id, user, raw_config, expected) -> PublishedArtifact:
                 object_count=len(result.published.objects),
                 relationship_count=len(result.published.relationships),
                 content_digest=bundle["digest"],
+                format_version=Publication.FORMAT_VERSION,
+                bundle=identified_bundle,
                 published_by=user,
-                published_at=timezone.now(),
+                published_at=published_at,
             )
 
-            html = render_document(
-                with_publication(
-                    bundle,
-                    {
-                        "id": str(publication.id),
-                        "sequence": publication.sequence,
-                        "publishedAt": publication.published_at.isoformat(),
-                    },
-                )
-            )
+            html = render_document(identified_bundle)
             validate_document(html)
     except PublicationError:
         raise
@@ -271,11 +281,29 @@ def publish(model_id, user, raw_config, expected) -> PublishedArtifact:
     return PublishedArtifact(publication=publication, html=html)
 
 
+def render_for_download(publication: Publication) -> str:
+    """
+    The publication's portable HTML, rendered fresh from its stored ``bundle``.
+
+    The bundle is frozen at publish time; the renderer is not, so a later fix to
+    the portable viewer's assets is reflected even in an old publication's
+    download, while the data itself is always exactly what was published.
+    """
+    if not publication.bundle:
+        raise PublicationSnapshotMissing(
+            "This publication has no stored snapshot and can no longer be downloaded."
+        )
+    html = render_document(publication.bundle)
+    validate_document(html)
+    return html
+
+
 __all__ = [
     "InvalidPublication",
     "Preview",
     "PublicationError",
     "PublicationGenerationFailed",
+    "PublicationSnapshotMissing",
     "PublicationStale",
     "PublicationTooLarge",
     "PublishedArtifact",
@@ -283,4 +311,5 @@ __all__ = [
     "named_objects",
     "preview",
     "publish",
+    "render_for_download",
 ]

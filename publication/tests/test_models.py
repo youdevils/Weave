@@ -49,12 +49,14 @@ class ImmutabilityTests(PublicationTestCase):
 
 class SchemaTests(PublicationTestCase):
 
-    def test_the_generated_file_is_never_stored(self):
-        # No file, blob or html field: the artefact is produced once and forgotten.
+    def test_the_rendered_html_is_never_stored_only_the_resolved_data(self):
+        # The resolved bundle (data) is stored so View/Download can read it back later; the
+        # rendered HTML itself is not: no file, blob or html-named field, ever.
         stored = {field.name: field for field in Publication._meta.get_fields() if hasattr(field, "column")}
 
         self.assertFalse([f for f in stored.values() if isinstance(f, (models.FileField, models.BinaryField))])
         self.assertFalse([name for name in stored if "html" in name.lower() or "content" == name.lower()])
+        self.assertIsInstance(stored["bundle"], models.JSONField)
         # Long free text is limited to the publisher-facing description.
         self.assertEqual(
             [name for name, f in stored.items() if isinstance(f, models.TextField)],

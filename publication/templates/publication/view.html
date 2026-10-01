@@ -1,0 +1,79 @@
+{% extends "publication/publication_base.html" %}
+
+{% load static %}
+
+{% block publication_css %}
+<link rel="stylesheet" href="{% static 'viewer/vendor/vis-network/vis-network.min.css' %}">
+<link rel="stylesheet" href="{% static 'publication/css/portable.css' %}">
+{% endblock %}
+
+{% block publication_content %}
+
+<div class="model-page-header">
+
+    <div>
+
+        <div class="model-page-eyebrow">Publishing</div>
+
+        <h1 class="model-page-title">{{ publication.title }}</h1>
+
+        {% if publication.description %}
+            <p class="model-page-description">{{ publication.description }}</p>
+        {% endif %}
+
+        <p class="model-explorer-muted">
+            Publication #{{ publication.sequence }} &middot; Revision {{ publication.source_revision }} &middot;
+            Published <time datetime="{{ publication.published_at.isoformat }}">{{ publication.published_at }}</time>
+        </p>
+
+    </div>
+
+    <div class="publish-actions">
+        <a href="{% url 'publication:publication_download' model.id publication.id %}" class="btn btn-primary">
+            <i class="bi bi-download"></i>
+            Download
+        </a>
+    </div>
+
+</div>
+
+<div
+    id="model-explorer"
+    class="onyxjar-explorer onyxjar-explorer-published"
+    style="--onyxjar-theme: {{ publication.bundle.presentation.themeColour|default:'' }}; min-height: 75vh;"
+>
+    <div class="model-explorer-layout">
+        {% include "model/_explorer_search_panel.html" with explorer_panel_title="Explore" %}
+        {% include "model/_explorer_main.html" with canvas_background=publication.bundle.presentation.canvasBackground %}
+        {% include "model/_explorer_details.html" with explorer_panel_title="Details" %}
+    </div>
+</div>
+
+{{ publication.bundle|json_script:"onyxjar-published-data" }}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'viewer/vendor/vis-network/vis-network.min.js' %}"></script>
+<script type="module">
+  import { OnyxJarViewer } from "{% static 'viewer/js/onyxjar-viewer.js' %}";
+  import { createExplorer } from "{% static 'model/js/explore/explorer-controller.js' %}";
+  import { createLocalSource } from "{% static 'model/js/explore/engine/local-source.js' %}";
+  import { initialState } from "{% static 'model/js/explore/explorer-state.js' %}";
+  import { startHostedExplorer } from "{% static 'publication/js/hosted/hosted-boot.js' %}";
+
+  try {
+    startHostedExplorer({
+      kit: { OnyxJarViewer, createExplorer, createLocalSource, initialState },
+      bundle: JSON.parse(document.getElementById("onyxjar-published-data").textContent),
+    });
+  } catch (error) {
+    const box = document.getElementById("explorer-error");
+    if (box) {
+      box.textContent = "This publication could not be displayed.";
+      box.hidden = false;
+    }
+    throw error;
+  }
+</script>
+{% endblock %}

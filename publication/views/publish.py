@@ -4,11 +4,11 @@ The Publishing page and its endpoints.
     GET  publish/          the page (defaults resolved from the last successful publication)
     GET  publish/search/   find objects to use as starting points (a locator, not a scope rule)
     POST publish/preview/  the bundle a definition would publish (read-only)
-    POST publish/submit/   publish: record the publication and return the file
+    POST publish/submit/   publish: record the publication and report where to find it
 
-Views only translate HTTP: access control, JSON in and out, and the download
-response. The definition, the preview and the publishing rules all live in
-``publication.services``.
+Views only translate HTTP: access control, JSON in and out. The definition, the
+preview and the publishing rules all live in ``publication.services``; View and
+Download (reading a Publication back) live in ``publication.views.detail``.
 """
 
 from __future__ import annotations
@@ -16,10 +16,9 @@ from __future__ import annotations
 import json
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils.http import content_disposition_header
 from django.views.decorators.http import require_GET, require_POST
 
 from model.services.appearance import AppearanceService
@@ -159,14 +158,25 @@ def publish_submit(request, model_id):
     except publishing.PublicationError as error:
         return _error(error)
 
+    # The document was already rendered and validated as part of publishing
+    # (the correctness gate); it is not sent here. View and Download each read
+    # the stored Publication back on their own, so publishing itself only needs
+    # to report what was created and where to find it.
     publication = artifact.publication
-    response = HttpResponse(artifact.html, content_type="text/html; charset=utf-8")
-    response["Content-Disposition"] = content_disposition_header(as_attachment=True, filename=artifact.filename)
-    # The file is generated for this one response and must not be kept by any cache.
-    response["Cache-Control"] = "no-store"
-    response["X-Content-Type-Options"] = "nosniff"
-    response["X-Publication-Id"] = str(publication.id)
-    response["X-Publication-Sequence"] = str(publication.sequence)
-    response["X-Publication-Revision"] = str(publication.source_revision)
-    response["X-Publication-Published-At"] = publication.published_at.isoformat()
-    return response
+    return JsonResponse(
+        {
+            "success": True,
+            "publication": {
+                "id": str(publication.id),
+                "sequence": publication.sequence,
+                "title": publication.title,
+                "revision": publication.source_revision,
+                "publishedAt": publication.published_at.isoformat(),
+            },
+            "urls": {
+                "view": reverse("publication:publication_view", args=[model.id, publication.id]),
+                "download": reverse("publication:publication_download", args=[model.id, publication.id]),
+                "index": reverse("publication:publication_history", args=[model.id]),
+            },
+        }
+    )

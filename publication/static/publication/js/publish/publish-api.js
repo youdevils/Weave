@@ -53,31 +53,17 @@ export function createPublishApi({ urls, fetchFn = globalThis.fetch?.bind(global
     },
 
     /**
-     * Publish. On success ``{ok: true, blob, headers}``; on refusal or failure
-     * ``{ok: false, status, data}`` with the server's JSON error.
+     * Publish. Records the Publication and reports its identity and where to find it
+     * (``data.publication``, ``data.urls``); the document itself is not sent back, since
+     * View and Download each read the stored Publication on their own.
      */
     async publish(config, expected) {
       try {
         const response = await fetchFn(urls.submit, jsonPost({ config, expected }));
-        if (response.ok) return { ok: true, status: response.status, blob: await response.blob(), headers: response.headers };
-        return { ok: false, status: response.status, data: await readJson(response) };
+        return { ok: response.ok, status: response.status, data: await readJson(response) };
       } catch {
         return { ok: false, status: 0, data: { error: "Could not reach the server." } };
       }
     },
   };
-}
-
-/** Hand a generated file to the browser as a download (the browser decides where it is saved). */
-export function saveDownload(blob, filename, doc = document, urlApi = URL) {
-  const url = urlApi.createObjectURL(blob);
-  const link = doc.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.hidden = true;
-  doc.body.appendChild(link);
-  link.click();
-  link.remove();
-  const timer = setTimeout(() => urlApi.revokeObjectURL(url), 10_000);
-  timer?.unref?.(); // Node only (tests): a pending revoke must not keep the process alive
 }

@@ -261,20 +261,3 @@ export function removeScopeChip(config, chip) {
       return config;
   }
 }
-
-// -- download -------------------------------------------------------------------------------------
-
-/** The filename a ``Content-Disposition`` header suggests, or ``fallback``. */
-export function filenameFromDisposition(header, fallback) {
-  if (!header) return fallback;
-  const encoded = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(header);
-  if (encoded) {
-    try {
-      return decodeURIComponent(encoded[1].trim());
-    } catch {
-      /* fall through to the plain form */
-    }
-  }
-  const plain = /filename\s*=\s*"?([^";]+)"?/i.exec(header);
-  return plain ? plain[1].trim() : fallback;
-}

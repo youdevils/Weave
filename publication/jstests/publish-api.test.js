@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createPublishApi, saveDownload } from "../static/publication/js/publish/publish-api.js";
+import { createPublishApi } from "../static/publication/js/publish/publish-api.js";
 
 const urls = { search: "/s/", preview: "/p/", submit: "/x/" };
 
@@ -49,17 +49,17 @@ test("preview is a CSRF-protected JSON POST of the definition", async () => {
 test("publish sends the definition with the previewed revision and digest", async () => {
   await withDocument(async () => {
     const calls = [];
-    const blob = new Blob(["<html></html>"]);
+    const success = { success: true, publication: { id: "p1", sequence: 3, title: "T", revision: 4, publishedAt: "2026-01-01T00:00:00Z" }, urls: { view: "/v/", download: "/d/", index: "/i/" } };
     const api = createPublishApi({
       urls,
-      fetchFn: async (url, options) => (calls.push({ url, options }), { ok: true, status: 200, blob: async () => blob, headers: new Headers() }),
+      fetchFn: async (url, options) => (calls.push({ url, options }), jsonResponse(success)),
     });
 
     const result = await api.publish({ title: "T" }, { revision: 4, digest: "abc" });
 
     assert.deepEqual(JSON.parse(calls[0].options.body), { config: { title: "T" }, expected: { revision: 4, digest: "abc" } });
     assert.equal(result.ok, true);
-    assert.equal(result.blob, blob);
+    assert.deepEqual(result.data, success);
   });
 });
 
@@ -97,22 +97,4 @@ test("only same-origin publication endpoints are ever requested", async () => {
 
     assert.ok(seen.every((url) => url.startsWith("/")));
   });
-});
-
-test("saveDownload hands the blob to the browser as a named download and cleans up", () => {
-  const appended = [];
-  const doc = {
-    createElement: () => ({ click() { this.clicked = true; }, remove() { this.removed = true; } }),
-    body: { appendChild: (node) => appended.push(node) },
-  };
-  const revoked = [];
-  const urlApi = { createObjectURL: () => "blob:x", revokeObjectURL: (u) => revoked.push(u) };
-
-  saveDownload(new Blob(["x"]), "board.html", doc, urlApi);
-
-  const [link] = appended;
-  assert.equal(link.href, "blob:x");
-  assert.equal(link.download, "board.html");
-  assert.equal(link.clicked, true);
-  assert.equal(link.removed, true);
 });

@@ -1,0 +1,32 @@
+{% extends "publication/publication_base.html" %}
+
+{% block publication_content %}
+
+<div class="model-page-header">
+
+    <div>
+
+        <div class="model-page-eyebrow">Publishing</div>
+
+        <h1 class="model-page-title">{{ publication.title }}</h1>
+
+        <p class="model-page-description">
+            Publication #{{ publication.sequence }}, revision {{ publication.source_revision }}.
+        </p>
+
+    </div>
+
+</div>
+
+<div class="model-explorer-panel publish-empty">
+    <p><strong>This publication is not available</strong></p>
+    <p class="model-explorer-muted">
+        It has no stored snapshot, so it can no longer be viewed or downloaded. This happens only for publications
+        created before snapshot storage existed.
+    </p>
+    <a href="{% url 'publication:publication_history' model.id %}" class="btn btn-outline-secondary btn-sm">
+        &larr; Back to Publications
+    </a>
+</div>
+
+{% endblock %}

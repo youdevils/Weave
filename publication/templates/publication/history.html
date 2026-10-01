@@ -1,5 +1,11 @@
 {% extends "publication/publication_base.html" %}
 
+{% load static %}
+
+{% block publication_css %}
+<link rel="stylesheet" href="{% static 'model/css/index.css' %}">
+{% endblock %}
+
 {% block publication_content %}
 
 <div class="model-page-header">
@@ -8,22 +14,107 @@
 
         <div class="model-page-eyebrow">Publishing</div>
 
-        <h1 class="model-page-title">Publishing History</h1>
+        <h1 class="model-page-title">Publications</h1>
 
         <p class="model-page-description">
-            A record of what has been published from this model.
+            Every snapshot published from this model, newest first. Each publication is frozen at the revision it
+            was published from &mdash; later changes to the model never affect it.
         </p>
 
     </div>
 
+    {% if can_publish %}
+        <div class="model-page-header-actions">
+            <a href="{% url 'publication:publish' model.id %}" id="publications-publish-cta" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Publish
+            </a>
+        </div>
+    {% endif %}
+
 </div>
 
-<div class="model-explorer-panel publish-empty">
-    <p><strong>Coming soon</strong></p>
-    <p class="model-explorer-muted">
-        Publishing History is not available yet. Each time you publish, OnyxJar records what was published, but
-        the list is not shown here for now.
-    </p>
-</div>
+<section class="model-data-section">
+
+    <div class="model-data-table-wrapper">
+
+        <table class="model-data-table">
+
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Revision</th>
+                    <th>Published</th>
+                    <th>Published by</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for publication in publications %}
+
+                    <tr class="model-data-row">
+                        <td>{{ publication.sequence }}</td>
+                        <td>
+                            <a href="{% url 'publication:publication_view' model.id publication.id %}">
+                                {{ publication.title }}
+                            </a>
+                        </td>
+                        <td>{{ publication.source_revision }}</td>
+                        <td><time datetime="{{ publication.published_at.isoformat }}">{{ publication.published_at }}</time></td>
+                        <td>{{ publication.published_by.email }}</td>
+                        <td class="model-data-table-actions">
+                            <a
+                                href="{% url 'publication:publication_view' model.id publication.id %}"
+                                class="btn btn-sm btn-outline-secondary"
+                            >
+                                View
+                            </a>
+                            <a
+                                href="{% url 'publication:publication_download' model.id publication.id %}"
+                                class="btn btn-sm btn-outline-secondary"
+                            >
+                                Download
+                            </a>
+                        </td>
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+                        <td colspan="6">
+
+                            <div class="model-empty-state">
+
+                                <div class="model-empty-state-icon">
+                                    <i class="bi bi-file-earmark-richtext"></i>
+                                </div>
+
+                                <h2>No publications yet</h2>
+
+                                <p>
+                                    {% if can_publish %}
+                                        Publish a read-only copy of this model to see it listed here.
+                                    {% else %}
+                                        Nobody has published this model yet.
+                                    {% endif %}
+                                </p>
+
+                            </div>
+
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
 
 {% endblock %}

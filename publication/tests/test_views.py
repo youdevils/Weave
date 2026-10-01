@@ -30,6 +30,9 @@ class ViewFixture(PublicationTestCase):
     def url(self, name, model=None):
         return reverse(f"publication:{name}", args=[(model or self.model).id])
 
+    def publication_url(self, name, publication, model=None):
+        return reverse(f"publication:{name}", args=[(model or self.model).id, publication.id])
+
     def post_json(self, name, body, client=None):
         return (client or self.client).post(self.url(name), data=json.dumps(body), content_type="application/json")
 
@@ -45,16 +48,31 @@ class ViewFixture(PublicationTestCase):
             expected = {"revision": data["revision"], "digest": data["digest"]}
         return self.post_json("publish_submit", {"config": config, "expected": expected}, client)
 
+    def publish_and_get(self, config=None, expected=None, client=None):
+        """Publish (as the given client, defaulting to the owner) and return the created row."""
+        response = self.publish(config, expected, client)
+        self.assertEqual(response.status_code, 200, response.content[:300])
+        return Publication.objects.get(id=response.json()["publication"]["id"])
+
+    def client_for(self, user):
+        client = Client()
+        client.force_login(user)
+        return client
+
 
 class AccessTests(ViewFixture):
-    """Owner and editor may publish; viewers get 403; anyone outside the workspace gets 404."""
+    """
+    Publishing (creating a Publication) is Owner/Editor only; anyone outside the
+    workspace gets 404. Looking at publications that already exist (the index, a
+    hosted View, a Download) is not publishing: any member may use them - see
+    ViewAndDownloadAccessTests below for those.
+    """
 
     ENDPOINTS = (
         ("publish", "get"),
         ("publish_search", "get"),
         ("publish_preview", "post"),
         ("publish_submit", "post"),
-        ("publication_history", "get"),
     )
 
     def call(self, client, name, method, model=None):
@@ -63,29 +81,27 @@ class AccessTests(ViewFixture):
             return client.get(url)
         return client.post(url, data="{}", content_type="application/json")
 
-    def client_for(self, user):
-        client = Client()
-        client.force_login(user)
-        return client
-
     def test_anonymous_users_are_sent_to_login(self):
-        for name, method in self.ENDPOINTS:
+        for name, method in self.ENDPOINTS + (("publication_history", "get"),):
             with self.subTest(name):
                 response = self.call(Client(), name, method)
                 self.assertEqual(response.status_code, 302)
                 self.assertIn("login", response["Location"].lower())
 
-    def test_owners_and_editors_can_open_the_page_and_the_history_stub(self):
+    def test_owners_and_editors_can_open_the_page_and_the_publications_index(self):
         for user in (self.owner, self.editor):
             for name in ("publish", "publication_history"):
                 with self.subTest(user=user.email, page=name):
                     self.assertEqual(self.client_for(user).get(self.url(name)).status_code, 200)
 
-    def test_viewers_are_forbidden_everywhere(self):
+    def test_viewers_are_forbidden_from_publishing(self):
         client = self.client_for(self.viewer)
         for name, method in self.ENDPOINTS:
             with self.subTest(name):
                 self.assertEqual(self.call(client, name, method).status_code, 403)
+
+    def test_viewers_can_open_the_publications_index(self):
+        self.assertEqual(self.client_for(self.viewer).get(self.url("publication_history")).status_code, 200)
 
     def test_a_viewer_cannot_publish(self):
         data = self.preview()
@@ -97,7 +113,7 @@ class AccessTests(ViewFixture):
 
     def test_strangers_get_404_and_learn_nothing(self):
         client = self.client_for(self.stranger)
-        for name, method in self.ENDPOINTS:
+        for name, method in self.ENDPOINTS + (("publication_history", "get"),):
             with self.subTest(name):
                 self.assertEqual(self.call(client, name, method).status_code, 404)
 
@@ -258,19 +274,44 @@ class PageTests(ViewFixture):
 
         self.assertIn("Publishing", sidebar)
         self.assertIn(">Publish<", sidebar.replace(" ", "").replace("\n", ""))
-        self.assertIn("Publishing History", sidebar)
+        self.assertIn("View Publications", sidebar)
         self.assertIn(reverse("model:overview", args=[self.model.id]), sidebar)
         self.assertIn(reverse("publication:publication_history", args=[self.model.id]), sidebar)
         self.assertNotIn("Define model", sidebar)
         self.assertNotIn("Proposals", sidebar)
         self.assertRegex(sidebar, r'class="model-nav-item active"[^>]*aria-current="page"')
 
-    def test_the_history_page_is_a_stub(self):
+    def test_the_index_lists_no_publications_yet(self):
         response = self.client.get(self.url("publication_history"))
 
-        self.assertContains(response, "Publishing History")
-        self.assertContains(response, "Coming soon")
+        self.assertContains(response, "Publications")
+        self.assertContains(response, "No publications yet")
         self.assertContains(response, 'class="model-nav-item active"')
+
+    def test_the_index_lists_publications_newest_first_with_view_and_download_links(self):
+        first = self.publish_and_get({"title": "First", "filename": "first.html"})
+        self.model.revision += 1
+        self.model.save(update_fields=["revision"])
+        second = self.publish_and_get({"title": "Second", "filename": "second.html"})
+
+        html = self.client.get(self.url("publication_history")).content.decode()
+
+        self.assertLess(html.index("Second"), html.index("First"))
+        for publication in (first, second):
+            self.assertIn(self.publication_url("publication_view", publication), html)
+            self.assertIn(self.publication_url("publication_download", publication), html)
+
+    def test_only_owners_and_editors_see_the_publish_call_to_action_on_the_index(self):
+        self.publish_and_get()
+
+        owner_html = self.client_for(self.owner).get(self.url("publication_history")).content.decode()
+        viewer_html = self.client_for(self.viewer).get(self.url("publication_history")).content.decode()
+
+        # The sidebar's own "Publish" link is shown to everyone who can reach this page at all
+        # (the publish page itself still enforces the real gate); it's the index's own call to
+        # action - which a Viewer would only ever see 403 behind - that should be role-aware.
+        self.assertIn('id="publications-publish-cta"', owner_html)
+        self.assertNotIn('id="publications-publish-cta"', viewer_html)
 
     def test_the_page_loads_nothing_that_edits_the_model(self):
         html = self.client.get(self.url("publish")).content.decode()
@@ -374,10 +415,122 @@ class PreviewViewTests(ViewFixture):
         self.assertNotIn("Foreign Secret", json.dumps(data))
 
 
-class DownloadTests(ViewFixture):
+class SubmitResponseTests(ViewFixture):
+    """publish_submit reports identity and URLs; it no longer sends the document itself."""
 
-    def test_publishing_returns_the_file_as_an_attachment(self):
+    def test_publishing_reports_the_new_publications_identity_and_urls(self):
         response = self.publish({"title": "Board pack", "filename": "board.html"})
+        publication = Publication.objects.get()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/json")
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(
+            data["publication"],
+            {
+                "id": str(publication.id),
+                "sequence": publication.sequence,
+                "title": "Board pack",
+                "revision": publication.source_revision,
+                "publishedAt": publication.published_at.isoformat(),
+            },
+        )
+        self.assertEqual(data["urls"]["view"], self.publication_url("publication_view", publication))
+        self.assertEqual(data["urls"]["download"], self.publication_url("publication_download", publication))
+        self.assertEqual(data["urls"]["index"], self.url("publication_history"))
+
+    def test_the_document_is_not_sent_back(self):
+        response = self.publish()
+
+        self.assertNotIn("<!DOCTYPE html>", response.content.decode())
+        self.assertNotIn("X-Publication-Id", response.headers)
+
+    def test_the_file_is_not_written_to_disk(self):
+        import os
+
+        self.publish()
+
+        self.assertFalse(settings.MEDIA_ROOT and os.path.exists(settings.MEDIA_ROOT))
+
+
+class ViewAndDownloadAccessTests(ViewFixture):
+    """
+    The index, hosted View and Download are all "view" capabilities: any member of
+    the model's workspace may use them, unlike Publish itself.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.publication = self.publish_and_get({"title": "Board pack", "filename": "board.html"})
+
+    def test_any_member_can_view_and_download(self):
+        for user in (self.owner, self.editor, self.viewer):
+            for name in ("publication_view", "publication_download"):
+                with self.subTest(user=user.email, page=name):
+                    client = self.client_for(user)
+                    response = client.get(self.publication_url(name, self.publication))
+                    self.assertEqual(response.status_code, 200)
+
+    def test_strangers_get_404_and_learn_nothing(self):
+        client = self.client_for(self.stranger)
+        for name in ("publication_view", "publication_download"):
+            with self.subTest(name):
+                self.assertEqual(client.get(self.publication_url(name, self.publication)).status_code, 404)
+
+    def test_anonymous_users_are_sent_to_login(self):
+        for name in ("publication_view", "publication_download"):
+            with self.subTest(name):
+                response = Client().get(self.publication_url(name, self.publication))
+                self.assertEqual(response.status_code, 302)
+                self.assertIn("login", response["Location"].lower())
+
+    def test_a_publication_id_from_another_model_is_404(self):
+        other_model = Model.objects.create(workspace=self.workspace, name="Other model", revision=1)
+
+        for name in ("publication_view", "publication_download"):
+            with self.subTest(name):
+                response = self.client.get(self.publication_url(name, self.publication, model=other_model))
+                self.assertEqual(response.status_code, 404)
+
+
+class ViewViewTests(ViewFixture):
+
+    def test_the_hosted_view_embeds_the_stored_bundle(self):
+        publication = self.publish_and_get({"title": "Board pack", "filename": "b.html"})
+
+        html = self.client.get(self.publication_url("publication_view", publication)).content.decode()
+
+        self.assertIn("Board pack", html)
+        self.assertIn(f"Revision {publication.source_revision}", html)
+        text = re.search(
+            r'<script id="onyxjar-published-data" type="application/json">(.*?)</script>', html, re.S
+        ).group(1)
+        self.assertEqual(json.loads(text), publication.bundle)
+
+    def test_the_view_shows_the_stored_snapshot_not_the_current_model(self):
+        publication = self.publish_and_get()
+        self.make_object(self.person_type, "Added after publishing")
+
+        html = self.client.get(self.publication_url("publication_view", publication)).content.decode()
+
+        self.assertNotIn("Added after publishing", html)
+
+    def test_a_publication_with_no_stored_snapshot_is_unavailable(self):
+        legacy = self.make_publication()  # bundle defaults to {} - predates snapshot storage
+
+        response = self.client.get(self.publication_url("publication_view", legacy))
+
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "not available", status_code=404)
+
+
+class DownloadViewTests(ViewFixture):
+
+    def test_downloading_returns_the_file_as_an_attachment(self):
+        publication = self.publish_and_get({"title": "Board pack", "filename": "board.html"})
+
+        response = self.client.get(self.publication_url("publication_download", publication))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "text/html; charset=utf-8")
@@ -388,19 +541,22 @@ class DownloadTests(ViewFixture):
         self.assertTrue(html.startswith("<!DOCTYPE html>"))
         self.assertEqual(len(split_document(html)["data"]), 1)
 
-    def test_the_response_identifies_the_publication_for_the_page(self):
-        response = self.publish()
-        publication = Publication.objects.get()
+    def test_the_response_identifies_the_publication(self):
+        publication = self.publish_and_get()
+
+        response = self.client.get(self.publication_url("publication_download", publication))
 
         self.assertEqual(response["X-Publication-Id"], str(publication.id))
-        self.assertEqual(response["X-Publication-Sequence"], "1")
-        self.assertEqual(response["X-Publication-Revision"], str(self.model.revision))
+        self.assertEqual(response["X-Publication-Sequence"], str(publication.sequence))
+        self.assertEqual(response["X-Publication-Revision"], str(publication.source_revision))
         self.assertEqual(
             response["X-Publication-Published-At"], publication.published_at.astimezone(timezone.utc).isoformat()
         )
 
     def test_a_hostile_filename_is_made_safe(self):
-        response = self.publish({"title": "T", "filename": '../../etc/pass"wd\r\nX-Evil: 1'})
+        publication = self.publish_and_get({"title": "T", "filename": '../../etc/pass"wd\r\nX-Evil: 1'})
+
+        response = self.client.get(self.publication_url("publication_download", publication))
 
         self.assertEqual(response.status_code, 200)
         disposition = response["Content-Disposition"]
@@ -411,24 +567,47 @@ class DownloadTests(ViewFixture):
         self.assertTrue(disposition.rstrip('"').endswith(".html"))
 
     def test_a_non_ascii_filename_is_encoded_for_the_header(self):
-        response = self.publish({"title": "T", "filename": "Übersicht Straße.html"})
+        publication = self.publish_and_get({"title": "T", "filename": "Übersicht Straße.html"})
+
+        response = self.client.get(self.publication_url("publication_download", publication))
 
         self.assertIn("filename*=", response["Content-Disposition"])
 
     def test_the_file_is_not_written_to_disk(self):
         import os
 
-        self.publish()
+        publication = self.publish_and_get()
+        self.client.get(self.publication_url("publication_download", publication))
 
         self.assertFalse(settings.MEDIA_ROOT and os.path.exists(settings.MEDIA_ROOT))
 
     def test_the_document_embeds_the_publication_context(self):
-        html = self.publish({"title": "Board pack", "filename": "b.html"}).content.decode()
-        publication = Publication.objects.get()
+        publication = self.publish_and_get({"title": "Board pack", "filename": "b.html"})
+
+        html = self.client.get(self.publication_url("publication_download", publication)).content.decode()
 
         self.assertIn("<title>Board pack</title>", html)
-        self.assertIn(f"Revision {self.model.revision}", html)
+        self.assertIn(f"Revision {publication.source_revision}", html)
         self.assertIn(str(publication.id), html)
+
+    def test_downloading_an_old_publication_reproduces_it_not_the_current_model(self):
+        first = self.publish_and_get({"title": "First", "filename": "first.html"})
+        self.model.revision += 1
+        self.model.save(update_fields=["revision"])
+        self.make_object(self.person_type, "Added after First was published")
+        self.publish_and_get({"title": "Second", "filename": "second.html"})
+
+        html = self.client.get(self.publication_url("publication_download", first)).content.decode()
+
+        self.assertIn("<title>First</title>", html)
+        self.assertNotIn("Added after First was published", html)
+
+    def test_a_publication_with_no_stored_snapshot_cannot_be_downloaded(self):
+        legacy = self.make_publication()
+
+        response = self.client.get(self.publication_url("publication_download", legacy))
+
+        self.assertEqual(response.status_code, 404)
 
 
 class RefusalTests(ViewFixture):
