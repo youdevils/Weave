@@ -414,6 +414,15 @@ class ProposalService:
             raise ValueError("Only editable proposals can be abandoned.")
 
         model = proposal.model
+
+        # Domain lifecycle signal, sent synchronously BEFORE delete(): the
+        # SET_NULL collector nulls AssistedTask.proposal_id as part of
+        # delete() itself, so a receiver must look proposal_id up while it
+        # still resolves -- see model/signals.py.
+        from model.signals import proposal_abandoned
+
+        proposal_abandoned.send(sender=Proposal, proposal_id=proposal.id, model_id=model.id)
+
         proposal.delete()
 
         # Styles saved against types only this proposal introduced are now orphaned.

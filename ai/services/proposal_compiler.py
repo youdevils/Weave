@@ -193,7 +193,7 @@ def compile_and_validate(*, model, user, operation, change_plan: ChangePlan) -> 
             model,
             user,
             source=Proposal.Source.AI,
-            title=f"AI: {operation.name}"[:200],
+            title=f"Assisted: {operation.name}"[:200],
             # Level A rationale: the Change Plan's overall explanation maps
             # onto the existing Proposal-level "Change note" field.
             summary=change_plan.summary,

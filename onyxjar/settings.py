@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "account",
     "model",
     "ai",
+    "assisted",
     "api",
     "ingestion",
     "publication",
@@ -283,6 +284,28 @@ AI_MAX_PROVIDER_RETRIES = 2
 # Policy switch for the explain()-only call made when an operation reaches
 # AI_MAX_REFINEMENT_CYCLES without a valid result.
 AI_FINAL_EXPLANATION_ENABLED = True
+
+# ------------------------------------------------------------------------------------
+# ASSISTED TASKS (assisted app)
+# ------------------------------------------------------------------------------------
+
+# How long a QUEUED AssistedTask may sit without reaching RUNNING before it's
+# treated as a silently-failed-to-enqueue dispatch and lazily reclaimed the
+# next time anything checks for an active task against its Model.
+ASSISTED_TASK_QUEUED_STUCK_THRESHOLD = timedelta(minutes=5)
+
+# How long a RUNNING AssistedTask may run before it's treated as orphaned
+# (its worker died) and lazily reclaimed the same way.
+ASSISTED_TASK_RUNNING_STUCK_THRESHOLD = timedelta(minutes=15)
+
+# Evidence files a user may attach when starting Assisted Create. NOT sized
+# like IMPORT_MAX_FILE_BYTES (5 MB) -- evidence content is folded into the AI
+# context packet's fixed overhead, which must fit inside AI_CONTEXT_MAX_BYTES
+# (200_000) alongside the ontology and model data. Raise only together with
+# AI_CONTEXT_MAX_BYTES.
+ASSISTED_MAX_EVIDENCE_FILES = 5
+ASSISTED_MAX_EVIDENCE_FILE_BYTES = 20_000
+ASSISTED_MAX_EVIDENCE_TOTAL_BYTES = 50_000
 
 # ------------------------------------------------------------------------------------
 # DEFAULT AUTO FIELD

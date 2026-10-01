@@ -764,6 +764,12 @@ def process(proposal_id):
             # created keep theirs (same UUID, now canonical).
             AppearanceService.prune(model)
 
+            # Domain lifecycle signal, sent synchronously (not via
+            # transaction.on_commit): see model/signals.py for why.
+            from model.signals import proposal_committed
+
+            proposal_committed.send(sender=Proposal, proposal_id=proposal.id, model_id=model.id)
+
             _store_result(
                 proposal,
                 outcome=ProposalSubmissionResult.Outcome.SUCCESS,

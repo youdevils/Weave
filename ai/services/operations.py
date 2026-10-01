@@ -1,11 +1,13 @@
 """
 The AI operation contract and registry.
 
-Phase 1 builds this mechanism only -- no real `create`/`reconcile`/`change`/
-`assess` operation is registered here. Future operations plug into the common
-orchestration layer (ai.services.orchestrator.run_ai_operation) by providing
-one of these, without implementing their own provider, context, Proposal or
-validation machinery.
+This module builds the mechanism only. `create` is the first real operation
+registered against it (see ai.services.operation_definitions, wired up from
+AiConfig.ready()); `reconcile`/`change`/`assess` remain unregistered.
+Operations plug into the common orchestration layer
+(ai.services.orchestrator.run_ai_operation) by providing one of these,
+without implementing their own provider, context, Proposal or validation
+machinery.
 """
 
 from dataclasses import dataclass

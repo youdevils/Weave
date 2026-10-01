@@ -17,6 +17,11 @@ urlpatterns = [
         name="model_template_review",
     ),
     path(
+        "create-model/<uuid:model_id>/assisted",
+        views.model_assisted_create_setup,
+        name="model_assisted_create_setup",
+    ),
+    path(
         "models/<uuid:model_id>/delete",
         views.delete_model_view,
         name="delete_model",

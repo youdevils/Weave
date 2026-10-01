@@ -14,6 +14,8 @@ from model.models.relationship import Relationship
 from model.models.relationship_type import RelationshipType
 from workspace.models import Workspace, WorkspaceMember
 
+from assisted.models import AssistedTask
+
 CONFIRMATION = (
     "This will permanently delete the model and all of its data, including "
     "objects, relationships, proposals and evidence. This cannot be undone."
@@ -198,6 +200,30 @@ class DeleteModelViewTests(TestCase):
                 self.assertTrue(Model.objects.filter(id=model.id).exists())
                 self.assertContains(response, "queued or being processed")
                 self.assertContains(response, f"Busy {status}")
+
+    def test_a_model_with_an_active_assisted_task_is_not_deleted(self):
+        for status in (
+            AssistedTask.Status.QUEUED,
+            AssistedTask.Status.RUNNING,
+            AssistedTask.Status.READY_FOR_REVIEW,
+        ):
+            with self.subTest(status=status):
+                model = self.build_model(self.workspace, f"Assisted {status}")
+                AssistedTask.objects.create(
+                    workspace=self.workspace,
+                    creator=self.owner,
+                    operation=AssistedTask.Operation.CREATE,
+                    model=model,
+                    status=status,
+                    submitted_intent="Track widgets.",
+                )
+                self.client.force_login(self.owner)
+
+                response = self.client.post(self.delete_url(model), follow=True)
+
+                self.assertRedirects(response, reverse("workspace:index"))
+                self.assertTrue(Model.objects.filter(id=model.id).exists())
+                self.assertContains(response, "assisted operation in progress")
 
 
 class DashboardDeleteControlTests(TestCase):

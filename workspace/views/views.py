@@ -1,12 +1,16 @@
 import logging
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 
 from account.notifications import notify_unverified_email
+from ai.services.intent import InvalidIntent
 from model.models.model import Model
 from model.services.model_deletion import ModelDeletionBlocked, delete_model
 from model.services.model_template.builder import TemplateDefinitionError
@@ -19,7 +23,14 @@ from model.services.model_template.loader import (
 )
 from workspace.models import WorkspaceMember
 
+from assisted.models import AssistedTask
+from assisted.services.evidence import AssistedEvidenceInvalid
+from assisted.services.lifecycle import AssistedTaskActive, BootstrapModelGone, start_assisted_create
+from assisted.uploads import LimitedUploadHandler
+
 logger = logging.getLogger(__name__)
+
+ASSISTED_CREATE_ROLES = (WorkspaceMember.Role.OWNER, WorkspaceMember.Role.EDITOR)
 
 
 @login_required
@@ -188,6 +199,91 @@ def model_template_review(request, model_id, template_key):
     )
 
 
+@csrf_exempt
+def model_assisted_create_setup(request, model_id):
+    """
+    The handler that enforces the per-file size limit has to be installed
+    before anything reads the request body, and Django's CSRF middleware
+    would do exactly that, so this thin outer view exempts itself, installs
+    the handler and hands over to a csrf-protected view -- the same split
+    ingestion.views.import_upload uses.
+    """
+
+    handler = LimitedUploadHandler(request, max_bytes=settings.ASSISTED_MAX_EVIDENCE_FILE_BYTES)
+    request.upload_handlers = [handler]
+
+    return _model_assisted_create_setup(request, model_id, handler=handler)
+
+
+@csrf_protect
+@login_required
+def _model_assisted_create_setup(request, model_id, handler):
+    # 404 for anyone outside the model's workspace; being a member is not
+    # enough to start an assisted operation, that takes owner or editor,
+    # mirroring ingestion.access's IMPORT_ROLES gate.
+    membership = get_object_or_404(
+        WorkspaceMember.objects.select_related("workspace"),
+        user=request.user,
+        workspace__models__id=model_id,
+    )
+
+    if membership.role not in ASSISTED_CREATE_ROLES:
+        raise PermissionDenied("Only workspace owners and editors can use assisted creation.")
+
+    model = get_object_or_404(
+        Model,
+        id=model_id,
+        workspace=membership.workspace,
+    )
+
+    if request.method == "POST":
+        files = request.FILES.getlist("evidence")
+
+        if handler.too_large:
+            messages.error(request, "One of the attached files is too large.")
+            return render(request, "workspace/model_assisted_create_setup.html", {"model": model})
+
+        if len(files) > settings.ASSISTED_MAX_EVIDENCE_FILES:
+            messages.error(
+                request,
+                f"Attach at most {settings.ASSISTED_MAX_EVIDENCE_FILES} files.",
+            )
+            return render(request, "workspace/model_assisted_create_setup.html", {"model": model})
+
+        try:
+            start_assisted_create(
+                workspace=membership.workspace,
+                model=model,
+                user=request.user,
+                intent_text=request.POST.get("intent", ""),
+                files=files,
+            )
+        except AssistedTaskActive as exc:
+            messages.error(request, str(exc))
+            return redirect("workspace:model_starting_point", model_id=model.id)
+        except BootstrapModelGone as exc:
+            messages.error(request, str(exc))
+            return redirect("workspace:index")
+        except (InvalidIntent, AssistedEvidenceInvalid) as exc:
+            messages.error(request, str(exc))
+            return render(request, "workspace/model_assisted_create_setup.html", {"model": model})
+
+        messages.success(
+            request,
+            "Assisted creation started. We’ll let you know when it’s ready for review.",
+        )
+        return redirect("workspace:index")
+
+    return render(
+        request,
+        "workspace/model_assisted_create_setup.html",
+        {
+            "model": model,
+            "max_intent_chars": settings.AI_MAX_INTENT_CHARS,
+        },
+    )
+
+
 @login_required
 @require_POST
 def delete_model_view(request, model_id):
@@ -211,8 +307,17 @@ def delete_model_view(request, model_id):
     name = model.name
 
     try:
-        delete_model(model)
-    except ModelDeletionBlocked as blocked:
+        with transaction.atomic():
+            locked = Model.objects.select_for_update().get(pk=model.pk)
+
+            if AssistedTask.objects.filter(model=locked, status__in=AssistedTask.ACTIVE_STATUSES).exists():
+                raise AssistedTaskActive(
+                    "This model has an assisted operation in progress and cannot be "
+                    "deleted until it finishes."
+                )
+
+            delete_model(locked)
+    except (ModelDeletionBlocked, AssistedTaskActive) as blocked:
         messages.error(request, str(blocked))
     else:
         messages.success(request, f"Model “{name}” was permanently deleted.")

@@ -1,0 +1,280 @@
+{% extends "authenticated_base.html" %}
+
+{% load static %}
+
+{% block title %}Create Model — OnyxJar{% endblock %}
+
+{% block workspace_breadcrumb %}Workspace → New{% endblock %}
+
+{% block extra_css %}
+<link
+    rel="stylesheet"
+    href="{% static 'workspace/css/create_model.css' %}"
+>
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid px-4 py-4">
+
+    <div class="create-model-page">
+
+
+        <!-- =====================================================
+             Back
+             ===================================================== -->
+
+        <div class="mb-4">
+
+            <a
+                href="{% url 'workspace:model_starting_point' model_id=model.id %}"
+                class="create-model-back"
+            >
+                <i
+                    class="bi bi-arrow-left"
+                    aria-hidden="true"
+                ></i>
+
+                Back to starting point
+            </a>
+
+        </div>
+
+
+        <!-- =====================================================
+             Header
+             ===================================================== -->
+
+        <header class="create-model-header">
+
+            <h1 class="h3 create-model-title">
+                Assisted creation
+            </h1>
+
+            <p class="create-model-intro">
+                Describe what you want <strong>{{ model.name }}</strong> to
+                model and attach anything that helps — we’ll draft a
+                starting structure for you to review.
+            </p>
+
+        </header>
+
+
+        <!-- =====================================================
+             Progress
+             ===================================================== -->
+
+        <nav
+            class="create-model-progress"
+            aria-label="Model creation progress"
+        >
+
+            <div class="create-model-step">
+
+                <span class="create-model-step-number">
+                    <i
+                        class="bi bi-check-lg"
+                        aria-hidden="true"
+                    ></i>
+                </span>
+
+                Details
+
+            </div>
+
+
+            <div
+                class="create-model-step-line"
+                aria-hidden="true"
+            ></div>
+
+
+            <div class="create-model-step">
+
+                <span class="create-model-step-number">
+                    <i
+                        class="bi bi-check-lg"
+                        aria-hidden="true"
+                    ></i>
+                </span>
+
+                Starting point
+
+            </div>
+
+
+            <div
+                class="create-model-step-line"
+                aria-hidden="true"
+            ></div>
+
+
+            <div class="create-model-step active">
+
+                <span class="create-model-step-number">
+                    3
+                </span>
+
+                Assisted creation
+
+            </div>
+
+        </nav>
+
+
+        <!-- =====================================================
+             Main layout
+             ===================================================== -->
+
+        <div class="create-model-layout">
+
+
+            <!-- =================================================
+                 Context
+                 ================================================= -->
+
+            <aside class="create-model-aside">
+
+                <div class="create-model-aside-label">
+                    Step 3
+                </div>
+
+                <h2>
+                    Tell us what to build
+                </h2>
+
+                <p>
+                    One sentence is enough to get started — the more
+                    specific, the better the first draft.
+                </p>
+
+                <p>
+                    Attached files (specs, spreadsheets, notes) are used as
+                    evidence for the draft; they are not imported directly.
+                </p>
+
+                <div class="create-model-aside-note">
+
+                    <strong>You’ll review before anything is kept</strong>
+
+                    <br>
+
+                    This produces a proposal for you to review and submit —
+                    nothing is added to your model automatically.
+
+                </div>
+
+            </aside>
+
+
+            <!-- =================================================
+                 Setup form
+                 ================================================= -->
+
+            <main>
+
+                <div class="create-model-form-panel">
+
+                    <!-- Panel header -->
+
+                    <div class="create-model-form-header">
+
+                        <h2>
+                            Describe your model
+                        </h2>
+
+                        <p>
+                            Submit your intent and any supporting evidence.
+                        </p>
+
+                    </div>
+
+
+                    <!-- Panel body -->
+
+                    <div class="create-model-form-body">
+
+                        <form
+                            method="post"
+                            action="#"
+                            enctype="multipart/form-data"
+                        >
+
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+
+                                <label
+                                    for="assistedIntent"
+                                    class="form-label"
+                                >
+                                    What do you want to model?
+                                </label>
+
+                                <textarea
+                                    id="assistedIntent"
+                                    name="intent"
+                                    class="form-control"
+                                    rows="5"
+                                    maxlength="{{ max_intent_chars }}"
+                                    required
+                                    placeholder="e.g. Track our delivery projects, the teams that run them, and the milestones each one depends on."
+                                ></textarea>
+
+                            </div>
+
+                            <div class="mb-3">
+
+                                <label
+                                    for="assistedEvidence"
+                                    class="form-label"
+                                >
+                                    Supporting files (optional)
+                                </label>
+
+                                <input
+                                    type="file"
+                                    id="assistedEvidence"
+                                    name="evidence"
+                                    class="form-control"
+                                    multiple
+                                >
+
+                            </div>
+
+
+                            <!-- Actions -->
+
+                            <div class="create-model-actions">
+
+                                <a
+                                    href="{% url 'workspace:model_starting_point' model_id=model.id %}"
+                                    class="btn btn-outline-secondary"
+                                >
+                                    Back
+                                </a>
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+                                    Start assisted creation
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
