@@ -69,6 +69,22 @@ class ValidateChangePlanTests(AIServiceTestCase):
 
         self.assertTrue(any(issue.code == "delete_requires_existing_target_ref" for issue in issues))
 
+    def test_update_action_with_no_fields_is_rejected(self):
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="update",
+                    target_type="Object",
+                    target_ref=_existing(self.object.id),
+                    fields={},
+                )
+            ],
+        )
+
+        issues = validate_change_plan(plan, dataset=self.dataset)
+
+        self.assertTrue(any(issue.code == "update_requires_at_least_one_field" for issue in issues))
+
     def test_existing_ref_must_resolve_against_canonical_dataset(self):
         plan = ChangePlan(
             actions=[

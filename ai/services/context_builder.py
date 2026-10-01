@@ -41,14 +41,14 @@ def _issue_to_dict(issue) -> dict:
     }
 
 
-def _ranked_object_ids(dataset, object_ids) -> list[str]:
+def _ranked_object_ids(dataset, object_ids, priority_ids=frozenset()) -> list[str]:
     def _name(object_id):
         obj = dataset.object(object_id)
         return obj.name.lower() if obj else ""
 
     return sorted(
         object_ids,
-        key=lambda oid: (-dataset.degree(oid), _name(oid), oid),
+        key=lambda oid: (oid not in priority_ids, -dataset.degree(oid), _name(oid), oid),
     )
 
 
@@ -67,13 +67,13 @@ def _initial_object_ids(dataset) -> tuple[set[str], bool]:
     return set(projection.object_ids), projection.summary.truncated
 
 
-def _expanded_object_ids(dataset, seed_object_ids) -> tuple[set[str], bool]:
+def _reachable_object_ids(dataset, seed_object_ids) -> set[str]:
+    """Hop-bounded only -- no longer separately trimmed to AI_CONTEXT_MAX_OBJECTS;
+    build_context_packet's union-level trim handles the object-count ceiling
+    once, uniformly, over the combined (base + expanded) set."""
+
     adjacency = _build_adjacency(dataset)
-    reached = reachable_within(seed_object_ids, adjacency, settings.AI_CONTEXT_MAX_HOPS)
-    if len(reached) <= settings.AI_CONTEXT_MAX_OBJECTS:
-        return reached, False
-    ranked = _ranked_object_ids(dataset, reached)
-    return set(ranked[: settings.AI_CONTEXT_MAX_OBJECTS]), True
+    return reachable_within(seed_object_ids, adjacency, settings.AI_CONTEXT_MAX_HOPS)
 
 
 def _payload_for(dataset, object_ids) -> tuple[list[dict], list[dict], int]:
@@ -92,10 +92,18 @@ def _payload_for(dataset, object_ids) -> tuple[list[dict], list[dict], int]:
     return objects_payload, relationships_payload, size
 
 
-def _bounded_payload(dataset, object_ids) -> tuple[list[dict], list[dict], bool]:
+def _bounded_payload(dataset, object_ids, *, max_bytes) -> tuple[list[dict], list[dict], bool]:
     """Builds objects/relationships payloads for `object_ids`, trimming the
     least-connected objects first (same ranking project() already uses) if
-    the serialised result exceeds AI_CONTEXT_MAX_BYTES."""
+    the serialised result exceeds `max_bytes` -- the byte budget left over
+    for this section after the rest of the packet's fixed overhead
+    (ontology, model metadata, intent, assets, previous-attempt issues) is
+    accounted for. Deliberately plain degree/name ranking here, independent
+    of any base-vs-expansion priority (see build_context_packet) -- the two
+    ceilings (object count, byte size) are kept decoupled."""
+
+    if max_bytes <= 0:
+        return [], [], True
 
     ranked_ids = _ranked_object_ids(dataset, object_ids)
     kept = ranked_ids
@@ -103,13 +111,23 @@ def _bounded_payload(dataset, object_ids) -> tuple[list[dict], list[dict], bool]
 
     while kept:
         objects_payload, relationships_payload, size = _payload_for(dataset, set(kept))
-        if size <= settings.AI_CONTEXT_MAX_BYTES or len(kept) == 1:
-            return objects_payload, relationships_payload, truncated or size > settings.AI_CONTEXT_MAX_BYTES
+        if size <= max_bytes or len(kept) == 1:
+            return objects_payload, relationships_payload, truncated or size > max_bytes
         truncated = True
         drop = max(1, len(kept) // 10)
         kept = kept[: len(kept) - drop]
 
     return [], [], truncated
+
+
+def _skeleton_size(**packet_kwargs) -> int:
+    """Serialised size of the packet with objects/relationships empty --
+    the fixed overhead (ontology, model metadata, intent, assets,
+    previous-attempt issues) that objects/relationships must share
+    AI_CONTEXT_MAX_BYTES with."""
+
+    skeleton = ContextPacket(**packet_kwargs, objects=[], relationships=[], byte_size=0)
+    return len(canonical_json(skeleton.model_dump(mode="json")).encode("utf-8"))
 
 
 def build_context_packet(
@@ -125,14 +143,30 @@ def build_context_packet(
     dataset = load_effective_dataset(model, proposal=None)
     ontology_payload = compile_ontology_graph(model, proposal=None).to_dict()
 
+    # Additive: the deterministic base slice is never discarded by an
+    # expansion cycle, only ever added to -- see the module docstring and
+    # _ranked_object_ids' priority_ids. Recomputing the base fresh each call
+    # is safe and gives an identical result every time, since canonical
+    # state doesn't change mid-operation (ai.services.orchestrator).
+    base_ids, base_truncated = _initial_object_ids(dataset)
+
     if expansion_state.seed_object_ids:
-        object_ids, limit_hit = _expanded_object_ids(dataset, expansion_state.seed_object_ids)
+        combined_ids = base_ids | _reachable_object_ids(dataset, expansion_state.seed_object_ids)
     else:
-        object_ids, limit_hit = _initial_object_ids(dataset)
+        combined_ids = set(base_ids)
 
-    objects_payload, relationships_payload, byte_limit_hit = _bounded_payload(dataset, object_ids)
+    if len(combined_ids) > settings.AI_CONTEXT_MAX_OBJECTS:
+        ranked = _ranked_object_ids(dataset, combined_ids, priority_ids=base_ids)
+        object_ids = set(ranked[: settings.AI_CONTEXT_MAX_OBJECTS])
+        object_limit_hit = True
+    else:
+        object_ids = combined_ids
+        object_limit_hit = base_truncated
 
-    packet = ContextPacket(
+    previous_issues_payload = [_issue_to_dict(issue) for issue in previous_issues]
+    assets_payload = list(assets)
+
+    fixed_kwargs = dict(
         intent=intent.text,
         model_id=str(model.id),
         model_name=model.name,
@@ -141,11 +175,26 @@ def build_context_packet(
         model_exclusions=model.exclusions,
         model_revision=model.revision,
         ontology=ontology_payload,
+        assets=assets_payload,
+        previous_attempt_issues=previous_issues_payload,
+    )
+
+    # AI_CONTEXT_MAX_BYTES bounds the WHOLE serialised packet, not just the
+    # objects/relationships subsection -- give objects/relationships only
+    # whatever budget remains after the rest of the packet's fixed overhead.
+    overhead = _skeleton_size(**fixed_kwargs)
+    overhead_exceeds_ceiling = overhead > settings.AI_CONTEXT_MAX_BYTES
+    available_bytes = max(0, settings.AI_CONTEXT_MAX_BYTES - overhead)
+
+    objects_payload, relationships_payload, byte_limit_hit = _bounded_payload(
+        dataset, object_ids, max_bytes=available_bytes
+    )
+
+    packet = ContextPacket(
+        **fixed_kwargs,
         objects=objects_payload,
         relationships=relationships_payload,
-        assets=list(assets),
-        previous_attempt_issues=[_issue_to_dict(issue) for issue in previous_issues],
-        truncated=bool(limit_hit or byte_limit_hit),
+        truncated=bool(object_limit_hit or byte_limit_hit or overhead_exceeds_ceiling),
         byte_size=0,
     )
 

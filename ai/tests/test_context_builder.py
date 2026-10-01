@@ -65,22 +65,82 @@ class BuildContextPacketTests(AIServiceTestCase):
 
         self.assertGreater(packet.byte_size, 0)
 
-    def test_expansion_seeds_bound_neighbourhood_via_hops(self):
-        center = self.make_object(self.model, self.object_type, name="Center")
+    def test_expansion_retains_unrelated_base_content_when_room_allows(self):
+        # The old (buggy) behaviour replaced the base context with ONLY the
+        # hop-reachable set the moment any expansion seed was present,
+        # losing unrelated-but-relevant base content even when there was no
+        # size pressure requiring that loss.
         relationship_type = self.make_relationship_type(self.model, key="connects_to")
-        neighbour = self.make_object(self.model, self.object_type, name="Neighbour")
-        far = self.make_object(self.model, self.object_type, name="Far")
-        self.make_relationship(self.model, relationship_type, center, neighbour)
-        self.make_relationship(self.model, relationship_type, neighbour, far)
+        a = self.make_object(self.model, self.object_type, name="A")
+        b = self.make_object(self.model, self.object_type, name="B")
+        self.make_relationship(self.model, relationship_type, a, b)
+        c = self.make_object(self.model, self.object_type, name="C")
+        d = self.make_object(self.model, self.object_type, name="D")
 
-        with override_settings(AI_CONTEXT_MAX_HOPS=1, AI_CONTEXT_MAX_OBJECTS=300, AI_CONTEXT_MAX_BYTES=10_000_000):
+        with override_settings(AI_CONTEXT_MAX_OBJECTS=300, AI_CONTEXT_MAX_HOPS=1, AI_CONTEXT_MAX_BYTES=10_000_000):
             packet = build_context_packet(
                 model=self.model,
                 intent=self.intent,
-                expansion_state=ExpansionState(seed_object_ids=frozenset({str(center.id)})),
+                expansion_state=ExpansionState(seed_object_ids=frozenset({str(a.id)})),
             )
 
         object_ids = {obj["id"] for obj in packet.objects}
-        self.assertIn(str(center.id), object_ids)
-        self.assertIn(str(neighbour.id), object_ids)
-        self.assertNotIn(str(far.id), object_ids)
+        self.assertEqual(object_ids, {str(a.id), str(b.id), str(c.id), str(d.id)})
+
+    def test_expansion_does_not_evict_base_when_ceiling_binds(self):
+        # Five "hub" objects connected in a cycle (degree 2 each) always
+        # outrank a lone, unconnected "seed"/"neighbour" pair (degree 1
+        # each) under the existing degree-based ranking, so with the
+        # ceiling set to exactly 5 the no-seed base is deterministically
+        # the five hubs.
+        relationship_type = self.make_relationship_type(self.model, key="connects_to")
+        hubs = [self.make_object(self.model, self.object_type, name=f"Hub {i}") for i in range(5)]
+        for i in range(5):
+            self.make_relationship(self.model, relationship_type, hubs[i], hubs[(i + 1) % 5])
+
+        seed = self.make_object(self.model, self.object_type, name="Seed")
+        neighbour = self.make_object(self.model, self.object_type, name="Neighbour")
+        self.make_relationship(self.model, relationship_type, seed, neighbour)
+
+        hub_ids = {str(h.id) for h in hubs}
+
+        with override_settings(AI_CONTEXT_MAX_OBJECTS=5, AI_CONTEXT_MAX_HOPS=1, AI_CONTEXT_MAX_BYTES=10_000_000):
+            base_packet = build_context_packet(model=self.model, intent=self.intent)
+            expanded_packet = build_context_packet(
+                model=self.model,
+                intent=self.intent,
+                expansion_state=ExpansionState(seed_object_ids=frozenset({str(seed.id)})),
+            )
+
+        self.assertEqual({obj["id"] for obj in base_packet.objects}, hub_ids)
+        self.assertTrue(base_packet.truncated)
+
+        # Every hub survives the expansion cycle (base is never evicted);
+        # the ceiling still binds, so the new seed/neighbour pair has no
+        # room left to be added.
+        self.assertEqual({obj["id"] for obj in expanded_packet.objects}, hub_ids)
+        self.assertTrue(expanded_packet.truncated)
+
+    def test_full_packet_respects_configured_byte_ceiling(self):
+        from publication.services.bundle import canonical_json
+
+        for index in range(10):
+            self.make_object(self.model, self.object_type, name=f"Widget {index}")
+
+        small_assets = [{"name": "a.txt", "content": "x", "mime_type": "text/plain"}]
+        large_assets = [{"name": "a.txt", "content": "x" * 1500, "mime_type": "text/plain"}]
+
+        with override_settings(AI_CONTEXT_MAX_BYTES=5500, AI_CONTEXT_MAX_OBJECTS=300, AI_CONTEXT_MAX_HOPS=2):
+            small_packet = build_context_packet(model=self.model, intent=self.intent, assets=small_assets)
+            large_packet = build_context_packet(model=self.model, intent=self.intent, assets=large_assets)
+            large_size = len(canonical_json(large_packet.model_dump(mode="json")).encode("utf-8"))
+
+        # A larger fixed-overhead section (assets, here) leaves less budget
+        # for objects/relationships -- the ceiling applies to the whole
+        # packet, not just that one subsection. (Overhead alone stays well
+        # under the configured ceiling in both cases here, so this exercises
+        # ordinary trimming rather than the documented "overhead alone
+        # exceeds the ceiling" edge case.)
+        self.assertLess(len(large_packet.objects), len(small_packet.objects))
+        self.assertTrue(large_packet.truncated)
+        self.assertLessEqual(large_size, 5500)

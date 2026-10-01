@@ -194,6 +194,15 @@ def validate_change_plan(plan: ChangePlan, dataset) -> list[UnresolvedIssue]:
                 )
             )
 
+        if action.operation == "update" and not action.fields:
+            issues.append(
+                _issue(
+                    "update_requires_at_least_one_field",
+                    "An 'update' action must specify at least one field to change.",
+                    action.target_ref,
+                )
+            )
+
         # Track every action whose target_ref is a given "new" token, split
         # into its one allowed defining create (rule 5) vs. any other action
         # retargeting the same token (rule 6).
