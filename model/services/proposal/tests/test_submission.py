@@ -380,7 +380,7 @@ class CommitAtomicityTests(SubmissionTestCase):
         object_type_count_before = ObjectType.objects.count()
 
         with patch(
-            "model.services.proposal.submission.validate_model",
+            "model.services.proposal.validation_runner.validate_model",
             side_effect=RuntimeError("super-secret-internal-detail"),
         ):
             submission.process(submission.claim_next(model.id).id)

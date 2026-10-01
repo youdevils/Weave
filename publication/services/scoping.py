@@ -26,10 +26,10 @@ renders them identically.
 
 from __future__ import annotations
 
-from collections import deque
 from dataclasses import replace
 
 from model.services.model_graph.dataset import EffectiveDataset, is_populated
+from model.services.model_graph.reachability import reachable_within
 
 from .config import PublicationScope
 
@@ -52,21 +52,6 @@ def clean_attributes(specs, values) -> dict:
         for spec in specs
         if is_populated(values.get(spec.key))
     }
-
-
-def _reachable(roots, adjacency, depth):
-    """Objects within ``depth`` hops of ``roots`` (unlimited when ``depth`` is None)."""
-    seen = set(roots)
-    frontier = deque((root, 0) for root in roots)
-    while frontier:
-        current, distance = frontier.popleft()
-        if depth is not None and distance >= depth:
-            continue
-        for neighbour in adjacency.get(current, ()):
-            if neighbour not in seen:
-                seen.add(neighbour)
-                frontier.append((neighbour, distance + 1))
-    return seen
 
 
 def apply_scope(dataset: EffectiveDataset, scope: PublicationScope) -> EffectiveDataset:
@@ -95,7 +80,7 @@ def apply_scope(dataset: EffectiveDataset, scope: PublicationScope) -> Effective
         for r in relationships:
             adjacency.setdefault(r.source_id, []).append(r.target_id)
             adjacency.setdefault(r.target_id, []).append(r.source_id)
-        kept = _reachable(roots, adjacency, scope.depth)
+        kept = reachable_within(roots, adjacency, scope.depth)
         relationships = [r for r in relationships if r.source_id in kept and r.target_id in kept]
 
     surviving_object_types = {

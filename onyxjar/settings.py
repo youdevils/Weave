@@ -248,6 +248,43 @@ WEBSITE_CONTACT_EMAIL = os.getenv("WEBSITE_CONTACT_EMAIL", "")
 WEBSITE_CONTACT_FORM_RECIPIENT = os.getenv("WEBSITE_CONTACT_FORM_RECIPIENT", "support@onyxjar.com")
 
 # ------------------------------------------------------------------------------------
+# AI SERVICE LAYER (ai app)
+# ------------------------------------------------------------------------------------
+
+AI_DEFAULT_OPENAI_MODEL = os.getenv("AI_DEFAULT_OPENAI_MODEL", "gpt-4.1")
+
+# Bounded refinement: a compiled Change Plan that still fails validation is
+# retried with the issues fed back as context, up to this many times before
+# the operation is marked UNRESOLVED.
+AI_MAX_REFINEMENT_CYCLES = 3
+
+# Bounded context expansion: growing the context packet when the AI names a
+# specific missing reference, before giving up on that avenue.
+AI_MAX_CONTEXT_EXPANSIONS = 3
+
+# Deterministic context sizing (mirrors ExplorerQuery's DEFAULT_LIMIT=300 /
+# MAX_LIMIT=1000 as a scale reference).
+AI_CONTEXT_MAX_OBJECTS = 300
+AI_CONTEXT_MAX_HOPS = 2
+
+# Byte ceiling on the serialised ContextPacket (canonical_json length).
+AI_CONTEXT_MAX_BYTES = 200_000
+
+# ProposalChanges one AI operation's compiled plan may produce (same order of
+# magnitude as IMPORT_MAX_CHANGES=1000; AI plans are expected far smaller).
+AI_MAX_CHANGE_PLAN_ACTIONS = 100
+
+# User-supplied intent text length.
+AI_MAX_INTENT_CHARS = 4000
+
+AI_PROVIDER_TIMEOUT_SECONDS = 60
+AI_MAX_PROVIDER_RETRIES = 2
+
+# Policy switch for the explain()-only call made when an operation reaches
+# AI_MAX_REFINEMENT_CYCLES without a valid result.
+AI_FINAL_EXPLANATION_ENABLED = True
+
+# ------------------------------------------------------------------------------------
 # DEFAULT AUTO FIELD
 # ------------------------------------------------------------------------------------
 
@@ -261,6 +298,11 @@ RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 
 if not RESEND_API_KEY:
     raise RuntimeError("RESEND_API_KEY is not set")
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+if not OPENAI_API_KEY:
+    raise RuntimeError("OPENAI_API_KEY is not set")
 
 LOGGING = {
     "version": 1,

@@ -72,7 +72,7 @@ class ProposalService:
 
     @staticmethod
     @transaction.atomic
-    def create_working(model, user, *, title="", summary=""):
+    def create_working(model, user, *, title="", summary="", source=Proposal.Source.USER):
         """
         Always create a new WORKING proposal (never reuses an existing one),
         subject to the live-proposal cap.
@@ -89,7 +89,7 @@ class ProposalService:
         return Proposal.objects.create(
             model=locked,
             created_by=user,
-            source=Proposal.Source.USER,
+            source=source,
             status=Proposal.Status.WORKING,
             base_revision=locked.revision,
             title=(title or "")[:200],

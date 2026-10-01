@@ -21,7 +21,6 @@ from model.services.validation.fields import (
     validate_relationship_builtin_fields,
     validate_relationship_field,
 )
-from model.services.validation.model_validation import validate_model
 from model.services.validation.result import ValidationIssue
 from model.services.field_paths import ATTRIBUTE_FIELD_PREFIX
 
@@ -709,6 +708,13 @@ def process(proposal_id):
     same model blocks here until this commits or rolls back).
     """
 
+    # Local import: validation_runner imports _apply_changes from this
+    # module at its own top level, so importing it back here at module
+    # scope would be circular. Deferring it to call time (same pattern as
+    # the task imports below) means neither module needs the other to have
+    # finished loading first.
+    from model.services.proposal.validation_runner import apply_and_validate
+
     model_id = (
         Proposal.objects.filter(id=proposal_id)
         .values_list("model_id", flat=True)
@@ -733,16 +739,13 @@ def process(proposal_id):
                 return
 
             model = Model.objects.select_for_update().get(id=proposal.model_id)
-            before_revision = model.revision
 
-            apply_issues = _apply_changes(model, proposal)
-            result = validate_model(model)
-            issues = apply_issues + result.issues
+            outcome = apply_and_validate(model, proposal)
 
-            if issues:
-                raise _ValidationFailed(issues, before_revision)
+            if outcome.issues:
+                raise _ValidationFailed(outcome.issues, outcome.before_revision)
 
-            model.revision = before_revision + 1
+            model.revision = outcome.before_revision + 1
             model.save(update_fields=["revision", "updated_at"])
 
             proposal.status = Proposal.Status.COMPLETED
@@ -764,7 +767,7 @@ def process(proposal_id):
             _store_result(
                 proposal,
                 outcome=ProposalSubmissionResult.Outcome.SUCCESS,
-                before_revision=before_revision,
+                before_revision=outcome.before_revision,
                 after_revision=model.revision,
             )
 
