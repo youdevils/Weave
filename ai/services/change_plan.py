@@ -29,10 +29,12 @@ values on a newly created entity, they belong directly in that entity's own
 
 from __future__ import annotations
 
-from typing import Any, Literal, Optional
+from typing import Literal, Optional
 
 from django.conf import settings
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from model.services.field_paths import ATTRIBUTE_FIELD_PREFIX
 
 TargetType = Literal[
     "ObjectType",
@@ -101,6 +103,97 @@ class UnresolvedIssue(BaseModel):
     target_ref: Optional[EntityRef] = None
 
 
+class AttributeDefinitionConfig(BaseModel):
+    """
+    AttributeDefinition.config's validation settings, by data_type -- see
+    model.models.attribute_definition.AttributeDefinition.clean. Which keys
+    are meaningful depends on the attribute's data_type (text: min_length/
+    max_length; number: min/max; choice: choices); the rest stay null. A
+    bounded, explicit stand-in for what was a second free-form nested dict
+    one level inside `fields` -- the same Structured Outputs problem as
+    `fields` itself (see FieldValue below), so it gets the same treatment
+    rather than being left as an escape hatch back into `Any`.
+    """
+
+    min_length: Optional[int] = None
+    max_length: Optional[int] = None
+    min: Optional[float] = None
+    max: Optional[float] = None
+    choices: Optional[list[str]] = None
+
+    def to_dict(self) -> dict:
+        return {key: value for key, value in self.model_dump().items() if value is not None}
+
+
+class FieldValue(BaseModel):
+    """
+    One value a ChangeAction field may hold. OpenAI Structured Outputs'
+    strict mode has no way to represent a truly free-form value -- every
+    object must declare `additionalProperties: false` and a closed set of
+    properties, which is exactly what `Any`/a bare dict cannot do -- so
+    this is the closed set of shapes a field value has ever actually
+    needed: a plain string (covers TEXT, DATE, DATETIME, CHOICE and URL
+    attribute values, which are all string-typed per
+    model.services.validation.attributes.validate_attribute_value), a
+    number, a boolean, a reference to another entity (a relationship
+    endpoint or an AttributeDefinition's parent), or an AttributeDefinition's
+    own nested validation config. The AI sets exactly one; `native()`
+    returns the one Python value this FieldValue actually represents, in
+    the same shape `fields` has always carried downstream.
+    """
+
+    string_value: Optional[str] = None
+    number_value: Optional[float] = None
+    boolean_value: Optional[bool] = None
+    entity_ref_value: Optional[EntityRef] = None
+    config_value: Optional[AttributeDefinitionConfig] = None
+
+    def native(self):
+        if self.entity_ref_value is not None:
+            return self.entity_ref_value
+        if self.config_value is not None:
+            return self.config_value.to_dict()
+        if self.boolean_value is not None:
+            return self.boolean_value
+        if self.number_value is not None:
+            return self.number_value
+        if self.string_value is not None:
+            return self.string_value
+        return None
+
+    @classmethod
+    def of(cls, value) -> "FieldValue":
+        """
+        Builds a FieldValue from a plain Python value -- the shorthand
+        ChangeAction accepts for `fields` at construction time (see its
+        field_validator just below), which is what every existing
+        test/fixture in this codebase already passes as a plain dict.
+        """
+
+        if isinstance(value, FieldValue):
+            return value
+        if isinstance(value, EntityRef):
+            return cls(entity_ref_value=value)
+        if isinstance(value, AttributeDefinitionConfig):
+            return cls(config_value=value)
+        if isinstance(value, dict):
+            if {"kind", "id"} <= value.keys():
+                return cls(entity_ref_value=EntityRef.model_validate(value))
+            return cls(config_value=AttributeDefinitionConfig.model_validate(value))
+        if isinstance(value, bool):
+            return cls(boolean_value=value)
+        if isinstance(value, (int, float)):
+            return cls(number_value=float(value))
+        if value is None:
+            return cls()
+        return cls(string_value=str(value))
+
+
+class FieldEntry(BaseModel):
+    key: str
+    value: FieldValue
+
+
 class ChangeAction(BaseModel):
     operation: Literal["create", "update", "delete"]
     target_type: TargetType
@@ -109,23 +202,70 @@ class ChangeAction(BaseModel):
     # Only meaningful (and required by validate_change_plan) when
     # target_type == "AttributeDefinition" -- see _IMPLIED_PARENT_DOMAIN.
     parent_type: Optional[Literal["ObjectType", "RelationshipType"]] = None
-    fields: dict[str, Any] = Field(default_factory=dict)
+    # A list of (key, value) pairs, not dict[str, Any]/a bare dict -- see
+    # FieldValue's docstring. A key addressing an Object/Relationship's own
+    # dynamic, per-ObjectType-defined attribute (the one place a field's
+    # *key* truly cannot be enumerated ahead of time) uses the same
+    # "attributes.<key>" dotted convention model.services.field_paths
+    # already defines for field-level attribute updates -- see
+    # fields_dict() below.
+    fields: list[FieldEntry] = Field(default_factory=list)
     rationale: str = ""
     evidence: list[EvidenceItem] = Field(default_factory=list)
 
+    @field_validator("fields", mode="before")
+    @classmethod
+    def _coerce_fields(cls, value):
+        """
+        Accepts the historical dict shorthand ({"name": "X"}) this
+        codebase's own tests and fixtures already use, converting it to the
+        explicit list[FieldEntry] shape the actual schema -- and what a real
+        OpenAI structured-output response always arrives as -- requires.
+        Anything already list-shaped (dicts or FieldEntry instances) passes
+        through unchanged, item by item.
+        """
+
+        if isinstance(value, dict):
+            return [{"key": key, "value": FieldValue.of(raw)} for key, raw in value.items()]
+        return value
+
+    def fields_dict(self) -> dict:
+        """
+        Reconstructs the plain {key: native_value} mapping the rest of the
+        compiler has always worked with for a CREATE action's single
+        combined `after` payload, nesting any "attributes.<key>" entries
+        into one "attributes" sub-dict -- exactly the shape
+        Object.objects.create(**after) (model.services.proposal.submission)
+        expects. Only meaningful for CREATE: an UPDATE processes `fields`
+        entry-by-entry instead (see ai.services.proposal_compiler), since
+        each entry is its own independent field-level change and must not
+        be merged with any other.
+        """
+
+        result: dict = {}
+        attributes: dict = {}
+
+        for entry in self.fields:
+            native = entry.value.native()
+            if entry.key.startswith(ATTRIBUTE_FIELD_PREFIX):
+                attributes[entry.key[len(ATTRIBUTE_FIELD_PREFIX):]] = native
+            else:
+                result[entry.key] = native
+
+        if attributes:
+            result["attributes"] = attributes
+
+        return result
+
     def entity_refs_in_fields(self) -> list[tuple[str, EntityRef]]:
-        """(field_key, EntityRef) pairs for every `fields` value that is an
+        """(field_key, EntityRef) pairs for every `fields` entry that is an
         entity reference rather than a plain scalar, per entity_ref_fields_for."""
-        refs = []
-        for key in entity_ref_fields_for(self.target_type):
-            if key not in self.fields:
-                continue
-            value = self.fields[key]
-            if isinstance(value, EntityRef):
-                refs.append((key, value))
-            elif isinstance(value, dict):
-                refs.append((key, EntityRef.model_validate(value)))
-        return refs
+        allowed = entity_ref_fields_for(self.target_type)
+        return [
+            (entry.key, entry.value.entity_ref_value)
+            for entry in self.fields
+            if entry.key in allowed and entry.value.entity_ref_value is not None
+        ]
 
 
 class ChangePlan(BaseModel):

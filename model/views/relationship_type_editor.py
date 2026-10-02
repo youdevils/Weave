@@ -11,6 +11,13 @@ from model.models.relationship_type import RelationshipType
 from model.models.relationship_type_rule import RelationshipTypeRule
 from model.models.proposal import ProposalChange
 from model.services.appearance import COLOUR_ELIGIBLE_DATA_TYPES, RELATIONSHIP_TYPE, AppearanceService
+from model.services.entity_fields import (
+    ATTRIBUTE_LIFECYCLE_FIELD,
+    ATTRIBUTE_PROPERTY_FIELDS,
+    RELATIONSHIP_TYPE_LIFECYCLE_FIELD,
+    RELATIONSHIP_TYPE_PROPERTY_FIELDS,
+    RELATIONSHIP_TYPE_RULE_FIELDS as RULE_FIELDS,
+)
 from model.services.proposal.proposal import ProposalService
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
@@ -57,42 +64,6 @@ def _attribute_colour_rows(model, type_id, effective_values):
 
     choices = (effective_values.get("config") or {}).get("choices") or []
     return [{"value": choice, "label": choice, "colour": colours.get(choice, DEFAULT_ATTRIBUTE_COLOUR)} for choice in choices]
-
-# =====================================================================
-# Field definitions
-# =====================================================================
-
-RELATIONSHIP_TYPE_PROPERTY_FIELDS = {
-    "name",
-    "key",
-    "description",
-    "sort_order",
-}
-
-RELATIONSHIP_TYPE_LIFECYCLE_FIELD = "is_active"
-
-ATTRIBUTE_PROPERTY_FIELDS = {
-    "name",
-    "key",
-    "data_type",
-    "description",
-    "required",
-    "nullable",
-    "default_value",
-    "sort_order",
-    "config",
-}
-
-ATTRIBUTE_LIFECYCLE_FIELD = "is_active"
-
-RULE_FIELDS = {
-    "subject_type_id",
-    "object_type_id",
-    "subject_minimum",
-    "subject_maximum",
-    "object_minimum",
-    "object_maximum",
-}
 
 
 # =====================================================================

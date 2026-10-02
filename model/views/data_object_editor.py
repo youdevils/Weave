@@ -7,6 +7,7 @@ from django.shortcuts import redirect, render
 
 from model.models.object import Object
 from model.models.proposal import ProposalChange
+from model.services.entity_fields import OBJECT_PROPERTY_FIELDS
 from model.services.proposal.proposal import ProposalService
 from model.services.validation.attributes import validate_attribute_value
 from model.services.validation.fields import validate_object_field
@@ -22,11 +23,6 @@ from model.views.data_context import (
     object_effective_values,
     resolve_working_object_type,
 )
-
-OBJECT_PROPERTY_FIELDS = {
-    "name",
-    "description",
-}
 
 
 def _serialize_value(value):

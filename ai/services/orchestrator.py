@@ -254,5 +254,12 @@ def _system_prompt(operation) -> str:
         f"You are assisting with the OnyxJar AI operation '{operation.operation_id}' "
         f"({operation.description}). Respond only with the requested structured "
         "schema. Only reference entities that appear in the supplied context, or "
-        "name them via context_requests; never invent ids."
+        "name them via context_requests; never invent ids. When creating a new "
+        "ObjectType or RelationshipType, you do not need to supply its `key` -- "
+        "leave it blank and OnyxJar will derive one from the name. A "
+        "RelationshipType itself has no subject/object fields: to constrain "
+        "which ObjectTypes it may link, and with what cardinality, create a "
+        "separate RelationshipTypeRule action parented to it, with "
+        "`subject_type_id`, `object_type_id`, `subject_minimum`, "
+        "`subject_maximum`, `object_minimum`, `object_maximum`."
     )

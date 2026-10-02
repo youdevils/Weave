@@ -5,7 +5,12 @@ from model.models.proposal import Proposal, ProposalChange
 from model.services.proposal.proposal import ProposalService
 
 from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef, EvidenceItem
-from ai.services.proposal_compiler import compile_and_validate, compile_change_plan
+from ai.services.proposal_compiler import (
+    InvalidFieldError,
+    KeyGenerationFailed,
+    compile_and_validate,
+    compile_change_plan,
+)
 from ai.tests.support import AIServiceTestCase, fake_operation
 
 
@@ -47,6 +52,34 @@ class CompileChangePlanTests(AIServiceTestCase):
         self.assertEqual(change.operation, ProposalChange.Operation.CREATE)
         self.assertEqual(change.after["name"], "New widget")
         self.assertEqual(str(change.parent_id), str(self.object_type.id))
+
+    def test_compile_create_action_nests_attribute_prefixed_fields(self):
+        """
+        An Object's dynamic attributes are set, at CREATE time, via the
+        "attributes.<key>" dotted convention in `fields` -- the same
+        convention model.services.field_paths already defines for
+        field-level attribute UPDATEs -- and ChangeAction.fields_dict()
+        must nest them into the single "attributes" dict
+        Object.objects.create(**after) expects.
+        """
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="Object",
+                    target_ref=_new("tmp:1"),
+                    parent_ref=_existing(self.object_type.id),
+                    fields={"name": "New widget", "attributes.cost": 42.5},
+                )
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(len(created), 1)
+        change = created[0]
+        self.assertEqual(change.after["name"], "New widget")
+        self.assertEqual(change.after["attributes"], {"cost": 42.5})
 
     def test_compile_update_action_fans_out_to_one_spec_per_field(self):
         plan = ChangePlan(
@@ -169,6 +202,280 @@ class CompileChangePlanTests(AIServiceTestCase):
         self.assertEqual(self.proposal.status, Proposal.Status.WORKING)
 
 
+class KeyFallbackCompileTests(AIServiceTestCase):
+    """
+    A CREATE ObjectType/RelationshipType action that omits `key` (or leaves
+    it blank) must never reach ProposalService.record_changes_bulk that
+    way -- see ai.services.proposal_compiler._apply_key_fallback, which
+    wraps model.services.keys. UPDATE actions and other target_types are
+    untouched; see also CompileAndValidateTests for the clean-issue-not-
+    a-crash path when a name has no sluggable characters at all.
+    """
+
+    def setUp(self):
+        self.model = self.make_model()
+        self.proposal = ProposalService.create_working(
+            self.model, self.user, source=Proposal.Source.AI
+        )
+
+    def _create_object_type(self, name, key=None):
+        fields = {"name": name}
+        if key is not None:
+            fields["key"] = key
+        return ChangeAction(
+            operation="create",
+            target_type="ObjectType",
+            target_ref=_new("tmp:1"),
+            fields=fields,
+        )
+
+    def test_object_type_create_missing_key_is_derived_from_name(self):
+        plan = ChangePlan(actions=[self._create_object_type("Customer Type")])
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(created[0].after["key"], "customer_type")
+
+    def test_object_type_create_blank_key_is_derived_from_name(self):
+        for blank in ("", "   "):
+            with self.subTest(blank=repr(blank)):
+                plan = ChangePlan(actions=[self._create_object_type("Customer Type", key=blank)])
+
+                created = compile_change_plan(
+                    model=self.model, user=self.user, change_plan=plan, proposal=self.proposal
+                )
+
+                self.assertEqual(created[0].after["key"], "customer_type")
+
+    def test_relationship_type_create_missing_key_is_derived_from_name(self):
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipType",
+                    target_ref=_new("tmp:1"),
+                    fields={"name": "Connects To"},
+                )
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(created[0].after["key"], "connects_to")
+
+    def test_explicit_create_key_is_not_overridden(self):
+        plan = ChangePlan(actions=[self._create_object_type("Customer Type", key="custom_key")])
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(created[0].after["key"], "custom_key")
+
+    def test_two_same_named_creates_in_one_plan_get_distinct_keys(self):
+        plan = ChangePlan(
+            actions=[
+                self._create_object_type("Customer Type"),
+                ChangeAction(
+                    operation="create",
+                    target_type="ObjectType",
+                    target_ref=_new("tmp:2"),
+                    fields={"name": "Customer Type"},
+                ),
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual({c.after["key"] for c in created}, {"customer_type", "customer_type_2"})
+
+    def test_derived_key_colliding_with_existing_db_key_gets_suffixed(self):
+        ObjectType.objects.create(model=self.model, name="Existing", key="customer_type")
+        plan = ChangePlan(actions=[self._create_object_type("Customer Type")])
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(created[0].after["key"], "customer_type_2")
+
+    def test_update_action_is_unaffected_by_key_fallback(self):
+        object_type = self.make_object_type(self.model, key="widget")
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="update",
+                    target_type="ObjectType",
+                    target_ref=_existing(object_type.id),
+                    fields={"key": ""},
+                )
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(created[0].after, {"field": "key", "value": ""})
+
+    def test_non_key_bearing_create_types_unaffected(self):
+        object_type = self.make_object_type(self.model, key="widget")
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="Object",
+                    target_ref=_new("tmp:1"),
+                    parent_ref=_existing(object_type.id),
+                    fields={"name": "Widget 1"},
+                )
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertNotIn("key", created[0].after)
+
+    def test_object_type_create_unsluggable_name_raises_key_generation_failed(self):
+        plan = ChangePlan(actions=[self._create_object_type("???")])
+
+        with self.assertRaises(KeyGenerationFailed) as ctx:
+            compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(ctx.exception.target_type, "ObjectType")
+
+
+class InvalidFieldCompileTests(AIServiceTestCase):
+    """
+    A CREATE/UPDATE action supplying a `fields` key that isn't a real,
+    settable field for its target_type must be rejected deterministically
+    (InvalidFieldError -> ValidationIssue) before it ever reaches
+    model_cls.objects.create()/instance.save() -- never a raw Django
+    TypeError. See model.services.entity_fields for the legal-field
+    registry this reuses.
+    """
+
+    def setUp(self):
+        self.model = self.make_model()
+        self.proposal = ProposalService.create_working(
+            self.model, self.user, source=Proposal.Source.AI
+        )
+
+    def test_relationship_type_create_with_to_from_raises_invalid_field_error(self):
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipType",
+                    target_ref=_new("tmp:1"),
+                    fields={"name": "Connects To", "to": "x", "from": "y"},
+                )
+            ]
+        )
+
+        with self.assertRaises(InvalidFieldError) as ctx:
+            compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(ctx.exception.target_type, "RelationshipType")
+        self.assertEqual(sorted(ctx.exception.field_names), ["from", "to"])
+
+    def test_object_type_create_with_illegal_field_raises(self):
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="ObjectType",
+                    target_ref=_new("tmp:1"),
+                    fields={"name": "Customer", "bogus": "x"},
+                )
+            ]
+        )
+
+        with self.assertRaises(InvalidFieldError) as ctx:
+            compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(ctx.exception.target_type, "ObjectType")
+        self.assertEqual(ctx.exception.field_names, ["bogus"])
+
+    def test_relationship_type_rule_create_with_correct_fields_compiles_successfully(self):
+        relationship_type = self.make_relationship_type(self.model, key="connects_to")
+        subject_type = self.make_object_type(self.model, key="widget")
+        object_type = self.make_object_type(self.model, key="gadget", name="Gadget")
+
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipTypeRule",
+                    target_ref=_new("tmp:rule"),
+                    parent_ref=_existing(relationship_type.id),
+                    fields={
+                        "subject_type_id": _existing(subject_type.id).model_dump(),
+                        "object_type_id": _existing(object_type.id).model_dump(),
+                        "subject_minimum": 0,
+                        "subject_maximum": 1,
+                        "object_minimum": 0,
+                        "object_maximum": None,
+                    },
+                )
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(len(created), 1)
+        self.assertEqual(created[0].target_type, "RelationshipTypeRule")
+        self.assertEqual(created[0].after["subject_minimum"], 0)
+        self.assertEqual(created[0].after["subject_maximum"], 1)
+
+    def test_update_action_with_illegal_field_raises_collecting_all_bad_keys(self):
+        object_type = self.make_object_type(self.model, key="widget")
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="update",
+                    target_type="ObjectType",
+                    target_ref=_existing(object_type.id),
+                    fields={"to": "x", "from": "y"},
+                )
+            ]
+        )
+
+        with self.assertRaises(InvalidFieldError) as ctx:
+            compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(sorted(ctx.exception.field_names), ["from", "to"])
+
+    def test_update_action_with_legal_field_is_unaffected(self):
+        object_type = self.make_object_type(self.model, key="widget")
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="update",
+                    target_type="ObjectType",
+                    target_ref=_existing(object_type.id),
+                    fields={"name": "Renamed"},
+                )
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(created[0].after, {"field": "name", "value": "Renamed"})
+
+    def test_object_create_with_attribute_prefixed_field_is_not_flagged(self):
+        object_type = self.make_object_type(self.model, key="widget")
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="Object",
+                    target_ref=_new("tmp:1"),
+                    parent_ref=_existing(object_type.id),
+                    fields={"name": "Widget 1", "attributes.cost": 42.5},
+                )
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(created[0].after["attributes"], {"cost": 42.5})
+
+
 class CompileAndValidateTests(AIServiceTestCase):
 
     def setUp(self):
@@ -259,3 +566,81 @@ class CompileAndValidateTests(AIServiceTestCase):
         self.assertEqual(Object.objects.filter(model=self.model).count(), object_count_before)
         self.model.refresh_from_db()
         self.assertEqual(self.model.revision, revision_before)
+
+    def _object_type_plan(self, name, key=None):
+        fields = {"name": name}
+        if key is not None:
+            fields["key"] = key
+        return ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="ObjectType",
+                    target_ref=_new("tmp:1"),
+                    fields=fields,
+                )
+            ],
+        )
+
+    def test_object_type_create_unsluggable_name_returns_clean_issue_no_persistence(self):
+        proposal_count_before = Proposal.objects.count()
+        change_count_before = ProposalChange.objects.count()
+        object_type_count_before = ObjectType.objects.filter(model=self.model).count()
+
+        result = compile_and_validate(
+            model=self.model, user=self.user, operation=self.operation,
+            change_plan=self._object_type_plan("???"),
+        )
+
+        self.assertIsNone(result.proposal)
+        self.assertEqual(len(result.issues), 1)
+        issue = result.issues[0]
+        self.assertEqual(issue.code, "key_generation_failed")
+        self.assertEqual(issue.target_type, "ObjectType")
+        self.assertEqual(Proposal.objects.count(), proposal_count_before)
+        self.assertEqual(ProposalChange.objects.count(), change_count_before)
+        self.assertEqual(ObjectType.objects.filter(model=self.model).count(), object_type_count_before)
+
+    def test_object_type_create_missing_key_compiles_and_persists_end_to_end(self):
+        result = compile_and_validate(
+            model=self.model, user=self.user, operation=self.operation,
+            change_plan=self._object_type_plan("Customer Type"),
+        )
+
+        self.assertEqual(result.issues, [])
+        self.assertIsNotNone(result.proposal)
+        change = result.proposal.changes.get(target_type="ObjectType")
+        self.assertEqual(change.after["key"], "customer_type")
+
+    def test_compile_and_validate_returns_clean_issue_for_invalid_field_no_persistence(self):
+        """
+        End-to-end reproduction of the original crash: a RelationshipType
+        CREATE with `to`/`from` must come back as a clean, retryable
+        ValidationIssue -- never an uncaught Django TypeError, and never a
+        persisted row.
+        """
+        proposal_count_before = Proposal.objects.count()
+        change_count_before = ProposalChange.objects.count()
+
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipType",
+                    target_ref=_new("tmp:1"),
+                    fields={"name": "Connects To", "to": "x", "from": "y"},
+                )
+            ]
+        )
+
+        result = compile_and_validate(
+            model=self.model, user=self.user, operation=self.operation, change_plan=plan
+        )
+
+        self.assertIsNone(result.proposal)
+        self.assertEqual(len(result.issues), 1)
+        issue = result.issues[0]
+        self.assertEqual(issue.code, "invalid_field")
+        self.assertEqual(issue.target_type, "RelationshipType")
+        self.assertEqual(Proposal.objects.count(), proposal_count_before)
+        self.assertEqual(ProposalChange.objects.count(), change_count_before)

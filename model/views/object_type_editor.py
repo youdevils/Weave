@@ -10,6 +10,12 @@ from model.models.attribute_definition import AttributeDefinition
 from model.models.object_type import ObjectType
 from model.models.proposal import ProposalChange
 from model.services.appearance import COLOUR_ELIGIBLE_DATA_TYPES, OBJECT_TYPE, AppearanceService
+from model.services.entity_fields import (
+    ATTRIBUTE_LIFECYCLE_FIELD,
+    ATTRIBUTE_PROPERTY_FIELDS,
+    OBJECT_TYPE_LIFECYCLE_FIELD,
+    OBJECT_TYPE_PROPERTY_FIELDS,
+)
 from model.services.proposal.proposal import ProposalService
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
@@ -26,34 +32,6 @@ def _eligible_appearance_attributes(object_type, proposal):
         for definition in build_object_attribute_definitions(object_type, proposal)
         if definition.data_type in COLOUR_ELIGIBLE_DATA_TYPES
     ]
-
-# =====================================================================
-# Field definitions
-# =====================================================================
-
-OBJECT_TYPE_PROPERTY_FIELDS = {
-    "name",
-    "key",
-    "description",
-    "sort_order",
-}
-
-OBJECT_TYPE_LIFECYCLE_FIELD = "is_active"
-
-ATTRIBUTE_PROPERTY_FIELDS = {
-    "name",
-    "key",
-    "data_type",
-    "description",
-    "required",
-    "nullable",
-    "default_value",
-    "sort_order",
-    "config",
-}
-
-ATTRIBUTE_LIFECYCLE_FIELD = "is_active"
-
 
 # =====================================================================
 # ObjectType helpers

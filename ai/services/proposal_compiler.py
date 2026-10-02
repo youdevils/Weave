@@ -23,6 +23,7 @@ from django.db import transaction
 
 from model.models.model import Model
 from model.models.proposal import Proposal, ProposalChange
+from model.services import entity_fields, keys
 from model.services.field_paths import ATTRIBUTE_FIELD_PREFIX
 from model.services.proposal.evidence import EvidenceService
 from model.services.proposal.proposal import ProposalService
@@ -30,13 +31,122 @@ from model.services.proposal.review import ProposalReviewService
 from model.services.proposal.validation_runner import apply_and_validate
 from model.services.validation.result import ValidationIssue
 
-from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef, entity_ref_fields_for
+from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef
 
 _IMPLIED_PARENT_TYPE = {
     "Object": "ObjectType",
     "Relationship": "RelationshipType",
     "RelationshipTypeRule": "RelationshipType",
 }
+
+
+class ChangePlanCompilationError(Exception):
+    """
+    Base for a deterministic, per-action compile-time defect that must
+    become a ValidationIssue (refinement feedback) rather than propagate
+    as a raw exception -- the same "turn a crash into retryable feedback"
+    shape every subclass shares; each knows how to describe itself.
+    """
+
+    def issue(self) -> ValidationIssue:
+        raise NotImplementedError
+
+
+class KeyGenerationFailed(ChangePlanCompilationError):
+    """
+    Raised when a CREATE action omits `key` (for a target_type
+    model.services.keys supports) and no key could be derived from `name`
+    -- no sluggable characters at all. Caught by compile_and_validate and
+    converted into a ValidationIssue, the same "turn a deterministic
+    failure into an issue, never a crash" pattern
+    model.services.proposal.submission's _duplicate_key_issue already uses
+    to avoid an IntegrityError.
+    """
+
+    def __init__(self, *, target_type: str, target_id):
+        super().__init__(f"Could not derive a key for this {target_type} from its name.")
+        self.target_type = target_type
+        self.target_id = target_id
+
+    def issue(self) -> ValidationIssue:
+        return ValidationIssue(
+            code="key_generation_failed",
+            field="key",
+            message=(
+                f"Could not derive a {self.target_type} key from its name. "
+                "Give it a name containing at least one letter or digit."
+            ),
+            target_type=self.target_type,
+            target_id=self.target_id,
+        )
+
+
+class InvalidFieldError(ChangePlanCompilationError):
+    """
+    Raised when a CREATE/UPDATE action supplies a `fields` key that is not
+    a real, settable field for its target_type -- e.g. `to`/`from` on a
+    RelationshipType, which carries no endpoint fields at all (those live
+    on a separate RelationshipTypeRule action instead -- see
+    model.services.entity_fields). Collects every illegal key for the
+    action in one pass, not just the first, so the AI gets one complete
+    refinement signal per action rather than discovering N bad keys one
+    refinement cycle at a time.
+    """
+
+    def __init__(self, *, target_type: str, target_id, field_names: list[str]):
+        names = ", ".join(sorted(field_names))
+        super().__init__(f"{target_type} has no field(s): {names}.")
+        self.target_type = target_type
+        self.target_id = target_id
+        self.field_names = list(field_names)
+
+    def issue(self) -> ValidationIssue:
+        names = ", ".join(sorted(self.field_names))
+        hint = (
+            " Endpoint/cardinality information belongs on a separate "
+            "RelationshipTypeRule action parented to this RelationshipType, "
+            "not on the RelationshipType itself."
+            if self.target_type == "RelationshipType"
+            else ""
+        )
+        return ValidationIssue(
+            code="invalid_field",
+            field=self.field_names[0] if len(self.field_names) == 1 else None,
+            message=f"{self.target_type} has no field(s): {names}.{hint}",
+            target_type=self.target_type,
+            target_id=self.target_id,
+        )
+
+
+def _apply_key_fallback(model, action: ChangeAction, target_id, after: dict, claimed_by_type: dict) -> None:
+    """
+    CREATE-only. Fills in `after["key"]` when missing/blank (after
+    stripping), deriving it from after["name"] via model.services.keys.
+    Never overrides an explicit key, whoever supplied it -- the AI should
+    never be instructed to invent one, but a Change Plan that does supply
+    one (or a future caller that always does) is left untouched.
+
+    `claimed_by_type` tracks keys already claimed by earlier CREATE actions
+    for this target_type within the SAME change plan, so two new
+    same-named siblings in one plan don't collide with each other -- a
+    database-only read has no visibility into sibling in-progress actions.
+    """
+
+    current = after.get("key")
+    claimed = claimed_by_type.setdefault(action.target_type, set())
+
+    if isinstance(current, str) and current.strip():
+        claimed.add(current)
+        return
+
+    used = claimed | keys.existing_keys_for(action.target_type, model)
+    generated = keys.make_unique_key(after.get("name") or "", used)
+
+    if generated is None:
+        raise KeyGenerationFailed(target_type=action.target_type, target_id=target_id)
+
+    after["key"] = generated
+    claimed.add(generated)
 
 
 class TempRefResolver:
@@ -66,12 +176,15 @@ def _parent_type_for(action: ChangeAction) -> str:
     return _IMPLIED_PARENT_TYPE.get(action.target_type, "")
 
 
-def _resolve_field_value(action: ChangeAction, key: str, value, resolver: TempRefResolver):
-    if key in entity_ref_fields_for(action.target_type):
-        if isinstance(value, EntityRef):
-            return str(resolver.resolve(value))
-        if isinstance(value, dict):
-            return str(resolver.resolve(EntityRef.model_validate(value)))
+def _resolve_field_value(value, resolver: TempRefResolver):
+    """
+    `value` is already a native Python value (FieldValue.native()) -- an
+    EntityRef instance for a relationship endpoint/parent reference, or a
+    plain scalar/dict otherwise. Type-driven, not key-driven: FieldValue
+    itself is what now distinguishes an entity reference from a scalar.
+    """
+    if isinstance(value, EntityRef):
+        return str(resolver.resolve(value))
     return value
 
 
@@ -101,6 +214,7 @@ def compile_change_plan(*, model, user, change_plan: ChangePlan, proposal) -> li
     resolver = TempRefResolver()
     specs: list[dict] = []
     action_ranges: list[tuple[ChangeAction, int, int]] = []
+    claimed_keys: dict[str, set] = {}
 
     for action in change_plan.actions:
         target_id = resolver.resolve(action.target_ref)
@@ -110,9 +224,14 @@ def compile_change_plan(*, model, user, change_plan: ChangePlan, proposal) -> li
 
         if action.operation == "create":
             after = {
-                key: _resolve_field_value(action, key, value, resolver)
-                for key, value in action.fields.items()
+                key: _resolve_field_value(value, resolver)
+                for key, value in action.fields_dict().items()
             }
+            bad = entity_fields.illegal_fields(action.target_type, after.keys())
+            if bad:
+                raise InvalidFieldError(target_type=action.target_type, target_id=target_id, field_names=bad)
+            if keys.supports(action.target_type):
+                _apply_key_fallback(model, action, target_id, after, claimed_keys)
             specs.append(
                 {
                     "operation": ProposalChange.Operation.CREATE,
@@ -126,8 +245,19 @@ def compile_change_plan(*, model, user, change_plan: ChangePlan, proposal) -> li
             )
 
         elif action.operation == "update":
-            for key, value in action.fields.items():
-                resolved_value = _resolve_field_value(action, key, value, resolver)
+            # Flat, one entry at a time -- NOT fields_dict(), which merges
+            # "attributes.<key>" entries into a single nested dict for a
+            # CREATE's one combined payload. An UPDATE's apply machinery
+            # (model.services.proposal.submission._apply_attribute_update)
+            # expects the literal dotted "attributes.<key>" string as its
+            # own field-level change instead, exactly as entry.key already is.
+            bad = entity_fields.illegal_fields(action.target_type, (entry.key for entry in action.fields))
+            if bad:
+                raise InvalidFieldError(target_type=action.target_type, target_id=target_id, field_names=bad)
+
+            for entry in action.fields:
+                key = entry.key
+                resolved_value = _resolve_field_value(entry.value.native(), resolver)
                 specs.append(
                     {
                         "operation": ProposalChange.Operation.UPDATE,
@@ -180,12 +310,19 @@ class CompileResult:
 
 def compile_and_validate(*, model, user, operation, change_plan: ChangePlan) -> CompileResult:
     """
-    One atomic attempt. If compile_change_plan itself raises (e.g. an
-    EvidenceService cap violation, or any other unexpected error), Django's
-    atomic block rolls back everything written so far automatically and the
-    exception propagates to the caller -- this function does not need to
-    special-case that; it is exactly the guarantee transaction.atomic()
-    always gives.
+    One atomic attempt. If compile_change_plan raises a
+    ChangePlanCompilationError (e.g. KeyGenerationFailed -- a CREATE
+    omitted `key` and none could be derived from its name; or
+    InvalidFieldError -- an action supplied a `fields` key that isn't real
+    for its target_type), that is caught here and converted into a
+    CompileResult(issues=[...]) -- exactly the channel
+    ai.services.orchestrator.run_ai_operation already treats as refinement
+    feedback, so the AI gets a chance to retry with a corrected plan
+    rather than the run failing outright. Any OTHER exception (e.g. an
+    EvidenceService cap violation) is left to propagate: Django's atomic
+    block rolls back everything written so far automatically, and this
+    function does not need to special-case that; it is exactly the
+    guarantee transaction.atomic() always gives.
     """
 
     with transaction.atomic():
@@ -199,7 +336,11 @@ def compile_and_validate(*, model, user, operation, change_plan: ChangePlan) -> 
             summary=change_plan.summary,
         )  # re-checks PROPOSAL_MAX_LIVE_PER_MODEL capacity at this point, authoritatively
 
-        compile_change_plan(model=model, user=user, change_plan=change_plan, proposal=proposal)
+        try:
+            compile_change_plan(model=model, user=user, change_plan=change_plan, proposal=proposal)
+        except ChangePlanCompilationError as failure:
+            transaction.set_rollback(True)
+            return CompileResult(proposal=None, issues=[failure.issue()])
 
         locked_model = Model.objects.select_for_update().get(pk=model.pk)
 
