@@ -1,3 +1,5 @@
+import re
+import uuid
 from html.parser import HTMLParser
 
 from django.test import TestCase
@@ -6,7 +8,7 @@ from django.urls import reverse
 from account.models import CustomUser
 from model.models.model import Model
 from model.models.object_type import ObjectType
-from model.models.proposal import Proposal
+from model.models.proposal import Proposal, ProposalChange
 from workspace.models import Workspace, WorkspaceMember
 
 
@@ -229,3 +231,35 @@ class SidebarTests(TestCase):
         self.assertEqual(parser.proposal_links, 1)
         self.assertIn("model-nav-proposal-status-completed", html)
         self.assertNotIn("No open proposals", html)
+
+    def test_an_ai_sourced_proposal_is_listed_with_its_change_count(self):
+        """
+        The sidebar's proposal list and change counts come from
+        get_model_context, which filters on created_by/status only --
+        Proposal.source (USER vs AI) must not affect whether, or how, a
+        live proposal is surfaced here.
+        """
+
+        ai_proposal = Proposal.objects.create(
+            model=self.model,
+            created_by=self.user,
+            source=Proposal.Source.AI,
+            title="Assisted: create",
+            status=Proposal.Status.WORKING,
+        )
+
+        ProposalChange.objects.create(
+            proposal=ai_proposal,
+            source=ProposalChange.Source.AI,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="ObjectType",
+            target_id=uuid.uuid4(),
+            after={"field": "name", "value": "Renamed"},
+        )
+
+        parser, html = self.sidebar("model:overview")
+
+        self.assertEqual(parser.proposal_links, 1)
+        self.assertIn("Assisted: create", html)
+        self.assertIn(reverse("model:proposal", args=[self.model.id, ai_proposal.id]), html)
+        self.assertRegex(html, r'model-nav-count">\s*1\s*</span>')

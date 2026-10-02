@@ -70,6 +70,14 @@ class AssistedTestCase(TestCase):
         cls.viewer = CustomUser.objects.create_user(email="viewer@example.com", password="pw")
         cls.stranger = CustomUser.objects.create_user(email="stranger@example.com", password="pw")
 
+        # These are the users every non-entitlement test in this app expects
+        # to be able to actually run Assisted operations -- entitlement is a
+        # separate concern from role, covered on its own in
+        # assisted.tests.test_lifecycle / test_execution.
+        for user in (cls.owner, cls.editor, cls.other_editor):
+            user.assisted_tier = CustomUser.AssistedTier.ENHANCED
+            user.save(update_fields=["assisted_tier"])
+
         for user, role in (
             (cls.owner, WorkspaceMember.Role.OWNER),
             (cls.editor, WorkspaceMember.Role.EDITOR),

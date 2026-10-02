@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 
 from account.notifications import notify_unverified_email
+from account.services.entitlement import user_can_run_assisted
 from ai.services.intent import InvalidIntent
 from model.models.model import Model
 from model.services.model_deletion import ModelDeletionBlocked, delete_model
@@ -25,7 +26,12 @@ from workspace.models import WorkspaceMember
 
 from assisted.models import AssistedTask
 from assisted.services.evidence import AssistedEvidenceInvalid
-from assisted.services.lifecycle import AssistedTaskActive, BootstrapModelGone, start_assisted_create
+from assisted.services.lifecycle import (
+    AssistedEntitlementDenied,
+    AssistedTaskActive,
+    BootstrapModelGone,
+    start_assisted_create,
+)
 from assisted.uploads import LimitedUploadHandler
 
 logger = logging.getLogger(__name__)
@@ -128,6 +134,7 @@ def model_starting_point(request, model_id):
         {
             "model": model,
             "starting_points": starting_points,
+            "can_use_assisted": user_can_run_assisted(request.user),
         },
     )
 
@@ -259,6 +266,9 @@ def _model_assisted_create_setup(request, model_id, handler):
                 files=files,
             )
         except AssistedTaskActive as exc:
+            messages.error(request, str(exc))
+            return redirect("workspace:model_starting_point", model_id=model.id)
+        except AssistedEntitlementDenied as exc:
             messages.error(request, str(exc))
             return redirect("workspace:model_starting_point", model_id=model.id)
         except BootstrapModelGone as exc:

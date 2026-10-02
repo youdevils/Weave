@@ -2,6 +2,7 @@ import uuid
 
 from django.test import override_settings
 
+from account.models import CustomUser
 from model.models.model import Model
 from model.models.proposal import Proposal
 
@@ -117,6 +118,40 @@ class RunAndFinishTests(AssistedExecutionTestCase):
         task = self.make_task(status=AssistedTask.Status.READY_FOR_REVIEW)
 
         # Must not raise, and must not touch an already-finished task.
+        execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.id)]))
+
+        task.refresh_from_db()
+        self.assertEqual(task.status, AssistedTask.Status.READY_FOR_REVIEW)
+
+    def test_a_basic_creator_is_rejected_at_the_worker_boundary_without_calling_the_provider(self):
+        """
+        The worker-side entitlement check is deliberately independent of the
+        one in assisted.services.lifecycle.start_assisted_create: it exists
+        to catch a queued/forged/stale task whose creator's entitlement is
+        no longer (or was never) valid by the time a worker actually picks
+        it up -- see assisted.services.execution's module docstring. Uses
+        RaisingProvider so the test fails loudly if the provider is ever
+        reached despite the entitlement denial.
+        """
+
+        self.owner.assisted_tier = CustomUser.AssistedTier.BASIC
+        self.owner.save(update_fields=["assisted_tier"])
+
+        task = self.make_task()
+
+        execution.run_and_finish(task.id, provider=RaisingProvider(ProviderError("must not be called")))
+
+        task.refresh_from_db()
+        self.assertEqual(task.status, AssistedTask.Status.FAILED)
+        self.assertEqual(task.failure_reason_code, AssistedTask.FailureReasonCode.ENTITLEMENT_DENIED)
+        # CREATE is a bootstrap-model operation: denial cleans up the
+        # Model exactly like any other failed Create.
+        self.assertIsNone(task.model)
+        self.assertFalse(Model.objects.filter(id=self.model.id).exists())
+
+    def test_an_enhanced_creator_is_unaffected_by_the_entitlement_check(self):
+        task = self.make_task()
+
         execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.id)]))
 
         task.refresh_from_db()

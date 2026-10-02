@@ -204,6 +204,79 @@ class ActiveProposalHelperTests(TestCase):
             5,
         )
 
+    def test_resolve_returns_an_ai_sourced_proposal_pointed_to_by_session(self):
+        """
+        resolve_active_proposal filters on created_by + status only --
+        Proposal.source (USER vs AI) is provenance, never a gate on which
+        proposal may be the active working context.
+        """
+
+        request = _request_with_session()
+
+        ai_proposal = Proposal.objects.create(
+            model=self.model,
+            created_by=self.user,
+            source=Proposal.Source.AI,
+            status=Proposal.Status.WORKING,
+        )
+
+        set_active_proposal_id(request, self.model.id, ai_proposal.id)
+
+        resolved = resolve_active_proposal(request, self.model, self.user)
+
+        self.assertEqual(resolved.id, ai_proposal.id)
+        self.assertEqual(resolved.source, Proposal.Source.AI)
+
+    def test_get_or_create_reuses_an_active_ai_proposal_without_creating_a_user_one(self):
+        """
+        The active AI proposal must not be silently replaced by a fresh
+        USER proposal just because the generic get-or-create path doesn't
+        know (or care) which source produced the session's active pointer.
+        """
+
+        request = _request_with_session()
+
+        ai_proposal = Proposal.objects.create(
+            model=self.model,
+            created_by=self.user,
+            source=Proposal.Source.AI,
+            status=Proposal.Status.WORKING,
+        )
+
+        set_active_proposal_id(request, self.model.id, ai_proposal.id)
+
+        proposal, error_response = get_or_create_active_proposal(
+            request, self.model, self.user,
+        )
+
+        self.assertIsNone(error_response)
+        self.assertEqual(proposal.id, ai_proposal.id)
+        self.assertEqual(proposal.source, Proposal.Source.AI)
+        self.assertEqual(Proposal.objects.filter(model=self.model).count(), 1)
+
+    def test_switching_the_active_pointer_from_a_user_to_an_ai_proposal_changes_context(self):
+        request = _request_with_session()
+
+        user_proposal = Proposal.objects.create(
+            model=self.model,
+            created_by=self.user,
+            source=Proposal.Source.USER,
+            status=Proposal.Status.WORKING,
+        )
+
+        ai_proposal = Proposal.objects.create(
+            model=self.model,
+            created_by=self.user,
+            source=Proposal.Source.AI,
+            status=Proposal.Status.WORKING,
+        )
+
+        set_active_proposal_id(request, self.model.id, user_proposal.id)
+        self.assertEqual(resolve_active_proposal(request, self.model, self.user).id, user_proposal.id)
+
+        set_active_proposal_id(request, self.model.id, ai_proposal.id)
+        self.assertEqual(resolve_active_proposal(request, self.model, self.user).id, ai_proposal.id)
+
     def test_live_proposals_queryset_includes_unacknowledged_completed_only(self):
         acknowledged = Proposal.objects.create(
             model=self.model,

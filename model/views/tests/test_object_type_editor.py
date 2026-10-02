@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from django.test import TestCase
 from django.urls import reverse
@@ -8,6 +9,7 @@ from model.models.attribute_definition import AttributeDefinition
 from model.models.model import Model
 from model.models.object_type import ObjectType
 from model.models.proposal import Proposal, ProposalChange
+from model.views.tests.proposal_test_utils import activate_proposal
 from workspace.models import Workspace, WorkspaceMember
 
 
@@ -392,6 +394,101 @@ class ObjectTypeEditorProposalCapTests(TestCase):
         self.assertFalse(
             ProposalChange.objects.filter(after__field="description").exists()
         )
+
+
+class AIProposalObjectTypeEditingTests(TestCase):
+    """
+    End-to-end regression for the active-proposal generalisation: an
+    AI-created proposal-only ObjectType can be opened and edited through
+    the normal editor, and the edit lands on the SAME AI proposal rather
+    than spawning (or falling back to) a separate USER proposal.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.workspace = Workspace.objects.create(name="Test Workspace")
+
+        cls.user = CustomUser.objects.create_user(
+            email="ai-editor@example.com",
+            password="test-password",
+        )
+
+        WorkspaceMember.objects.create(
+            workspace=cls.workspace,
+            user=cls.user,
+            role=WorkspaceMember.Role.OWNER,
+        )
+
+        cls.model = Model.objects.create(
+            workspace=cls.workspace,
+            name="Test Model",
+            revision=1,
+        )
+
+    def setUp(self):
+        self.client.force_login(self.user)
+
+        self.ai_proposal = Proposal.objects.create(
+            model=self.model,
+            created_by=self.user,
+            source=Proposal.Source.AI,
+            status=Proposal.Status.WORKING,
+        )
+
+        self.proposed_object_type_id = uuid.uuid4()
+
+        self.create_change = ProposalChange.objects.create(
+            proposal=self.ai_proposal,
+            source=ProposalChange.Source.AI,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="ObjectType",
+            target_id=self.proposed_object_type_id,
+            parent_type="Model",
+            parent_id=self.model.id,
+            after={
+                "name": "Widget",
+                "key": "widget",
+                "sort_order": 0,
+                "is_active": True,
+                "description": "",
+            },
+        )
+
+        activate_proposal(self.client, self.model.id, self.ai_proposal)
+
+    def edit_url(self):
+        return reverse(
+            "model:object_type_edit",
+            args=[self.model.id, self.proposed_object_type_id],
+        )
+
+    def test_editing_an_ai_proposed_object_type_updates_the_same_ai_proposal(self):
+        response = self.client.post(
+            self.edit_url(),
+            {"field": "description", "value": "Edited by a human reviewer."},
+        )
+
+        self.assertTrue(response.json()["success"])
+
+        self.create_change.refresh_from_db()
+        self.assertEqual(
+            self.create_change.after["description"],
+            "Edited by a human reviewer.",
+        )
+        self.assertEqual(self.create_change.proposal_id, self.ai_proposal.id)
+
+        self.ai_proposal.refresh_from_db()
+        self.assertEqual(self.ai_proposal.source, Proposal.Source.AI)
+
+        # No second proposal was spawned for this edit.
+        self.assertEqual(
+            Proposal.objects.filter(model=self.model, created_by=self.user).count(),
+            1,
+        )
+
+        # Canonical model state is untouched -- this entity still doesn't
+        # exist outside the proposal.
+        self.assertFalse(ObjectType.objects.filter(id=self.proposed_object_type_id).exists())
 
 
 class ObjectTypeAttributeDefaultValueTests(TestCase):

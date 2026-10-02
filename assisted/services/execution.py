@@ -24,6 +24,7 @@ import logging
 from django.db import transaction
 from django.utils import timezone
 
+from account.services.entitlement import user_can_run_assisted
 from ai.services.orchestrator import run_ai_operation
 
 from assisted.models import AssistedTask
@@ -78,6 +79,19 @@ def run_and_finish(assisted_task_id, *, provider=None) -> None:
             task,
             failure_reason_code=AssistedTask.FailureReasonCode.EXECUTION_FAILED,
             failure_reason="This assisted run's model no longer exists.",
+        )
+        return
+
+    # Defensive, independent of the entitlement check already made at task
+    # creation (assisted.services.lifecycle.start_assisted_create): a
+    # queued/forged/stale task must not get to spend real provider cost just
+    # because the creator's entitlement changed (or was never valid) between
+    # creation and this worker actually picking it up.
+    if not user_can_run_assisted(task.creator):
+        _finish_failed(
+            task,
+            failure_reason_code=AssistedTask.FailureReasonCode.ENTITLEMENT_DENIED,
+            failure_reason="This user is not entitled to run Assisted operations.",
         )
         return
 

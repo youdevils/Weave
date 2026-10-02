@@ -29,6 +29,14 @@ class Base(TestCase):
         ):
             WorkspaceMember.objects.create(workspace=cls.workspace, user=user, role=role)
 
+        # These tests are about the workspace-role gate, a separate concern
+        # from the Assisted entitlement gate (covered on its own in
+        # EntitlementGateTests below) -- default BASIC would otherwise make
+        # every "may submit" case here fail for an unrelated reason.
+        for user in (cls.owner, cls.editor):
+            user.assisted_tier = CustomUser.AssistedTier.ENHANCED
+            user.save(update_fields=["assisted_tier"])
+
     def setUp(self):
         self.model = Model.objects.create(workspace=self.workspace, name="M")
 
@@ -133,3 +141,77 @@ class SubmissionTests(Base):
 
         task = AssistedTask.objects.get(model=self.model)
         mock_delay.assert_called_once_with(str(task.id))
+
+
+class EntitlementGateTests(Base):
+    """
+    The BASIC/ENHANCED Assisted entitlement, enforced authoritatively in
+    assisted.services.lifecycle.start_assisted_create and surfaced here as a
+    friendly redirect+message, the same pattern AssistedTaskActive already
+    uses. Workspace role is a separate, still-enforced gate -- see
+    RoleGateTests above.
+    """
+
+    def test_a_basic_owner_is_redirected_with_an_error_instead_of_starting_a_task(self):
+        self.owner.assisted_tier = CustomUser.AssistedTier.BASIC
+        self.owner.save(update_fields=["assisted_tier"])
+        self.client.force_login(self.owner)
+
+        with patch("assisted.tasks.run_assisted_create.delay") as mock_delay:
+            response = self.client.post(self.url(), {"intent": "Track widgets."}, follow=True)
+
+        self.assertRedirects(
+            response,
+            reverse("workspace:model_starting_point", kwargs={"model_id": self.model.id}),
+        )
+        self.assertEqual(AssistedTask.objects.filter(model=self.model).count(), 0)
+        mock_delay.assert_not_called()
+
+    def test_a_basic_editor_is_also_rejected(self):
+        self.editor.assisted_tier = CustomUser.AssistedTier.BASIC
+        self.editor.save(update_fields=["assisted_tier"])
+        self.client.force_login(self.editor)
+
+        with patch("assisted.tasks.run_assisted_create.delay") as mock_delay:
+            response = self.client.post(self.url(), {"intent": "Track widgets."}, follow=True)
+
+        self.assertRedirects(
+            response,
+            reverse("workspace:model_starting_point", kwargs={"model_id": self.model.id}),
+        )
+        self.assertEqual(AssistedTask.objects.filter(model=self.model).count(), 0)
+        mock_delay.assert_not_called()
+
+    def test_an_enhanced_owner_may_still_submit(self):
+        self.client.force_login(self.owner)
+
+        with patch("assisted.tasks.run_assisted_create.delay"):
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(self.url(), {"intent": "Track widgets."}, follow=True)
+
+        self.assertRedirects(response, reverse("workspace:index"))
+        self.assertEqual(AssistedTask.objects.filter(model=self.model).count(), 1)
+
+
+class StartingPointAssistedCardTests(Base):
+
+    def starting_point_url(self):
+        return reverse("workspace:model_starting_point", kwargs={"model_id": self.model.id})
+
+    def test_an_enhanced_user_sees_an_actionable_assisted_card(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(self.starting_point_url())
+
+        self.assertContains(response, self.url())
+        self.assertNotContains(response, "Assisted Create is available on the Enhanced tier.")
+
+    def test_a_basic_user_sees_a_disabled_assisted_card(self):
+        self.owner.assisted_tier = CustomUser.AssistedTier.BASIC
+        self.owner.save(update_fields=["assisted_tier"])
+        self.client.force_login(self.owner)
+
+        response = self.client.get(self.starting_point_url())
+
+        self.assertNotContains(response, self.url())
+        self.assertContains(response, "Assisted Create is available on the Enhanced tier.")

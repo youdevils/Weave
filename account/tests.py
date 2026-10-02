@@ -380,3 +380,47 @@ class PasswordResetConfirmTests(TestCase):
             response = self.client.get(link)
 
         self.assertFalse(response.context["validlink"])
+
+
+class AssistedEntitlementTests(TestCase):
+    """
+    account.models.CustomUser.assisted_tier and
+    account.services.entitlement.user_can_run_assisted -- the minimal
+    BASIC/ENHANCED capability entitlement that gates Assisted execution.
+    """
+
+    def setUp(self):
+        self.users = get_user_model().objects
+
+    def test_a_new_user_defaults_to_basic(self):
+        user = self.users.create_user(email="brand-new@example.com", password="pw")
+
+        self.assertEqual(user.assisted_tier, user.AssistedTier.BASIC)
+
+    def test_an_existing_user_created_before_the_field_existed_reads_as_basic(self):
+        # There is no backfill migration to simulate here -- the field's
+        # `default` is exactly what a pre-existing row without an explicit
+        # value resolves to, so this is the same guarantee a real migration
+        # gives every row that existed before it ran.
+        user = self.users.create_user(email="pre-existing@example.com", password="pw")
+        user.refresh_from_db()
+
+        self.assertEqual(user.assisted_tier, user.AssistedTier.BASIC)
+
+    def test_basic_user_cannot_run_assisted(self):
+        from account.services.entitlement import user_can_run_assisted
+
+        user = self.users.create_user(email="basic@example.com", password="pw")
+
+        self.assertFalse(user_can_run_assisted(user))
+
+    def test_enhanced_user_can_run_assisted(self):
+        from account.services.entitlement import user_can_run_assisted
+
+        user = self.users.create_user(
+            email="enhanced@example.com",
+            password="pw",
+            assisted_tier=get_user_model().AssistedTier.ENHANCED,
+        )
+
+        self.assertTrue(user_can_run_assisted(user))

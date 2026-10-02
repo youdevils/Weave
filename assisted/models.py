@@ -46,6 +46,7 @@ class AssistedTask(models.Model):
         NO_CHANGE_PRODUCED = "no_change_produced", "No change produced"
         PROPOSAL_ABANDONED = "proposal_abandoned", "Proposal abandoned"
         STALE_TIMED_OUT = "stale_timed_out", "Stale / timed out"
+        ENTITLEMENT_DENIED = "entitlement_denied", "Entitlement denied"
 
     ACTIVE_STATUSES = (Status.QUEUED, Status.RUNNING, Status.READY_FOR_REVIEW)
 

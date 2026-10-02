@@ -43,12 +43,27 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
+
+    class AssistedTier(models.TextChoices):
+        BASIC = "basic", "Basic"
+        ENHANCED = "enhanced", "Enhanced"
+
     email = models.EmailField(unique=True)
     email_verified = models.BooleanField(default=False)
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
+
+    # Capability entitlement gating Assisted (AI-driven) execution -- not a
+    # billing/subscription model. BASIC is the safe default for both new and
+    # pre-existing rows: see account.services.entitlement.user_can_run_assisted
+    # for the single place this is turned into an allow/deny decision.
+    assisted_tier = models.CharField(
+        max_length=20,
+        choices=AssistedTier.choices,
+        default=AssistedTier.BASIC,
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS: list[str] = []

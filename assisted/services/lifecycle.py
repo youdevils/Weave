@@ -16,6 +16,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
+from account.services.entitlement import user_can_run_assisted
 from ai.services.intent import validate_intent
 from model.models.model import Model
 
@@ -26,6 +27,11 @@ from assisted.services.evidence import create_evidence
 
 class AssistedTaskActive(Exception):
     """This Model already has an active (non-terminal) AssistedTask."""
+
+
+class AssistedEntitlementDenied(Exception):
+    """This user's Assisted entitlement (account.CustomUser.assisted_tier)
+    does not currently allow running Assisted operations."""
 
 
 class BootstrapModelGone(Exception):
@@ -135,7 +141,17 @@ def start_assisted_create(*, workspace, model, user, intent_text, files) -> Assi
     bootstrap Model (workspace.views.views.create_model creates the Model
     row before Starting Point is even chosen -- there is no Model creation
     here, only reuse of what already exists).
+
+    The entitlement check runs first and before any Model locking/reclaim --
+    this is the authoritative "request/task creation" gate: every caller of
+    this function gets it, not just the UI form, so a BASIC user cannot
+    reach it by calling the backend directly.
     """
+
+    if not user_can_run_assisted(user):
+        raise AssistedEntitlementDenied(
+            "Assisted Create is available on the Enhanced tier."
+        )
 
     _reclaim_stale(model.pk)
 

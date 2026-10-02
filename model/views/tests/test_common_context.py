@@ -116,3 +116,56 @@ class CommonContextProposalStateTests(TestCase):
             object_types[self.object_type.id].name,
             "Renamed While Failed",
         )
+
+    def test_an_ai_sourced_proposal_is_overlaid_into_object_types_the_same_way(self):
+        """
+        get_model_context treats Proposal.source as provenance only --
+        an AI proposal's CREATE/UPDATE changes must appear through the
+        normal editors exactly like a USER proposal's would.
+        """
+
+        ai_proposal = Proposal.objects.create(
+            model=self.model,
+            created_by=self.user,
+            source=Proposal.Source.AI,
+            status=Proposal.Status.WORKING,
+        )
+
+        ProposalChange.objects.create(
+            proposal=ai_proposal,
+            source=ProposalChange.Source.AI,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="ObjectType",
+            target_id=self.object_type.id,
+            after={"field": "name", "value": "Renamed By AI"},
+        )
+
+        new_object_type_id = uuid.uuid4()
+
+        ProposalChange.objects.create(
+            proposal=ai_proposal,
+            source=ProposalChange.Source.AI,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="ObjectType",
+            target_id=new_object_type_id,
+            parent_type="Model",
+            parent_id=self.model.id,
+            after={"name": "Widget", "key": "widget", "sort_order": 0, "is_active": True},
+        )
+
+        activate_proposal(self.client, self.model.id, ai_proposal)
+
+        response = self.client.get(
+            reverse("model:object_types", args=[self.model.id])
+        )
+
+        self.assertEqual(response.context["active_proposal"].id, ai_proposal.id)
+
+        object_types = {ot.id: ot for ot in response.context["object_types"]}
+
+        self.assertEqual(object_types[self.object_type.id].name, "Renamed By AI")
+        self.assertTrue(object_types[self.object_type.id].is_proposed)
+
+        proposed_create = object_types[new_object_type_id]
+        self.assertEqual(proposed_create.name, "Widget")
+        self.assertTrue(proposed_create.is_created)

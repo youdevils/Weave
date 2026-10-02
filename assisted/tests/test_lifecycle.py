@@ -4,12 +4,18 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.utils import timezone
 
+from account.models import CustomUser
 from ai.services.intent import InvalidIntent
 from model.models.model import Model
 
 from assisted.models import AssistedTask, AssistedTaskEvidence
 from assisted.services.evidence import AssistedEvidenceInvalid
-from assisted.services.lifecycle import AssistedTaskActive, BootstrapModelGone, start_assisted_create
+from assisted.services.lifecycle import (
+    AssistedEntitlementDenied,
+    AssistedTaskActive,
+    BootstrapModelGone,
+    start_assisted_create,
+)
 from assisted.tests.support import AssistedTestCase
 
 
@@ -175,3 +181,35 @@ class StartAssistedCreateTests(AssistedTestCase):
 
         recent.refresh_from_db()
         self.assertEqual(recent.status, AssistedTask.Status.QUEUED)
+
+
+class StartAssistedCreateEntitlementTests(AssistedTestCase):
+    """
+    The entitlement check in start_assisted_create is the "request/task
+    creation" boundary from the feature's authoritative-backend diagram --
+    it must run for every caller, independent of whichever workspace role
+    gate a view puts in front of it.
+    """
+
+    def setUp(self):
+        self.model = self.make_model()
+
+    def test_a_basic_owner_cannot_start_an_assisted_task(self):
+        self.owner.assisted_tier = CustomUser.AssistedTier.BASIC
+        self.owner.save(update_fields=["assisted_tier"])
+
+        with self.assertRaises(AssistedEntitlementDenied):
+            start_assisted_create(
+                workspace=self.workspace, model=self.model, user=self.owner,
+                intent_text="Track widgets.", files=[],
+            )
+
+        self.assertEqual(AssistedTask.objects.filter(model=self.model).count(), 0)
+
+    def test_an_enhanced_owner_can_still_start_an_assisted_task(self):
+        task = start_assisted_create(
+            workspace=self.workspace, model=self.model, user=self.owner,
+            intent_text="Track widgets.", files=[],
+        )
+
+        self.assertEqual(task.status, AssistedTask.Status.QUEUED)

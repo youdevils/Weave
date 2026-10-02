@@ -249,54 +249,91 @@
                                  Assisted creation
                                  ===================================== -->
 
-                            <a
-                                href="{% url 'workspace:model_assisted_create_setup' model_id=model.id %}"
-                                class="starting-point-card"
-                            >
+                            {% if can_use_assisted %}
 
-                                <div class="starting-point-card-icon">
-                                    <i
-                                        class="bi bi-stars"
-                                        aria-hidden="true"
-                                    ></i>
-                                </div>
+                                <a
+                                    href="{% url 'workspace:model_assisted_create_setup' model_id=model.id %}"
+                                    class="starting-point-card"
+                                >
 
-                                <div class="starting-point-card-body">
+                                    <div class="starting-point-card-icon">
+                                        <i
+                                            class="bi bi-stars"
+                                            aria-hidden="true"
+                                        ></i>
+                                    </div>
 
-                                    <h3 class="starting-point-card-title">
-                                        Assisted creation
-                                    </h3>
+                                    <div class="starting-point-card-body">
 
-                                    <div class="starting-point-card-pills">
+                                        <h3 class="starting-point-card-title">
+                                            Assisted creation
+                                        </h3>
 
-                                        <span class="onyxjar-status-pill starting-point-pill">
-                                            ASSISTED
-                                        </span>
+                                        <div class="starting-point-card-pills">
+
+                                            <span class="onyxjar-status-pill starting-point-pill">
+                                                ASSISTED
+                                            </span>
+
+                                        </div>
+
+                                        <p class="starting-point-card-description">
+                                            Describe what you want to model and attach any
+                                            supporting files — we’ll draft a starting
+                                            structure for you to review.
+                                        </p>
 
                                     </div>
 
-                                    <p class="starting-point-card-description">
-                                        Describe what you want to model and attach any
-                                        supporting files — we’ll draft a starting
-                                        structure for you to review.
-                                    </p>
+                                    <div class="starting-point-card-footer">
+
+                                        <span>
+                                            Start with assisted creation
+                                        </span>
+
+                                        <i
+                                            class="bi bi-arrow-right"
+                                            aria-hidden="true"
+                                        ></i>
+
+                                    </div>
+
+                                </a>
+
+                            {% else %}
+
+                                <div class="starting-point-card unavailable">
+
+                                    <div class="starting-point-card-icon">
+                                        <i
+                                            class="bi bi-stars"
+                                            aria-hidden="true"
+                                        ></i>
+                                    </div>
+
+                                    <div class="starting-point-card-body">
+
+                                        <h3 class="starting-point-card-title">
+                                            Assisted creation
+                                        </h3>
+
+                                        <div class="starting-point-card-pills">
+
+                                            <span class="onyxjar-status-pill onyxjar-status-soon starting-point-pill">
+                                                Enhanced tier
+                                            </span>
+
+                                        </div>
+
+                                        <p class="starting-point-card-description">
+                                            Assisted Create is available on the Enhanced tier.
+                                        </p>
+
+                                    </div>
 
                                 </div>
 
-                                <div class="starting-point-card-footer">
-
-                                    <span>
-                                        Start with assisted creation
-                                    </span>
-
-                                    <i
-                                        class="bi bi-arrow-right"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </div>
-
-                            </a>
+                            {% endif %}
 
 
                             <!-- =====================================
