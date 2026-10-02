@@ -39,6 +39,17 @@ _IMPLIED_PARENT_TYPE = {
     "RelationshipTypeRule": "RelationshipType",
 }
 
+# ObjectType/RelationshipType are top-level: their parent is the Model
+# itself, which never appears as a parent_ref (Model isn't part of the
+# Change Plan's EntityRef graph -- there's no "new"/"existing" token for
+# it). model/views/common_context.py's working-overlay builders
+# (_build_working_object_types/_build_working_relationship_types) only
+# recognise a CREATE as proposal-only when parent_type == "Model", the
+# same literal every editor-driven CREATE already stamps (see e.g.
+# model/views/object_type_editor.py's record_change calls) -- so these
+# two target types must resolve to "Model" regardless of parent_ref.
+_MODEL_SCOPED_TARGET_TYPES = frozenset({"ObjectType", "RelationshipType"})
+
 
 class ChangePlanCompilationError(Exception):
     """
@@ -169,6 +180,8 @@ class TempRefResolver:
 
 
 def _parent_type_for(action: ChangeAction) -> str:
+    if action.target_type in _MODEL_SCOPED_TARGET_TYPES:
+        return "Model"
     if action.parent_ref is None:
         return ""
     if action.target_type == "AttributeDefinition":
@@ -218,8 +231,13 @@ def compile_change_plan(*, model, user, change_plan: ChangePlan, proposal) -> li
 
     for action in change_plan.actions:
         target_id = resolver.resolve(action.target_ref)
-        parent_id = resolver.resolve(action.parent_ref) if action.parent_ref else None
         parent_type = _parent_type_for(action)
+        if action.parent_ref is not None:
+            parent_id = resolver.resolve(action.parent_ref)
+        elif parent_type == "Model":
+            parent_id = model.id
+        else:
+            parent_id = None
         start = len(specs)
 
         if action.operation == "create":

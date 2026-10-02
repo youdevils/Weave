@@ -1,8 +1,12 @@
+from django.urls import reverse
+
 from model.models.evidence_reference import EvidenceReference
 from model.models.object import Object
 from model.models.object_type import ObjectType
 from model.models.proposal import Proposal, ProposalChange
+from model.models.relationship_type import RelationshipType
 from model.services.proposal.proposal import ProposalService
+from workspace.models import WorkspaceMember
 
 from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef, EvidenceItem
 from ai.services.proposal_compiler import (
@@ -52,6 +56,51 @@ class CompileChangePlanTests(AIServiceTestCase):
         self.assertEqual(change.operation, ProposalChange.Operation.CREATE)
         self.assertEqual(change.after["name"], "New widget")
         self.assertEqual(str(change.parent_id), str(self.object_type.id))
+
+    def test_object_type_create_is_stamped_with_the_implied_model_parent(self):
+        """
+        ObjectType has no parent_ref in the Change Plan schema -- Model
+        isn't part of the EntityRef graph, so there's nothing to resolve a
+        parent from. But model/views/common_context.py's
+        _build_working_object_types only recognises a CREATE as
+        proposal-only when parent_type == "Model" (the same literal every
+        editor-driven CREATE already stamps), so the compiler must supply
+        it itself. A regression here means a compiled AI proposal's
+        ObjectTypes silently never appear in the sidebar/editors, even
+        though the ProposalChange row is otherwise perfectly valid.
+        """
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="ObjectType",
+                    target_ref=_new("tmp:1"),
+                    fields={"name": "Customer Type"},
+                )
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(created[0].parent_type, "Model")
+        self.assertEqual(created[0].parent_id, self.model.id)
+
+    def test_relationship_type_create_is_stamped_with_the_implied_model_parent(self):
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipType",
+                    target_ref=_new("tmp:1"),
+                    fields={"name": "Connects To"},
+                )
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(created[0].parent_type, "Model")
+        self.assertEqual(created[0].parent_id, self.model.id)
 
     def test_compile_create_action_nests_attribute_prefixed_fields(self):
         """
@@ -644,3 +693,87 @@ class CompileAndValidateTests(AIServiceTestCase):
         self.assertEqual(issue.target_type, "RelationshipType")
         self.assertEqual(Proposal.objects.count(), proposal_count_before)
         self.assertEqual(ProposalChange.objects.count(), change_count_before)
+
+
+class CompiledAiProposalOverlayTests(AIServiceTestCase):
+    """
+    End-to-end regression test for a real production bug: compile_change_plan
+    left ObjectType/RelationshipType CREATE changes with parent_type="" and
+    parent_id=None (Model isn't part of the Change Plan's EntityRef graph, so
+    there is no parent_ref to derive a parent from), but
+    model/views/common_context.py's working-overlay builders
+    (_build_working_object_types/_build_working_relationship_types) only
+    treat a CREATE as proposal-only when parent_type == "Model" -- the exact
+    literal every editor-driven CREATE already stamps. The result: an
+    Assisted Create proposal's entities existed in the database but never
+    appeared in the sidebar or editors, regardless of how/when the active-
+    proposal session pointer was set.
+
+    Earlier regression tests covering "the selected AI proposal drives the
+    UI" missed this because they built ProposalChange rows by hand with the
+    correct parent_type already set, instead of going through the real
+    compiler -- which is exactly what Assisted Create does. This test uses
+    the actual compile_change_plan output and the real click-to-select view
+    request (not a session-poking shortcut), so a regression in either the
+    compiler's parent stamping or the view's active-proposal handling would
+    fail it.
+    """
+
+    def setUp(self):
+        self.model = self.make_model()
+
+        WorkspaceMember.objects.create(
+            workspace=self.workspace,
+            user=self.user,
+            role=WorkspaceMember.Role.OWNER,
+        )
+
+        self.client.force_login(self.user)
+
+    def test_a_compiled_ai_proposal_is_selectable_and_its_entities_overlay_correctly(self):
+        proposal = ProposalService.create_working(
+            self.model, self.user, source=Proposal.Source.AI
+        )
+
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="ObjectType",
+                    target_ref=_new("tmp:object_type"),
+                    fields={"name": "Customer Type", "key": "customer_type"},
+                ),
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipType",
+                    target_ref=_new("tmp:relationship_type"),
+                    fields={"name": "Connects To", "key": "connects_to"},
+                ),
+            ]
+        )
+
+        compile_change_plan(
+            model=self.model, user=self.user, change_plan=plan, proposal=proposal
+        )
+
+        # The real click-to-select flow: a plain GET to the proposal detail
+        # URL, exactly what the sidebar's proposal link issues.
+        response = self.client.get(
+            reverse("model:proposal", args=[self.model.id, proposal.id])
+        )
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.context["active_proposal"].id, proposal.id)
+
+        object_type_keys = {ot.key for ot in response.context["object_types"]}
+        self.assertIn("customer_type", object_type_keys)
+
+        relationship_type_keys = {
+            rt.key for rt in response.context["relationship_types"]
+        }
+        self.assertIn("connects_to", relationship_type_keys)
+
+        # Canonical model state is untouched -- compile_change_plan only
+        # ever writes ProposalChange rows.
+        self.assertEqual(ObjectType.objects.filter(model=self.model).count(), 0)
+        self.assertEqual(RelationshipType.objects.filter(model=self.model).count(), 0)

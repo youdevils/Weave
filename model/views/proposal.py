@@ -136,6 +136,14 @@ def proposal(request, model_id, proposal_id=None):
     if is_editable:
         set_active_proposal_id(request, model.id, target_proposal.id)
 
+        # The session pointer just changed -- rebuild context so
+        # active_proposal/object_types/relationship_types (and the
+        # sidebar they feed, via model_base.html's shared-context
+        # include) reflect this proposal on THIS render, not only on
+        # the next request.
+        context = get_model_context(request, model_id)
+        model = context["model"]
+
     # -------------------------------------------------------------
     # POST actions
     # -------------------------------------------------------------

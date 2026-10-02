@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from account.models import CustomUser
 from model.models.model import Model
+from model.models.object_type import ObjectType
 from model.models.proposal import Proposal, ProposalChange
 from model.models.proposal_submission_result import (
     ProposalSubmissionResult,
@@ -162,6 +163,109 @@ class ProposalSelectionTests(ProposalViewTestCase):
         # The originally active WORKING proposal is still active.
         list_response = self.client.get(self.list_url())
         self.assertRedirects(list_response, self.detail_url(working))
+
+    def test_selecting_an_ai_proposal_via_the_real_flow_activates_it_immediately(self):
+        """
+        Regression test: selecting an AI proposal through the real
+        click-to-select flow (a plain GET to the proposal detail URL,
+        exactly what a sidebar click performs) must make the SAME
+        response reflect the newly-active proposal -- not just a
+        subsequent request. This is distinct from activate_proposal(),
+        which pokes session state directly and would not have caught
+        the view's context-not-refreshed-after-activation bug.
+        """
+        ai_proposal = Proposal.objects.create(
+            model=self.model,
+            created_by=self.user,
+            source=Proposal.Source.AI,
+            status=Proposal.Status.WORKING,
+        )
+
+        proposed_object_type_id = uuid.uuid4()
+
+        create_change = ProposalChange.objects.create(
+            proposal=ai_proposal,
+            source=ProposalChange.Source.AI,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="ObjectType",
+            target_id=proposed_object_type_id,
+            parent_type="Model",
+            parent_id=self.model.id,
+            after={
+                "name": "Widget",
+                "key": "widget",
+                "sort_order": 0,
+                "is_active": True,
+                "description": "",
+            },
+        )
+
+        # The real click-to-select flow: no session poking, just a GET
+        # to the proposal detail URL -- the same request a sidebar
+        # click issues.
+        response = self.client.get(self.detail_url(ai_proposal))
+        self.assertEqual(response.status_code, 200)
+
+        # --- Assertions on THIS response, the activation response
+        # itself (this is exactly where the bug lived: a stale
+        # pre-activation context rendered alongside the sidebar it
+        # feeds). ---
+
+        self.assertIsNotNone(response.context["active_proposal"])
+        self.assertEqual(response.context["active_proposal"].id, ai_proposal.id)
+
+        object_type_keys = {ot.key for ot in response.context["object_types"]}
+        self.assertIn("widget", object_type_keys)
+
+        proposals_by_id = {p.id: p for p in response.context["proposals"]}
+        self.assertEqual(proposals_by_id[ai_proposal.id].change_count, 1)
+
+        # --- The selection is retained for a second, separate request ---
+
+        second_response = self.client.get(self.list_url())
+        self.assertRedirects(second_response, self.detail_url(ai_proposal))
+
+        # --- Effective entities on a subsequent editor GET also
+        # reflect it ---
+
+        editor_url = reverse(
+            "model:object_type_edit",
+            args=[self.model.id, proposed_object_type_id],
+        )
+        editor_response = self.client.get(editor_url)
+        self.assertEqual(editor_response.status_code, 200)
+        self.assertEqual(
+            editor_response.context["active_proposal"].id,
+            ai_proposal.id,
+        )
+
+        # --- Editing the proposal-only entity lands on the SAME AI
+        # proposal ---
+
+        edit_response = self.client.post(
+            editor_url,
+            {"field": "description", "value": "Edited via sidebar selection."},
+        )
+        self.assertTrue(edit_response.json()["success"])
+
+        create_change.refresh_from_db()
+        self.assertEqual(
+            create_change.after["description"],
+            "Edited via sidebar selection.",
+        )
+        self.assertEqual(create_change.proposal_id, ai_proposal.id)
+
+        # No second proposal was spawned for this edit.
+        self.assertEqual(
+            Proposal.objects.filter(model=self.model, created_by=self.user).count(),
+            1,
+        )
+
+        # --- Canonical model state is never touched ---
+
+        self.assertFalse(
+            ObjectType.objects.filter(id=proposed_object_type_id).exists()
+        )
 
     def test_viewing_a_completed_proposal_does_not_make_it_active(self):
         completed = self._make_proposal(status=Proposal.Status.COMPLETED)
