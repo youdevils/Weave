@@ -32,3 +32,10 @@ class ContextPacketTests(SimpleTestCase):
         )
 
         self.assertFalse(packet.truncated)
+
+    def test_model_is_empty_defaults_false(self):
+        packet = ContextPacket(
+            intent="x", model_id="id", model_name="M", model_revision=1, byte_size=0
+        )
+
+        self.assertFalse(packet.model_is_empty)

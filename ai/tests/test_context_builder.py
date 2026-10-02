@@ -65,6 +65,18 @@ class BuildContextPacketTests(AIServiceTestCase):
 
         self.assertGreater(packet.byte_size, 0)
 
+    def test_model_is_empty_true_for_a_fresh_model_with_no_ontology(self):
+        empty_model = self.make_model(name="Empty Model")
+
+        packet = build_context_packet(model=empty_model, intent=self.intent)
+
+        self.assertTrue(packet.model_is_empty)
+
+    def test_model_is_empty_false_once_an_object_type_exists(self):
+        packet = build_context_packet(model=self.model, intent=self.intent)
+
+        self.assertFalse(packet.model_is_empty)
+
     def test_expansion_retains_unrelated_base_content_when_room_allows(self):
         # The old (buggy) behaviour replaced the base context with ONLY the
         # hop-reachable set the moment any expansion seed was present,

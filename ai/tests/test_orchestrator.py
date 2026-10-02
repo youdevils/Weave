@@ -6,7 +6,7 @@ from model.models.proposal import Proposal
 from model.models.object import Object
 from model.services.proposal.proposal import ProposalLimitReached, ProposalService
 
-from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef
+from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef, FieldEntry, FieldValue
 from ai.services.operations import register_operation, _unregister_operation
 from ai.services.orchestrator import run_ai_operation
 from ai.services.provider import ProviderError
@@ -56,6 +56,56 @@ def _create_object_plan(object_type_id, name="New widget", token="tmp:1", findin
                     target_ref=_new(token),
                     parent_ref=_existing(object_type_id),
                     fields={"name": name},
+                )
+            ],
+        ),
+    )
+
+
+def _relationship_type_rule_plan_with_bad_ref(relationship_type_id, subject_type_id, token="tmp:rule"):
+    """
+    Schema-valid (passes Pydantic construction) but semantically wrong:
+    object_type_id is given a bare string instead of an EntityRef -- the
+    literal "BusinessLeadership" regression this hardening pass closes.
+    """
+    return AIStructuredResult(
+        interpretation=Interpretation(restated_intent="Constrain the relationship."),
+        change_plan=ChangePlan(
+            summary="",
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipTypeRule",
+                    target_ref=_new(token),
+                    parent_ref=_existing(relationship_type_id),
+                    fields=[
+                        FieldEntry(
+                            key="subject_type_id",
+                            value=FieldValue(entity_ref_value=_existing(subject_type_id)),
+                        ),
+                        FieldEntry(key="object_type_id", value=FieldValue(string_value="BusinessLeadership")),
+                    ],
+                )
+            ],
+        ),
+    )
+
+
+def _relationship_type_rule_plan(relationship_type_id, subject_type_id, object_type_id, token="tmp:rule"):
+    return AIStructuredResult(
+        interpretation=Interpretation(restated_intent="Constrain the relationship."),
+        change_plan=ChangePlan(
+            summary="Constrain the relationship.",
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipTypeRule",
+                    target_ref=_new(token),
+                    parent_ref=_existing(relationship_type_id),
+                    fields={
+                        "subject_type_id": _existing(subject_type_id).model_dump(),
+                        "object_type_id": _existing(object_type_id).model_dump(),
+                    },
                 )
             ],
         ),
@@ -256,3 +306,46 @@ class RunAIOperationTests(AIServiceTestCase):
 
         with self.assertRaises(ProposalLimitReached):
             self._run(ScriptedProvider([_no_change()]))
+
+    def test_malformed_entity_reference_is_caught_pre_compile_then_refined_to_success(self):
+        """
+        End-to-end regression proof: a schema-valid but semantically
+        invalid ChangePlan (object_type_id given a bare string instead of
+        an EntityRef) must be caught by validate_change_plan and fed back
+        through the EXISTING refinement loop -- never reaching
+        compile_and_validate/the DB, and never surfacing as a raw
+        exception or a FAILED run. A corrected plan on the next scripted
+        cycle then compiles cleanly, proving refinement, not a second
+        retry mechanism, is what recovers.
+        """
+        relationship_type = self.make_relationship_type(self.model, key="connects_to")
+        other_object_type = self.make_object_type(self.model, key="gadget", name="Gadget")
+
+        bad = _relationship_type_rule_plan_with_bad_ref(relationship_type.id, self.object_type.id)
+        good = _relationship_type_rule_plan(relationship_type.id, self.object_type.id, other_object_type.id)
+
+        result = self._run(ScriptedProvider([bad, good]))
+
+        self.assertEqual(result.execution_status, ExecutionStatus.COMPLETED)
+        self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
+        self.assertEqual(result.refinement_cycles, 1)
+        self.assertIsNotNone(result.proposal_id)
+        self.assertEqual(Proposal.objects.filter(model=self.model).count(), 1)
+
+    def test_empty_model_sentence_only_appears_when_model_has_no_ontology_yet(self):
+        provider_for_empty_model = ScriptedProvider([_no_change()])
+        empty_model = self.make_model(name="Empty Model")
+
+        run_ai_operation(
+            operation_id="test_op",
+            model=empty_model,
+            user=self.user,
+            intent_text="Build out the model.",
+            provider=provider_for_empty_model,
+        )
+
+        provider_for_populated_model = ScriptedProvider([_no_change()])
+        self._run(provider_for_populated_model)
+
+        self.assertIn("has no ObjectTypes", provider_for_empty_model.system_prompts[0])
+        self.assertNotIn("has no ObjectTypes", provider_for_populated_model.system_prompts[0])

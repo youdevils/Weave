@@ -471,6 +471,71 @@ class InvalidFieldCompileTests(AIServiceTestCase):
         self.assertEqual(created[0].after["subject_minimum"], 0)
         self.assertEqual(created[0].after["subject_maximum"], 1)
 
+    def test_relationship_type_rule_create_with_ai_facing_ref_aliases_compiles_to_internal_keys(self):
+        """The AI-facing `_ref` names are purely a contract-level rename --
+        compile_change_plan must still produce the same internal `_id`
+        keys on the resulting ProposalChange, unchanged in intent."""
+        relationship_type = self.make_relationship_type(self.model, key="connects_to")
+        subject_type = self.make_object_type(self.model, key="widget")
+        object_type = self.make_object_type(self.model, key="gadget", name="Gadget")
+
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipTypeRule",
+                    target_ref=_new("tmp:rule"),
+                    parent_ref=_existing(relationship_type.id),
+                    fields={
+                        "subject_type_ref": _existing(subject_type.id).model_dump(),
+                        "object_type_ref": _existing(object_type.id).model_dump(),
+                        "subject_minimum": 0,
+                        "subject_maximum": 1,
+                        "object_minimum": 0,
+                        "object_maximum": None,
+                    },
+                )
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(created[0].after["subject_type_id"], str(subject_type.id))
+        self.assertEqual(created[0].after["object_type_id"], str(object_type.id))
+        self.assertNotIn("subject_type_ref", created[0].after)
+        self.assertNotIn("object_type_ref", created[0].after)
+
+    def test_new_object_type_created_in_plan_can_be_referenced_by_a_later_action_in_the_same_plan(self):
+        """The symbolic-reference mechanism: a 'new' token defined by one
+        create action resolves to the same real id everywhere else it's
+        referenced within the same Change Plan -- here, a later Object
+        create uses it as parent_ref."""
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="ObjectType",
+                    target_ref=_new("ot1"),
+                    fields={"name": "Customer"},
+                ),
+                ChangeAction(
+                    operation="create",
+                    target_type="Object",
+                    target_ref=_new("obj1"),
+                    parent_ref=_new("ot1"),
+                    fields={"name": "Acme Inc."},
+                ),
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(len(created), 2)
+        object_type_change, object_change = created
+        self.assertEqual(object_type_change.target_type, "ObjectType")
+        self.assertEqual(object_change.target_type, "Object")
+        self.assertEqual(str(object_change.parent_id), str(object_type_change.target_id))
+
     def test_update_action_with_illegal_field_raises_collecting_all_bad_keys(self):
         object_type = self.make_object_type(self.model, key="widget")
         plan = ChangePlan(

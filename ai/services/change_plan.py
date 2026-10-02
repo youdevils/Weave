@@ -32,7 +32,7 @@ from __future__ import annotations
 from typing import Literal, Optional
 
 from django.conf import settings
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from model.services.field_paths import ATTRIBUTE_FIELD_PREFIX
 
@@ -54,6 +54,22 @@ RELATIONSHIP_TYPE_RULE_ENDPOINT_FIELDS = ("subject_type_id", "object_type_id")
 _ENTITY_REF_FIELDS_BY_TARGET_TYPE: dict[str, tuple[str, ...]] = {
     "Relationship": RELATIONSHIP_ENDPOINT_FIELDS,
     "RelationshipTypeRule": RELATIONSHIP_TYPE_RULE_ENDPOINT_FIELDS,
+}
+
+# AI-facing field names for the same two endpoint pairs above, mapped to
+# their internal/compiler names. The AI is taught (see
+# ai.services.orchestrator._system_prompt) to use these "_ref" names instead
+# of the "_id" ones -- a field holding an EntityRef should never look like a
+# raw database column -- but every downstream consumer (fields_dict(),
+# entity_refs_in_fields(), model.services.entity_fields.illegal_fields(), the
+# compiler) still only ever sees the internal name, since ChangeAction
+# rewrites it immediately below (_normalize_ai_facing_field_keys).
+_AI_FACING_FIELD_ALIASES: dict[str, dict[str, str]] = {
+    "Relationship": {"subject_ref": "subject_id", "object_ref": "object_id"},
+    "RelationshipTypeRule": {
+        "subject_type_ref": "subject_type_id",
+        "object_type_ref": "object_type_id",
+    },
 }
 
 # Every other target type's parent type is implied by the target type itself
@@ -228,6 +244,29 @@ class ChangeAction(BaseModel):
         if isinstance(value, dict):
             return [{"key": key, "value": FieldValue.of(raw)} for key, raw in value.items()]
         return value
+
+    @model_validator(mode="after")
+    def _normalize_ai_facing_field_keys(self) -> "ChangeAction":
+        """
+        Rewrites any AI-facing alias key (see _AI_FACING_FIELD_ALIASES) to
+        its internal name, in place. Deliberately never raises here, even on
+        a collision with an already-present internal key -- a Pydantic
+        error at this point (i.e. while OpenAIProvider.generate_structured's
+        client.responses.parse(...) is building this model from the
+        provider's response) would surface as a hard FAILED run, not a
+        validate_change_plan issue, bypassing the whole refinement loop.
+        Rule 10 in validate_change_plan catches a resulting duplicate key
+        the same structured way as every other semantic defect instead.
+        """
+
+        aliases = _AI_FACING_FIELD_ALIASES.get(self.target_type)
+        if not aliases:
+            return self
+        for entry in self.fields:
+            internal_key = aliases.get(entry.key)
+            if internal_key is not None:
+                entry.key = internal_key
+        return self
 
     def fields_dict(self) -> dict:
         """
@@ -404,6 +443,67 @@ def validate_change_plan(plan: ChangePlan, dataset) -> list[UnresolvedIssue]:
                         "unresolvable_existing_reference",
                         f"No entity with id '{ref.id}' exists.",
                         ref,
+                    )
+                )
+
+        # Rules 7-10: FieldValue kind/shape checks -- iterate action.fields
+        # directly, not via entity_refs_in_fields() above (which only ever
+        # surfaces *well-formed* refs for the existing-reference check and
+        # would silently skip exactly the malformed entries these rules
+        # exist to catch).
+        ref_keys = entity_ref_fields_for(action.target_type)
+        seen_keys: dict[str, int] = {}
+        for entry in action.fields:
+            seen_keys[entry.key] = seen_keys.get(entry.key, 0) + 1
+
+            set_variants = sum(
+                1
+                for value in (
+                    entry.value.string_value,
+                    entry.value.number_value,
+                    entry.value.boolean_value,
+                    entry.value.entity_ref_value,
+                    entry.value.config_value,
+                )
+                if value is not None
+            )
+            if set_variants > 1:
+                issues.append(
+                    _issue(
+                        "ambiguous_field_value",
+                        f"Field '{entry.key}' on this {action.target_type} sets more "
+                        "than one kind of value at once; it must set exactly one.",
+                        action.target_ref,
+                    )
+                )
+
+            if entry.key in ref_keys and entry.value.entity_ref_value is None:
+                issues.append(
+                    _issue(
+                        "entity_reference_required",
+                        f"Field '{entry.key}' on this {action.target_type} must be an "
+                        "entity reference ({\"kind\": \"existing\"|\"new\", \"id\": ...}), "
+                        "not a plain value.",
+                        action.target_ref,
+                    )
+                )
+            elif entry.key not in ref_keys and entry.value.entity_ref_value is not None:
+                issues.append(
+                    _issue(
+                        "unexpected_entity_reference",
+                        f"Field '{entry.key}' on this {action.target_type} is a plain "
+                        "value field, not an entity reference.",
+                        action.target_ref,
+                    )
+                )
+
+        for key, count in seen_keys.items():
+            if count > 1:
+                issues.append(
+                    _issue(
+                        "duplicate_field_key",
+                        f"Field '{key}' is set more than once on this {action.target_type} action.",
+                        action.target_ref,
                     )
                 )
 

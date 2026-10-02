@@ -116,7 +116,7 @@ def run_ai_operation(
             AIExecutionService.record_context_digest(execution, context)
 
             provider_result = provider.generate_structured(
-                system_prompt=_system_prompt(operation),
+                system_prompt=_system_prompt(operation, context),
                 user_payload=context.model_dump(mode="json"),
                 response_schema=AIStructuredResult,
                 config=provider_config,
@@ -249,17 +249,33 @@ def run_ai_operation(
         )
 
 
-def _system_prompt(operation) -> str:
-    return (
+def _system_prompt(operation, context) -> str:
+    prompt = (
         f"You are assisting with the OnyxJar AI operation '{operation.operation_id}' "
         f"({operation.description}). Respond only with the requested structured "
         "schema. Only reference entities that appear in the supplied context, or "
-        "name them via context_requests; never invent ids. When creating a new "
-        "ObjectType or RelationshipType, you do not need to supply its `key` -- "
-        "leave it blank and OnyxJar will derive one from the name. A "
-        "RelationshipType itself has no subject/object fields: to constrain "
-        "which ObjectTypes it may link, and with what cardinality, create a "
-        "separate RelationshipTypeRule action parented to it, with "
-        "`subject_type_id`, `object_type_id`, `subject_minimum`, "
+        "name them via context_requests; never invent ids. "
+        "Every entity reference (a ChangeAction's target_ref/parent_ref, or a "
+        "field like subject_type_ref/object_type_ref/subject_ref/object_ref) is "
+        "an EntityRef, never a bare string or number: use "
+        "{\"kind\": \"existing\", \"id\": \"<real id from context>\"} for an entity "
+        "that already exists, or {\"kind\": \"new\", \"id\": \"<a token you choose>\"} "
+        "for one you are creating in this same Change Plan -- OnyxJar, not you, "
+        "mints its real id. A \"new\" token may be referenced by any later action "
+        "in the same plan (e.g. an Object's parent_ref, or a RelationshipTypeRule's "
+        "subject_type_ref/object_type_ref) to build on an entity you just created. "
+        "When creating a new ObjectType or RelationshipType, you do not need to "
+        "supply its `key` -- leave it blank and OnyxJar will derive one from the "
+        "name. A RelationshipType itself has no subject/object fields: to "
+        "constrain which ObjectTypes it may link, and with what cardinality, "
+        "create a separate RelationshipTypeRule action parented to it, with "
+        "`subject_type_ref`, `object_type_ref`, `subject_minimum`, "
         "`subject_maximum`, `object_minimum`, `object_maximum`."
     )
+    if context.model_is_empty:
+        prompt += (
+            " This model currently has no ObjectTypes, RelationshipTypes, Rules, "
+            "Objects, or Relationships at all -- you are defining its initial "
+            "ontology from scratch, entirely via \"new\" EntityRef tokens."
+        )
+    return prompt

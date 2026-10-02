@@ -45,9 +45,16 @@ class ScriptedProvider(AIProvider):
         self.explanation = explanation
         self.explain_called = False
         self.generate_calls = 0
+        # Every call's system_prompt/user_payload, in order -- lets tests
+        # assert on exactly what the orchestrator sent the provider each
+        # refinement cycle (e.g. the empty-model system prompt sentence).
+        self.system_prompts: list[str] = []
+        self.user_payloads: list[dict] = []
 
     def generate_structured(self, *, system_prompt, user_payload, response_schema, config):
         self.generate_calls += 1
+        self.system_prompts.append(system_prompt)
+        self.user_payloads.append(user_payload)
         if self._index >= len(self._results):
             raise AssertionError("ScriptedProvider ran out of scripted results")
         result = self._results[self._index]

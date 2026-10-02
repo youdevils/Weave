@@ -246,7 +246,9 @@ WEBSITE_LEGAL_ENTITY = os.getenv("WEBSITE_LEGAL_ENTITY", "OnyxJar")
 WEBSITE_CONTACT_EMAIL = os.getenv("WEBSITE_CONTACT_EMAIL", "")
 
 # Where contact-form submissions are sent (Resend -> Cloudflare Email Routing).
-WEBSITE_CONTACT_FORM_RECIPIENT = os.getenv("WEBSITE_CONTACT_FORM_RECIPIENT", "support@onyxjar.com")
+WEBSITE_CONTACT_FORM_RECIPIENT = os.getenv(
+    "WEBSITE_CONTACT_FORM_RECIPIENT", "support@onyxjar.com"
+)
 
 # ------------------------------------------------------------------------------------
 # AI SERVICE LAYER (ai app)
@@ -269,7 +271,7 @@ AI_CONTEXT_MAX_OBJECTS = 300
 AI_CONTEXT_MAX_HOPS = 2
 
 # Byte ceiling on the serialised ContextPacket (canonical_json length).
-AI_CONTEXT_MAX_BYTES = 200_000
+AI_CONTEXT_MAX_BYTES = 100_000
 
 # ProposalChanges one AI operation's compiled plan may produce (same order of
 # magnitude as IMPORT_MAX_CHANGES=1000; AI plans are expected far smaller).
@@ -304,8 +306,8 @@ ASSISTED_TASK_RUNNING_STUCK_THRESHOLD = timedelta(minutes=15)
 # (200_000) alongside the ontology and model data. Raise only together with
 # AI_CONTEXT_MAX_BYTES.
 ASSISTED_MAX_EVIDENCE_FILES = 5
-ASSISTED_MAX_EVIDENCE_FILE_BYTES = 20_000
-ASSISTED_MAX_EVIDENCE_TOTAL_BYTES = 50_000
+ASSISTED_MAX_EVIDENCE_FILE_BYTES = 1_000_000  # 1 MB per file
+ASSISTED_MAX_EVIDENCE_TOTAL_BYTES = 5_000_000  # 5 MB total
 
 # ------------------------------------------------------------------------------------
 # DEFAULT AUTO FIELD

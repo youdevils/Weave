@@ -159,6 +159,72 @@ class ChangeActionFieldsTests(SimpleTestCase):
         self.assertEqual(action.entity_refs_in_fields(), [])
 
 
+class AiFacingFieldAliasTests(SimpleTestCase):
+    """
+    _AI_FACING_FIELD_ALIASES lets the AI address RelationshipTypeRule's and
+    Relationship's entity-reference fields by a semantic "_ref" name
+    (subject_type_ref, object_type_ref, subject_ref, object_ref) instead of
+    the DB-column-shaped "_id" name -- ChangeAction's model_validator
+    rewrites the key to its internal name immediately, so every other
+    consumer (fields_dict(), entity_refs_in_fields(), the compiler) never
+    sees the alias at all.
+    """
+
+    def test_relationship_type_rule_ai_facing_aliases_are_rewritten_to_internal_keys(self):
+        action = ChangeAction(
+            operation="create",
+            target_type="RelationshipTypeRule",
+            target_ref=_new("tmp:rule"),
+            fields={
+                "subject_type_ref": _existing(uuid.uuid4()).model_dump(),
+                "object_type_ref": _new("tmp:ot").model_dump(),
+            },
+        )
+
+        keys = {entry.key for entry in action.fields}
+        self.assertEqual(keys, {"subject_type_id", "object_type_id"})
+
+    def test_relationship_ai_facing_aliases_are_rewritten_to_internal_keys(self):
+        action = ChangeAction(
+            operation="create",
+            target_type="Relationship",
+            target_ref=_new("tmp:rel"),
+            fields={
+                "subject_ref": _existing(uuid.uuid4()).model_dump(),
+                "object_ref": _new("tmp:obj").model_dump(),
+            },
+        )
+
+        keys = {entry.key for entry in action.fields}
+        self.assertEqual(keys, {"subject_id", "object_id"})
+
+    def test_internal_names_still_pass_through_unchanged(self):
+        """Existing fixtures/tests that already pass internal names
+        directly (e.g. subject_id) must keep working unchanged -- the alias
+        map only ever rewrites the AI-facing "_ref" spellings."""
+        action = ChangeAction(
+            operation="create",
+            target_type="Relationship",
+            target_ref=_new("tmp:rel"),
+            fields={"subject_id": _existing(uuid.uuid4()).model_dump()},
+        )
+
+        self.assertEqual(action.fields[0].key, "subject_id")
+
+    def test_alias_is_not_applied_to_unrelated_target_types(self):
+        """subject_ref/object_ref etc. carry no special meaning for a
+        target_type that isn't in _AI_FACING_FIELD_ALIASES -- they pass
+        through literally, as any other field key would."""
+        action = ChangeAction(
+            operation="update",
+            target_type="Object",
+            target_ref=_existing(uuid.uuid4()),
+            fields={"subject_ref": "X"},
+        )
+
+        self.assertEqual(action.fields[0].key, "subject_ref")
+
+
 class ValidateChangePlanTests(AIServiceTestCase):
 
     def setUp(self):
@@ -331,3 +397,143 @@ class ValidateChangePlanTests(AIServiceTestCase):
         issues = validate_change_plan(plan, dataset=self.dataset)
 
         self.assertEqual(issues, [])
+
+    def test_ref_field_given_plain_value_instead_of_entity_ref_is_rejected(self):
+        """
+        The literal regression this hardening pass closes: object_type_id
+        (a declared entity-reference field) is given a bare string instead
+        of an EntityRef. entity_refs_in_fields() silently skips a
+        malformed entry like this, so validate_change_plan must catch it
+        by reading action.fields directly.
+        """
+        relationship_type = self.make_relationship_type(self.model, key="depends_on")
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipTypeRule",
+                    target_ref=_new("tmp:rule"),
+                    parent_ref=_existing(relationship_type.id),
+                    fields=[
+                        FieldEntry(
+                            key="subject_type_id",
+                            value=FieldValue(entity_ref_value=_existing(self.object_type.id)),
+                        ),
+                        FieldEntry(key="object_type_id", value=FieldValue(string_value="BusinessLeadership")),
+                    ],
+                )
+            ],
+        )
+
+        issues = validate_change_plan(plan, dataset=self.dataset)
+
+        self.assertTrue(any(issue.code == "entity_reference_required" for issue in issues))
+
+    def test_ai_facing_ref_alias_with_plain_value_is_still_rejected(self):
+        """Same regression, but via the AI-facing `_ref` alias -- proves the
+        alias rewrite (which only touches the *key*) doesn't mask a
+        malformed *value* underneath it."""
+        relationship_type = self.make_relationship_type(self.model, key="depends_on")
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipTypeRule",
+                    target_ref=_new("tmp:rule"),
+                    parent_ref=_existing(relationship_type.id),
+                    fields=[
+                        FieldEntry(
+                            key="subject_type_ref",
+                            value=FieldValue(entity_ref_value=_existing(self.object_type.id)),
+                        ),
+                        FieldEntry(key="object_type_ref", value=FieldValue(string_value="BusinessLeadership")),
+                    ],
+                )
+            ],
+        )
+
+        issues = validate_change_plan(plan, dataset=self.dataset)
+
+        self.assertTrue(any(issue.code == "entity_reference_required" for issue in issues))
+
+    def test_scalar_field_given_entity_ref_value_is_rejected(self):
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="update",
+                    target_type="Object",
+                    target_ref=_existing(self.object.id),
+                    fields=[FieldEntry(key="name", value=FieldValue(entity_ref_value=_existing(uuid.uuid4())))],
+                )
+            ],
+        )
+
+        issues = validate_change_plan(plan, dataset=self.dataset)
+
+        self.assertTrue(any(issue.code == "unexpected_entity_reference" for issue in issues))
+
+    def test_field_value_with_multiple_variants_set_is_rejected(self):
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="update",
+                    target_type="Object",
+                    target_ref=_existing(self.object.id),
+                    fields=[FieldEntry(key="name", value=FieldValue(string_value="X", number_value=1))],
+                )
+            ],
+        )
+
+        issues = validate_change_plan(plan, dataset=self.dataset)
+
+        self.assertTrue(any(issue.code == "ambiguous_field_value" for issue in issues))
+
+    def test_duplicate_field_key_on_same_action_is_rejected(self):
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="update",
+                    target_type="Object",
+                    target_ref=_existing(self.object.id),
+                    fields=[
+                        FieldEntry(key="name", value=FieldValue(string_value="X")),
+                        FieldEntry(key="name", value=FieldValue(string_value="Y")),
+                    ],
+                )
+            ],
+        )
+
+        issues = validate_change_plan(plan, dataset=self.dataset)
+
+        self.assertTrue(any(issue.code == "duplicate_field_key" for issue in issues))
+
+    def test_alias_collision_with_internal_key_is_rejected_as_duplicate(self):
+        """subject_type_ref and subject_type_id both resolve to the same
+        internal key after normalization -- nothing downstream dedupes
+        fields, so this must be flagged rather than silently letting one
+        value win."""
+        relationship_type = self.make_relationship_type(self.model, key="depends_on")
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipTypeRule",
+                    target_ref=_new("tmp:rule"),
+                    parent_ref=_existing(relationship_type.id),
+                    fields=[
+                        FieldEntry(
+                            key="subject_type_ref",
+                            value=FieldValue(entity_ref_value=_existing(self.object_type.id)),
+                        ),
+                        FieldEntry(
+                            key="subject_type_id",
+                            value=FieldValue(entity_ref_value=_new("tmp:other")),
+                        ),
+                    ],
+                )
+            ],
+        )
+
+        issues = validate_change_plan(plan, dataset=self.dataset)
+
+        self.assertTrue(any(issue.code == "duplicate_field_key" for issue in issues))

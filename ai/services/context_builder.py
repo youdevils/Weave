@@ -190,8 +190,16 @@ def build_context_packet(
         dataset, object_ids, max_bytes=available_bytes
     )
 
+    model_is_empty = (
+        not ontology_payload.get("nodes")
+        and not ontology_payload.get("edges")
+        and not objects_payload
+        and not relationships_payload
+    )
+
     packet = ContextPacket(
         **fixed_kwargs,
+        model_is_empty=model_is_empty,
         objects=objects_payload,
         relationships=relationships_payload,
         truncated=bool(object_limit_hit or byte_limit_hit or overhead_exceeds_ceiling),

@@ -25,6 +25,12 @@ class ContextPacket(BaseModel):
     # only. Never compared against a later revision to reject or restart an
     # in-flight operation; see the orchestrator's module docstring.
     model_revision: int
+    # True only when the model has no ObjectTypes/RelationshipTypes/Rules AND
+    # no Objects/Relationships yet -- a true from-scratch Create. Lets
+    # ai.services.orchestrator._system_prompt state this explicitly instead
+    # of leaving the AI to infer it from ontology/objects/relationships all
+    # being empty.
+    model_is_empty: bool = False
 
     ontology: Dict[str, Any] = Field(default_factory=dict)
     objects: List[Dict[str, Any]] = Field(default_factory=list)
