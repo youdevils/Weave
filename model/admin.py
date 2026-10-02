@@ -31,6 +31,8 @@ class ModelAdmin(admin.ModelAdmin):
         "workspace__name",
     )
 
+    autocomplete_fields = ("workspace",)
+
 
 @admin.register(ObjectType)
 class ObjectTypeAdmin(admin.ModelAdmin):
@@ -49,6 +51,8 @@ class ObjectTypeAdmin(admin.ModelAdmin):
         "key",
         "description",
     )
+
+    autocomplete_fields = ("model",)
 
 
 @admin.register(AttributeDefinition)
@@ -75,6 +79,8 @@ class AttributeDefinitionAdmin(admin.ModelAdmin):
         "description",
     )
 
+    autocomplete_fields = ("object_type", "relationship_type")
+
 
 @admin.register(RelationshipType)
 class RelationshipTypeAdmin(admin.ModelAdmin):
@@ -93,6 +99,8 @@ class RelationshipTypeAdmin(admin.ModelAdmin):
         "key",
         "description",
     )
+
+    autocomplete_fields = ("model",)
 
 
 @admin.register(RelationshipTypeRule)
@@ -113,6 +121,8 @@ class RelationshipTypeRuleAdmin(admin.ModelAdmin):
         "object_type__name",
     )
 
+    autocomplete_fields = ("relationship_type", "subject_type", "object_type")
+
 
 @admin.register(Object)
 class ObjectAdmin(admin.ModelAdmin):
@@ -130,6 +140,8 @@ class ObjectAdmin(admin.ModelAdmin):
     )
 
     list_filter = ("object_type",)
+
+    autocomplete_fields = ("model", "object_type")
 
 
 @admin.register(Relationship)
@@ -150,6 +162,8 @@ class RelationshipAdmin(admin.ModelAdmin):
     )
 
     list_filter = ("relationship_type",)
+
+    autocomplete_fields = ("model", "relationship_type", "subject", "object")
 
 
 @admin.register(Proposal)
@@ -175,6 +189,8 @@ class ProposalAdmin(admin.ModelAdmin):
         "model__name",
         "created_by__email",
     )
+
+    autocomplete_fields = ("model", "created_by")
 
     readonly_fields = (
         "id",
@@ -216,6 +232,8 @@ class ProposalChangeAdmin(admin.ModelAdmin):
         "target_id",
     )
 
+    autocomplete_fields = ("proposal",)
+
     readonly_fields = (
         "id",
         "created_at",
@@ -237,6 +255,8 @@ class EvidenceReferenceAdmin(admin.ModelAdmin):
         "locator",
         "note",
     )
+
+    autocomplete_fields = ("change",)
 
     readonly_fields = (
         "id",
@@ -261,6 +281,8 @@ class ProposalSubmissionResultAdmin(admin.ModelAdmin):
         "proposal__title",
         "message",
     )
+
+    autocomplete_fields = ("proposal",)
 
     readonly_fields = (
         "id",
@@ -289,6 +311,8 @@ class ProposalValidationErrorAdmin(admin.ModelAdmin):
         "code",
         "message",
     )
+
+    autocomplete_fields = ("result", "change")
 
     readonly_fields = (
         "id",

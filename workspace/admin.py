@@ -13,4 +13,5 @@ class WorkspaceAdmin(admin.ModelAdmin):
 class WorkspaceMemberAdmin(admin.ModelAdmin):
     list_display = ("workspace", "user", "role", "created_at")
     list_filter = ("role",)
-    search_fields = ("workspace__name", "user__username", "user__email")
+    search_fields = ("workspace__name", "user__email")
+    autocomplete_fields = ("workspace", "user")
