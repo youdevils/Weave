@@ -33,6 +33,7 @@
     --onyxjar-text: var(--onyxjar-ink);
     --onyxjar-text-muted: #64748b;
     --onyxjar-text-secondary: #475569;
+    --onyxjar-heading: var(--onyxjar-indigo);
     --onyxjar-accent-soft: #ECEAF2;
     --onyxjar-border: #e2e8f0;
     --onyxjar-focus: #1F1B43;
@@ -75,6 +76,10 @@
 
 body {
     font-family: var(--onyxjar-font);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--onyxjar-heading);
 }
 
 
@@ -319,7 +324,7 @@ body {
 .onyxjar-empty-state h2,
 .onyxjar-empty-state h3 {
     margin: 0;
-    color: #343a40;
+    color: var(--onyxjar-text-secondary);
     font-size: 0.95rem;
     font-weight: 600;
 }

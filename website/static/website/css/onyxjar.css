@@ -27,6 +27,7 @@
   --ff-surface: #ffffff;
   --ff-text: var(--ff-ink);
   --ff-text-muted: #475569;
+  --ff-heading: var(--ff-indigo);
   --ff-border: #e2e8f0;
   --ff-focus: #1f1b43;
 
@@ -116,9 +117,12 @@ body.ff-body {
 
 .ff-body h1,
 .ff-body h2,
-.ff-body h3 {
+.ff-body h3,
+.ff-body h4,
+.ff-body h5,
+.ff-body h6 {
   margin: 0;
-  color: var(--ff-ink);
+  color: var(--ff-heading);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.12;

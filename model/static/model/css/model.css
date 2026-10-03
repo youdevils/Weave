@@ -27,6 +27,7 @@
   --model-accent: #1F1B43;
   --model-accent-strong: #191636;
   --model-accent-soft: #ECEAF2;
+  --model-heading: var(--model-accent);
 }
 
 /* =========================================================
@@ -306,7 +307,7 @@
 
 .model-overview h1 {
   margin: 0;
-  color: var(--model-text);
+  color: var(--model-heading);
   font-size: 2rem;
   font-weight: 600;
 }
@@ -359,7 +360,7 @@
 
 .model-overview-section-heading h2 {
   margin: 0;
-  color: var(--model-text);
+  color: var(--model-heading);
   font-size: 1.2rem;
   font-weight: 600;
 }
@@ -889,7 +890,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-customise-section > h2,
 .model-customise-preview-header h2 {
   margin: 0 0 0.2rem;
-  color: var(--model-text);
+  color: var(--model-heading);
   font-size: 1.05rem;
   font-weight: 600;
 }
@@ -1066,7 +1067,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-object-type-editor .model-editor-section-header h2 {
   margin: 0;
-  color: var(--model-text);
+  color: var(--model-heading);
   font-size: 1.1rem;
   font-weight: 600;
   line-height: 1.3;
@@ -2642,14 +2643,14 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-empty-state-title {
-  color: #343a40;
+  color: var(--model-text-secondary);
   font-size: 0.95rem;
   font-weight: 600;
 }
 
 .model-empty-state h2 {
   margin: 0;
-  color: #343a40;
+  color: var(--model-text-secondary);
   font-size: 0.95rem;
   font-weight: 600;
 }
