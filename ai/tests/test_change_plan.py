@@ -68,8 +68,15 @@ class FieldValueTests(SimpleTestCase):
         self.assertTrue(value.boolean_value)
         self.assertIsNone(value.number_value)
 
-    def test_of_int_becomes_number_value(self):
-        self.assertEqual(FieldValue.of(5).number_value, 5.0)
+    def test_of_int_stays_integer(self):
+        value = FieldValue.of(5)
+        self.assertEqual(value.number_value, 5)
+        self.assertIsInstance(value.number_value, int)
+
+    def test_of_float_stays_float(self):
+        value = FieldValue.of(5.5)
+        self.assertEqual(value.number_value, 5.5)
+        self.assertIsInstance(value.number_value, float)
 
     def test_of_is_idempotent_on_an_existing_field_value(self):
         original = FieldValue(string_value="x")

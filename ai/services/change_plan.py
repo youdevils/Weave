@@ -29,7 +29,7 @@ values on a newly created entity, they belong directly in that entity's own
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 from django.conf import settings
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -159,7 +159,7 @@ class FieldValue(BaseModel):
     """
 
     string_value: Optional[str] = None
-    number_value: Optional[float] = None
+    number_value: Optional[Union[int, float]] = None
     boolean_value: Optional[bool] = None
     entity_ref_value: Optional[EntityRef] = None
     config_value: Optional[AttributeDefinitionConfig] = None
@@ -199,7 +199,7 @@ class FieldValue(BaseModel):
         if isinstance(value, bool):
             return cls(boolean_value=value)
         if isinstance(value, (int, float)):
-            return cls(number_value=float(value))
+            return cls(number_value=value)
         if value is None:
             return cls()
         return cls(string_value=str(value))

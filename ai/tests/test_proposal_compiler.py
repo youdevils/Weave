@@ -470,6 +470,46 @@ class InvalidFieldCompileTests(AIServiceTestCase):
         self.assertEqual(created[0].target_type, "RelationshipTypeRule")
         self.assertEqual(created[0].after["subject_minimum"], 0)
         self.assertEqual(created[0].after["subject_maximum"], 1)
+        self.assertIsInstance(created[0].after["subject_minimum"], int)
+        self.assertIsInstance(created[0].after["subject_maximum"], int)
+
+    def test_relationship_type_rule_cardinality_values_stay_integers(self):
+        """Regression: AI-supplied cardinality values (e.g. 1, 2, 8, 10) must
+        survive compilation as real ints, not floats -- see
+        ai.services.change_plan.FieldValue.number_value."""
+        relationship_type = self.make_relationship_type(self.model, key="connects_to")
+        subject_type = self.make_object_type(self.model, key="widget")
+        object_type = self.make_object_type(self.model, key="gadget", name="Gadget")
+
+        for value in (0, 1, 2, 8, 10):
+            with self.subTest(value=value):
+                plan = ChangePlan(
+                    actions=[
+                        ChangeAction(
+                            operation="create",
+                            target_type="RelationshipTypeRule",
+                            target_ref=_new(f"tmp:rule-{value}"),
+                            parent_ref=_existing(relationship_type.id),
+                            fields={
+                                "subject_type_id": _existing(subject_type.id).model_dump(),
+                                "object_type_id": _existing(object_type.id).model_dump(),
+                                "subject_minimum": value,
+                                "subject_maximum": value,
+                                "object_minimum": value,
+                                "object_maximum": value,
+                            },
+                        )
+                    ]
+                )
+
+                created = compile_change_plan(
+                    model=self.model, user=self.user, change_plan=plan, proposal=self.proposal
+                )
+
+                after = created[0].after
+                for key in ("subject_minimum", "subject_maximum", "object_minimum", "object_maximum"):
+                    self.assertEqual(after[key], value)
+                    self.assertIsInstance(after[key], int)
 
     def test_relationship_type_rule_create_with_ai_facing_ref_aliases_compiles_to_internal_keys(self):
         """The AI-facing `_ref` names are purely a contract-level rename --

@@ -1,6 +1,7 @@
 import uuid
+from types import SimpleNamespace
 
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -8,6 +9,7 @@ from account.models import CustomUser
 from model.models.model import Model
 from model.models.object_type import ObjectType
 from model.models.proposal import Proposal, ProposalChange
+from model.views.common_context import _extract_created_rule_values
 from model.views.tests.proposal_test_utils import activate_proposal
 from workspace.models import Workspace, WorkspaceMember
 
@@ -169,3 +171,32 @@ class CommonContextProposalStateTests(TestCase):
         proposed_create = object_types[new_object_type_id]
         self.assertEqual(proposed_create.name, "Widget")
         self.assertTrue(proposed_create.is_created)
+
+
+class ExtractCreatedRuleValuesCardinalityTests(SimpleTestCase):
+    """
+    Regression coverage for the cardinality-renders-as-float bug: once
+    ai.services.change_plan.FieldValue stops forcing clean integers into
+    floats, _extract_created_rule_values must pass real ints straight
+    through from change.after, for every representative integer value.
+    """
+
+    def test_representative_integers_stay_integers(self):
+        for value in (0, 1, 2, 8, 10):
+            with self.subTest(value=value):
+                change = SimpleNamespace(
+                    after={
+                        "subject_type_id": "subject-type",
+                        "object_type_id": "object-type",
+                        "subject_minimum": value,
+                        "subject_maximum": value,
+                        "object_minimum": value,
+                        "object_maximum": value,
+                    }
+                )
+
+                values = _extract_created_rule_values(change)
+
+                for key in ("subject_minimum", "subject_maximum", "object_minimum", "object_maximum"):
+                    self.assertEqual(values[key], value)
+                    self.assertIsInstance(values[key], int)

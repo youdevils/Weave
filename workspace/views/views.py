@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
@@ -6,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 
@@ -25,6 +27,7 @@ from model.services.model_template.loader import (
 from workspace.models import WorkspaceMember
 
 from assisted.models import AssistedTask
+from assisted.services.activity import active_tasks_by_model_id, recent_tasks_for_workspace
 from assisted.services.evidence import AssistedEvidenceInvalid
 from assisted.services.lifecycle import (
     AssistedEntitlementDenied,
@@ -37,6 +40,7 @@ from assisted.uploads import LimitedUploadHandler
 logger = logging.getLogger(__name__)
 
 ASSISTED_CREATE_ROLES = (WorkspaceMember.Role.OWNER, WorkspaceMember.Role.EDITOR)
+ASSISTED_ACTIVITY_WINDOW_DAYS = 30
 
 
 @login_required
@@ -50,11 +54,25 @@ def index(request):
         "workspace__models",
     )
 
+    since = timezone.now() - timedelta(days=ASSISTED_ACTIVITY_WINDOW_DAYS)
+    assisted_activity = []
+
+    for membership in memberships:
+        workspace_tasks = list(recent_tasks_for_workspace(membership.workspace, since=since))
+        assisted_activity.extend(workspace_tasks)
+
+        active_by_model = active_tasks_by_model_id(workspace_tasks)
+        for model in membership.workspace.models.all():
+            model.active_assisted_task = active_by_model.get(model.id)
+
+    assisted_activity.sort(key=lambda task: task.created_at, reverse=True)
+
     return render(
         request,
         "workspace/dashboard.html",
         {
             "memberships": memberships,
+            "assisted_activity": assisted_activity,
         },
     )
 

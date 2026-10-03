@@ -7,6 +7,7 @@ from account.models import CustomUser
 from model.models.model import Model
 from model.models.object_type import ObjectType
 from model.models.proposal import Proposal, ProposalChange
+from model.models.relationship_type import RelationshipType
 from model.models.proposal_submission_result import (
     ProposalSubmissionResult,
     ProposalValidationError,
@@ -513,3 +514,65 @@ class ProposalFailedStateTests(ProposalViewTestCase):
             response,
             "An unexpected error occurred while processing this proposal.",
         )
+
+
+class RelationshipTypeRuleCardinalityRenderingTests(ProposalViewTestCase):
+    """
+    Regression coverage for the cardinality-renders-as-float bug: a pending
+    CREATE RelationshipTypeRule change with clean-integer cardinality values
+    must render "1..1" on the proposal review page, not "1.0..1.0" (see
+    ai.services.change_plan.FieldValue.number_value).
+    """
+
+    def test_pending_create_renders_integer_cardinality(self):
+        relationship_type = RelationshipType.objects.create(
+            model=self.model,
+            name="Connects To",
+            key="connects_to",
+        )
+
+        subject_type = ObjectType.objects.create(
+            model=self.model,
+            name="Widget",
+            key="widget",
+        )
+
+        object_type = ObjectType.objects.create(
+            model=self.model,
+            name="Gadget",
+            key="gadget",
+        )
+
+        proposal = Proposal.objects.create(
+            model=self.model,
+            created_by=self.user,
+            source=Proposal.Source.USER,
+            status=Proposal.Status.WORKING,
+        )
+
+        ProposalChange.objects.create(
+            proposal=proposal,
+            source=ProposalChange.Source.USER,
+            operation=ProposalChange.Operation.CREATE,
+            target_type="RelationshipTypeRule",
+            target_id=uuid.uuid4(),
+            parent_type="RelationshipType",
+            parent_id=relationship_type.id,
+            after={
+                "subject_type_id": str(subject_type.id),
+                "object_type_id": str(object_type.id),
+                "subject_minimum": 1,
+                "subject_maximum": 1,
+                "object_minimum": 0,
+                "object_maximum": 10,
+            },
+        )
+
+        activate_proposal(self.client, self.model.id, proposal)
+
+        response = self.client.get(self.detail_url(proposal))
+
+        self.assertContains(response, "1..1")
+        self.assertContains(response, "0..10")
+        self.assertNotContains(response, "1.0..1.0")
+        self.assertNotContains(response, "0.0..10.0")

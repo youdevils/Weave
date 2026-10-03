@@ -363,53 +363,8 @@
 
     <main id="main-content" class="flex-grow-1">
 
-        <!-- Django messages -->
-
-        {% if messages %}
-            <div class="container-fluid px-4 pt-3">
-
-                {% for message in messages %}
-
-                    <div
-                        class="alert
-                        {% if 'success' in message.tags %}
-                            alert-success
-                        {% elif 'error' in message.tags %}
-                            alert-danger
-                        {% elif 'warning' in message.tags %}
-                            alert-warning
-                        {% else %}
-                            alert-info
-                        {% endif %}
-                        alert-dismissible fade show"
-                        role="alert"
-                    >
-
-                        {% if 'success' in message.tags %}
-                            <i class="bi bi-check-circle me-2" aria-hidden="true"></i>
-                        {% elif 'error' in message.tags %}
-                            <i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>
-                        {% elif 'warning' in message.tags %}
-                            <i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>
-                        {% else %}
-                            <i class="bi bi-info-circle me-2" aria-hidden="true"></i>
-                        {% endif %}
-
-                        {{ message }}
-
-                        <button
-                            type="button"
-                            class="btn-close"
-                            data-bs-dismiss="alert"
-                            aria-label="Close"
-                        ></button>
-
-                    </div>
-
-                {% endfor %}
-
-            </div>
-        {% endif %}
+        <!-- Django messages render once, in the header bell dropdown above --
+             see the "Messages" nav item. No duplicate body-level stripe. -->
 
 
         <!-- =====================================================

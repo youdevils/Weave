@@ -33,7 +33,7 @@
     --onyxjar-text: var(--onyxjar-ink);
     --onyxjar-text-muted: #64748b;
     --onyxjar-text-secondary: #475569;
-    --onyxjar-accent-soft: #eef2ff;
+    --onyxjar-accent-soft: #ECEAF2;
     --onyxjar-border: #e2e8f0;
     --onyxjar-focus: #1F1B43;
 
@@ -43,7 +43,7 @@
 
     --onyxjar-font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-    /* Bootstrap root-level overrides (reboot/link/focus rules, and the .bg-*/.text-*/.border-*
+    /* Bootstrap root-level overrides (reboot/link/focus rules, and the .bg-, .text- and .border-
        utility classes, read these live) */
     --bs-primary: var(--onyxjar-indigo);
     --bs-primary-rgb: 31, 27, 67;
@@ -83,7 +83,7 @@ body {
    Bootstrap 5.3's compiled CDN CSS bakes component colours as
    literal hex inside component-scoped custom properties, so the
    root --bs-* overrides above do not by themselves retheme
-   .btn-*/.alert-*/.form-control etc. — redeclare explicitly,
+   .btn-, .alert-, .form-control etc. — redeclare explicitly,
    the same way, for all six theme colours.
    ========================================================== */
 
@@ -351,9 +351,72 @@ body {
     color: #6c6c6c;
 }
 
+.onyxjar-status-pill-progress {
+    border-color: color-mix(in srgb, var(--onyxjar-warning) 40%, white);
+    background: color-mix(in srgb, var(--onyxjar-warning) 12%, white);
+    color: var(--onyxjar-warning-strong);
+}
+
+.onyxjar-status-pill-review {
+    border-color: color-mix(in srgb, var(--onyxjar-info) 40%, white);
+    background: color-mix(in srgb, var(--onyxjar-info) 12%, white);
+    color: var(--onyxjar-info-strong);
+}
+
+.onyxjar-status-pill-failed {
+    border-color: color-mix(in srgb, var(--onyxjar-danger) 40%, white);
+    background: color-mix(in srgb, var(--onyxjar-danger) 12%, white);
+    color: var(--onyxjar-danger-strong);
+}
+
+.onyxjar-status-pill-completed {
+    border-color: color-mix(in srgb, var(--onyxjar-success) 40%, white);
+    background: color-mix(in srgb, var(--onyxjar-success) 12%, white);
+    color: var(--onyxjar-success-strong);
+}
+
 .onyxjar-avatar {
     width: 32px;
     height: 32px;
+}
+
+/* ==========================================================
+   Assisted Activity sidebar (workspace dashboard)
+   ========================================================== */
+
+.onyxjar-activity-panel {
+    background: var(--onyxjar-surface);
+    border: 1px solid var(--onyxjar-border);
+    border-radius: var(--onyxjar-radius-sm);
+    padding: 1rem;
+}
+
+.onyxjar-activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.onyxjar-activity-card {
+    position: relative;
+    border: 1px solid var(--onyxjar-border);
+    border-radius: var(--onyxjar-radius-sm);
+    padding: 0.75rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.onyxjar-activity-card:hover {
+    border-color: var(--onyxjar-indigo);
+    box-shadow: var(--onyxjar-shadow-soft);
+}
+
+.onyxjar-activity-empty .onyxjar-empty-icon {
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    color: var(--onyxjar-text-muted);
 }
 
 
@@ -396,4 +459,20 @@ body {
     border: 1px solid var(--onyxjar-border);
     border-radius: var(--onyxjar-radius-sm);
     box-shadow: var(--onyxjar-shadow-soft);
+}
+
+/* The notifications dropdown is now the single surface for Django messages
+   (the duplicate body-level stripe was removed) -- give it comfortable
+   width/padding so it doesn't feel cramped as the sole notification UI. */
+#messagesDropdown + .dropdown-menu {
+    min-width: 320px;
+    max-width: 380px;
+}
+
+#messagesDropdown + .dropdown-menu .dropdown-item-text {
+    padding: 0.6rem 1rem;
+}
+
+#messagesDropdown + .dropdown-menu .dropdown-item-text + .dropdown-item-text {
+    border-top: 1px solid var(--onyxjar-border);
 }

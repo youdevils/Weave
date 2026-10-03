@@ -22,11 +22,11 @@
   --model-surface: #ffffff;
   --model-surface-subtle: #f8fafc;
   --model-surface-hover: #f1f5f9;
-  --model-focus: #4f46e5;
+  --model-focus: #1F1B43;
   --model-danger: #b02a37;
-  --model-accent: #4f46e5;
-  --model-accent-strong: #4338ca;
-  --model-accent-soft: #eef2ff;
+  --model-accent: #1F1B43;
+  --model-accent-strong: #191636;
+  --model-accent-soft: #ECEAF2;
 }
 
 /* =========================================================

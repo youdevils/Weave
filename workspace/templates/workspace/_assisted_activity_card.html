@@ -1,0 +1,47 @@
+{% load assisted_status %}
+
+<div class="onyxjar-activity-card">
+
+    {% if task.status == "ready_for_review" and task.proposal_id %}
+        {% url 'model:proposal' task.model_id task.proposal_id as activity_url %}
+    {% elif task.model_id %}
+        {% url 'model:overview' task.model_id as activity_url %}
+    {% endif %}
+
+    <div class="d-flex align-items-center justify-content-between mb-1">
+
+        <span class="fw-semibold small">
+            {{ task.get_operation_display }}
+        </span>
+
+        {% assisted_status_badge task %}
+
+    </div>
+
+    <div class="small text-muted mb-1">
+        {% if task.model %}
+            {{ task.model.name }}
+        {% else %}
+            (deleted model)
+        {% endif %}
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between">
+
+        <span class="small text-muted">
+            {{ task.completed_at|default:task.created_at|timesince }} ago
+        </span>
+
+        {% if task.proposal_id %}
+            <span class="small text-muted">
+                {{ task.change_count }} change{{ task.change_count|pluralize }}
+            </span>
+        {% endif %}
+
+    </div>
+
+    {% if activity_url %}
+        <a href="{{ activity_url }}" class="stretched-link" aria-label="View {{ task.get_operation_display }} activity"></a>
+    {% endif %}
+
+</div>

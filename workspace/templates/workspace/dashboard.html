@@ -1,10 +1,15 @@
 {% extends "authenticated_base.html" %}
+{% load assisted_status %}
 
 {% block title %}Workspace — OnyxJar{% endblock %}
 
 {% block content %}
 
 <div class="container-fluid px-4 py-4">
+
+    <div class="row g-4">
+
+    <div class="col-lg-8 col-xl-9">
 
     <!-- =========================================================
          Page Header
@@ -100,12 +105,15 @@
 
                                         <div class="d-flex align-items-center justify-content-between">
 
-                                            <span class="small text-muted">
+                                            <span class="small text-muted d-flex align-items-center gap-2">
                                                 <i
                                                     class="bi bi-diagram-3 me-1"
                                                     aria-hidden="true"
                                                 ></i>
                                                 Semantic model
+                                                {% if model.active_assisted_task %}
+                                                    {% assisted_status_badge model.active_assisted_task %}
+                                                {% endif %}
                                             </span>
 
                                             <span class="small text-muted">
@@ -277,6 +285,51 @@
         {% endif %}
 
     </section>
+
+    </div>
+
+
+    <!-- =========================================================
+         Assisted Activity
+         ========================================================= -->
+
+    <aside class="col-lg-4 col-xl-3">
+
+        <div class="onyxjar-activity-panel">
+
+            <h2 class="h6 mb-3">Assisted activity</h2>
+
+            {% if assisted_activity %}
+
+                <div class="onyxjar-activity-list">
+
+                    {% for task in assisted_activity %}
+                        {% include "workspace/_assisted_activity_card.html" with task=task %}
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="onyxjar-activity-empty text-center py-4">
+
+                    <div class="mb-2 text-muted onyxjar-empty-icon">
+                        <i class="bi bi-stars" aria-hidden="true"></i>
+                    </div>
+
+                    <p class="text-muted small mb-0">
+                        No assisted activity yet
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </aside>
+
+    </div>
 
 </div>
 
