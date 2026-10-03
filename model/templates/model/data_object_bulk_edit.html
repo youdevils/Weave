@@ -1,0 +1,348 @@
+{% extends "model/model_base.html" %}
+
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'model/css/index.css' %}">
+{% endblock %}
+
+{% block model_content %}
+
+<div class="model-bulk-editor">
+
+    <!-- ============================================================
+         PAGE HEADER
+         ============================================================ -->
+
+    <div class="model-page-header">
+
+        <div>
+
+            <a
+                href="{% url 'model:data_objects' model.id object_type.id %}"
+                class="model-back-link"
+            >
+                <i class="bi bi-arrow-left"></i>
+                {{ object_type.name }}
+            </a>
+
+            <div class="model-page-eyebrow">Bulk edit</div>
+
+            <h1 class="model-page-title">
+                {% if objects %}
+                    Edit {{ objects|length }} {{ object_type.name|lower }}{{ objects|length|pluralize }}
+                {% else %}
+                    Bulk edit
+                {% endif %}
+            </h1>
+
+            <p class="model-page-description">
+                Fields left as &ldquo;No change&rdquo; are not touched. Choose
+                &ldquo;Set&rdquo; to apply a value to every selected record.
+            </p>
+
+        </div>
+
+        <div class="model-page-header-actions">
+            <a
+                href="{% url 'model:data_objects' model.id object_type.id %}"
+                class="btn btn-outline-secondary"
+            >
+                Cancel
+            </a>
+        </div>
+
+    </div>
+
+
+    {% if selection_error %}
+
+        <!-- ============================================================
+             SELECTION REJECTED — nothing else is rendered.
+             ============================================================ -->
+
+        <div class="model-bulk-error" role="alert">
+            {{ selection_error }}
+        </div>
+
+    {% else %}
+
+        {% if stale_preview %}
+            <div class="model-bulk-banner model-bulk-banner-warning" role="alert">
+                This proposal changed since you last previewed &mdash; please
+                preview again before applying.
+            </div>
+        {% endif %}
+
+        {% if result and not result.ok %}
+
+            <div
+                class="model-bulk-results model-bulk-results-error"
+                role="alert"
+                aria-live="polite"
+                data-bulk-results
+            >
+                <p>
+                    Could not apply changes to {{ result.failures|length }}
+                    record{{ result.failures|length|pluralize }}. No changes
+                    were applied.
+                </p>
+                <ul>
+                    {% for failure in result.failures %}
+                        <li>
+                            <strong>{{ failure.object_name|default:"Untitled" }}</strong>:
+                            {% for field, message in failure.field_errors.items %}
+                                {{ message }}
+                            {% endfor %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        {% endif %}
+
+
+        <form
+            method="post"
+            class="model-bulk-form"
+            data-bulk-edit-form
+            data-previewed="{% if previewed %}true{% else %}false{% endif %}"
+        >
+
+            {% csrf_token %}
+
+            {% for object_id in object_ids %}
+                <input type="hidden" name="object_id" value="{{ object_id }}">
+            {% endfor %}
+
+            {% if preview_fingerprint %}
+                <input
+                    type="hidden"
+                    name="preview_fingerprint"
+                    value="{{ preview_fingerprint }}"
+                    data-preview-fingerprint
+                >
+            {% endif %}
+
+
+            <!-- ========================================================
+                 STATUS
+                 ======================================================== -->
+
+            <section class="model-editor-section">
+
+                <div class="model-editor-section-header">
+                    <div>
+                        <h2>Status</h2>
+                    </div>
+                </div>
+
+                <div class="model-bulk-field-list">
+
+                    <div class="model-bulk-field-row" data-bulk-field-row>
+
+                        <label for="id_mode_is_active" class="model-bulk-field-label">
+                            Active
+                        </label>
+
+                        <select
+                            id="id_mode_is_active"
+                            name="mode__is_active"
+                            class="form-select form-select-sm"
+                            data-bulk-mode-select
+                            aria-describedby="id_is_active_help"
+                        >
+                            <option value="nochange" {% if is_active_edit.mode == "nochange" %}selected{% endif %}>No change</option>
+                            <option value="activate" {% if is_active_edit.mode == "activate" %}selected{% endif %}>Activate</option>
+                            <option value="retire" {% if is_active_edit.mode == "retire" %}selected{% endif %}>Retire</option>
+                        </select>
+
+                        <span id="id_is_active_help" class="model-bulk-field-value"></span>
+
+                        {% if is_active_effective.is_mixed %}
+                            <span class="model-mixed-values-badge" data-mixed="true">Mixed values</span>
+                        {% endif %}
+
+                        {% if is_active_error %}
+                            <div class="model-editor-field-error" data-proposal-error>{{ is_active_error }}</div>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ========================================================
+                 ATTRIBUTES
+                 ======================================================== -->
+
+            <section class="model-editor-section">
+
+                <div class="model-editor-section-header">
+                    <div>
+                        <h2>Attributes</h2>
+                        <p>
+                            &ldquo;Set&rdquo; applies a value to every selected
+                            record; &ldquo;Clear&rdquo; blanks a field that
+                            allows it.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="model-bulk-field-list">
+
+                    {% for attribute in attribute_definitions %}
+
+                        <div
+                            class="model-bulk-field-row"
+                            data-bulk-field-row
+                            data-field="{{ attribute.field_name }}"
+                        >
+
+                            <label for="id_mode_{{ forloop.counter }}" class="model-bulk-field-label">
+                                {{ attribute.name }}
+                            </label>
+
+                            <select
+                                id="id_mode_{{ forloop.counter }}"
+                                name="mode__{{ attribute.field_name }}"
+                                class="form-select form-select-sm"
+                                data-bulk-mode-select
+                                data-value-target="id_value_{{ forloop.counter }}"
+                                aria-describedby="id_value_{{ forloop.counter }}"
+                            >
+                                <option value="nochange" {% if attribute.edit.mode == "nochange" %}selected{% endif %}>No change</option>
+                                <option value="set" {% if attribute.edit.mode == "set" %}selected{% endif %}>Set</option>
+                                {% if attribute.nullable %}
+                                    <option value="clear" {% if attribute.edit.mode == "clear" %}selected{% endif %}>Clear</option>
+                                {% endif %}
+                            </select>
+
+                            <span class="model-bulk-field-value" data-bulk-value-wrapper>
+
+                                {% if attribute.data_type == "boolean" %}
+
+                                    <select
+                                        id="id_value_{{ forloop.counter }}"
+                                        name="value__{{ attribute.field_name }}"
+                                        class="form-select form-select-sm"
+                                        {% if attribute.edit.mode != "set" %}disabled{% endif %}
+                                    >
+                                        <option value="true" {% if attribute.edit.raw_value == "true" %}selected{% endif %}>Yes</option>
+                                        <option value="false" {% if attribute.edit.raw_value == "false" %}selected{% endif %}>No</option>
+                                    </select>
+
+                                {% elif attribute.data_type == "choice" %}
+
+                                    <select
+                                        id="id_value_{{ forloop.counter }}"
+                                        name="value__{{ attribute.field_name }}"
+                                        class="form-select form-select-sm"
+                                        {% if attribute.edit.mode != "set" %}disabled{% endif %}
+                                    >
+                                        <option value=""></option>
+                                        {% for choice in attribute.choices %}
+                                            <option value="{{ choice }}" {% if attribute.edit.raw_value == choice %}selected{% endif %}>{{ choice }}</option>
+                                        {% endfor %}
+                                    </select>
+
+                                {% elif attribute.data_type == "number" %}
+
+                                    <input
+                                        type="number" step="any"
+                                        id="id_value_{{ forloop.counter }}"
+                                        name="value__{{ attribute.field_name }}"
+                                        class="form-control form-control-sm"
+                                        value="{{ attribute.edit.raw_value }}"
+                                        {% if attribute.edit.mode != "set" %}disabled{% endif %}
+                                    >
+
+                                {% elif attribute.data_type == "date" %}
+
+                                    <input
+                                        type="date"
+                                        id="id_value_{{ forloop.counter }}"
+                                        name="value__{{ attribute.field_name }}"
+                                        class="form-control form-control-sm"
+                                        value="{{ attribute.edit.raw_value }}"
+                                        {% if attribute.edit.mode != "set" %}disabled{% endif %}
+                                    >
+
+                                {% elif attribute.data_type == "datetime" %}
+
+                                    <input
+                                        type="datetime-local"
+                                        id="id_value_{{ forloop.counter }}"
+                                        name="value__{{ attribute.field_name }}"
+                                        class="form-control form-control-sm"
+                                        value="{{ attribute.edit.raw_value }}"
+                                        {% if attribute.edit.mode != "set" %}disabled{% endif %}
+                                    >
+
+                                {% else %}
+
+                                    <input
+                                        type="text"
+                                        id="id_value_{{ forloop.counter }}"
+                                        name="value__{{ attribute.field_name }}"
+                                        class="form-control form-control-sm"
+                                        value="{{ attribute.edit.raw_value }}"
+                                        {% if attribute.edit.mode != "set" %}disabled{% endif %}
+                                    >
+
+                                {% endif %}
+
+                            </span>
+
+                            {% if attribute.effective_field.is_mixed %}
+                                <span class="model-mixed-values-badge" data-mixed="true">Mixed values</span>
+                            {% endif %}
+
+                            {% if attribute.error %}
+                                <div class="model-editor-field-error" data-proposal-error>{{ attribute.error }}</div>
+                            {% endif %}
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+
+            <div class="model-editor-footer model-bulk-footer">
+
+                <button type="submit" name="action" value="preview" class="btn btn-outline-secondary">
+                    Preview changes
+                </button>
+
+                <button
+                    type="submit"
+                    name="action"
+                    value="apply"
+                    class="btn btn-primary"
+                    data-bulk-apply
+                    {% if not previewed %}disabled{% endif %}
+                    aria-disabled="{% if not previewed %}true{% else %}false{% endif %}"
+                >
+                    Apply changes
+                </button>
+
+            </div>
+
+        </form>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script type="module" src="{% static 'model/js/bulk-edit/field-widgets-boot.js' %}"></script>
+{% endblock %}

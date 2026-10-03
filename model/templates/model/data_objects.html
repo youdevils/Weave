@@ -52,6 +52,14 @@
     </div>
 
 
+    {% if bulk_edited %}
+        <div class="model-inline-banner model-inline-banner-success" role="status">
+            <i class="bi bi-check-circle"></i>
+            {{ bulk_edited }} record{{ bulk_edited|pluralize }} updated.
+        </div>
+    {% endif %}
+
+
     <section class="model-data-toolbar">
 
         <form method="get">
@@ -168,59 +176,93 @@
     {% endif %}
 
 
-    <section class="model-data-section">
+    <form
+        method="post"
+        action="{% url 'model:data_object_bulk_edit' model.id object_type.id %}"
+        data-bulk-select-form
+    >
+        {% csrf_token %}
 
-        <div class="model-data-table-wrapper">
+        <div
+            class="model-bulk-actionbar"
+            data-bulk-actionbar
+            hidden
+        >
+            <span data-bulk-count aria-live="polite">0 selected</span>
+            <button type="submit" class="btn btn-sm btn-primary">Bulk edit</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-bulk-clear>Clear selection</button>
+        </div>
 
-            <table class="model-data-table">
+        <section class="model-data-section">
 
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Status</th>
-                        {% for column in columns %}
-                            <th>{{ column.name }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
+            <div class="model-data-table-wrapper">
 
-                <tbody>
+                <table class="model-data-table">
 
-                    {% for row in rows %}
-
-                        <tr
-                            class="model-data-row"
-                            data-href="{% url 'model:data_object_edit' model.id object_type.id row.id %}"
-                        >
-                            <td>
-                                <a href="{% url 'model:data_object_edit' model.id object_type.id row.id %}">
-                                    {{ row.name }}
-                                </a>
-                                {% if row.is_proposed %}
-                                    <span class="model-proposed-indicator">
-                                        <i class="bi bi-pencil-square"></i>
-                                        Proposed change
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td class="is-status">
-                                <span class="model-status-pill {% if row.is_active %}model-status-active{% else %}model-status-retired{% endif %}">
-                                    {% if row.is_active %}
-                                        <i class="bi bi-check-circle"></i> Active
-                                    {% else %}
-                                        <i class="bi bi-archive"></i> Retired
-                                    {% endif %}
-                                </span>
-                            </td>
-                            {% for value in row.column_values %}
-                                <td>{{ value|default:"—" }}</td>
+                    <thead>
+                        <tr>
+                            <th class="model-data-select-col">
+                                <input
+                                    type="checkbox"
+                                    data-bulk-select-all
+                                    aria-label="Select all visible rows"
+                                >
+                            </th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            {% for column in columns %}
+                                <th>{{ column.name }}</th>
                             {% endfor %}
                         </tr>
+                    </thead>
 
-                    {% empty %}
+                    <tbody>
+
+                        {% for row in rows %}
+
+                            <tr
+                                class="model-data-row"
+                                data-href="{% url 'model:data_object_edit' model.id object_type.id row.id %}"
+                                data-bulk-row
+                            >
+                                <td class="model-data-select-col">
+                                    <input
+                                        type="checkbox"
+                                        name="object_id"
+                                        value="{{ row.id }}"
+                                        data-bulk-select
+                                        aria-label="Select {{ row.name|default:'Untitled' }}"
+                                    >
+                                </td>
+                                <td>
+                                    <a href="{% url 'model:data_object_edit' model.id object_type.id row.id %}">
+                                        {{ row.name }}
+                                    </a>
+                                    {% if row.is_proposed %}
+                                        <span class="model-proposed-indicator">
+                                            <i class="bi bi-pencil-square"></i>
+                                            Proposed change
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="is-status">
+                                    <span class="model-status-pill {% if row.is_active %}model-status-active{% else %}model-status-retired{% endif %}">
+                                        {% if row.is_active %}
+                                            <i class="bi bi-check-circle"></i> Active
+                                        {% else %}
+                                            <i class="bi bi-archive"></i> Retired
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                {% for value in row.column_values %}
+                                    <td>{{ value|default:"—" }}</td>
+                                {% endfor %}
+                            </tr>
+
+                        {% empty %}
 
                         <tr>
-                            <td colspan="{{ columns|length|add:2 }}">
+                            <td colspan="{{ columns|length|add:3 }}">
 
                                 <div class="model-empty-state">
 
@@ -331,6 +373,13 @@
 
     </section>
 
+    </form>
+
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script type="module" src="{% static 'model/js/bulk-edit/selection-boot.js' %}"></script>
 {% endblock %}

@@ -131,6 +131,82 @@ def _object_type_proposed_fields(
     return result
 
 
+class ObjectTypeLifecycleError(Exception):
+    """Raised by apply_object_type_lifecycle when the target can't be found."""
+
+
+def apply_object_type_lifecycle(
+    *,
+    object_type,
+    proposal_only,
+    proposal,
+    model,
+    object_type_id,
+    desired_active,
+):
+    """
+    Apply `desired_active` to one ObjectType, whether canonical or still
+    only a proposal CREATE. Shared by the single-item status toggle
+    (the "set_object_type_status" branch below) and the ObjectType
+    index's bulk activate/deactivate action
+    (model/views/object_types.py), so the two paths are provably doing
+    the same thing -- this function IS the single-item toggle's logic,
+    extracted rather than duplicated.
+
+    Returns (value, proposed): `value` is the serialized resulting
+    is_active state, `proposed` is whether this leaves a pending change.
+    """
+
+    if proposal_only:
+
+        create_change = _object_type_create_change(
+            object_type_id,
+            proposal,
+        )
+
+        if create_change is None:
+            raise ObjectTypeLifecycleError("Proposed object type not found.")
+
+        after = dict(create_change.after or {})
+        after["is_active"] = desired_active
+        create_change.after = after
+        create_change.save(update_fields=["after", "updated_at"])
+        ProposalService.reset_validation(proposal)
+
+        return _serialize_value(desired_active), True
+
+    canonical_active = object_type.is_active
+
+    if desired_active == canonical_active:
+
+        if proposal:
+            ProposalService.discard_change(
+                proposal=proposal,
+                target_type="ObjectType",
+                target_id=object_type.id,
+                field="is_active",
+            )
+
+        return (
+            _serialize_value(canonical_active),
+            _object_type_proposed_fields(object_type.id, proposal)["is_active"],
+        )
+
+    ProposalService.record_change(
+        proposal=proposal,
+        operation=ProposalChange.Operation.UPDATE,
+        target_type="ObjectType",
+        target_id=object_type.id,
+        parent_type="Model",
+        parent_id=model.id,
+        field="is_active",
+        before={"field": "is_active", "value": canonical_active},
+        after={"field": "is_active", "value": desired_active},
+    )
+
+    return _serialize_value(desired_active), True
+
+
 # =====================================================================
 # Attribute helpers
 # =====================================================================
@@ -1147,103 +1223,29 @@ def object_type_editor(
             if error_response is not None:
                 return error_response
 
-        if proposal_only:
-
-            create_change = _object_type_create_change(
-                object_type.id,
-                proposal,
+        try:
+            value, proposed = apply_object_type_lifecycle(
+                object_type=object_type,
+                proposal_only=proposal_only,
+                proposal=proposal,
+                model=model,
+                object_type_id=object_type.id,
+                desired_active=desired_active,
             )
-
-            if create_change is None:
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "Proposed object type not found.",
-                    },
-                    status=404,
-                )
-
-            after = dict(
-                create_change.after or {},
-            )
-
-            after["is_active"] = desired_active
-
-            create_change.after = after
-
-            create_change.save(
-                update_fields=[
-                    "after",
-                    "updated_at",
-                ]
-            )
-
-            ProposalService.reset_validation(
-                proposal,
-            )
-
+        except ObjectTypeLifecycleError as exc:
             return JsonResponse(
                 {
-                    "success": True,
-                    "value": _serialize_value(
-                        desired_active,
-                    ),
-                    "proposed": True,
-                }
+                    "success": False,
+                    "error": str(exc),
+                },
+                status=404,
             )
-
-        canonical_active = object_type.is_active
-
-        if desired_active == canonical_active:
-
-            if proposal:
-                ProposalService.discard_change(
-                    proposal=proposal,
-                    target_type="ObjectType",
-                    target_id=object_type.id,
-                    field="is_active",
-                )
-
-            return JsonResponse(
-                {
-                    "success": True,
-                    "value": _serialize_value(
-                        canonical_active,
-                    ),
-                    "proposed": (
-                        _object_type_proposed_fields(
-                            object_type.id,
-                            proposal,
-                        )["is_active"]
-                    ),
-                }
-            )
-
-        ProposalService.record_change(
-            proposal=proposal,
-            operation=ProposalChange.Operation.UPDATE,
-            target_type="ObjectType",
-            target_id=object_type.id,
-            parent_type="Model",
-            parent_id=model.id,
-            field="is_active",
-            before={
-                "field": "is_active",
-                "value": canonical_active,
-            },
-            after={
-                "field": "is_active",
-                "value": desired_active,
-            },
-        )
 
         return JsonResponse(
             {
                 "success": True,
-                "value": _serialize_value(
-                    desired_active,
-                ),
-                "proposed": True,
+                "value": value,
+                "proposed": proposed,
             }
         )
 

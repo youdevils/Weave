@@ -44,6 +44,15 @@
 
         {% include "model/_index_controls.html" with noun="object types" placeholder="Search object types..." %}
 
+        <form data-bulk-select-form>
+
+            <div class="model-bulk-actionbar" data-bulk-actionbar hidden>
+                <span data-bulk-count aria-live="polite">0 selected</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bulk-type-status="true">Activate</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bulk-type-status="false">Deactivate</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bulk-clear>Clear selection</button>
+            </div>
+
         <div class="model-index-grid">
 
             {% for object_type in object_types %}
@@ -51,12 +60,22 @@
                 <article
                     class="model-index-card{% if object_type.is_proposed %} model-index-card-proposed{% endif %}"
                     data-index-item
+                    data-bulk-row
                     data-active="{{ object_type.canonical_is_active|yesno:'true,false' }}"
                     data-search="{{ object_type.name|lower }} {{ object_type.key|lower }}"
                     {% if not object_type.canonical_is_active %}hidden{% endif %}
                 >
 
                     <div class="model-index-card-top">
+
+                        <input
+                            type="checkbox"
+                            name="object_type_id"
+                            value="{{ object_type.id }}"
+                            data-bulk-select
+                            aria-label="Select {{ object_type.name|default:'Untitled' }}"
+                            class="model-index-card-select"
+                        >
 
                         <h2 class="model-index-card-title">
                             <a
@@ -110,6 +129,8 @@
 
         </div>
 
+        </form>
+
         {% include "model/_index_noresults.html" %}
 
     {% else %}
@@ -146,4 +167,6 @@
 {% block extra_js %}
 {{ block.super }}
 <script type="module" src="{% static 'model/js/model-index.js' %}"></script>
+<script type="module" src="{% static 'model/js/bulk-edit/selection-boot.js' %}"></script>
+<script type="module" src="{% static 'model/js/bulk-edit/type-status-boot.js' %}"></script>
 {% endblock %}

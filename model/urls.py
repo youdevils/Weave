@@ -17,6 +17,7 @@ from .views.relationship_types import relationship_types
 
 from .views.relationship_type_editor import relationship_type_editor
 from .views.data_objects import data_object_types, data_objects
+from .views.data_object_bulk_edit import data_object_bulk_edit
 from .views.data_object_editor import data_object_editor
 from .views.data_relationships import data_relationship_types, data_relationships
 from .views.data_relationship_editor import data_relationship_editor
@@ -169,6 +170,11 @@ urlpatterns = [
         "<uuid:model_id>/data/objects/<uuid:object_type_id>/<uuid:object_id>/",
         data_object_editor,
         name="data_object_edit",
+    ),
+    path(
+        "<uuid:model_id>/data/objects/<uuid:object_type_id>/bulk-edit/",
+        data_object_bulk_edit,
+        name="data_object_bulk_edit",
     ),
     # ================================================================
     # Data — Relationships

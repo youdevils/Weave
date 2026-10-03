@@ -261,6 +261,20 @@
   overflow-wrap: anywhere;
 }
 
+/* -- Bulk select (ObjectType index) -- */
+
+.model-index-card-select {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+}
+
+.model-index-card[data-selected="true"] {
+  border-color: var(--model-accent);
+  background: var(--model-accent-soft);
+}
+
 /* -- No results -- */
 
 .model-index-noresults[hidden] {

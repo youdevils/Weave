@@ -241,6 +241,8 @@ def data_objects(
     for row in pending_rows:
         row.column_values = [row.attributes.get(column.key) for column in columns]
 
+    bulk_edited = request.GET.get("bulk_edited")
+
     context.update(
         {
             "object_type": object_type,
@@ -254,6 +256,7 @@ def data_objects(
             "has_records": has_records,
             "has_inactive_matches": has_inactive_matches,
             "total_count": paginator.count,
+            "bulk_edited": bulk_edited,
         }
     )
 
