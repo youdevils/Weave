@@ -6,10 +6,6 @@ from model.services.appearance import AppearanceService, OBJECT_TYPE, RELATIONSH
 from model.services.proposal import submission
 from model.services.proposal.proposal import ProposalService
 
-from model.model_templates.business_process import (
-    BUSINESS_PROCESS_TEMPLATE,
-)
-
 from model.model_templates.delivery_project import (
     DELIVERY_PROJECT_TEMPLATE,
 )
@@ -17,13 +13,59 @@ from model.model_templates.delivery_project import (
 from model.model_templates.new_zealand_farm_operations import (
     NEW_ZEALAND_FARM_OPERATIONS_TEMPLATE,
 )
+from model.model_templates.business_operations_template import (
+    BUSINESS_OPERATIONS_TEMPLATE,
+)
+
+from model.model_templates.process_context_template import (
+    PROCESS_CONTEXT_TEMPLATE,
+)
+
+from model.model_templates.application_management_template import (
+    APPLICATION_MANAGEMENT_TEMPLATE,
+)
+
+from model.model_templates.project_programme_delivery_template import (
+    PROJECT_PROGRAMME_DELIVERY_TEMPLATE,
+)
+
+from model.model_templates.organisation_capability_template import (
+    ORGANISATION_CAPABILITY_TEMPLATE,
+)
+
+from model.model_templates.service_customer_journey_template import (
+    SERVICE_JOURNEY_TEMPLATE,
+)
+
+from model.model_templates.research_evidence_template import (
+    RESEARCH_EVIDENCE_TEMPLATE,
+)
+
+from model.model_templates.governance_risk_template import (
+    GOVERNANCE_RISK_TEMPLATE,
+)
+
+from model.model_templates.product_domain_model_template import (
+    PRODUCT_DOMAIN_MODEL_TEMPLATE,
+)
+
+from model.model_templates.competition_tournament_template import (
+    COMPETITION_TOURNAMENT_TEMPLATE,
+)
 
 from .builder import TemplateDefinitionError, build_template_changes
 
 TEMPLATES = {
-    BUSINESS_PROCESS_TEMPLATE["key"]: BUSINESS_PROCESS_TEMPLATE,
-    DELIVERY_PROJECT_TEMPLATE["key"]: DELIVERY_PROJECT_TEMPLATE,
-    NEW_ZEALAND_FARM_OPERATIONS_TEMPLATE["key"]: NEW_ZEALAND_FARM_OPERATIONS_TEMPLATE,
+    BUSINESS_OPERATIONS_TEMPLATE["key"]: BUSINESS_OPERATIONS_TEMPLATE,
+    PROCESS_CONTEXT_TEMPLATE["key"]: PROCESS_CONTEXT_TEMPLATE,
+    APPLICATION_MANAGEMENT_TEMPLATE["key"]: APPLICATION_MANAGEMENT_TEMPLATE,
+    PROJECT_PROGRAMME_DELIVERY_TEMPLATE["key"]: PROJECT_PROGRAMME_DELIVERY_TEMPLATE,
+    ORGANISATION_CAPABILITY_TEMPLATE["key"]: ORGANISATION_CAPABILITY_TEMPLATE,
+    SERVICE_JOURNEY_TEMPLATE["key"]: SERVICE_JOURNEY_TEMPLATE,
+    RESEARCH_EVIDENCE_TEMPLATE["key"]: RESEARCH_EVIDENCE_TEMPLATE,
+    GOVERNANCE_RISK_TEMPLATE["key"]: GOVERNANCE_RISK_TEMPLATE,
+    PRODUCT_DOMAIN_MODEL_TEMPLATE["key"]: PRODUCT_DOMAIN_MODEL_TEMPLATE,
+    COMPETITION_TOURNAMENT_TEMPLATE["key"]: COMPETITION_TOURNAMENT_TEMPLATE,
 }
 
 
