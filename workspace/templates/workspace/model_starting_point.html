@@ -190,16 +190,19 @@
 
                     <div class="create-model-form-body">
 
-                        <div class="starting-point-grid">
+
+                        <!-- =====================================
+                             Creation modes: start empty or assisted
+                             ===================================== -->
+
+                        <div class="starting-point-modes">
 
 
-                            <!-- =====================================
-                                 Start from scratch
-                                 ===================================== -->
+                            <!-- Start from scratch -->
 
                             <a
                                 href="{% url 'workspace:index' %}"
-                                class="starting-point-card"
+                                class="starting-point-card starting-point-card--mode"
                             >
 
                                 <div class="starting-point-card-icon">
@@ -211,20 +214,20 @@
 
                                 <div class="starting-point-card-body">
 
-                                    <h3 class="starting-point-card-title">
-                                        Start from scratch
-                                    </h3>
-
                                     <div class="starting-point-card-pills">
 
-                                        <span class="onyxjar-status-pill starting-point-pill">
+                                        <span class="starting-point-pill starting-point-pill--empty">
                                             EMPTY
                                         </span>
 
                                     </div>
 
+                                    <h3 class="starting-point-card-title">
+                                        Start from scratch
+                                    </h3>
+
                                     <p class="starting-point-card-description">
-                                        Define your own model objects, relationships and data youself.
+                                        Define your own model objects, relationships and data yourself.
                                     </p>
 
                                 </div>
@@ -245,15 +248,13 @@
                             </a>
 
 
-                            <!-- =====================================
-                                 Assisted creation
-                                 ===================================== -->
+                            <!-- Assisted creation -->
 
                             {% if can_use_assisted %}
 
                                 <a
                                     href="{% url 'workspace:model_assisted_create_setup' model_id=model.id %}"
-                                    class="starting-point-card"
+                                    class="starting-point-card starting-point-card--mode"
                                 >
 
                                     <div class="starting-point-card-icon">
@@ -265,17 +266,17 @@
 
                                     <div class="starting-point-card-body">
 
-                                        <h3 class="starting-point-card-title">
-                                            Assisted creation
-                                        </h3>
-
                                         <div class="starting-point-card-pills">
 
-                                            <span class="onyxjar-status-pill starting-point-pill">
+                                            <span class="starting-point-pill starting-point-pill--assisted">
                                                 ASSISTED
                                             </span>
 
                                         </div>
+
+                                        <h3 class="starting-point-card-title">
+                                            Assisted creation
+                                        </h3>
 
                                         <p class="starting-point-card-description">
                                             Describe what you want to model and attach any
@@ -302,7 +303,7 @@
 
                             {% else %}
 
-                                <div class="starting-point-card unavailable">
+                                <div class="starting-point-card starting-point-card--mode unavailable">
 
                                     <div class="starting-point-card-icon">
                                         <i
@@ -313,17 +314,21 @@
 
                                     <div class="starting-point-card-body">
 
-                                        <h3 class="starting-point-card-title">
-                                            Assisted creation
-                                        </h3>
-
                                         <div class="starting-point-card-pills">
 
-                                            <span class="onyxjar-status-pill onyxjar-status-soon starting-point-pill">
+                                            <span class="starting-point-pill starting-point-pill--assisted">
+                                                ASSISTED
+                                            </span>
+
+                                            <span class="starting-point-tag-muted">
                                                 Enhanced tier
                                             </span>
 
                                         </div>
+
+                                        <h3 class="starting-point-card-title">
+                                            Assisted creation
+                                        </h3>
 
                                         <p class="starting-point-card-description">
                                             Assisted Create is available on the Enhanced tier.
@@ -335,114 +340,131 @@
 
                             {% endif %}
 
+                        </div>
 
-                            <!-- =====================================
-                                 Templates (available starting points)
-                                 ===================================== -->
 
-                            {% for point in starting_points %}
+                        <!-- =====================================
+                             Templates (available starting points)
+                             ===================================== -->
 
-                                {% if point.available %}
+                        <div class="starting-point-section">
 
-                                    <a
-                                        href="{% url 'workspace:model_template_review' model_id=model.id template_key=point.key %}"
-                                        class="starting-point-card"
-                                    >
+                            <div class="starting-point-section-heading">
 
-                                        <div class="starting-point-card-icon">
-                                            <i
-                                                class="bi {{ point.icon }}"
-                                                aria-hidden="true"
-                                            ></i>
-                                        </div>
+                                <h3>
+                                    Templates
+                                </h3>
 
-                                        <div class="starting-point-card-body">
+                                <p>
+                                    Reusable blank starting points. Each one sets up a ready-made
+                                    set of object types, relationships and attributes for a
+                                    common domain that you can adapt once your model is created.
+                                </p>
 
-                                            <h3 class="starting-point-card-title">
-                                                {{ point.name }}
-                                            </h3>
+                            </div>
 
-                                            <div class="starting-point-card-pills">
+                            <div class="starting-point-grid">
 
-                                                <span class="onyxjar-status-pill starting-point-pill">
-                                                    MODEL
-                                                </span>
+                                {% for point in starting_points %}
 
-                                                {% if point.has_data %}
+                                    {% if point.available %}
 
-                                                    <span class="onyxjar-status-pill starting-point-pill">
-                                                        DATA
+                                        <a
+                                            href="{% url 'workspace:model_template_review' model_id=model.id template_key=point.key %}"
+                                            class="starting-point-card starting-point-card--template"
+                                        >
+
+                                            <div class="starting-point-card-icon">
+                                                <i
+                                                    class="bi {{ point.icon }}"
+                                                    aria-hidden="true"
+                                                ></i>
+                                            </div>
+
+                                            <div class="starting-point-card-body">
+
+                                                <div class="starting-point-card-pills">
+
+                                                    <span class="starting-point-pill starting-point-pill--template">
+                                                        TEMPLATE
                                                     </span>
 
-                                                {% endif %}
+                                                </div>
+
+                                                <h3 class="starting-point-card-title">
+                                                    {{ point.name }}
+                                                </h3>
+
+                                                <p class="starting-point-card-description">
+                                                    {{ point.description }}
+                                                </p>
 
                                             </div>
 
-                                            <p class="starting-point-card-description">
-                                                {{ point.description }}
-                                            </p>
+                                            <div class="starting-point-card-footer">
 
-                                        </div>
-
-                                        <div class="starting-point-card-footer">
-
-                                            <span>
-                                                Choose template
-                                            </span>
-
-                                            <i
-                                                class="bi bi-arrow-right"
-                                                aria-hidden="true"
-                                            ></i>
-
-                                        </div>
-
-                                    </a>
-
-                                {% else %}
-
-                                    <div class="starting-point-card unavailable">
-
-                                        <div class="starting-point-card-icon">
-                                            <i
-                                                class="bi {{ point.icon }}"
-                                                aria-hidden="true"
-                                            ></i>
-                                        </div>
-
-                                        <div class="starting-point-card-body">
-
-                                            <h3 class="starting-point-card-title">
-                                                {{ point.name }}
-                                            </h3>
-
-                                            <div class="starting-point-card-pills">
-
-                                                <span class="onyxjar-status-pill onyxjar-status-soon starting-point-pill">
-                                                    Coming soon
+                                                <span>
+                                                    Choose template
                                                 </span>
 
+                                                <i
+                                                    class="bi bi-arrow-right"
+                                                    aria-hidden="true"
+                                                ></i>
+
                                             </div>
 
-                                            <p class="starting-point-card-description">
-                                                {{ point.description }}
-                                            </p>
+                                        </a>
+
+                                    {% else %}
+
+                                        <div class="starting-point-card starting-point-card--template unavailable">
+
+                                            <div class="starting-point-card-icon">
+                                                <i
+                                                    class="bi {{ point.icon }}"
+                                                    aria-hidden="true"
+                                                ></i>
+                                            </div>
+
+                                            <div class="starting-point-card-body">
+
+                                                <div class="starting-point-card-pills">
+
+                                                    <span class="starting-point-pill starting-point-pill--template">
+                                                        TEMPLATE
+                                                    </span>
+
+                                                    <span class="starting-point-tag-muted">
+                                                        Coming soon
+                                                    </span>
+
+                                                </div>
+
+                                                <h3 class="starting-point-card-title">
+                                                    {{ point.name }}
+                                                </h3>
+
+                                                <p class="starting-point-card-description">
+                                                    {{ point.description }}
+                                                </p>
+
+                                            </div>
 
                                         </div>
 
-                                    </div>
+                                    {% endif %}
 
-                                {% endif %}
+                                {% endfor %}
 
-                            {% endfor %}
-
+                            </div>
 
                         </div>
 
 
                         <!-- Actions -->
 
-                        <div class="create-model-actions">
+                        <div class="create-model-actions starting-point-actions">
 
                             <a
                                 href="{% url 'workspace:index' %}"

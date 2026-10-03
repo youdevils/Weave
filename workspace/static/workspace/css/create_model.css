@@ -307,9 +307,40 @@
    Starting point
    ========================================================= */
 
+/* Creation modes -- Start from scratch / Assisted creation. These are
+   the two non-catalogue ways to begin, so they get a roomier, two-up
+   row above the denser template library rather than competing for
+   space inside the same grid. */
+
+.starting-point-modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.starting-point-section-heading {
+  margin-bottom: 1rem;
+}
+
+.starting-point-section-heading h3 {
+  margin-bottom: 0.35rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--onyxjar-ink);
+}
+
+.starting-point-section-heading p {
+  margin: 0;
+  max-width: 640px;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
 .starting-point-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -317,7 +348,6 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 280px;
   padding: 1.4rem;
   border: 1px solid var(--onyxjar-border);
   border-radius: 0.6rem;
@@ -336,6 +366,20 @@
   transform: translateY(-2px);
 }
 
+/* Creation-mode cards (Empty / Assisted) get a little more breathing
+   room -- they represent a whole approach, not one of ten choices. */
+.starting-point-card--mode {
+  min-height: 260px;
+  padding: 1.6rem;
+}
+
+/* Template cards stay compact so ten of them read as a scannable
+   library rather than ten tall tiles. */
+.starting-point-card--template {
+  min-height: 210px;
+  padding: 1.2rem;
+}
+
 .starting-point-card-icon {
   display: flex;
   align-items: center;
@@ -347,6 +391,13 @@
   background: var(--onyxjar-mist);
   color: var(--onyxjar-indigo);
   font-size: 1.35rem;
+}
+
+.starting-point-card--template .starting-point-card-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0.9rem;
+  font-size: 1.1rem;
 }
 
 .starting-point-card-body {
@@ -376,16 +427,50 @@
   margin-bottom: 0.75rem;
 }
 
-/* Sizing only -- colour/background come from .onyxjar-status-pill (neutral
-   metadata look) or .onyxjar-status-soon (the existing "coming soon" look),
-   whichever the element also carries, so both stay visually consistent
-   with the rest of the design system. */
+/* The three creation-mode identifiers (EMPTY / ASSISTED / TEMPLATE). One
+   shared shape/size, following the same tinted-on-white formula as the
+   .onyxjar-status-pill-* family elsewhere in the app, with only the hue
+   varying per mode -- restrained differences, same component family. */
 .starting-point-pill {
+  display: inline-flex;
+  align-items: center;
   padding: 0.2rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  line-height: 1;
+}
+
+.starting-point-pill--empty {
+  border-color: color-mix(in srgb, var(--onyxjar-indigo) 25%, white);
+  background: color-mix(in srgb, var(--onyxjar-indigo) 8%, white);
+  color: var(--onyxjar-indigo);
+}
+
+.starting-point-pill--assisted {
+  border-color: color-mix(in srgb, var(--onyxjar-sky) 35%, white);
+  background: color-mix(in srgb, var(--onyxjar-sky) 12%, white);
+  color: color-mix(in srgb, var(--onyxjar-sky) 70%, black);
+}
+
+.starting-point-pill--template {
+  border-color: color-mix(in srgb, var(--onyxjar-teal) 35%, white);
+  background: color-mix(in srgb, var(--onyxjar-teal) 12%, white);
+  color: var(--onyxjar-teal);
+}
+
+/* A plain-text availability note (e.g. "Enhanced tier", "Coming soon")
+   is kept visually separate from the identity pill above -- it isn't
+   one of the three creation modes, so it never borrows pill styling. */
+.starting-point-tag-muted {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--onyxjar-text-muted);
 }
 
 .starting-point-card-description {
@@ -445,6 +530,18 @@
   margin-top: 0.1rem;
 }
 
+/* Cancel sits as a clear footer row under the templates section rather
+   than floating detached beneath the grid. There's no paired "primary"
+   button on this page (each card is its own action), so the shared
+   .create-model-actions row gets a divider here only -- a page-scoped
+   addition that leaves that class untouched for the other wizard steps
+   that already pair it with a submit button. */
+.starting-point-actions {
+  margin-top: 0.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--onyxjar-border);
+}
+
 /* Responsive */
 
 @media (max-width: 991.98px) {
@@ -454,12 +551,20 @@
 }
 
 @media (max-width: 767.98px) {
+  .starting-point-modes {
+    grid-template-columns: 1fr;
+  }
+
   .starting-point-grid {
     grid-template-columns: 1fr;
   }
 
-  .starting-point-card {
-    min-height: 240px;
+  .starting-point-card--mode {
+    min-height: 220px;
+  }
+
+  .starting-point-card--template {
+    min-height: 190px;
   }
 }
 

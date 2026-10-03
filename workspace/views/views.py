@@ -129,16 +129,39 @@ def model_starting_point(request, model_id):
 
     # Presentational only (icon glyph per card) -- not template metadata.
     template_icons = {
-        "business_process": "bi-diagram-3",
-        "delivery_project": "bi-shop",
-        "new_zealand_farm_operations": "bi-tree",
+        "business_operations": "bi-diagram-3",
+        "process_context": "bi-arrow-repeat",
+        "application_management": "bi-window-stack",
+        "project_programme_delivery": "bi-kanban",
+        "organisation_and_capability": "bi-building",
+        "service_customer_journey": "bi-signpost-split",
+        "research_and_evidence": "bi-search",
+        "governance_and_risk": "bi-shield-check",
+        "product_domain_model": "bi-boxes",
+        "competition_tournament": "bi-trophy",
+    }
+
+    # Presentational only (shorter card copy) -- the canonical template
+    # "description" is the longer, fuller text used elsewhere; these are
+    # tightened summaries so the template grid stays compact and scannable.
+    template_card_descriptions = {
+        "business_operations": "Model how an organisation operates across capabilities, processes, people, systems, risks and outcomes.",
+        "process_context": "Model a process in its real operating context — triggers, actors, systems, policies and the outcomes it serves.",
+        "application_management": "Model your application estate and how it connects to capabilities, processes, data, vendors and risk.",
+        "project_programme_delivery": "Model delivery work — programmes, projects, deliverables, risks and the outcomes they're meant to achieve.",
+        "organisation_and_capability": "Model organisational structure and capabilities, and how ownership connects to services, processes and risk.",
+        "service_customer_journey": "Model a service from the customer's perspective — needs, journey stages, touchpoints and outcomes.",
+        "research_and_evidence": "Model research from question to evidence to findings, with assumptions and confidence made explicit.",
+        "governance_and_risk": "Model governance, policies and controls alongside the risks, issues and decisions they manage.",
+        "product_domain_model": "Model a product or problem domain — its core concepts, rules, events and surrounding actors and systems.",
+        "competition_tournament": "Model a competition or tournament — entries, fixtures, officials, rules, results and rankings.",
     }
 
     starting_points = [
         {
             "key": key,
             "name": template["name"],
-            "description": template["description"],
+            "description": template_card_descriptions.get(key, template["description"]),
             "icon": template_icons.get(key, "bi-diagram-3"),
             "has_data": template_has_data(template),
             "available": True,

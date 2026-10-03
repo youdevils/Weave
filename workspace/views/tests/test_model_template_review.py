@@ -129,15 +129,14 @@ class ModelStartingPointTests(Base):
     def setUp(self):
         self.client.force_login(self.user)
 
-    def test_starting_point_cards_show_model_and_data_pills(self):
+    def test_starting_point_cards_show_template_pill(self):
         model = self.make_model()
 
         response = self.client.get(
             reverse("workspace:model_starting_point", kwargs={"model_id": model.id})
         )
 
-        self.assertContains(response, "MODEL")
-        self.assertContains(response, "DATA")
+        self.assertContains(response, "TEMPLATE")
 
     def test_has_data_is_derived_from_template_content_not_hard_coded(self):
         with_data = {"objects": [{"key": "o", "type": "t", "name": "O"}]}
@@ -177,7 +176,7 @@ class StartFromScratchTests(Base):
         )
 
         content = response.content.decode()
-        card_start = content.index('class="starting-point-card"')
+        card_start = content.index('class="starting-point-card starting-point-card--mode"')
         card_end = content.index("</a>", card_start)
         scratch_card = content[content.rindex("<a", 0, card_start):card_end]
 
