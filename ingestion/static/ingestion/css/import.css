@@ -385,6 +385,63 @@
     font-size: 0.8rem;
 }
 
+/* -- Import template list -------------------------------------------------- */
+
+.import-template-list {
+    display: flex;
+    flex-direction: column;
+    margin: 1rem 0;
+}
+
+.import-template-row {
+    padding: 0.65rem 0;
+    border-top: 1px solid var(--model-border-light);
+}
+
+.import-template-row-top,
+.import-template-row-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.import-template-row-top {
+    margin-bottom: 0.2rem;
+}
+
+.import-template-row-name {
+    color: var(--model-text);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.import-template-row-kind {
+    color: var(--model-text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.import-template-row-fields {
+    max-width: 44rem;
+}
+
+.import-template-row-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+}
+
+.import-template-all {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+}
+
 @media (max-width: 720px) {
     .import-upload-row {
         flex-direction: column;

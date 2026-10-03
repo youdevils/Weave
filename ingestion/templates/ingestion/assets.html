@@ -240,6 +240,86 @@
 
 
     <!-- ============================================================
+         IMPORT TEMPLATE
+         ============================================================ -->
+
+    <section class="import-section" aria-labelledby="import-template-heading">
+
+        <div class="model-overview-section-heading">
+
+            <h2 id="import-template-heading">Download import templates</h2>
+
+            <p class="model-overview-section-description">
+                Download a file shaped for one type in this model, fill it in, then use Import
+                data above.
+            </p>
+
+        </div>
+
+        {% if template_object_types or template_relationship_types %}
+
+        <div class="import-template-list">
+
+            {% for type in template_object_types %}
+            <div class="import-template-row">
+                <div class="import-template-row-top">
+                    <span class="import-template-row-name">{{ type.name }}</span>
+                    <span class="import-template-row-kind">Object type</span>
+                </div>
+                <div class="import-template-row-bottom">
+                    <span class="import-muted import-template-row-fields">
+                        Required: Name{% for attribute in type.attributes %}{% if attribute.required %}, {{ attribute.name }}{% endif %}{% endfor %}.
+                        {% for attribute in type.attributes %}{% if attribute.choices %}{{ attribute.name }} choices: {{ attribute.choices|join:", " }}. {% endif %}{% endfor %}
+                    </span>
+                    <span class="import-template-row-actions">
+                        <a class="btn btn-outline-primary btn-sm"
+                           href="{% url 'ingestion:download_template' model.id 'object' type.type_id 'csv' %}">CSV</a>
+                        <a class="btn btn-outline-primary btn-sm"
+                           href="{% url 'ingestion:download_template' model.id 'object' type.type_id 'xlsx' %}">Excel</a>
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% for type in template_relationship_types %}
+            <div class="import-template-row">
+                <div class="import-template-row-top">
+                    <span class="import-template-row-name">{{ type.name }}</span>
+                    <span class="import-template-row-kind">Relationship type</span>
+                </div>
+                <div class="import-template-row-bottom">
+                    <span class="import-muted import-template-row-fields">
+                        Required: Source object, Target object{% for attribute in type.attributes %}{% if attribute.required %}, {{ attribute.name }}{% endif %}{% endfor %}.
+                        {% for attribute in type.attributes %}{% if attribute.choices %}{{ attribute.name }} choices: {{ attribute.choices|join:", " }}. {% endif %}{% endfor %}
+                    </span>
+                    <span class="import-template-row-actions">
+                        <a class="btn btn-outline-primary btn-sm"
+                           href="{% url 'ingestion:download_template' model.id 'relationship' type.type_id 'csv' %}">CSV</a>
+                        <a class="btn btn-outline-primary btn-sm"
+                           href="{% url 'ingestion:download_template' model.id 'relationship' type.type_id 'xlsx' %}">Excel</a>
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <div class="import-template-all">
+            <span class="import-muted">Every type at once:</span>
+            <a class="btn btn-outline-secondary btn-sm"
+               href="{% url 'ingestion:download_templates_zip' model.id 'csv' %}">Download all (CSV, zip)</a>
+            <a class="btn btn-outline-secondary btn-sm"
+               href="{% url 'ingestion:download_templates_zip' model.id 'xlsx' %}">Download all (Excel, zip)</a>
+        </div>
+
+        {% else %}
+        <p class="import-muted">This model has no active object or relationship types yet.</p>
+        {% endif %}
+
+    </section>
+
+
+    <!-- ============================================================
          EXPORT DATA
          ============================================================ -->
 

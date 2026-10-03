@@ -41,6 +41,7 @@ class AttributeSpec:
     key: str
     name: str
     data_type: str
+    required: bool = False
     choices: tuple = ()
 
     @property
@@ -52,6 +53,7 @@ class AttributeSpec:
             "key": self.key,
             "name": self.name,
             "data_type": self.data_type,
+            "required": self.required,
             "choices": list(self.choices),
             "identity_eligible": self.identity_eligible,
         }
@@ -88,6 +90,7 @@ def _attribute_specs(queryset):
             key=definition.key,
             name=definition.name,
             data_type=definition.data_type,
+            required=definition.required,
             choices=tuple((definition.config or {}).get("choices", ())),
         )
         for definition in queryset.filter(is_active=True).order_by("sort_order", "name")
@@ -152,6 +155,17 @@ def object_type_specs(model) -> dict:
     }
 
 
+def relationship_type_specs(model) -> dict:
+    """Every active relationship type of the model, by id."""
+
+    return {
+        relationship_type.id: _relationship_spec(relationship_type)
+        for relationship_type in RelationshipType.objects.filter(
+            model=model, is_active=True
+        ).order_by("sort_order", "name")
+    }
+
+
 def describe_targets(model) -> dict:
     """The page's picklists: importable types with their fields."""
 
@@ -163,9 +177,6 @@ def describe_targets(model) -> dict:
             for spec in sorted(object_specs.values(), key=lambda spec: spec.name.lower())
         ],
         "relationship_types": [
-            _relationship_spec(relationship_type).to_dict()
-            for relationship_type in RelationshipType.objects.filter(
-                model=model, is_active=True
-            ).order_by("sort_order", "name")
+            spec.to_dict() for spec in relationship_type_specs(model).values()
         ],
     }

@@ -1,12 +1,14 @@
 """
 The Import/Export page (reached from Import/Export in the model sidebar) and its endpoints.
 
-    GET  assets/                the page (Data Import + Model Export)
-    GET  assets/export/         download the complete canonical model as JSON
-    POST assets/import/upload/  store a file as a staged source; returns its columns
-    POST assets/import/preview/ what a mapping would change (read-only)
-    POST assets/import/create/  create the one Working Proposal (or report no changes)
-    POST assets/import/discard/ drop a staged upload
+    GET  assets/                     the page (Import, Templates, Export)
+    GET  assets/export/              download the complete canonical model as JSON
+    GET  assets/templates/.../.../.. download a CSV/XLSX template for one type
+    GET  assets/templates/zip/...    download a zip of CSV/XLSX templates for every type
+    POST assets/import/upload/       store a file as a staged source; returns its columns
+    POST assets/import/preview/      what a mapping would change (read-only)
+    POST assets/import/create/       create the one Working Proposal (or report no changes)
+    POST assets/import/discard/      drop a staged upload
 
 Views only translate HTTP: access control, JSON in and out. Parsing, mapping,
 identity, planning and the Proposal live in ingestion.services; nothing here
@@ -16,7 +18,7 @@ touches canonical data.
 import json
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
@@ -24,12 +26,12 @@ from django.views.decorators.http import require_GET, require_POST
 
 from ingestion.access import get_importable_model
 from ingestion.models import ImportSource
-from ingestion.services import limits, source_file
+from ingestion.services import limits, source_file, templates
 from ingestion.services.coercion import cell_text
-from ingestion.services.errors import ImportBlocked, ImportError_
+from ingestion.services.errors import ImportBlocked, ImportError_, TargetError
 from ingestion.services.model_export import build_export, export_filename
 from ingestion.services.proposals import create_import_proposal, preview_import
-from ingestion.services.targets import describe_targets
+from ingestion.services.targets import describe_targets, resolve_target
 from ingestion.uploads import LimitedUploadHandler
 from model.services.proposal.proposal import ProposalLimitReached
 from model.views.active_proposal import set_active_proposal_id
@@ -76,9 +78,10 @@ def assets(request, model_id):
     model = get_importable_model(request, model_id)
 
     context = get_model_context(request, model.id)
+    target_lists = describe_targets(model)
 
     context["import_bootstrap"] = {
-        "targets": describe_targets(model),
+        "targets": target_lists,
         "limits": {
             "max_file_mb": limits.max_file_bytes() // (1024 * 1024),
             "max_rows": limits.max_rows(),
@@ -90,6 +93,8 @@ def assets(request, model_id):
             "discard": reverse("ingestion:import_discard", args=[model.id]),
         },
     }
+    context["template_object_types"] = target_lists["object_types"]
+    context["template_relationship_types"] = target_lists["relationship_types"]
 
     return render(request, "ingestion/assets.html", context)
 
@@ -103,6 +108,43 @@ def export_model(request, model_id):
 
     response = HttpResponse(payload, content_type="application/json")
     response["Content-Disposition"] = f'attachment; filename="{export_filename(model)}"'
+    return response
+
+
+@login_required
+@require_GET
+def download_template(request, model_id, kind, type_id, file_format):
+    model = get_importable_model(request, model_id)
+
+    if file_format not in templates.FILE_FORMATS:
+        raise Http404
+
+    try:
+        target = resolve_target(model, kind, type_id)
+    except TargetError:
+        raise Http404
+
+    data = templates.build_template(target, file_format)
+    filename = templates.template_filename(model, target, file_format)
+
+    response = HttpResponse(data, content_type=templates.CONTENT_TYPES[file_format])
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+@login_required
+@require_GET
+def download_templates_zip(request, model_id, file_format):
+    model = get_importable_model(request, model_id)
+
+    if file_format not in templates.FILE_FORMATS:
+        raise Http404
+
+    data = templates.build_templates_zip(model, file_format)
+    filename = templates.templates_zip_filename(model, file_format)
+
+    response = HttpResponse(data, content_type=templates.ZIP_CONTENT_TYPE)
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
 
