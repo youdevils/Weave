@@ -10,6 +10,7 @@ import hashlib
 from django.conf import settings
 
 from assisted.models import AssistedTaskEvidence
+from assisted.services.evidence_extraction import EvidenceExtractionError, extract_text
 
 
 class AssistedEvidenceInvalid(ValueError):
@@ -31,10 +32,15 @@ def create_evidence(task, files) -> None:
 
     for f in files:
         data = f.read()
+        try:
+            extracted = extract_text(data, filename=f.name)
+        except EvidenceExtractionError as error:
+            raise AssistedEvidenceInvalid(str(error)) from error
+
         AssistedTaskEvidence.objects.create(
             task=task,
             original_filename=f.name[:255],
-            content_type=(f.content_type or "")[:100],
+            content_type=extracted.mime_type[:100],
             size_bytes=len(data),
             sha256=hashlib.sha256(data).hexdigest(),
             content=data,

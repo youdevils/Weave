@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import logging
 
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -29,6 +30,7 @@ from ai.services.orchestrator import run_ai_operation
 
 from assisted.models import AssistedTask
 from assisted.services.cleanup import fail_task
+from assisted.services.evidence_extraction import bounded, extract_text
 from assisted.services.outcome_policy import get_outcome_policy
 
 logger = logging.getLogger(__name__)
@@ -52,16 +54,24 @@ def claim(assisted_task_id):
 
 def _assets_for(task):
     """
-    bytes -> best-effort UTF-8 text per evidence file, matching the
-    {"name", "content", "mime_type"} asset shape run_ai_operation already
-    accepts. No OCR/parsing layer exists anywhere in this codebase; this is a
-    known MVP limitation, not something to build out here.
+    Extracted text per evidence file, matching the {"name", "content",
+    "mime_type"} asset shape run_ai_operation already accepts. Upload-time
+    validation (assisted.services.evidence.create_evidence) already proved
+    every stored file extracts cleanly, so any failure here is unexpected
+    and is left to propagate into run_and_finish's own safety net below
+    rather than being handled twice.
     """
 
     assets = []
     for item in task.evidence.all():
-        text = bytes(item.content).decode("utf-8", errors="replace")
-        assets.append({"name": item.original_filename, "content": text, "mime_type": item.content_type})
+        extracted = extract_text(bytes(item.content), filename=item.original_filename)
+        assets.append(
+            {
+                "name": item.original_filename,
+                "content": bounded(extracted.text, max_chars=settings.ASSISTED_MAX_EVIDENCE_EXTRACTED_CHARS),
+                "mime_type": extracted.mime_type,
+            }
+        )
     return assets
 
 

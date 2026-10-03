@@ -8,12 +8,13 @@ from model.models.proposal import Proposal
 
 from ai.services.provider import ProviderError
 
-from assisted.models import AssistedTask
+from assisted.models import AssistedTask, AssistedTaskEvidence
 from assisted.services import execution
 from assisted.tests.support import (
     AssistedTestCase,
     RaisingProvider,
     ScriptedProvider,
+    build_minimal_pdf,
     clarification_result,
     create_object_plan,
     no_change_result,
@@ -35,6 +36,16 @@ class AssistedExecutionTestCase(AssistedTestCase):
         kwargs.setdefault("status", AssistedTask.Status.QUEUED)
         kwargs.setdefault("submitted_intent", "Track widgets.")
         return AssistedTask.objects.create(**kwargs)
+
+    def make_evidence(self, task, *, filename, content, content_type):
+        return AssistedTaskEvidence.objects.create(
+            task=task,
+            original_filename=filename,
+            content_type=content_type,
+            size_bytes=len(content),
+            sha256="0" * 64,
+            content=content,
+        )
 
 
 class ClaimTests(AssistedExecutionTestCase):
@@ -156,3 +167,30 @@ class RunAndFinishTests(AssistedExecutionTestCase):
 
         task.refresh_from_db()
         self.assertEqual(task.status, AssistedTask.Status.READY_FOR_REVIEW)
+
+    def test_plain_text_evidence_passes_through_unchanged(self):
+        task = self.make_task()
+        self.make_evidence(task, filename="notes.txt", content=b"hello evidence", content_type="text/plain")
+        provider = ScriptedProvider([create_object_plan(self.object_type.id)])
+
+        execution.run_and_finish(task.id, provider=provider)
+
+        assets = provider.user_payloads[0]["assets"]
+        self.assertEqual(assets, [{"name": "notes.txt", "content": "hello evidence", "mime_type": "text/plain"}])
+
+    def test_pdf_evidence_is_extracted_and_bounded_not_raw_decoded(self):
+        pdf_bytes = build_minimal_pdf("Quarterly numbers go here")
+        task = self.make_task()
+        self.make_evidence(task, filename="report.pdf", content=pdf_bytes, content_type="application/pdf")
+        provider = ScriptedProvider([create_object_plan(self.object_type.id)])
+
+        with override_settings(ASSISTED_MAX_EVIDENCE_EXTRACTED_CHARS=10):
+            execution.run_and_finish(task.id, provider=provider)
+
+        asset = provider.user_payloads[0]["assets"][0]
+        # No U+FFFD replacement characters -- real extracted text, not a raw
+        # binary-bytes decode -- and bounded to the (deliberately tiny, for
+        # this test) per-file character cap, with a truncation indicator.
+        self.assertNotIn("�", asset["content"])
+        self.assertIn("truncated", asset["content"])
+        self.assertLessEqual(len(asset["content"]) - len("\n\n[... evidence truncated at 10 characters]"), 10)

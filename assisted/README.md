@@ -51,6 +51,7 @@ setup form -> AssistedTask(QUEUED) -> Celery -> run_ai_operation()
 | `services/outcome_policy.py` | Per-operation AI-outcome -> AssistedTask mapping |
 | `services/cleanup.py` | Shared terminal-FAILED transition + operation-gated Model deletion |
 | `services/evidence.py` | Evidence file validation/storage |
+| `services/evidence_extraction.py` | Evidence text extraction (plain text/PDF/.docx), reused by both upload-time validation and worker-time AI ingestion |
 | `uploads.py` | Per-file upload size limiting (duplicated from `ingestion.uploads`) |
 | `signals.py` | Receivers for `model.signals.proposal_committed` / `proposal_abandoned` |
 | `tasks.py` | The one Celery task, `run_assisted_create` |
@@ -60,9 +61,9 @@ setup form -> AssistedTask(QUEUED) -> Celery -> run_ai_operation()
 - Stale-task reclaim is lazy only (checked inline before starting a new
   task, or by the `delete_model_view` guard) -- there is no Celery-beat
   sweep, matching the rest of this codebase's convention.
-- Evidence file content is decoded as best-effort UTF-8
-  (`errors="replace"`) before being handed to the AI as context -- there is
-  no OCR/parsing layer anywhere in this codebase.
+- Evidence is limited to plain text, PDF, and `.docx` -- anything else is
+  rejected at upload time (`services/evidence_extraction.py`). There is no
+  OCR layer, so a scanned (image-only) PDF extracts no text.
 - The guard against deleting a Model with an active AssistedTask lives in
   `workspace` (`delete_model_view`), not in `model.services.model_deletion`,
   since `delete_model`'s only callers are already in `workspace`.

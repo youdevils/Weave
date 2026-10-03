@@ -16,7 +16,7 @@ from assisted.services.lifecycle import (
     BootstrapModelGone,
     start_assisted_create,
 )
-from assisted.tests.support import AssistedTestCase
+from assisted.tests.support import AssistedTestCase, build_minimal_pdf
 
 
 def _backdate(task, *, minutes):
@@ -88,6 +88,36 @@ class StartAssistedCreateTests(AssistedTestCase):
         evidence = task.evidence.get()
         self.assertEqual(evidence.original_filename, "notes.txt")
         self.assertEqual(bytes(evidence.content), b"hello evidence")
+        self.assertEqual(evidence.content_type, "text/plain")
+
+    def test_a_pdf_is_accepted_and_stores_the_sniffed_mime_type(self):
+        files = [SimpleUploadedFile("report.pdf", build_minimal_pdf("Quarterly numbers"))]
+
+        task = start_assisted_create(
+            workspace=self.workspace,
+            model=self.model,
+            user=self.owner,
+            intent_text="Track widgets.",
+            files=files,
+        )
+
+        evidence = task.evidence.get()
+        self.assertEqual(evidence.content_type, "application/pdf")
+
+    def test_an_unsupported_file_type_rolls_back_the_whole_creation(self):
+        files = [SimpleUploadedFile("image.png", b"\x89PNG\r\n\x1a\n" + b"\x00" * 32)]
+
+        with self.assertRaises(AssistedEvidenceInvalid):
+            start_assisted_create(
+                workspace=self.workspace,
+                model=self.model,
+                user=self.owner,
+                intent_text="Track widgets.",
+                files=files,
+            )
+
+        self.assertEqual(AssistedTask.objects.filter(model=self.model).count(), 0)
+        self.assertEqual(AssistedTaskEvidence.objects.count(), 0)
 
     def test_a_second_attempt_against_the_same_model_is_rejected(self):
         start_assisted_create(

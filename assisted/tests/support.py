@@ -1,5 +1,7 @@
 """Shared fixtures for assisted app tests."""
 
+import io
+
 from django.test import TestCase
 
 from account.models import CustomUser
@@ -56,6 +58,66 @@ def create_object_plan(object_type_id, name="New widget", token="tmp:1"):
             ],
         ),
     )
+
+
+def build_minimal_pdf(text: str) -> bytes:
+    """
+    Assembles a minimal, structurally valid one-page PDF containing `text`,
+    computing real xref offsets from the bytes actually written instead of
+    hand-typing them (hand-typed offsets drift the moment the surrounding
+    content changes and are a classic source of flaky PDF fixtures).
+    `text` must not contain PDF string-literal special characters ( ) \\.
+    """
+
+    buf = io.BytesIO()
+    offsets = {}
+
+    def write(chunk: bytes):
+        buf.write(chunk)
+
+    def obj(n, body: bytes):
+        offsets[n] = buf.tell()
+        write(f"{n} 0 obj\n".encode())
+        write(body)
+        write(b"\nendobj\n")
+
+    write(b"%PDF-1.4\n")
+    obj(1, b"<< /Type /Catalog /Pages 2 0 R >>")
+    obj(2, b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>")
+    obj(
+        3,
+        b"<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> "
+        b"/MediaBox [0 0 300 300] /Contents 5 0 R >>",
+    )
+    obj(4, b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+
+    content_stream = f"BT /F1 18 Tf 20 150 Td ({text}) Tj ET".encode("latin-1")
+    obj(5, f"<< /Length {len(content_stream)} >>\nstream\n".encode() + content_stream + b"\nendstream")
+
+    xref_offset = buf.tell()
+    write(b"xref\n")
+    write(f"0 {len(offsets) + 1}\n".encode())
+    write(b"0000000000 65535 f \n")
+    for n in sorted(offsets):
+        write(f"{offsets[n]:010d} 00000 n \n".encode())
+
+    write(b"trailer\n")
+    write(f"<< /Size {len(offsets) + 1} /Root 1 0 R >>\n".encode())
+    write(b"startxref\n")
+    write(f"{xref_offset}\n".encode())
+    write(b"%%EOF")
+
+    return buf.getvalue()
+
+
+def build_minimal_docx(text: str) -> bytes:
+    from docx import Document
+
+    document = Document()
+    document.add_paragraph(text)
+    buf = io.BytesIO()
+    document.save(buf)
+    return buf.getvalue()
 
 
 class AssistedTestCase(TestCase):

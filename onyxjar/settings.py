@@ -300,14 +300,15 @@ ASSISTED_TASK_QUEUED_STUCK_THRESHOLD = timedelta(minutes=5)
 # (its worker died) and lazily reclaimed the same way.
 ASSISTED_TASK_RUNNING_STUCK_THRESHOLD = timedelta(minutes=15)
 
-# Evidence files a user may attach when starting Assisted Create. NOT sized
-# like IMPORT_MAX_FILE_BYTES (5 MB) -- evidence content is folded into the AI
-# context packet's fixed overhead, which must fit inside AI_CONTEXT_MAX_BYTES
-# (200_000) alongside the ontology and model data. Raise only together with
-# AI_CONTEXT_MAX_BYTES.
+# Evidence files a user may attach when starting Assisted Create. Extracted
+# text (assisted.services.evidence_extraction.extract_text) is capped per
+# file by ASSISTED_MAX_EVIDENCE_EXTRACTED_CHARS before being handed to the AI
+# as an asset -- AI_CONTEXT_MAX_BYTES bounds the rest of the context packet
+# and never touches evidence content.
 ASSISTED_MAX_EVIDENCE_FILES = 5
 ASSISTED_MAX_EVIDENCE_FILE_BYTES = 1_000_000  # 1 MB per file
 ASSISTED_MAX_EVIDENCE_TOTAL_BYTES = 5_000_000  # 5 MB total
+ASSISTED_MAX_EVIDENCE_EXTRACTED_CHARS = 20_000  # ~5k tokens per file, heuristic
 
 # ------------------------------------------------------------------------------------
 # DEFAULT AUTO FIELD
