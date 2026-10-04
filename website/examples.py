@@ -33,6 +33,19 @@ class Example:
 
 EXAMPLES = (
     Example(
+        title="Kauri Ridge Dairy Farm",
+        description=(
+            "Kauri Ridge Dairy Farm is an example OnyxJar model demonstrating how the"
+            "operations of a dairy farm can be represented as a connected, living model. "
+            "This example brings together the farm’s people, livestock, pasture, infrastructure,"
+            "processes, and operational activities to show how these elements relate to one another"
+            "and support the day-to-day running of the farm."
+        ),
+        category="Agriculture | Dark Theme",
+        images=("website/examples/kauri_farm.png",),
+        url="/published/farm_example.html",
+    ),
+    Example(
         title="Complex Delivery Project",
         description=(
             "A fictional example showing how OnyxJar can model a complex delivery project as a connected, "
@@ -41,7 +54,7 @@ EXAMPLES = (
             "how the work fits together, what it affects, how it is progressing, and how the existing environment "
             "will transition to the target state."
         ),
-        category="Complex | State Transition",
+        category="Complex | Business",
         images=("website/examples/complex_project.png",),
         url="/published/complex_project_example.html",
     ),
