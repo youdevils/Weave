@@ -152,6 +152,7 @@
                     <a href="{% url 'model:data_object_edit' model.id object_type.id row.id %}">
                         {{ row.name|default:"Untitled" }}
                     </a>
+                    <code class="model-key-value">{{ row.key }}</code>
 
                     <span class="model-proposed-indicator">
                         <i class="bi bi-pencil-square"></i>
@@ -238,6 +239,7 @@
                                     <a href="{% url 'model:data_object_edit' model.id object_type.id row.id %}">
                                         {{ row.name }}
                                     </a>
+                                    <code class="model-key-value">{{ row.key }}</code>
                                     {% if row.is_proposed %}
                                         <span class="model-proposed-indicator">
                                             <i class="bi bi-pencil-square"></i>

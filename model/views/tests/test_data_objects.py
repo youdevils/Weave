@@ -114,6 +114,29 @@ class DataObjectsIndexViewTests(TestCase):
         self.assertContains(response, "SAP S/4HANA")
         self.assertContains(response, "Finance Tech")
 
+    def test_index_shows_the_key_under_the_name(self):
+        obj = Object.objects.create(
+            model=self.model, object_type=self.object_type, name="SAP S/4HANA",
+        )
+
+        response = self.client.get(self._url())
+
+        self.assertEqual(obj.key, "sap_s4hana")
+        self.assertContains(response, "sap_s4hana")
+
+    def test_search_matches_key(self):
+        Object.objects.create(
+            model=self.model, object_type=self.object_type, name="SAP S/4HANA", key="erp_system",
+        )
+        Object.objects.create(
+            model=self.model, object_type=self.object_type, name="Salesforce",
+        )
+
+        response = self.client.get(self._url(), {"q": "erp_system"})
+
+        self.assertContains(response, "SAP S/4HANA")
+        self.assertNotContains(response, "Salesforce")
+
     def test_search_filters_by_name(self):
         Object.objects.create(
             model=self.model, object_type=self.object_type, name="SAP S/4HANA",

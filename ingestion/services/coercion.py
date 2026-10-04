@@ -77,6 +77,38 @@ def coerce_attribute_cell(data_type, value) -> Coerced:
     return Coerced(cell_text(value).strip())
 
 
+def format_cell(data_type, value):
+    """
+    The inverse of coerce_attribute_cell: a stored attribute value -> the
+    cell value a filled-in template would have held for it, so that
+    ``coerce_attribute_cell(data_type, format_cell(data_type, value)).value
+    == value`` for every value coerce_attribute_cell actually produces. Used
+    only to build the optional "with current data" template download -- the
+    blank starting-point template never carries data rows.
+
+    None (unset) becomes "" (an empty cell). TEXT/URL/CHOICE/DATE/DATETIME
+    are already stored as the exact string coerce_attribute_cell produced,
+    so they are written back unchanged, with no reformatting to drift from
+    it. NUMBER is written as the number itself (both csv and xlsx render it
+    the same way back to text). BOOLEAN is written as lowercase "true"/
+    "false" text, matching the template's own dropdown values.
+    """
+
+    if value is None:
+        return ""
+
+    if data_type == DataType.BOOLEAN:
+        return "true" if value else "false"
+
+    return value
+
+
+def format_is_active_cell(value) -> str:
+    """is_active is a plain boolean; blank means "take the default", never written here."""
+
+    return "true" if value else "false"
+
+
 def coerce_name_cell(value) -> str:
     """Name/description: text, with blank as the empty string."""
 

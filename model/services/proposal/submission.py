@@ -12,6 +12,7 @@ from model.models.proposal_submission_result import (
     ProposalSubmissionResult,
     ProposalValidationError,
 )
+from model.services import keys
 from model.services.appearance import AppearanceService
 from model.services.proposal.review import ProposalReviewService
 from model.services.validation.fields import (
@@ -43,8 +44,14 @@ _CREATE_UPDATE_ORDER = (
 )
 _DELETE_ORDER = tuple(reversed(_CREATE_UPDATE_ORDER))
 
-# Types whose (model, key) must be unique.
-_KEY_UNIQUE_TYPES = ("ObjectType", "RelationshipType")
+# Key-bearing types whose key is safe to silently regenerate on a canonical
+# collision: a proposal links an entity by its UUID target_id, never by
+# key, so swapping in a fresh key here can never orphan anything a sibling
+# change in the same proposal already refers to. AttributeDefinition is
+# deliberately excluded -- its key is embedded inside sibling Object/
+# Relationship `attributes` JSON payloads within the same proposal, so a
+# silent rename there could orphan that data; a collision instead blocks.
+_REGENERABLE_KEY_TYPES = ("ObjectType", "RelationshipType", "Object")
 
 # Types whose instance attribute values live in a nested `attributes`
 # JSON blob and are addressed by "attributes.<key>" field paths.
@@ -134,14 +141,31 @@ def _create_kwargs(change, model):
 # =========================================================================
 
 
-def _duplicate_key_issue(target_type, model, target_id, key):
+def _duplicate_key_issue(target_type, model, target_id, key, *, parent_type=None, parent_id=None):
     if key is None:
         return None
 
     model_cls = MODEL_MAP[target_type]
 
+    # AttributeDefinition has no `model` FK of its own -- its key is scoped
+    # to its owning ObjectType/RelationshipType instead (model.services.keys
+    # uses the same scoping).
+    if target_type == "AttributeDefinition":
+        if parent_type == "ObjectType":
+            scope = {"object_type_id": parent_id}
+        elif parent_type == "RelationshipType":
+            scope = {"relationship_type_id": parent_id}
+        else:
+            scope = {}
+    elif target_type == "Object":
+        # Scoped by model AND owning ObjectType -- the same key may
+        # recur under a different type or a different model.
+        scope = {"model": model, "object_type_id": parent_id}
+    else:
+        scope = {"model": model}
+
     collision = (
-        model_cls.objects.filter(model=model, key=key).exclude(id=target_id).exists()
+        model_cls.objects.filter(key=key, **scope).exclude(id=target_id).exists()
     )
 
     if not collision:
@@ -365,19 +389,50 @@ def _apply_attribute_update(instance, change, target_type, issues):
     instance.save(update_fields=["attributes", "updated_at"])
 
 
-def _apply_create_or_update(model, change, target_type, issues, proposal_deleted_ids):
+def _apply_create_or_update(model, proposal, change, target_type, issues, proposal_deleted_ids):
     model_cls = MODEL_MAP[target_type]
 
     if change.operation == ProposalChange.Operation.CREATE:
         kwargs = _create_kwargs(change, model)
 
-        if target_type in _KEY_UNIQUE_TYPES:
-            duplicate = _duplicate_key_issue(
-                target_type, model, change.target_id, kwargs.get("key")
-            )
-            if duplicate:
-                issues.append(duplicate)
+        if keys.supports(target_type):
+            key = kwargs.get("key")
+            scoped_by_parent = target_type in ("AttributeDefinition", "Object")
+            parent_type = change.parent_type if scoped_by_parent else None
+            parent_id = change.parent_id if scoped_by_parent else None
+
+            if not key:
+                kwargs["key"] = keys.generate_key(
+                    target_type, kwargs.get("name") or "",
+                    model=model, proposal=proposal,
+                    parent_type=parent_type, parent_id=parent_id,
+                )
+            elif not keys.is_valid_key(key):
+                issues.append(
+                    ValidationIssue(
+                        code="invalid_key",
+                        field="key",
+                        message=f"'{key}' is not a valid key.",
+                        target_type=target_type,
+                        target_id=change.target_id,
+                    )
+                )
                 return
+            else:
+                duplicate = _duplicate_key_issue(
+                    target_type, model, change.target_id, key,
+                    parent_type=parent_type, parent_id=parent_id,
+                )
+                if duplicate:
+                    if target_type in _REGENERABLE_KEY_TYPES:
+                        kwargs["key"] = keys.generate_key(
+                            target_type, kwargs.get("name") or "",
+                            model=model, proposal=proposal,
+                            parent_type=parent_type, parent_id=parent_id,
+                        )
+                    else:
+                        issues.append(duplicate)
+                        return
 
         if target_type == "RelationshipTypeRule":
             duplicate = _duplicate_rule_issue(
@@ -414,6 +469,18 @@ def _apply_create_or_update(model, change, target_type, issues, proposal_deleted
 
     after = change.after or {}
     field = after.get("field")
+
+    if field == "key" and keys.supports(target_type):
+        issues.append(
+            ValidationIssue(
+                code="key_immutable",
+                field="key",
+                message="Keys are assigned by OnyxJar and cannot be changed. Discard this change.",
+                target_type=target_type,
+                target_id=change.target_id,
+            )
+        )
+        return
 
     if (
         target_type in _ATTRIBUTE_HOST_TYPES
@@ -458,14 +525,6 @@ def _apply_create_or_update(model, change, target_type, issues, proposal_deleted
         return
 
     setattr(instance, field, after.get("value"))
-
-    if target_type in _KEY_UNIQUE_TYPES and field == "key":
-        duplicate = _duplicate_key_issue(
-            target_type, model, change.target_id, instance.key
-        )
-        if duplicate:
-            issues.append(duplicate)
-            return
 
     if target_type == "RelationshipTypeRule" and field in (
         "subject_type_id",
@@ -536,7 +595,7 @@ def _apply_changes(model, proposal):
                 ProposalChange.Operation.UPDATE,
             ):
                 _apply_create_or_update(
-                    model, change, target_type, issues, proposal_deleted_ids
+                    model, proposal, change, target_type, issues, proposal_deleted_ids
                 )
 
     for target_type in _DELETE_ORDER:

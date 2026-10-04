@@ -51,16 +51,14 @@ class TemplateColumnsTests(ImportTestCase):
         target = resolve_target(self.model, OBJECT, self.app_type.id)
         headers = [column.header for column in templates.template_columns(target)]
 
-        self.assertEqual(headers[:4], ["OnyxJar Object ID", "Name", "Description", "Active"])
+        self.assertEqual(headers[:4], ["OnyxJar Key", "Name", "Description", "Active"])
         self.assertEqual(set(headers[4:]), {"App ID", "Owner", "Cost", "Live", "Go live", "Tier"})
 
-    def test_relationship_columns_start_with_identity_then_endpoints(self):
+    def test_relationship_columns_start_with_endpoints(self):
         target = resolve_target(self.model, RELATIONSHIP, self.uses.id)
         headers = [column.header for column in templates.template_columns(target)]
 
-        self.assertEqual(
-            headers[:4], ["OnyxJar Relationship ID", "Source object", "Target object", "Active"]
-        )
+        self.assertEqual(headers[:3], ["Source object key", "Target object key", "Active"])
         self.assertIn("Since", headers)
 
     def test_name_is_always_required_and_identity_is_never_required(self):
@@ -68,14 +66,14 @@ class TemplateColumnsTests(ImportTestCase):
         columns = {column.header: column for column in templates.template_columns(target)}
 
         self.assertTrue(columns["Name"].required)
-        self.assertFalse(columns["OnyxJar Object ID"].required)
+        self.assertFalse(columns["OnyxJar Key"].required)
 
     def test_relationship_endpoints_are_required(self):
         target = resolve_target(self.model, RELATIONSHIP, self.uses.id)
         columns = {column.header: column for column in templates.template_columns(target)}
 
-        self.assertTrue(columns["Source object"].required)
-        self.assertTrue(columns["Target object"].required)
+        self.assertTrue(columns["Source object key"].required)
+        self.assertTrue(columns["Target object key"].required)
 
     def test_an_attributes_required_flag_comes_from_the_model(self):
         AttributeDefinition.objects.create(
@@ -108,6 +106,57 @@ class TemplateColumnsTests(ImportTestCase):
         self.assertNotIn("Cost", headers)
 
 
+class DataRowsTests(ImportTestCase):
+    """data_rows() -- the inverse of the import wizard, read in
+    template_columns() order, for the optional "with current data" download."""
+
+    def test_object_rows_carry_the_key_and_every_column_in_order(self):
+        app = self.make_app("Alpha", app_id="A1", owner="Finance", cost=1200, live=True)
+        target = resolve_target(self.model, OBJECT, self.app_type.id)
+
+        (row,) = templates.data_rows(self.model, target)
+
+        headers = [column.header for column in templates.template_columns(target)]
+        by_header = dict(zip(headers, row))
+
+        self.assertEqual(by_header["OnyxJar Key"], app.key)
+        self.assertEqual(by_header["Name"], "Alpha")
+        self.assertEqual(by_header["Description"], "")
+        self.assertEqual(by_header["Active"], "true")
+        self.assertEqual(by_header["App ID"], "A1")
+        self.assertEqual(by_header["Owner"], "Finance")
+        self.assertEqual(by_header["Cost"], 1200)
+        self.assertEqual(by_header["Live"], "true")
+
+    def test_an_unset_attribute_is_a_blank_cell(self):
+        self.make_app("Alpha", app_id="A1")
+        target = resolve_target(self.model, OBJECT, self.app_type.id)
+
+        (row,) = templates.data_rows(self.model, target)
+        by_header = dict(zip([c.header for c in templates.template_columns(target)], row))
+
+        self.assertEqual(by_header["Owner"], "")
+
+    def test_an_empty_type_has_no_rows(self):
+        target = resolve_target(self.model, OBJECT, self.app_type.id)
+
+        self.assertEqual(templates.data_rows(self.model, target), [])
+
+    def test_relationship_rows_carry_endpoint_keys(self):
+        one = self.make_app("Alpha", app_id="A")
+        two = self.make_app("Beta", app_id="B")
+        self.make_uses(one, two, since="2024-01-01")
+
+        target = resolve_target(self.model, RELATIONSHIP, self.uses.id)
+        (row,) = templates.data_rows(self.model, target)
+        by_header = dict(zip([c.header for c in templates.template_columns(target)], row))
+
+        self.assertEqual(by_header["Source object key"], one.key)
+        self.assertEqual(by_header["Target object key"], two.key)
+        self.assertEqual(by_header["Active"], "true")
+        self.assertEqual(by_header["Since"], "2024-01-01")
+
+
 class CsvTemplateBytesTests(ImportTestCase):
 
     def test_header_only_matches_template_columns_in_order(self):
@@ -118,6 +167,27 @@ class CsvTemplateBytesTests(ImportTestCase):
 
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0], [column.header for column in templates.template_columns(target)])
+
+    def test_build_template_without_data_has_no_rows(self):
+        self.make_app("Alpha")
+        target = resolve_target(self.model, OBJECT, self.app_type.id)
+
+        data = templates.build_template(target, "csv", model=self.model, with_data=False)
+        rows = list(csv.reader(io.StringIO(data.decode("utf-8-sig"))))
+
+        self.assertEqual(len(rows), 1)
+
+    def test_build_template_with_data_includes_existing_rows(self):
+        app = self.make_app("Alpha", app_id="A1")
+        target = resolve_target(self.model, OBJECT, self.app_type.id)
+
+        data = templates.build_template(target, "csv", model=self.model, with_data=True)
+        rows = list(csv.reader(io.StringIO(data.decode("utf-8-sig"))))
+
+        self.assertEqual(len(rows), 2)
+        by_header = dict(zip(rows[0], rows[1]))
+        self.assertEqual(by_header["OnyxJar Key"], app.key)
+        self.assertEqual(by_header["App ID"], "A1")
 
 
 class XlsxTemplateBytesTests(ImportTestCase):
@@ -164,6 +234,22 @@ class XlsxTemplateBytesTests(ImportTestCase):
 
         workbook = openpyxl.load_workbook(io.BytesIO(data))
         self.assertEqual(len(workbook.sheetnames), 1)
+
+    def test_with_data_writes_the_key_as_text_and_a_number_attribute_as_a_number(self):
+        app = self.make_app("Alpha", app_id="A1", cost=1200)
+        target = resolve_target(self.model, OBJECT, self.app_type.id)
+        columns = templates.template_columns(target)
+
+        data = templates.build_template(target, "xlsx", model=self.model, with_data=True)
+        sheet = openpyxl.load_workbook(io.BytesIO(data)).active
+
+        key_cell = sheet.cell(row=2, column=_column_index(columns, "OnyxJar Key"))
+        cost_cell = sheet.cell(row=2, column=_column_index(columns, "Cost"))
+
+        self.assertEqual(key_cell.value, app.key)
+        self.assertEqual(key_cell.data_type, "s")
+        self.assertEqual(cost_cell.value, 1200)
+        self.assertEqual(cost_cell.data_type, "n")
 
 
 class TemplatesZipTests(ImportTestCase):
@@ -229,6 +315,25 @@ class TemplateDownloadAccessTests(ImportTestCase):
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
         self.assertIn(".xlsx", response["Content-Disposition"])
+
+    def test_the_data_flag_includes_current_rows_and_names_the_file_accordingly(self):
+        app = self.make_app("Alpha", app_id="A1")
+        url = self.template_url("object", self.app_type.id, "csv") + "?data=1"
+
+        response = self._get(self.owner, url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("with-data", response["Content-Disposition"])
+        rows = list(csv.reader(io.StringIO(response.content.decode("utf-8-sig"))))
+        self.assertEqual(len(rows), 2)
+        self.assertIn(app.key, rows[1])
+
+    def test_without_the_data_flag_only_the_header_is_returned(self):
+        self.make_app("Alpha")
+        response = self._get(self.owner, self.template_url("object", self.app_type.id, "csv"))
+
+        rows = list(csv.reader(io.StringIO(response.content.decode("utf-8-sig"))))
+        self.assertEqual(len(rows), 1)
 
     def test_a_viewer_cannot(self):
         self.assertEqual(
@@ -304,7 +409,7 @@ class TemplateRoundTripTests(ImportTestCase):
                 columns.append({"column": index, "field": "field.description"})
             elif column.header == templates.FIELD_IS_ACTIVE_HEADER:
                 columns.append({"column": index, "field": "field.is_active"})
-            elif column.header in templates.IDENTITY_HEADERS.values():
+            elif column.header == templates.IDENTITY_KEY_HEADER:
                 continue
             else:
                 key = key_by_name[column.header]
@@ -326,8 +431,6 @@ class TemplateRoundTripTests(ImportTestCase):
                 columns.append(self.by_app_id(index, "endpoint.object"))
             elif column.header == templates.FIELD_IS_ACTIVE_HEADER:
                 columns.append({"column": index, "field": "field.is_active"})
-            elif column.header in templates.IDENTITY_HEADERS.values():
-                continue
             else:
                 key = key_by_name[column.header]
                 columns.append({"column": index, "field": f"attribute.{key}"})
@@ -410,7 +513,7 @@ class TemplateRoundTripTests(ImportTestCase):
         header = [column.header for column in columns]
         row = self._filled_row(
             columns,
-            {"Source object": "A", "Target object": "B", "Active": "true", "Since": "2024-01-01"},
+            {"Source object key": "A", "Target object key": "B", "Active": "true", "Since": "2024-01-01"},
         )
 
         source = self.stage([header, row], "rels.csv")
@@ -432,7 +535,7 @@ class TemplateRoundTripTests(ImportTestCase):
 
         workbook = openpyxl.load_workbook(io.BytesIO(templates.build_xlsx_template(target)))
         sheet = workbook.active
-        values = {"Source object": "A", "Target object": "B", "Active": True, "Since": "2024-01-01"}
+        values = {"Source object key": "A", "Target object key": "B", "Active": True, "Since": "2024-01-01"}
         for index, column in enumerate(columns, start=1):
             if column.header in values:
                 sheet.cell(row=2, column=index, value=values[column.header])
@@ -448,3 +551,92 @@ class TemplateRoundTripTests(ImportTestCase):
         self.assertFalse(plan.blocked, plan.problems)
         (change,) = plan.changes
         self.assertEqual(change.operation, "create")
+
+
+class TemplateWithDataRoundTripTests(ImportTestCase):
+    """
+    The "download with current data" file (templates.build_template(...,
+    with_data=True)) must flow back through the real parser + mapping +
+    planner just as cleanly as the blank template above: unchanged, it is a
+    no-op; with one value edited, it is exactly one UPDATE, with the key
+    unchanged -- the round-trip property the data mode exists for.
+    """
+
+    def _key_mapping_columns(self, target):
+        key_by_name = {attribute.name: attribute.key for attribute in target.attributes}
+        columns = []
+
+        for index, column in enumerate(templates.template_columns(target)):
+            if column.header == templates.IDENTITY_KEY_HEADER:
+                columns.append({"column": index, "field": "identity.key"})
+            elif column.header == templates.FIELD_NAME_HEADER:
+                columns.append({"column": index, "field": "field.name"})
+            elif column.header == templates.FIELD_DESCRIPTION_HEADER:
+                columns.append({"column": index, "field": "field.description"})
+            elif column.header == templates.FIELD_IS_ACTIVE_HEADER:
+                columns.append({"column": index, "field": "field.is_active"})
+            else:
+                columns.append({"column": index, "field": f"attribute.{key_by_name[column.header]}"})
+
+        return columns
+
+    def _endpoint_key_mapping_columns(self, target):
+        key_by_name = {attribute.name: attribute.key for attribute in target.attributes}
+        columns = []
+
+        for index, column in enumerate(templates.template_columns(target)):
+            if column.header == templates.ENDPOINT_SUBJECT_HEADER:
+                columns.append(self.by_key(index, "endpoint.subject"))
+            elif column.header == templates.ENDPOINT_OBJECT_HEADER:
+                columns.append(self.by_key(index, "endpoint.object"))
+            elif column.header == templates.FIELD_IS_ACTIVE_HEADER:
+                columns.append({"column": index, "field": "field.is_active"})
+            else:
+                columns.append({"column": index, "field": f"attribute.{key_by_name[column.header]}"})
+
+        return columns
+
+    def test_an_unchanged_object_file_reimports_as_a_no_op(self):
+        self.make_app("Alpha", app_id="A1", owner="Finance")
+        target = resolve_target(self.model, OBJECT, self.app_type.id)
+
+        data = templates.build_template(target, "csv", model=self.model, with_data=True)
+        source = self.stage(data, "alpha.csv")
+
+        plan = preview_import(self.model, source, self.object_mapping(*self._key_mapping_columns(target)))
+
+        self.assertFalse(plan.blocked, plan.problems)
+        self.assertEqual(plan.changes, [])
+
+    def test_editing_one_value_produces_exactly_one_update_with_the_key_unchanged(self):
+        app = self.make_app("Alpha", app_id="A1", owner="Finance")
+        target = resolve_target(self.model, OBJECT, self.app_type.id)
+
+        data = templates.build_template(target, "csv", model=self.model, with_data=True)
+        rows = list(csv.reader(io.StringIO(data.decode("utf-8-sig"))))
+        header, row = rows[0], rows[1]
+        row[header.index("Owner")] = "HR"
+
+        source = self.stage([header, row], "alpha.csv")
+        plan = preview_import(self.model, source, self.object_mapping(*self._key_mapping_columns(target)))
+
+        self.assertFalse(plan.blocked, plan.problems)
+        (change,) = plan.changes
+        self.assertEqual(change.target_id, app.id)
+        self.assertEqual(change.after, {"field": "attributes.owner", "value": "HR"})
+
+    def test_an_unchanged_relationship_file_reimports_as_a_no_op(self):
+        one = self.make_app("Alpha", app_id="A")
+        two = self.make_app("Beta", app_id="B")
+        self.make_uses(one, two, since="2024-01-01")
+
+        target = resolve_target(self.model, RELATIONSHIP, self.uses.id)
+        data = templates.build_template(target, "csv", model=self.model, with_data=True)
+        source = self.stage(data, "rels.csv")
+
+        plan = preview_import(
+            self.model, source, self.relationship_mapping(*self._endpoint_key_mapping_columns(target))
+        )
+
+        self.assertFalse(plan.blocked, plan.problems)
+        self.assertEqual(plan.changes, [])

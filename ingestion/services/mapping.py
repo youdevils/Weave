@@ -10,7 +10,12 @@ The import mapping: which source column feeds which canonical field.
 Relationship endpoints say how they are resolved:
 
         {"column": 3, "field": "endpoint.subject",
-         "by": "attribute:app_id", "object_type_id": "<uuid>"}      (or "by": "id")
+         "by": "attribute:app_id", "object_type_id": "<uuid>"}
+        {"column": 4, "field": "endpoint.object", "by": "key"}                    (searches every type this
+                                                                                     relationship allows on
+                                                                                     that side)
+        {"column": 4, "field": "endpoint.object", "by": "key", "object_type_id": "<uuid>"}  (pinned to one type)
+        {"column": 4, "field": "endpoint.object", "by": "id"}                     (Database ID, advanced)
 
 `ImportMapping.from_json` validates a payload against the canonical target and
 returns an immutable, canonically ordered value that serialises back to the
@@ -25,6 +30,7 @@ from ingestion.services import limits
 from ingestion.services.errors import MappingError
 from ingestion.services.targets import OBJECT, RELATIONSHIP
 
+IDENTITY_KEY = "identity.key"
 IDENTITY_ID = "identity.id"
 FIELD_NAME = "field.name"
 FIELD_DESCRIPTION = "field.description"
@@ -33,7 +39,11 @@ ENDPOINT_SUBJECT = "endpoint.subject"
 ENDPOINT_OBJECT = "endpoint.object"
 ATTRIBUTE_PREFIX = "attribute."
 
-OBJECT_FIELDS = (IDENTITY_ID, FIELD_NAME, FIELD_DESCRIPTION, FIELD_IS_ACTIVE)
+# Relationship has no key of its own (decision: its natural identity is its
+# type + endpoints -- see ingestion/README.md); identity.id stays its only
+# row-identity column, kept as an advanced/optional field. identity.key is
+# Object-only.
+OBJECT_FIELDS = (IDENTITY_KEY, IDENTITY_ID, FIELD_NAME, FIELD_DESCRIPTION, FIELD_IS_ACTIVE)
 RELATIONSHIP_FIELDS = (IDENTITY_ID, ENDPOINT_SUBJECT, ENDPOINT_OBJECT, FIELD_IS_ACTIVE)
 
 BUILTIN_FIELD_PATHS = {
@@ -43,6 +53,7 @@ BUILTIN_FIELD_PATHS = {
 }
 
 BY_ID = "id"
+BY_KEY = "key"
 BY_ATTRIBUTE_PREFIX = "attribute:"
 
 
@@ -287,6 +298,28 @@ def _parse_endpoint(raw, position, by, endpoint_types, errors):
             return None, None
 
         return None, BY_ID
+
+    if by == BY_KEY:
+
+        raw_type_id = raw.get("object_type_id")
+
+        if raw_type_id is None:
+            # No pin: resolved by searching every object type this
+            # relationship allows on this side (relationship_planner.py
+            # supplies those candidates at plan time).
+            return None, BY_KEY
+
+        try:
+            object_type_id = uuid.UUID(str(raw_type_id))
+        except (ValueError, TypeError, AttributeError):
+            errors.append(f"Mapping entry {position}: that object type was not found in this model.")
+            return None, None
+
+        if object_type_id not in endpoint_types:
+            errors.append(f"Mapping entry {position}: that object type was not found in this model.")
+            return None, None
+
+        return object_type_id, BY_KEY
 
     if not isinstance(by, str) or not by.startswith(BY_ATTRIBUTE_PREFIX):
         errors.append(f"Mapping entry {position}: choose how the endpoint is identified.")

@@ -11,7 +11,6 @@ from workspace.models import WorkspaceMember
 from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef, EvidenceItem
 from ai.services.proposal_compiler import (
     InvalidFieldError,
-    KeyGenerationFailed,
     compile_and_validate,
     compile_change_plan,
 )
@@ -253,12 +252,11 @@ class CompileChangePlanTests(AIServiceTestCase):
 
 class KeyFallbackCompileTests(AIServiceTestCase):
     """
-    A CREATE ObjectType/RelationshipType action that omits `key` (or leaves
-    it blank) must never reach ProposalService.record_changes_bulk that
-    way -- see ai.services.proposal_compiler._apply_key_fallback, which
-    wraps model.services.keys. UPDATE actions and other target_types are
-    untouched; see also CompileAndValidateTests for the clean-issue-not-
-    a-crash path when a name has no sluggable characters at all.
+    A CREATE ObjectType/RelationshipType action's `key` is always derived
+    from its name -- see ai.services.proposal_compiler._assign_key, which
+    wraps model.services.keys and never trusts an AI-supplied key. UPDATE
+    actions are rejected outright (key is never update-legal); other
+    target_types are untouched.
     """
 
     def setUp(self):
@@ -288,10 +286,17 @@ class KeyFallbackCompileTests(AIServiceTestCase):
     def test_object_type_create_blank_key_is_derived_from_name(self):
         for blank in ("", "   "):
             with self.subTest(blank=repr(blank)):
+                # A fresh proposal per iteration: generate_key also checks
+                # keys already claimed by earlier CREATEs recorded in the
+                # SAME proposal, so reusing one across iterations would
+                # make the second "Customer Type" collide with the first.
+                proposal = ProposalService.create_working(
+                    self.model, self.user, source=Proposal.Source.AI
+                )
                 plan = ChangePlan(actions=[self._create_object_type("Customer Type", key=blank)])
 
                 created = compile_change_plan(
-                    model=self.model, user=self.user, change_plan=plan, proposal=self.proposal
+                    model=self.model, user=self.user, change_plan=plan, proposal=proposal
                 )
 
                 self.assertEqual(created[0].after["key"], "customer_type")
@@ -312,12 +317,15 @@ class KeyFallbackCompileTests(AIServiceTestCase):
 
         self.assertEqual(created[0].after["key"], "connects_to")
 
-    def test_explicit_create_key_is_not_overridden(self):
+    def test_explicit_create_key_is_always_overridden(self):
+        # Keys are fully automatic: whatever key a Change Plan action
+        # supplies is discarded and derived from the name instead, the
+        # same as a human-typed key would be.
         plan = ChangePlan(actions=[self._create_object_type("Customer Type", key="custom_key")])
 
         created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
 
-        self.assertEqual(created[0].after["key"], "custom_key")
+        self.assertEqual(created[0].after["key"], "customer_type")
 
     def test_two_same_named_creates_in_one_plan_get_distinct_keys(self):
         plan = ChangePlan(
@@ -344,7 +352,10 @@ class KeyFallbackCompileTests(AIServiceTestCase):
 
         self.assertEqual(created[0].after["key"], "customer_type_2")
 
-    def test_update_action_is_unaffected_by_key_fallback(self):
+    def test_update_of_key_is_rejected_as_an_illegal_field(self):
+        # Keys never change after creation -- entity_fields.illegal_fields
+        # excludes "key" from the update-legal set, so this is caught here,
+        # the same InvalidFieldError path as any other unsettable field.
         object_type = self.make_object_type(self.model, key="widget")
         plan = ChangePlan(
             actions=[
@@ -352,16 +363,43 @@ class KeyFallbackCompileTests(AIServiceTestCase):
                     operation="update",
                     target_type="ObjectType",
                     target_ref=_existing(object_type.id),
-                    fields={"key": ""},
+                    fields={"key": "renamed"},
+                )
+            ]
+        )
+
+        with self.assertRaises(InvalidFieldError) as ctx:
+            compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(ctx.exception.field_names, ["key"])
+
+    def test_non_key_bearing_create_types_unaffected(self):
+        # RelationshipTypeRule has no key of its own -- unlike Object (also
+        # a CREATE target here, but key-bearing since Phase B).
+        object_type = self.make_object_type(self.model, key="widget")
+        relationship_type = self.make_relationship_type(self.model, key="depends_on")
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="create",
+                    target_type="RelationshipTypeRule",
+                    target_ref=_new("tmp:1"),
+                    parent_ref=_existing(relationship_type.id),
+                    fields={
+                        "subject_type_id": str(object_type.id),
+                        "object_type_id": str(object_type.id),
+                    },
                 )
             ]
         )
 
         created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
 
-        self.assertEqual(created[0].after, {"field": "key", "value": ""})
+        self.assertNotIn("key", created[0].after)
 
-    def test_non_key_bearing_create_types_unaffected(self):
+    def test_object_create_key_is_derived_from_name(self):
+        # Object became key-bearing in Phase B -- the same fallback path
+        # as ObjectType/RelationshipType/AttributeDefinition.
         object_type = self.make_object_type(self.model, key="widget")
         plan = ChangePlan(
             actions=[
@@ -377,15 +415,33 @@ class KeyFallbackCompileTests(AIServiceTestCase):
 
         created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
 
-        self.assertNotIn("key", created[0].after)
+        self.assertEqual(created[0].after["key"], "widget_1")
 
-    def test_object_type_create_unsluggable_name_raises_key_generation_failed(self):
+    def test_object_type_create_unsluggable_name_gets_the_fallback_key(self):
+        # Creation must never block just because the name has no
+        # sluggable characters -- it falls back to a per-type base word.
         plan = ChangePlan(actions=[self._create_object_type("???")])
 
-        with self.assertRaises(KeyGenerationFailed) as ctx:
-            compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
 
-        self.assertEqual(ctx.exception.target_type, "ObjectType")
+        self.assertEqual(created[0].after["key"], "object_type")
+
+    def test_two_unsluggable_creates_in_one_plan_get_distinct_fallback_keys(self):
+        plan = ChangePlan(
+            actions=[
+                self._create_object_type("???"),
+                ChangeAction(
+                    operation="create",
+                    target_type="ObjectType",
+                    target_ref=_new("tmp:2"),
+                    fields={"name": "???"},
+                ),
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual({c.after["key"] for c in created}, {"object_type", "object_type_2"})
 
 
 class InvalidFieldCompileTests(AIServiceTestCase):
@@ -736,24 +792,19 @@ class CompileAndValidateTests(AIServiceTestCase):
             ],
         )
 
-    def test_object_type_create_unsluggable_name_returns_clean_issue_no_persistence(self):
-        proposal_count_before = Proposal.objects.count()
-        change_count_before = ProposalChange.objects.count()
-        object_type_count_before = ObjectType.objects.filter(model=self.model).count()
-
+    def test_object_type_create_unsluggable_name_compiles_with_the_fallback_key(self):
+        # Creation never blocks just because the name has no sluggable
+        # characters -- it falls back to a per-type base word instead of
+        # raising (see model.services.keys.generate_key).
         result = compile_and_validate(
             model=self.model, user=self.user, operation=self.operation,
             change_plan=self._object_type_plan("???"),
         )
 
-        self.assertIsNone(result.proposal)
-        self.assertEqual(len(result.issues), 1)
-        issue = result.issues[0]
-        self.assertEqual(issue.code, "key_generation_failed")
-        self.assertEqual(issue.target_type, "ObjectType")
-        self.assertEqual(Proposal.objects.count(), proposal_count_before)
-        self.assertEqual(ProposalChange.objects.count(), change_count_before)
-        self.assertEqual(ObjectType.objects.filter(model=self.model).count(), object_type_count_before)
+        self.assertIsNotNone(result.proposal)
+        self.assertEqual(result.issues, [])
+        change = result.proposal.changes.get(target_type="ObjectType")
+        self.assertEqual(change.after["key"], "object_type")
 
     def test_object_type_create_missing_key_compiles_and_persists_end_to_end(self):
         result = compile_and_validate(

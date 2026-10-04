@@ -63,35 +63,6 @@ class ChangePlanCompilationError(Exception):
         raise NotImplementedError
 
 
-class KeyGenerationFailed(ChangePlanCompilationError):
-    """
-    Raised when a CREATE action omits `key` (for a target_type
-    model.services.keys supports) and no key could be derived from `name`
-    -- no sluggable characters at all. Caught by compile_and_validate and
-    converted into a ValidationIssue, the same "turn a deterministic
-    failure into an issue, never a crash" pattern
-    model.services.proposal.submission's _duplicate_key_issue already uses
-    to avoid an IntegrityError.
-    """
-
-    def __init__(self, *, target_type: str, target_id):
-        super().__init__(f"Could not derive a key for this {target_type} from its name.")
-        self.target_type = target_type
-        self.target_id = target_id
-
-    def issue(self) -> ValidationIssue:
-        return ValidationIssue(
-            code="key_generation_failed",
-            field="key",
-            message=(
-                f"Could not derive a {self.target_type} key from its name. "
-                "Give it a name containing at least one letter or digit."
-            ),
-            target_type=self.target_type,
-            target_id=self.target_id,
-        )
-
-
 class InvalidFieldError(ChangePlanCompilationError):
     """
     Raised when a CREATE/UPDATE action supplies a `fields` key that is not
@@ -129,35 +100,38 @@ class InvalidFieldError(ChangePlanCompilationError):
         )
 
 
-def _apply_key_fallback(model, action: ChangeAction, target_id, after: dict, claimed_by_type: dict) -> None:
+def _assign_key(model, proposal, action: ChangeAction, parent_type, parent_id, after: dict, claimed: dict) -> None:
     """
-    CREATE-only. Fills in `after["key"]` when missing/blank (after
-    stripping), deriving it from after["name"] via model.services.keys.
-    Never overrides an explicit key, whoever supplied it -- the AI should
-    never be instructed to invent one, but a Change Plan that does supply
-    one (or a future caller that always does) is left untouched.
+    CREATE-only. Always assigns after["key"] from after["name"] via
+    model.services.keys -- keys are fully automatic, so any key a Change
+    Plan action supplied is discarded and overwritten here, never trusted
+    (the AI should never be instructed to invent one, and a Change Plan
+    that does supply one is still not trusted, for the same reason a
+    human-typed key never is).
 
-    `claimed_by_type` tracks keys already claimed by earlier CREATE actions
-    for this target_type within the SAME change plan, so two new
-    same-named siblings in one plan don't collide with each other -- a
-    database-only read has no visibility into sibling in-progress actions.
+    `claimed` tracks keys already assigned to earlier CREATE actions of
+    the same (target_type, parent_type, parent_id) within THIS SAME
+    change plan: compile_change_plan only records changes to the
+    proposal in one batch at the very end (record_changes_bulk), so
+    keys.claimed_keys_in_proposal has no visibility yet into sibling
+    in-progress actions -- this dict is that visibility.
     """
 
-    current = after.get("key")
-    claimed = claimed_by_type.setdefault(action.target_type, set())
+    scope_key = (action.target_type, parent_type, parent_id)
+    also_used = claimed.setdefault(scope_key, set())
 
-    if isinstance(current, str) and current.strip():
-        claimed.add(current)
-        return
-
-    used = claimed | keys.existing_keys_for(action.target_type, model)
-    generated = keys.make_unique_key(after.get("name") or "", used)
-
-    if generated is None:
-        raise KeyGenerationFailed(target_type=action.target_type, target_id=target_id)
+    generated = keys.generate_key(
+        action.target_type,
+        after.get("name") or "",
+        model=model,
+        proposal=proposal,
+        parent_type=parent_type,
+        parent_id=parent_id,
+        also_used=also_used,
+    )
 
     after["key"] = generated
-    claimed.add(generated)
+    also_used.add(generated)
 
 
 class TempRefResolver:
@@ -227,7 +201,7 @@ def compile_change_plan(*, model, user, change_plan: ChangePlan, proposal) -> li
     resolver = TempRefResolver()
     specs: list[dict] = []
     action_ranges: list[tuple[ChangeAction, int, int]] = []
-    claimed_keys: dict[str, set] = {}
+    claimed_keys: dict[tuple, set] = {}  # (target_type, parent_type, parent_id) -> keys claimed so far
 
     for action in change_plan.actions:
         target_id = resolver.resolve(action.target_ref)
@@ -245,11 +219,11 @@ def compile_change_plan(*, model, user, change_plan: ChangePlan, proposal) -> li
                 key: _resolve_field_value(value, resolver)
                 for key, value in action.fields_dict().items()
             }
-            bad = entity_fields.illegal_fields(action.target_type, after.keys())
+            bad = entity_fields.illegal_fields(action.target_type, after.keys(), operation="create")
             if bad:
                 raise InvalidFieldError(target_type=action.target_type, target_id=target_id, field_names=bad)
             if keys.supports(action.target_type):
-                _apply_key_fallback(model, action, target_id, after, claimed_keys)
+                _assign_key(model, proposal, action, parent_type, parent_id, after, claimed_keys)
             specs.append(
                 {
                     "operation": ProposalChange.Operation.CREATE,
@@ -269,7 +243,7 @@ def compile_change_plan(*, model, user, change_plan: ChangePlan, proposal) -> li
             # (model.services.proposal.submission._apply_attribute_update)
             # expects the literal dotted "attributes.<key>" string as its
             # own field-level change instead, exactly as entry.key already is.
-            bad = entity_fields.illegal_fields(action.target_type, (entry.key for entry in action.fields))
+            bad = entity_fields.illegal_fields(action.target_type, (entry.key for entry in action.fields), operation="update")
             if bad:
                 raise InvalidFieldError(target_type=action.target_type, target_id=target_id, field_names=bad)
 
@@ -329,10 +303,9 @@ class CompileResult:
 def compile_and_validate(*, model, user, operation, change_plan: ChangePlan) -> CompileResult:
     """
     One atomic attempt. If compile_change_plan raises a
-    ChangePlanCompilationError (e.g. KeyGenerationFailed -- a CREATE
-    omitted `key` and none could be derived from its name; or
-    InvalidFieldError -- an action supplied a `fields` key that isn't real
-    for its target_type), that is caught here and converted into a
+    ChangePlanCompilationError (currently only InvalidFieldError -- an
+    action supplied a `fields` key that isn't real for its target_type),
+    that is caught here and converted into a
     CompileResult(issues=[...]) -- exactly the channel
     ai.services.orchestrator.run_ai_operation already treats as refinement
     feedback, so the AI gets a chance to retry with a corrected plan

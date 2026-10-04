@@ -102,6 +102,47 @@ test("relationship endpoints get an 'identified by' choice", () => {
   assert.match(html, /App: App ID/);
 });
 
+test("an endpoint column with no resolver chosen shows an unselected 'Choose…' placeholder", () => {
+  const html = mappingTable({
+    kind: "relationship",
+    target: { attributes: [], subject_type_ids: ["T"] },
+    columns: [{ index: 0, header: "From" }],
+    sampleRows: [],
+    rows: [{ field: "endpoint.subject", resolver: "" }],
+    objectTypes: [{ type_id: "T", name: "App", attributes: [] }],
+  });
+
+  assert.match(html, /<option value="" selected>Choose&hellip;<\/option>/);
+  assert.match(html, />OnyxJar Key</);
+});
+
+test("subject and object endpoint columns are scoped to their own side's allowed types", () => {
+  const objectTypes = [
+    { type_id: "T1", name: "App", attributes: [] },
+    { type_id: "T2", name: "Person", attributes: [] },
+    { type_id: "T3", name: "Team", attributes: [] },
+  ];
+
+  const html = mappingTable({
+    kind: "relationship",
+    target: { attributes: [], subject_type_ids: ["T1", "T2"], object_type_ids: ["T2", "T3"] },
+    columns: [{ index: 0, header: "From" }, { index: 1, header: "To" }],
+    sampleRows: [],
+    rows: [{ field: "endpoint.subject", resolver: "" }, { field: "endpoint.object", resolver: "" }],
+    objectTypes,
+  });
+
+  const [, subjectRow, objectRow] = html.split("</tr>");
+
+  assert.match(subjectRow, /App: Key only/);
+  assert.match(subjectRow, /Person: Key only/);
+  assert.doesNotMatch(subjectRow, /Team: Key only/);
+
+  assert.match(objectRow, /Person: Key only/);
+  assert.match(objectRow, /Team: Key only/);
+  assert.doesNotMatch(objectRow, /App: Key only/);
+});
+
 test("type options mark the selected type and escape names", () => {
   const html = typeOptions([{ type_id: "1", name: HOSTILE }, { type_id: "2", name: "Ok" }], "2");
 

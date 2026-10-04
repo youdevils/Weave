@@ -6,6 +6,7 @@ import {
   buildMapping,
   canCreate,
   canPreview,
+  defaultResolver,
   describeSummary,
   emptyRow,
   endpointResolvers,
@@ -34,6 +35,7 @@ test("object targets offer identity, built-in and attribute fields", () => {
   const values = fieldOptions(KINDS.OBJECT, target).map((option) => option.value);
 
   assert.deepEqual(values, [
+    "identity.key",
     "identity.id",
     "field.name",
     "field.description",
@@ -53,13 +55,45 @@ test("relationship targets offer endpoints instead of name and description", () 
   assert.ok(values.includes("attribute.owner"));
 });
 
-test("endpoint resolvers list the OnyxJar id and only identity-eligible attributes", () => {
+test("endpoint resolvers list the OnyxJar Key and only identity-eligible attributes", () => {
   const resolvers = endpointResolvers([{ type_id: "T1", name: "Application", attributes: target.attributes }]);
 
   assert.deepEqual(
     resolvers.map((resolver) => resolver.value),
-    ["id", "attribute:T1:app_id", "attribute:T1:owner"],
+    ["key", "attribute:T1:app_id", "attribute:T1:owner", "id"],
   );
+});
+
+test("endpoint resolvers offer a per-type pin only when more than one type is allowed", () => {
+  const objectTypes = [
+    { type_id: "T1", name: "Application", attributes: target.attributes },
+    { type_id: "T2", name: "Person", attributes: [] },
+  ];
+
+  const scopedToOne = endpointResolvers(objectTypes, ["T1"]);
+  assert.deepEqual(
+    scopedToOne.map((resolver) => resolver.value),
+    ["key", "attribute:T1:app_id", "attribute:T1:owner", "id"],
+  );
+
+  const scopedToBoth = endpointResolvers(objectTypes, ["T1", "T2"]);
+  assert.deepEqual(
+    scopedToBoth.map((resolver) => resolver.value),
+    ["key", "key:T1", "key:T2", "attribute:T1:app_id", "attribute:T1:owner", "id"],
+  );
+
+  const unscoped = endpointResolvers(objectTypes);
+  assert.deepEqual(
+    unscoped.map((resolver) => resolver.value),
+    ["key", "key:T1", "key:T2", "attribute:T1:app_id", "attribute:T1:owner", "id"],
+  );
+});
+
+test("defaultResolver pins to the one allowed type, and leaves the choice open otherwise", () => {
+  assert.equal(defaultResolver({ subject_type_ids: ["T1"] }, "subject"), "key:T1");
+  assert.equal(defaultResolver({ subject_type_ids: ["T1", "T2"] }, "subject"), "");
+  assert.equal(defaultResolver({ object_type_ids: [] }, "object"), "");
+  assert.equal(defaultResolver(undefined, "subject"), "");
 });
 
 test("suggestions match a header to a field label or key, each field once", () => {
@@ -112,13 +146,51 @@ test("match is only sent for an attribute on an object import", () => {
 test("endpoint resolvers become by / object_type_id", () => {
   const rows = [
     { ...emptyRow(), field: "endpoint.subject", resolver: "attribute:TYPE-1:app_id" },
-    { ...emptyRow(), field: "endpoint.object" },
+    { ...emptyRow(), field: "endpoint.object", resolver: "id" },
   ];
 
   assert.deepEqual(buildMapping({ kind: KINDS.RELATIONSHIP, typeId: "R", rows }).columns, [
     { column: 0, field: "endpoint.subject", by: "attribute:app_id", object_type_id: "TYPE-1" },
     { column: 1, field: "endpoint.object", by: "id" },
   ]);
+});
+
+test("a key resolver with no pin searches every allowed type", () => {
+  const rows = [{ ...emptyRow(), field: "endpoint.subject", resolver: "key" }];
+
+  assert.deepEqual(buildMapping({ kind: KINDS.RELATIONSHIP, typeId: "R", rows }).columns, [
+    { column: 0, field: "endpoint.subject", by: "key" },
+  ]);
+});
+
+test("a key resolver pinned to one type sends its object_type_id", () => {
+  const rows = [{ ...emptyRow(), field: "endpoint.subject", resolver: "key:TYPE-1" }];
+
+  assert.deepEqual(buildMapping({ kind: KINDS.RELATIONSHIP, typeId: "R", rows }).columns, [
+    { column: 0, field: "endpoint.subject", by: "key", object_type_id: "TYPE-1" },
+  ]);
+});
+
+test("an endpoint column with no resolver chosen sends no `by`, forcing an explicit choice", () => {
+  const rows = [{ ...emptyRow(), field: "endpoint.subject" }];
+
+  assert.deepEqual(buildMapping({ kind: KINDS.RELATIONSHIP, typeId: "R", rows }).columns, [
+    { column: 0, field: "endpoint.subject" },
+  ]);
+});
+
+test("suggestions recognise key-based headers for objects and relationship endpoints", () => {
+  const objectOptions = fieldOptions(KINDS.OBJECT, target);
+  assert.deepEqual(suggestMapping(["OnyxJar Key", "Name"], objectOptions), {
+    0: "identity.key",
+    1: "field.name",
+  });
+
+  const relationshipOptions = fieldOptions(KINDS.RELATIONSHIP, target);
+  assert.deepEqual(suggestMapping(["Source object key", "Target object key"], relationshipOptions), {
+    0: "endpoint.subject",
+    1: "endpoint.object",
+  });
 });
 
 test("previews need a source, a target and at least one mapped column", () => {

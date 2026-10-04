@@ -139,6 +139,32 @@ class CreateObjectTests(DataObjectEditorTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(ProposalChange.objects.filter(target_type="Object").exists())
 
+    def test_create_derives_a_key_from_the_name(self):
+        self.client.post(self.create_url(), {"name": "SAP S/4HANA", "description": ""})
+
+        change = self.working_proposal().changes.get(target_type="Object")
+        self.assertEqual(change.after["key"], "sap_s4hana")
+
+    def test_create_ignores_any_posted_key_and_derives_from_name_instead(self):
+        self.client.post(
+            self.create_url(),
+            {"name": "SAP S/4HANA", "description": "", "key": "my_custom_key"},
+        )
+
+        change = self.working_proposal().changes.get(target_type="Object")
+        self.assertEqual(change.after["key"], "sap_s4hana")
+
+    def test_two_drafts_with_the_same_name_get_distinct_keys(self):
+        self.client.post(self.create_url(), {"name": "SAP S/4HANA", "description": ""})
+        self.client.post(self.create_url(), {"name": "SAP S/4HANA", "description": ""})
+
+        keys = set(
+            self.working_proposal().changes.filter(target_type="Object").values_list(
+                "after__key", flat=True,
+            )
+        )
+        self.assertEqual(keys, {"sap_s4hana", "sap_s4hana_2"})
+
 
 class UpdateObjectTests(DataObjectEditorTestCase):
 
@@ -199,6 +225,21 @@ class UpdateObjectTests(DataObjectEditorTestCase):
         page = self.client.get(self.edit_url(self.obj.id)).content.decode()
         for field in ("name", "description", "attributes.owner", "attributes.certified"):
             self.assertIn(f'data-field="{field}"', page)
+
+    def test_key_update_is_rejected(self):
+        response = self.client.post(
+            self.edit_url(self.obj.id), {"field": "key", "value": "renamed"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.obj.refresh_from_db()
+        self.assertNotEqual(self.obj.key, "renamed")
+
+    def test_editor_shows_the_key_read_only(self):
+        page = self.client.get(self.edit_url(self.obj.id)).content.decode()
+
+        self.assertIn(self.obj.key, page)
+        self.assertNotIn('name="key"', page)
 
     def test_repeated_field_save_dedups_to_one_change(self):
         self.client.post(self.edit_url(self.obj.id), {"field": "name", "value": "First"})

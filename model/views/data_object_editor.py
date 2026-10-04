@@ -7,6 +7,7 @@ from django.shortcuts import redirect, render
 
 from model.models.object import Object
 from model.models.proposal import ProposalChange
+from model.services import keys
 from model.services.entity_fields import OBJECT_PROPERTY_FIELDS
 from model.services.proposal.proposal import ProposalService
 from model.services.validation.attributes import validate_attribute_value
@@ -72,6 +73,7 @@ def _get_working_object(
         model_id=model.id,
         object_type_id=object_type.id,
         name=after.get("name", ""),
+        key=after.get("key", ""),
         description=after.get("description", ""),
         is_active=after.get("is_active", True),
         attributes=dict(after.get("attributes") or {}),
@@ -622,6 +624,10 @@ def data_object_editor(
                 return error_response
 
         object_uuid = uuid.uuid4()
+        key = keys.generate_key(
+            "Object", name, model=model, proposal=proposal,
+            parent_type="ObjectType", parent_id=object_type.id,
+        )
 
         ProposalService.record_change(
             proposal=proposal,
@@ -633,6 +639,7 @@ def data_object_editor(
             before=None,
             after={
                 "name": name,
+                "key": key,
                 "description": description,
                 "is_active": True,
                 "attributes": attributes,

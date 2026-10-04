@@ -180,10 +180,17 @@ export function startImport({ bootstrap, api = createImportApi({ urls: bootstrap
       options,
     );
 
-    model.rows = model.columns.map((column) => ({
-      ...state.emptyRow(),
-      field: suggestion[column.index] ?? "",
-    }));
+    model.rows = model.columns.map((column) => {
+      const field = suggestion[column.index] ?? "";
+      const resolver =
+        field === "endpoint.subject"
+          ? state.defaultResolver(target(), "subject")
+          : field === "endpoint.object"
+            ? state.defaultResolver(target(), "object")
+            : "";
+
+      return { ...state.emptyRow(), field, resolver };
+    });
   }
 
   // -- Navigation ----------------------------------------------------------
@@ -277,7 +284,12 @@ export function startImport({ bootstrap, api = createImportApi({ urls: bootstrap
     if (role === "field") {
       row.field = control.value;
       row.match = false;
-      row.resolver = "id";
+      row.resolver =
+        control.value === "endpoint.subject"
+          ? state.defaultResolver(target(), "subject")
+          : control.value === "endpoint.object"
+            ? state.defaultResolver(target(), "object")
+            : "";
     } else if (role === "match") {
       // At most one match attribute: turning one on turns the others off.
       model.rows.forEach((other) => (other.match = false));

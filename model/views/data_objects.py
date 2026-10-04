@@ -161,7 +161,9 @@ def data_objects(
     if search:
 
         queryset = queryset.filter(
-            Q(name__icontains=search) | Q(description__icontains=search)
+            Q(name__icontains=search)
+            | Q(description__icontains=search)
+            | Q(key__icontains=search)
         )
 
     search_queryset = queryset
@@ -217,7 +219,9 @@ def data_objects(
         pending_rows = [
             row
             for row in pending_rows
-            if needle in row.name.lower() or needle in row.description.lower()
+            if needle in row.name.lower()
+            or needle in row.description.lower()
+            or needle in row.key.lower()
         ]
 
     if show == "active":

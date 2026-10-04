@@ -3,14 +3,20 @@ Plan a Relationship import: one existing RelationshipType, one directed
 relationship per row.
 
 A relationship is identified by, in order:
-  * its OnyxJar Relationship ID, if that column is mapped and filled; supplied
-    endpoints are then only a cross-check and are never written on an UPDATE;
+  * its Database ID (an advanced/optional column), if mapped and filled;
+    supplied endpoints are then only a cross-check and are never written on
+    an UPDATE;
   * otherwise its endpoints: (source object, target object) *in that
     direction* -- A -> B and B -> A are different relationships.
 
-Endpoints must already exist (they are resolved by OnyxJar Object ID or an
-explicitly chosen attribute, exactly). Whether the resulting relationship is
-allowed by the relationship type is not decided here.
+Endpoints must already exist. They are normally resolved by the source
+object's own OnyxJar Key -- searched across every object type this
+relationship allows on that side, unless the column is pinned to one type --
+or, as advanced/optional alternatives, an explicitly chosen attribute or the
+object's Database ID. Whichever way an endpoint resolves, the resulting
+(subject type, object type) pair is checked against the relationship type's
+own rules (RelationshipTypeRule): each side resolving to *some* allowed type
+does not mean the pair they form together is one the rules actually permit.
 """
 
 from collections import defaultdict
@@ -63,6 +69,10 @@ def plan_relationship_import(model, table, target, mapping, object_type_specs) -
     value_entries = mapping.value_columns
 
     resolvers = {}
+    candidate_type_ids = {
+        ENDPOINT_SUBJECT: target.subject_type_ids,
+        ENDPOINT_OBJECT: target.object_type_ids,
+    }
 
     for entry, label in ((subject_entry, "source object"), (object_entry, "target object")):
         if entry is not None:
@@ -72,6 +82,7 @@ def plan_relationship_import(model, table, target, mapping, object_type_specs) -
                 label,
                 object_type_specs,
                 [row[entry.column] for row in table.rows],
+                candidate_type_ids=candidate_type_ids[entry.field],
             )
 
     other_type_ids = _ids_of_other_types(model, type_id, table, id_entry)
@@ -84,7 +95,7 @@ def plan_relationship_import(model, table, target, mapping, object_type_specs) -
 
         resolved = _resolve_row(
             row_number, row, id_entry, subject_entry, object_entry, resolvers,
-            canonical, by_pair, other_type_ids,
+            canonical, by_pair, other_type_ids, target.allowed_pairs,
         )
 
         if isinstance(resolved, list):
@@ -141,7 +152,7 @@ def _ids_of_other_types(model, type_id, table, id_entry):
 
 
 def _resolve_row(row_number, row, id_entry, subject_entry, object_entry, resolvers,
-                 canonical, by_pair, other_type_ids):
+                 canonical, by_pair, other_type_ids, allowed_pairs):
     """
     (existing_relationship_id | None, (subject_id, object_id) | None) for a row,
     or a list of blocking problems.
@@ -150,18 +161,36 @@ def _resolve_row(row_number, row, id_entry, subject_entry, object_entry, resolve
     problems = []
 
     subject_id = object_id = None
+    subject_type_id = object_type_id = None
 
     if subject_entry is not None:
 
-        subject_id, failure = resolvers[ENDPOINT_SUBJECT].resolve(row[subject_entry.column])
+        subject_id, subject_type_id, failure = resolvers[ENDPOINT_SUBJECT].resolve(row[subject_entry.column])
 
         if failure:
             problems.append(problem(failure[0], failure[1], row_number))
 
-        object_id, failure = resolvers[ENDPOINT_OBJECT].resolve(row[object_entry.column])
+        object_id, object_type_id, failure = resolvers[ENDPOINT_OBJECT].resolve(row[object_entry.column])
 
         if failure:
             problems.append(problem(failure[0], failure[1], row_number))
+
+        if (
+            subject_id is not None
+            and object_id is not None
+            and (subject_type_id, object_type_id) not in allowed_pairs
+        ):
+            # Each side resolving to *some* allowed type does not mean the
+            # pair they form together is one this relationship type's own
+            # rules permit (e.g. two rules with different type pairs on
+            # each side, searched independently per side when no column
+            # is pinned to one type).
+            problems.append(problem(
+                "endpoint_pair_not_allowed",
+                "This combination of source and target types is not permitted by the "
+                "relationship's rules.",
+                row_number,
+            ))
 
     if id_entry is not None and not coercion.is_blank(row[id_entry.column]):
 
@@ -171,7 +200,7 @@ def _resolve_row(row_number, row, id_entry, subject_entry, object_entry, resolve
         if relationship_id is None:
             problems.append(problem(
                 "invalid_identity_id",
-                f"'{snippet(cell)}' is not a valid OnyxJar Relationship ID.",
+                f"'{snippet(cell)}' is not a valid Database ID.",
                 row_number,
             ))
 
@@ -220,7 +249,7 @@ def _resolve_row(row_number, row, id_entry, subject_entry, object_entry, resolve
         return [problem(
             "ambiguous_relationship",
             f"{len(matches)} relationships already connect these two objects in this "
-            "direction. Use the OnyxJar Relationship ID to say which one.",
+            "direction. Map the Database ID (advanced) column to say which one.",
             row_number,
         )]
 
@@ -389,16 +418,21 @@ def _emit(model, target, value_entries, canonical, accumulator, summary):
 
 
 def _label_items(model, pending_items):
-    """Name the endpoints of the few previewed relationships (one query)."""
+    """Name (and key) the endpoints of the few previewed relationships (one query)."""
 
     ids = {endpoint for _, pair, _, _ in pending_items for endpoint in pair}
 
-    names = dict(Object.objects.filter(model=model, id__in=ids).values_list("id", "name"))
+    labels = {
+        object_id: f"{name} ({key})"
+        for object_id, name, key in Object.objects.filter(model=model, id__in=ids).values_list(
+            "id", "name", "key",
+        )
+    }
 
     return [
         PreviewItem(
             operation=operation,
-            label=f"{names.get(pair[0], '?')} → {names.get(pair[1], '?')}",
+            label=f"{labels.get(pair[0], '?')} → {labels.get(pair[1], '?')}",
             row=entry.rows[0],
             rows=len(entry.rows),
             fields=fields,

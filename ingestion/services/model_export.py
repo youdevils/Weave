@@ -75,6 +75,7 @@ def build_export(model) -> dict:
             {
                 "id": o.id,
                 "typeId": o.type_id,
+                "key": o.key,
                 "name": o.name,
                 "description": o.description,
                 "attributes": o.attributes,
@@ -85,8 +86,11 @@ def build_export(model) -> dict:
             {
                 "id": r.id,
                 "typeId": r.type_id,
+                "typeKey": dataset.relationship_type(r.type_id).key,
                 "sourceId": r.source_id,
+                "sourceKey": dataset.object(r.source_id).key,
                 "targetId": r.target_id,
+                "targetKey": dataset.object(r.target_id).key,
                 "attributes": r.attributes,
                 "validFrom": r.valid_from,
                 "validTo": r.valid_to,

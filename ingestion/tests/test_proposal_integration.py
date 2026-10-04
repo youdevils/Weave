@@ -221,28 +221,27 @@ class ImportProposalTests(ImportTestCase):
         self.assertEqual(result.proposal.submission_result.outcome, ProposalSubmissionResult.Outcome.VALIDATION_FAILED)
         self.assertIn("invalid_is_active", set(result.proposal.submission_result.errors.values_list("code", flat=True)))
 
-    def test_a_disallowed_relationship_is_left_to_the_validator(self):
+    def test_a_disallowed_relationship_pair_is_blocked_by_the_import_itself(self):
+        # Person -> Application is not permitted by the `uses` rule
+        # (Application -> Application only); each endpoint resolves
+        # individually, but the resulting pair is checked against the
+        # relationship type's own rules and blocks before any proposal is
+        # created -- it is not left to the Proposal validator.
         a = self.make_app("A", "A")
         person = self.make_app("Ann", object_type=self.person_type)
         source = self.stage([["ID", "To"], [str(person.id), "A"]], "rels.csv")
 
-        result = create_import_proposal(
-            self.model, self.editor, source,
-            self.relationship_mapping(
-                {"column": 0, "field": "endpoint.subject", "by": "id"},
-                self.by_app_id(1, "endpoint.object"),
-            ),
-        )
+        with self.assertRaises(ImportBlocked) as raised:
+            create_import_proposal(
+                self.model, self.editor, source,
+                self.relationship_mapping(
+                    {"column": 0, "field": "endpoint.subject", "by": "id"},
+                    self.by_app_id(1, "endpoint.object"),
+                ),
+            )
 
-        ProposalService.submit(result.proposal)
-        drain(self.model.id)
-
-        result.proposal.refresh_from_db()
-        self.assertEqual(result.proposal.status, Proposal.Status.FAILED)
-        self.assertIn(
-            "invalid_relationship_types",
-            set(result.proposal.submission_result.errors.values_list("code", flat=True)),
-        )
+        self.assertEqual(raised.exception.problems[0].code, "endpoint_pair_not_allowed")
+        self.assertFalse(Proposal.objects.exists())
         self.assertFalse(Relationship.objects.exists())
 
     def test_an_endpoint_deleted_after_the_proposal_was_built_is_reported(self):

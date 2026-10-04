@@ -409,10 +409,18 @@ class EvidenceLifecycleTests(EvidenceTestCase):
         self.assertEqual((after.after, after.review_status, after.updated_at), (before.after, before.review_status, before.updated_at))
 
     def test_evidence_survives_a_failed_submission_and_resubmission(self):
-        # A duplicate key makes validation fail; the change (and its evidence) stay editable.
-        from model.models.object_type import ObjectType
-
-        ObjectType.objects.create(model=self.model, name="Alpha", key="alpha", is_active=True)
+        # An unrelated invalid change in the same proposal makes validation
+        # fail; the change (and its evidence) stay editable since nothing
+        # commits until the whole proposal is clean.
+        ProposalService.record_change(
+            proposal=self.proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="Model",
+            target_id=self.model.id,
+            field="not_a_real_field",
+            before={"field": "not_a_real_field", "value": "x"},
+            after={"field": "not_a_real_field", "value": "y"},
+        )
         evidence = self.add()
 
         ProposalService.submit(self.proposal)
@@ -423,19 +431,15 @@ class EvidenceLifecycleTests(EvidenceTestCase):
         self.assertEqual(self.proposal.status, Proposal.Status.FAILED)
         self.assertEqual(list(ProposalChange.objects.get(id=self.change.id).evidence.all()), [evidence])
 
-        # Fix the change, add more evidence, resubmit.
-        fixed = ProposalService.record_change(
+        # Fix the proposal (discard the bad change), add more evidence, resubmit.
+        ProposalService.discard_change(
             proposal=self.proposal,
-            operation=ProposalChange.Operation.CREATE,
-            target_type="ObjectType",
-            target_id=self.change.target_id,
-            parent_type="Model",
-            parent_id=self.model.id,
-            before=None,
-            after={"name": "Alpha 2", "key": "alpha_2", "description": "", "sort_order": 0, "is_active": True},
+            target_type="Model",
+            target_id=self.model.id,
+            field="not_a_real_field",
         )
-        self.add(source="Second", change=fixed)
-        self.assertEqual(fixed.evidence.count(), 2)
+        self.add(source="Second")
+        self.assertEqual(ProposalChange.objects.get(id=self.change.id).evidence.count(), 2)
 
         ProposalService.submit(self.proposal)
         submission.claim_next(self.model.id)
@@ -459,9 +463,15 @@ class EvidenceLifecycleTests(EvidenceTestCase):
         self.assertEqual(evidence.change.proposal_id, self.proposal.id)
 
     def test_completed_at_is_only_set_on_success(self):
-        from model.models.object_type import ObjectType
-
-        ObjectType.objects.create(model=self.model, name="Alpha", key="alpha", is_active=True)
+        ProposalService.record_change(
+            proposal=self.proposal,
+            operation=ProposalChange.Operation.UPDATE,
+            target_type="Model",
+            target_id=self.model.id,
+            field="not_a_real_field",
+            before={"field": "not_a_real_field", "value": "x"},
+            after={"field": "not_a_real_field", "value": "y"},
+        )
 
         ProposalService.submit(self.proposal)
         submission.claim_next(self.model.id)

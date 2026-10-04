@@ -271,6 +271,7 @@ def _build_objects(definitions, object_type_ids, specs, object_ids):
                 "before": None,
                 "after": {
                     "name": definition["name"],
+                    "key": key,
                     "description": definition.get("description", ""),
                     "is_active": definition.get("is_active", True),
                     "attributes": definition.get("attributes", {}),

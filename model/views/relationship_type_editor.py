@@ -18,6 +18,7 @@ from model.services.entity_fields import (
     RELATIONSHIP_TYPE_PROPERTY_FIELDS,
     RELATIONSHIP_TYPE_RULE_FIELDS as RULE_FIELDS,
 )
+from model.services import keys
 from model.services.proposal.proposal import ProposalService
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
@@ -1137,10 +1138,11 @@ def _coerce_attribute_properties(
         existing_values.get("name", ""),
     ).strip()
 
-    key = request.POST.get(
-        "attribute_key",
-        existing_values.get("key", ""),
-    ).strip()
+    # Immutable once created: never read from POST, only ever carried
+    # forward from the existing value (blank for a brand-new attribute,
+    # which the create call site fills in via keys.generate_key once
+    # name has validated).
+    key = existing_values.get("key", "")
 
     data_type = request.POST.get(
         "attribute_data_type",
@@ -1191,12 +1193,6 @@ def _coerce_attribute_properties(
 
     elif len(name) > 100:
         errors["name"] = "Name cannot exceed 100 characters."
-
-    if not key:
-        errors["key"] = "Key is required."
-
-    elif len(key) > 100:
-        errors["key"] = "Key cannot exceed 100 characters."
 
     valid_types = {choice for choice, _label in AttributeDefinition.DataType.choices}
 
@@ -1280,59 +1276,6 @@ def _coerce_attribute_properties(
         "sort_order": sort_order,
         "config": config,
     }, errors
-
-
-def _validate_attribute_key(
-    relationship_type,
-    attribute_id,
-    key,
-):
-    if not key:
-        return "Key is required."
-
-    query = AttributeDefinition.objects.filter(
-        relationship_type=relationship_type,
-        key=key,
-    )
-
-    if attribute_id:
-        query = query.exclude(
-            id=attribute_id,
-        )
-
-    if query.exists():
-        return "An attribute with this key already exists."
-
-    return None
-
-
-def _validate_proposed_attribute_key(
-    proposal,
-    relationship_type_id,
-    attribute_id,
-    key,
-):
-    if not proposal:
-        return None
-
-    create_changes = proposal.changes.filter(
-        target_type="AttributeDefinition",
-        operation=ProposalChange.Operation.CREATE,
-        parent_type="RelationshipType",
-        parent_id=relationship_type_id,
-    )
-
-    for change in create_changes:
-
-        if str(change.target_id) == str(attribute_id):
-            continue
-
-        after = change.after or {}
-
-        if after.get("key") == key:
-            return "An attribute with this key already exists."
-
-    return None
 
 
 # =====================================================================
@@ -1726,7 +1669,6 @@ def relationship_type_editor(
 
         if field in {
             "name",
-            "key",
             "description",
         }:
 
@@ -1770,75 +1712,6 @@ def relationship_type_editor(
                     },
                     status=400,
                 )
-
-        if field == "key":
-
-            query = RelationshipType.objects.filter(
-                model=model,
-                key=value,
-            )
-
-            if isinstance(
-                relationship_type,
-                RelationshipType,
-            ):
-                query = query.exclude(
-                    id=relationship_type.id,
-                )
-
-            if query.exists():
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": (
-                            "A relationship type with this " "key already exists."
-                        ),
-                    },
-                    status=400,
-                )
-
-            # Also check proposed RelationshipType CREATEs/updates.
-            if proposal:
-
-                for change in proposal.changes.filter(
-                    target_type="RelationshipType",
-                ):
-
-                    if not isinstance(change.after, dict) or str(
-                        change.target_id
-                    ) == str(relationship_type.id):
-                        continue
-
-                    after = change.after or {}
-
-                    if change.operation == (ProposalChange.Operation.CREATE):
-                        proposed_key = after.get(
-                            "key",
-                        )
-
-                    elif change.operation == (ProposalChange.Operation.UPDATE):
-                        if after.get("field") != "key":
-                            continue
-
-                        proposed_key = after.get(
-                            "value",
-                        )
-
-                    else:
-                        continue
-
-                    if proposed_key == value:
-                        return JsonResponse(
-                            {
-                                "success": False,
-                                "error": (
-                                    "A relationship type with "
-                                    "this key already exists "
-                                    "in the working proposal."
-                                ),
-                            },
-                            status=400,
-                        )
 
         if proposal is None:
             proposal, error_response = get_or_create_active_proposal(
@@ -1955,11 +1828,6 @@ def relationship_type_editor(
             "",
         ).strip()
 
-        key = request.POST.get(
-            "key",
-            "",
-        ).strip()
-
         description = request.POST.get(
             "description",
             "",
@@ -1973,18 +1841,6 @@ def relationship_type_editor(
         elif len(name) > 100:
             errors["name"] = "Name cannot exceed 100 characters."
 
-        if not key:
-            errors["key"] = "Key is required."
-
-        elif len(key) > 100:
-            errors["key"] = "Key cannot exceed 100 characters."
-
-        if RelationshipType.objects.filter(
-            model=model,
-            key=key,
-        ).exists():
-            errors["key"] = "A relationship type with this key already exists."
-
         if errors:
             return _render_editor(
                 request=request,
@@ -1994,7 +1850,7 @@ def relationship_type_editor(
                 proposal=proposal,
                 effective_values={
                     "name": name,
-                    "key": key,
+                    "key": "",
                     "description": description,
                     "sort_order": 0,
                     "is_active": True,
@@ -2012,6 +1868,7 @@ def relationship_type_editor(
                 return error_response
 
         relationship_type_uuid = uuid.uuid4()
+        key = keys.generate_key("RelationshipType", name, model=model, proposal=proposal)
 
         ProposalService.record_change(
             proposal=proposal,
@@ -2075,30 +1932,6 @@ def relationship_type_editor(
             },
         )
 
-        if isinstance(
-            relationship_type,
-            RelationshipType,
-        ):
-
-            canonical_key_error = _validate_attribute_key(
-                relationship_type,
-                None,
-                submitted_values["key"],
-            )
-
-            if canonical_key_error:
-                errors["key"] = canonical_key_error
-
-        proposed_key_error = _validate_proposed_attribute_key(
-            proposal=proposal,
-            relationship_type_id=relationship_type.id,
-            attribute_id=None,
-            key=submitted_values["key"],
-        )
-
-        if proposed_key_error:
-            errors["key"] = proposed_key_error
-
         if errors:
             return JsonResponse(
                 {
@@ -2110,6 +1943,14 @@ def relationship_type_editor(
             )
 
         attribute_uuid = uuid.uuid4()
+        submitted_values["key"] = keys.generate_key(
+            "AttributeDefinition",
+            submitted_values["name"],
+            model=model,
+            proposal=proposal,
+            parent_type="RelationshipType",
+            parent_id=relationship_type.id,
+        )
 
         ProposalService.record_change(
             proposal=proposal,
@@ -2227,32 +2068,6 @@ def relationship_type_editor(
             request,
             effective_values,
         )
-
-        if isinstance(
-            relationship_type,
-            RelationshipType,
-        ):
-
-            key_error = _validate_attribute_key(
-                relationship_type,
-                (None if attribute_created else attribute_uuid),
-                submitted_values["key"],
-            )
-
-            if key_error:
-                errors["key"] = key_error
-
-        if proposal:
-
-            proposed_key_error = _validate_proposed_attribute_key(
-                proposal=proposal,
-                relationship_type_id=relationship_type.id,
-                attribute_id=attribute_uuid,
-                key=submitted_values["key"],
-            )
-
-            if proposed_key_error:
-                errors["key"] = proposed_key_error
 
         if errors:
             return JsonResponse(

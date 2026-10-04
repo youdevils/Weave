@@ -124,8 +124,10 @@ def download_template(request, model_id, kind, type_id, file_format):
     except TargetError:
         raise Http404
 
-    data = templates.build_template(target, file_format)
-    filename = templates.template_filename(model, target, file_format)
+    with_data = request.GET.get("data") == "1"
+
+    data = templates.build_template(target, file_format, model=model, with_data=with_data)
+    filename = templates.template_filename(model, target, file_format, with_data=with_data)
 
     response = HttpResponse(data, content_type=templates.CONTENT_TYPES[file_format])
     response["Content-Disposition"] = f'attachment; filename="{filename}"'

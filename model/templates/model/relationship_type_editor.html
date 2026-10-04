@@ -186,13 +186,11 @@
 
 
                     <!-- =================================================
-                         KEY
+                         KEY (read-only: assigned automatically, never
+                         user-editable -- see model/services/keys.py)
                          ================================================= -->
 
-                    <div
-                        class="model-editor-field proposal-editor-field"
-                        data-field="key"
-                    >
+                    <div class="model-editor-field">
 
                         <div class="model-editor-field-header">
 
@@ -200,83 +198,20 @@
                                 Key
                             </label>
 
-                            <button
-                                type="button"
-                                class="model-inline-edit-button"
-                                data-proposal-action="edit"
-                            >
-                                Edit
-                            </button>
+                        </div>
+
+
+                        <div class="model-editor-field-display">
+
+                            <code class="model-key-value">{{ proposed_values.key }}</code>
 
                         </div>
 
 
-                        <div
-                            class="model-editor-field-display"
-                            data-field-display="key"
-                        >
-
-                            {% if proposed_values.key %}
-
-                                {{ proposed_values.key }}
-
-                            {% else %}
-
-                                <span class="model-field-empty">
-                                    Not defined
-                                </span>
-
-                            {% endif %}
-
-                        </div>
-
-
-                        <div
-                            class="model-editor-field-editor"
-                            data-field-editor="key"
-                            hidden
-                        >
-
-                            <input
-                                type="text"
-                                name="key"
-                                value="{{ proposed_values.key|default:'' }}"
-                                class="form-control"
-                                maxlength="100"
-                            >
-
-                            <div class="model-editor-field-help">
-                                A unique identifier for this relationship type.
-                            </div>
-
-
-                            <div
-                                class="model-editor-field-error"
-                                data-proposal-error
-                                hidden
-                            ></div>
-
-
-                            <div class="model-editor-actions">
-
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-outline-secondary"
-                                    data-proposal-action="cancel"
-                                >
-                                    Cancel
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-primary"
-                                    data-proposal-action="save"
-                                >
-                                    Save
-                                </button>
-
-                            </div>
-
+                        <div class="model-editor-field-help">
+                            Assigned automatically from the name when this type was created.
+                            Used to identify it in imports and exports. It never changes, even
+                            if the name does.
                         </div>
 
                     </div>
@@ -757,13 +692,7 @@
                                             Key
                                         </label>
 
-                                        <input
-                                            type="text"
-                                            name="attribute_key"
-                                            value="{{ attribute.proposed_values.key }}"
-                                            class="form-control"
-                                            maxlength="100"
-                                        >
+                                        <code class="model-key-value">{{ attribute.proposed_values.key }}</code>
 
                                     </div>
 
@@ -1095,23 +1024,6 @@
                                         class="form-control"
                                         maxlength="100"
                                         placeholder="e.g. Effective from"
-                                    >
-
-                                </div>
-
-
-                                <div class="model-editor-field">
-
-                                    <label>
-                                        Key
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="attribute_key"
-                                        class="form-control"
-                                        maxlength="100"
-                                        placeholder="e.g. effective_from"
                                     >
 
                                 </div>
@@ -1931,50 +1843,15 @@
                             required
                         >
 
+                        <div class="model-editor-field-help">
+                            A key is generated from the name.
+                        </div>
+
 
                         {% if form.name.errors %}
 
                             <div class="model-editor-field-error">
                                 {{ form.name.errors }}
-                            </div>
-
-                        {% endif %}
-
-                    </div>
-
-
-                    <div class="model-editor-field">
-
-                        <div class="model-editor-field-header">
-
-                            <label for="id_key">
-                                Key
-                            </label>
-
-                        </div>
-
-
-                        <input
-                            type="text"
-                            id="id_key"
-                            name="key"
-                            value="{{ form.key.value|default:'' }}"
-                            class="form-control"
-                            maxlength="100"
-                            placeholder="e.g. uses"
-                            required
-                        >
-
-
-                        <div class="model-editor-field-help">
-                            A unique identifier for this relationship type.
-                        </div>
-
-
-                        {% if form.key.errors %}
-
-                            <div class="model-editor-field-error">
-                                {{ form.key.errors }}
                             </div>
 
                         {% endif %}

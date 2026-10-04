@@ -38,6 +38,7 @@ class ObjectImportTests(ImportTestCase):
             change.after,
             {
                 "name": "Payroll",
+                "key": "payroll",
                 "description": "",
                 "is_active": True,
                 "attributes": {"app_id": "A1", "owner": "Finance", "cost": 1200},
@@ -240,9 +241,9 @@ class ObjectImportTests(ImportTestCase):
 
         self.assertEqual(plan.changes, [])
 
-    # -- identity: OnyxJar Object ID ----------------------------------------------------
+    # -- identity: Database ID (advanced/optional) --------------------------------------
 
-    def test_onyxjar_object_id_identifies_the_existing_object(self):
+    def test_database_id_identifies_the_existing_object(self):
         app = self.make_app("Payroll")
 
         plan = self.plan(
@@ -296,6 +297,113 @@ class ObjectImportTests(ImportTestCase):
 
         self.assertEqual(plan.problems[0].code, "unresolved_identity")
         self.assertNotIn("different", plan.problems[0].message)
+
+    # -- identity: OnyxJar Key (the normal identity column) ---------------------------
+
+    KEY = {"column": 0, "field": "identity.key"}
+
+    def test_key_identifies_the_existing_object(self):
+        app = self.make_app("Payroll")
+
+        plan = self.plan(
+            [["Key", "Name"], [app.key, "Payroll v2"]],
+            self.KEY, {"column": 1, "field": "field.name"},
+        )
+
+        self.assertEqual(plan.changes[0].target_id, app.id)
+        self.assertEqual(plan.changes[0].operation, "update")
+
+    def test_an_unknown_key_is_blocking(self):
+        plan = self.plan(
+            [["Key", "Name"], ["nope", "X"]],
+            self.KEY, {"column": 1, "field": "field.name"},
+        )
+
+        self.assertTrue(plan.blocked)
+        self.assertEqual(plan.problems[0].code, "unresolved_identity")
+
+    def test_a_blank_key_creates_a_new_object_with_a_generated_key(self):
+        plan = self.plan(
+            [["Key", "Name"], ["", "New App"]],
+            self.KEY, {"column": 1, "field": "field.name"},
+        )
+
+        self.assertFalse(plan.blocked)
+        (change,) = plan.changes
+        self.assertEqual(change.operation, "create")
+        self.assertEqual(change.after["key"], "new_app")
+
+    def test_two_new_rows_with_the_same_name_get_distinct_generated_keys(self):
+        plan = self.plan(
+            [["Key", "Name"], ["", "App"], ["", "App"]],
+            self.KEY, {"column": 1, "field": "field.name"},
+        )
+
+        self.assertFalse(plan.blocked)
+        keys = {change.after["key"] for change in plan.changes}
+        self.assertEqual(keys, {"app", "app_2"})
+
+    def test_key_and_database_id_that_agree_are_accepted(self):
+        app = self.make_app("Payroll")
+
+        plan = self.plan(
+            [["Key", "ID", "Name"], [app.key, str(app.id), "Payroll v2"]],
+            self.KEY, {"column": 1, "field": "identity.id"}, {"column": 2, "field": "field.name"},
+        )
+
+        self.assertFalse(plan.blocked)
+        self.assertEqual(len(plan.changes), 1)
+
+    def test_key_and_database_id_identifying_different_objects_is_a_mismatch(self):
+        one = self.make_app("One")
+        two = self.make_app("Two")
+
+        plan = self.plan(
+            [["Key", "ID", "Name"], [one.key, str(two.id), "X"]],
+            self.KEY, {"column": 1, "field": "identity.id"}, {"column": 2, "field": "field.name"},
+        )
+
+        self.assertEqual(plan.problems[0].code, "identity_mismatch")
+
+    def test_key_and_match_attribute_identifying_different_objects_is_a_mismatch(self):
+        one = self.make_app("One", "A1")
+        self.make_app("Two", "A2")
+
+        plan = self.plan(
+            [["Key", "App ID", "Name"], [one.key, "A2", "X"]],
+            self.KEY, self.MATCH | {"column": 1}, {"column": 2, "field": "field.name"},
+        )
+
+        self.assertEqual(plan.problems[0].code, "identity_mismatch")
+
+    def test_a_key_belonging_to_another_object_type_is_unresolved(self):
+        person = self.make_app("Ann", object_type=self.person_type)
+
+        plan = self.plan(
+            [["Key", "Name"], [person.key, "X"]],
+            self.KEY, {"column": 1, "field": "field.name"},
+        )
+
+        self.assertTrue(plan.blocked)
+        self.assertEqual(plan.problems[0].code, "unresolved_identity")
+
+    def test_the_preview_label_shows_the_generated_key_on_create(self):
+        plan = self.plan(
+            [["Key", "Name"], ["", "New App"]],
+            self.KEY, {"column": 1, "field": "field.name"},
+        )
+
+        self.assertIn("(new_app)", plan.items[0].label)
+
+    def test_the_preview_label_shows_the_key_on_update(self):
+        app = self.make_app("Payroll")
+
+        plan = self.plan(
+            [["Key", "Name"], [app.key, "Payroll v2"]],
+            self.KEY, {"column": 1, "field": "field.name"},
+        )
+
+        self.assertIn(f"({app.key})", plan.items[0].label)
 
     # -- identity: match attribute ----------------------------------------------------
 
@@ -433,15 +541,6 @@ class ObjectImportTests(ImportTestCase):
         self.assertEqual(plan.changes[0].after["attributes"], {"app_id": "A9"})
 
     # -- mapping and target validation -------------------------------------------------
-
-    def test_object_key_is_not_a_mappable_field(self):
-        source = self.stage([["Key", "Name"], ["K1", "X"]])
-
-        with self.assertRaises(MappingError):
-            preview_import(
-                self.model, source,
-                self.object_mapping({"column": 0, "field": "identity.key"}, self.NAME),
-            )
 
     def test_an_unknown_attribute_is_rejected(self):
         source = self.stage([["A", "B"], ["1", "2"]])

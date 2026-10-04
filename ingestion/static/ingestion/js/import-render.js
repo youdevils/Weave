@@ -101,7 +101,8 @@ function fieldSelect(options, current, usedElsewhere) {
 /** One table row per source column: header, sample values, and the mapping controls. */
 export function mappingTable({ kind, target, columns, sampleRows, rows, objectTypes }) {
   const options = fieldOptions(kind, target);
-  const resolvers = endpointResolvers(objectTypes);
+  const subjectResolvers = endpointResolvers(objectTypes, target?.subject_type_ids);
+  const objectResolvers = endpointResolvers(objectTypes, target?.object_type_ids);
   const used = new Set(rows.map((row) => row?.field).filter(Boolean));
 
   const body = columns
@@ -117,17 +118,20 @@ export function mappingTable({ kind, target, columns, sampleRows, rows, objectTy
       let extra = "";
 
       if (row.field === "endpoint.subject" || row.field === "endpoint.object") {
+        const resolvers = row.field === "endpoint.subject" ? subjectResolvers : objectResolvers;
+        const current = row.resolver || "";
+        const placeholder = `<option value=""${current === "" ? " selected" : ""}>Choose&hellip;</option>`;
         const choices = resolvers
           .map(
             (resolver) =>
-              `<option value="${e(resolver.value)}"${resolver.value === (row.resolver || "id") ? " selected" : ""}>${e(
+              `<option value="${e(resolver.value)}"${resolver.value === current ? " selected" : ""}>${e(
                 resolver.label,
               )}</option>`,
           )
           .join("");
 
         extra = `<label class="import-inline">Identified by
-          <select class="form-select form-select-sm" data-role="resolver" data-column="${e(column.index)}">${choices}</select>
+          <select class="form-select form-select-sm" data-role="resolver" data-column="${e(column.index)}">${placeholder}${choices}</select>
         </label>`;
       } else if (kind === KINDS.OBJECT && option?.identityEligible) {
         extra = `<label class="import-inline import-check">

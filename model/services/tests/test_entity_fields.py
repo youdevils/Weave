@@ -63,8 +63,9 @@ class IllegalFieldsTests(SimpleTestCase):
             [],
         )
 
-    def test_object_has_no_key(self):
-        self.assertEqual(entity_fields.illegal_fields("Object", ["key"]), ["key"])
+    def test_object_key_is_create_legal_but_never_update_legal(self):
+        self.assertEqual(entity_fields.illegal_fields("Object", ["key"], operation="create"), [])
+        self.assertEqual(entity_fields.illegal_fields("Object", ["key"], operation="update"), ["key"])
 
     def test_relationship_accepts_its_real_fields_including_attributes_prefix(self):
         self.assertEqual(
@@ -82,4 +83,24 @@ class IllegalFieldsTests(SimpleTestCase):
         self.assertEqual(
             entity_fields.illegal_fields("RelationshipType", ["from", "name", "to"]),
             ["from", "to"],
+        )
+
+    def test_key_is_legal_on_create_for_key_bearing_types(self):
+        for target_type in ("ObjectType", "RelationshipType", "AttributeDefinition", "Object"):
+            with self.subTest(target_type=target_type):
+                self.assertEqual(
+                    entity_fields.illegal_fields(target_type, ["key"], operation="create"), [],
+                )
+
+    def test_key_is_never_update_legal(self):
+        for target_type in ("ObjectType", "RelationshipType", "AttributeDefinition", "Object"):
+            with self.subTest(target_type=target_type):
+                self.assertEqual(
+                    entity_fields.illegal_fields(target_type, ["key"], operation="update"), ["key"],
+                )
+
+    def test_update_still_accepts_the_other_real_fields(self):
+        self.assertEqual(
+            entity_fields.illegal_fields("ObjectType", ["name", "description", "sort_order"], operation="update"),
+            [],
         )

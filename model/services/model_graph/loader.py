@@ -167,7 +167,7 @@ def _load_objects(model, changes, known_object_type_ids):
 
     # Not filtered on is_active in SQL: a proposed reactivation must be honoured.
     for obj in Object.objects.filter(model=model).only(
-        "id", "object_type_id", "name", "description", "attributes", "is_active"
+        "id", "object_type_id", "name", "key", "description", "attributes", "is_active"
     ):
         key = ("Object", str(obj.id))
         canonical_ids.add(key[1])
@@ -181,6 +181,7 @@ def _load_objects(model, changes, known_object_type_ids):
                 id=key[1],
                 type_id=str(obj.object_type_id),
                 name=values["name"],
+                key=values["key"],
                 description=values["description"] or "",
                 attributes=values["attributes"],
                 is_proposed=key in changes.touched,
@@ -196,6 +197,7 @@ def _load_objects(model, changes, known_object_type_ids):
         values = apply_field_updates(
             {
                 "name": after.get("name") or "Untitled",
+                "key": after.get("key") or "",
                 "description": after.get("description") or "",
                 "is_active": after.get("is_active", True),
                 "attributes": dict(after.get("attributes") or {}),
@@ -209,6 +211,7 @@ def _load_objects(model, changes, known_object_type_ids):
                 id=object_id,
                 type_id=str(change.parent_id),
                 name=values["name"],
+                key=values["key"],
                 description=values["description"],
                 attributes=values["attributes"],
                 is_proposed=True,

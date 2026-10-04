@@ -11,6 +11,7 @@ from model.models.proposal import Proposal, ProposalChange
 from model.models.relationship import Relationship
 from model.models.relationship_type import RelationshipType
 from model.models.relationship_type_rule import RelationshipTypeRule
+from model.services import keys
 from workspace.models import Workspace
 
 Op = ProposalChange.Operation
@@ -45,6 +46,10 @@ class ModelGraphTestCase(TestCase):
     # -- builders ------------------------------------------------------------
 
     def make_object(self, object_type, name, **kwargs):
+        kwargs.setdefault(
+            "key",
+            keys.generate_key("Object", name, model=self.model, parent_id=object_type.id),
+        )
         return Object.objects.create(model=self.model, object_type=object_type, name=name, **kwargs)
 
     def make_relationship(self, subject, target, relationship_type=None, **kwargs):

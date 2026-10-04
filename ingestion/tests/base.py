@@ -123,9 +123,9 @@ class ImportTestCase(TestCase):
             "columns": [dict(column) for column in columns],
         }
 
-    def relationship_mapping(self, *columns):
+    def relationship_mapping(self, *columns, type_id=None):
         return {
-            "target": {"kind": "relationship", "type_id": str(self.uses.id)},
+            "target": {"kind": "relationship", "type_id": str(type_id or self.uses.id)},
             "columns": [dict(column) for column in columns],
         }
 
@@ -136,6 +136,12 @@ class ImportTestCase(TestCase):
             "by": "attribute:app_id",
             "object_type_id": str(self.app_type.id),
         }
+
+    def by_key(self, column, field, object_type_id=None):
+        entry = {"column": column, "field": field, "by": "key"}
+        if object_type_id is not None:
+            entry["object_type_id"] = str(object_type_id)
+        return entry
 
     @staticmethod
     def new_id():

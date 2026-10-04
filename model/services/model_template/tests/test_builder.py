@@ -88,6 +88,27 @@ class BuildTemplateChangesShapeTests(SimpleTestCase):
             else:
                 self.assertIn(spec["parent_id"], relationship_type_uuids)
 
+    def test_object_creates_carry_their_template_defined_key(self):
+        # model.services.model_template keeps its own hand-authored slugs
+        # as the real Object.key (developer-authored, not user input --
+        # see model/services/keys.py's module docstring).
+        change_set = build_template_changes(DELIVERY_PROJECT_TEMPLATE, MODEL_ID)
+
+        definitions_by_key = {
+            definition["key"]: definition for definition in DELIVERY_PROJECT_TEMPLATE["objects"]
+        }
+        object_specs = _by_type(change_set.specs, "Object")
+        self.assertEqual(len(object_specs), len(definitions_by_key))
+
+        seen_keys = set()
+        for spec in object_specs:
+            key = spec["after"]["key"]
+            self.assertIn(key, definitions_by_key)
+            self.assertEqual(spec["after"]["name"], definitions_by_key[key]["name"])
+            seen_keys.add(key)
+
+        self.assertEqual(seen_keys, set(definitions_by_key))
+
     def test_rules_resolve_subject_and_object_type_ids(self):
         change_set = build_template_changes(DELIVERY_PROJECT_TEMPLATE, MODEL_ID)
 

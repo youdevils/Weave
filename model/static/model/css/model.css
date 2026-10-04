@@ -24,6 +24,15 @@
   --onyxjar-border-lighter: var(--onyxjar-mist);
 }
 
+/* A read-only, application-assigned key (ObjectType/RelationshipType/
+   AttributeDefinition/Object) shown secondary to its entity's name --
+   never an input, since keys are generated once and never edited. */
+.model-key-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  color: var(--onyxjar-text-secondary);
+}
+
 /* =========================================================
    Model shell / sidebar
    ========================================================= */

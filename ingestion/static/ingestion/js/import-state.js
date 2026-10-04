@@ -30,7 +30,7 @@ export function fieldOptions(kind, target) {
 
   if (kind === KINDS.RELATIONSHIP) {
     return [
-      { group: "Identity", value: "identity.id", label: "OnyxJar Relationship ID" },
+      { group: "Advanced", value: "identity.id", label: "Database ID (advanced)" },
       { group: "Endpoints", value: "endpoint.subject", label: "Source object" },
       { group: "Endpoints", value: "endpoint.object", label: "Target object" },
       { group: "Built-in fields", value: "field.is_active", label: "Active" },
@@ -39,7 +39,8 @@ export function fieldOptions(kind, target) {
   }
 
   return [
-    { group: "Identity", value: "identity.id", label: "OnyxJar Object ID" },
+    { group: "Identity", value: "identity.key", label: "OnyxJar Key" },
+    { group: "Advanced", value: "identity.id", label: "Database ID (advanced)" },
     { group: "Built-in fields", value: "field.name", label: "Name" },
     { group: "Built-in fields", value: "field.description", label: "Description" },
     { group: "Built-in fields", value: "field.is_active", label: "Active" },
@@ -47,11 +48,35 @@ export function fieldOptions(kind, target) {
   ];
 }
 
-/** Ways an endpoint can be identified: by OnyxJar Object ID, or by an object type's attribute. */
-export function endpointResolvers(objectTypes) {
-  const resolvers = [{ value: "id", label: "OnyxJar Object ID" }];
+/**
+ * Ways one endpoint column can be identified, scoped to `candidateTypeIds`
+ * (the object types the relationship's own rules allow on that side --
+ * TargetSpec.subject_type_ids / object_type_ids from the server). The
+ * normal choice is the object's OnyxJar Key, searched across every allowed
+ * type on that side; when more than one type is allowed, pinning the
+ * column to one specific type is also offered (unambiguous by
+ * construction, and the simpler/faster path when it applies). An
+ * explicitly chosen attribute, or the Database ID, remain advanced/
+ * optional alternatives.
+ */
+export function endpointResolvers(objectTypes, candidateTypeIds) {
+  const candidates = (objectTypes ?? []).filter(
+    (type) => !candidateTypeIds || candidateTypeIds.includes(type.type_id),
+  );
 
-  for (const type of objectTypes ?? []) {
+  const resolvers = [];
+
+  if (candidates.length) {
+    resolvers.push({ value: "key", label: "OnyxJar Key" });
+  }
+
+  if (candidates.length > 1) {
+    for (const type of candidates) {
+      resolvers.push({ value: `key:${type.type_id}`, label: `${type.name}: Key only` });
+    }
+  }
+
+  for (const type of candidates) {
     for (const attribute of type.attributes ?? []) {
       if (attribute.identity_eligible) {
         resolvers.push({
@@ -62,10 +87,33 @@ export function endpointResolvers(objectTypes) {
     }
   }
 
+  resolvers.push({ value: "id", label: "Database ID (advanced)" });
+
   return resolvers;
 }
 
+/**
+ * The resolver to pre-select once an endpoint column's field is chosen:
+ * pinned to the one type the relationship allows on `side`
+ * ("subject"/"object") when there's exactly one, otherwise left for the
+ * person to choose explicitly -- never a silent guess when more than one
+ * type is allowed, since the key could ambiguously match more than one
+ * of them (surfaced as a blocking error at preview time, not here).
+ */
+export function defaultResolver(target, side) {
+  const candidateIds = side === "subject" ? target?.subject_type_ids : target?.object_type_ids;
+
+  if (candidateIds?.length === 1) {
+    return `key:${candidateIds[0]}`;
+  }
+
+  return "";
+}
+
 const HEADER_SYNONYMS = {
+  onyxjarkey: "identity.key",
+  key: "identity.key",
+  objectkey: "identity.key",
   onyxjarid: "identity.id",
   objectid: "identity.id",
   onyxjarobjectid: "identity.id",
@@ -77,10 +125,14 @@ const HEADER_SYNONYMS = {
   from: "endpoint.subject",
   subject: "endpoint.subject",
   sourceobject: "endpoint.subject",
+  sourceobjectkey: "endpoint.subject",
+  sourcekey: "endpoint.subject",
   target: "endpoint.object",
   to: "endpoint.object",
   object: "endpoint.object",
   targetobject: "endpoint.object",
+  targetobjectkey: "endpoint.object",
+  targetkey: "endpoint.object",
 };
 
 /**
@@ -118,11 +170,15 @@ export function suggestMapping(headers, options) {
 }
 
 /** A blank row of mapping controls for one source column. */
-export const emptyRow = () => ({ field: "", match: false, resolver: "id" });
+export const emptyRow = () => ({ field: "", match: false, resolver: "" });
 
 /**
  * The mapping document from the page's per-column rows (`rows[columnIndex]`).
- * Columns with no field are unmapped and omitted.
+ * Columns with no field are unmapped and omitted. An endpoint column with
+ * no resolver chosen is sent with no `by` at all -- the server's own
+ * mapping validation rejects that ("choose how the endpoint is
+ * identified"), which is the forcing function for a person to pick one
+ * when defaultResolver() left it unset (more than one type allowed).
  */
 export function buildMapping({ kind, typeId, rows }) {
   const columns = [];
@@ -137,15 +193,21 @@ export function buildMapping({ kind, typeId, rows }) {
     }
 
     if (row.field === "endpoint.subject" || row.field === "endpoint.object") {
-      const resolver = row.resolver || "id";
+      const resolver = row.resolver || "";
 
       if (resolver === "id") {
         entry.by = "id";
-      } else {
+      } else if (resolver === "key") {
+        entry.by = "key";
+      } else if (resolver.startsWith("key:")) {
+        entry.by = "key";
+        entry.object_type_id = resolver.slice("key:".length);
+      } else if (resolver.startsWith("attribute:")) {
         const [, objectTypeId, ...key] = resolver.split(":");
         entry.by = `attribute:${key.join(":")}`;
         entry.object_type_id = objectTypeId;
       }
+      // else: no resolver chosen yet -- entry.by stays unset, see docstring.
     }
 
     columns.push(entry);

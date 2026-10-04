@@ -16,6 +16,7 @@ from ingestion.services.errors import TargetError
 from model.models.attribute_definition import AttributeDefinition
 from model.models.object_type import ObjectType
 from model.models.relationship_type import RelationshipType
+from model.models.relationship_type_rule import RelationshipTypeRule
 
 DataType = AttributeDefinition.DataType
 
@@ -66,6 +67,18 @@ class TargetSpec:
     name: str
     key: str
     attributes: tuple
+    # RELATIONSHIP only: the object types this relationship's own rules
+    # allow on each side, and the exact (subject_type_id, object_type_id)
+    # pairs those rules permit -- each side resolving to *some* allowed
+    # type does not mean the pair they form together is permitted. Used
+    # to scope key-based endpoint resolution (search every allowed type
+    # on that side) and to validate the resolved pair.
+    subject_type_ids: tuple = ()
+    object_type_ids: tuple = ()
+    allowed_pairs: tuple = ()
+    # (type_id, name) for every id appearing in subject_type_ids/
+    # object_type_ids -- display only (template comments, wizard labels).
+    endpoint_type_names: tuple = ()
 
     def attribute(self, key):
         for attribute in self.attributes:
@@ -74,13 +87,27 @@ class TargetSpec:
 
         return None
 
+    def endpoint_type_name(self, type_id):
+        for candidate_id, name in self.endpoint_type_names:
+            if candidate_id == type_id:
+                return name
+
+        return None
+
     def to_dict(self):
-        return {
+        data = {
             "kind": self.kind,
             "type_id": str(self.type_id),
             "name": self.name,
+            "key": self.key,
             "attributes": [attribute.to_dict() for attribute in self.attributes],
         }
+
+        if self.kind == RELATIONSHIP:
+            data["subject_type_ids"] = [str(type_id) for type_id in self.subject_type_ids]
+            data["object_type_ids"] = [str(type_id) for type_id in self.object_type_ids]
+
+        return data
 
 
 def _attribute_specs(queryset):
@@ -109,7 +136,49 @@ def _object_spec(object_type) -> TargetSpec:
     )
 
 
+def endpoint_type_ids(relationship_type_id):
+    """
+    (subject_type_ids, object_type_ids, allowed_pairs, names) for one
+    RelationshipType, read directly from its RelationshipTypeRule rows (a
+    canonical model, not proposal-related -- safe to read from ingestion's
+    planners under the same rule identity.py already follows for Object/
+    Relationship). One RelationshipType can have several rules, each its
+    own (subject_type, object_type) pair -- the sets below are every
+    distinct type seen on each side; `allowed_pairs` is the exact set of
+    pairs those rules permit, which is not simply every combination of
+    the two sets. `names` is (type_id, name) for every distinct type
+    seen, resolved in the same query (select_related) -- display only.
+    """
+
+    rules = RelationshipTypeRule.objects.filter(
+        relationship_type_id=relationship_type_id
+    ).select_related("subject_type", "object_type")
+
+    subject_type_ids = set()
+    object_type_ids = set()
+    allowed_pairs = set()
+    names = {}
+
+    for rule in rules:
+        subject_type_ids.add(rule.subject_type_id)
+        object_type_ids.add(rule.object_type_id)
+        allowed_pairs.add((rule.subject_type_id, rule.object_type_id))
+        names[rule.subject_type_id] = rule.subject_type.name
+        names[rule.object_type_id] = rule.object_type.name
+
+    return (
+        tuple(subject_type_ids),
+        tuple(object_type_ids),
+        tuple(allowed_pairs),
+        tuple(names.items()),
+    )
+
+
 def _relationship_spec(relationship_type) -> TargetSpec:
+    subject_type_ids, object_type_ids, allowed_pairs, endpoint_type_names = endpoint_type_ids(
+        relationship_type.id
+    )
+
     return TargetSpec(
         kind=RELATIONSHIP,
         type_id=relationship_type.id,
@@ -118,6 +187,10 @@ def _relationship_spec(relationship_type) -> TargetSpec:
         attributes=_attribute_specs(
             AttributeDefinition.objects.filter(relationship_type=relationship_type)
         ),
+        subject_type_ids=subject_type_ids,
+        object_type_ids=object_type_ids,
+        allowed_pairs=allowed_pairs,
+        endpoint_type_names=endpoint_type_names,
     )
 
 

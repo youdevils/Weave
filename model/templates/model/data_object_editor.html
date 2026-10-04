@@ -37,6 +37,11 @@
 
             </h1>
 
+            {% if object %}
+                <p class="model-page-description">
+                    <code class="model-key-value">{{ proposed_values.key }}</code>
+                </p>
+            {% endif %}
 
             <p class="model-page-description">
                 {{ object_type.name }} record.

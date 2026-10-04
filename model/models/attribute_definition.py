@@ -2,6 +2,7 @@ import uuid
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 
 
 class AttributeDefinition(models.Model):
@@ -90,6 +91,18 @@ class AttributeDefinition(models.Model):
 
     class Meta:
         ordering = ["sort_order", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["object_type", "key"],
+                condition=Q(object_type__isnull=False),
+                name="uniq_attrdef_objecttype_key",
+            ),
+            models.UniqueConstraint(
+                fields=["relationship_type", "key"],
+                condition=Q(relationship_type__isnull=False),
+                name="uniq_attrdef_relationshiptype_key",
+            ),
+        ]
 
     def clean(self):
         super().clean()

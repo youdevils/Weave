@@ -63,6 +63,7 @@ class EffectiveObject:
     id: str
     type_id: str
     name: str
+    key: str = ""
     description: str = ""
     attributes: dict = field(default_factory=dict)
     is_proposed: bool = False

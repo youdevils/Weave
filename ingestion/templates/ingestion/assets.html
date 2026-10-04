@@ -173,9 +173,11 @@
 
                     <ul class="import-guidance">
                         <li>
-                            To update records that already exist, map a column that identifies them: an
-                            OnyxJar ID, or one of the type&rsquo;s own attributes (such as an application
-                            id from your source system) marked &ldquo;Use to identify&rdquo;.
+                            To update records that already exist, map a column that identifies them: the
+                            object&rsquo;s OnyxJar Key, or one of the type&rsquo;s own attributes (such as
+                            an application id from your source system) marked &ldquo;Use to
+                            identify&rdquo;. The internal Database ID is also available as an advanced
+                            option.
                         </li>
                         <li>Names are never used to match records.</li>
                         <li>A blank cell clears the corresponding value.</li>
@@ -276,6 +278,8 @@
                            href="{% url 'ingestion:download_template' model.id 'object' type.type_id 'csv' %}">CSV</a>
                         <a class="btn btn-outline-primary btn-sm"
                            href="{% url 'ingestion:download_template' model.id 'object' type.type_id 'xlsx' %}">Excel</a>
+                        <a class="btn btn-outline-secondary btn-sm"
+                           href="{% url 'ingestion:download_template' model.id 'object' type.type_id 'csv' %}?data=1">Download with current data</a>
                     </span>
                 </div>
             </div>
@@ -297,6 +301,8 @@
                            href="{% url 'ingestion:download_template' model.id 'relationship' type.type_id 'csv' %}">CSV</a>
                         <a class="btn btn-outline-primary btn-sm"
                            href="{% url 'ingestion:download_template' model.id 'relationship' type.type_id 'xlsx' %}">Excel</a>
+                        <a class="btn btn-outline-secondary btn-sm"
+                           href="{% url 'ingestion:download_template' model.id 'relationship' type.type_id 'csv' %}?data=1">Download with current data</a>
                     </span>
                 </div>
             </div>

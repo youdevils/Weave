@@ -35,6 +35,23 @@ class CanonicalLoadingTests(ModelGraphTestCase):
         self.assertEqual((loaded.source_id, loaded.target_id), (str(alice.id), str(ops.id)))  # direction kept
         self.assertFalse(loaded.is_proposed)
 
+    def test_canonical_object_carries_its_key(self):
+        alice = self.make_object(self.person_type, "Alice")
+
+        dataset = load_effective_dataset(self.model)
+
+        self.assertEqual(dataset.objects[str(alice.id)].key, alice.key)
+
+    def test_proposal_only_object_carries_its_drafted_key(self):
+        proposal = self.working_proposal()
+        object_id = self.propose_object(
+            proposal, self.person_type.id, "Drafted", key="drafted_key",
+        )
+
+        dataset = load_effective_dataset(self.model, proposal=proposal)
+
+        self.assertEqual(dataset.objects[str(object_id)].key, "drafted_key")
+
     def test_inactive_objects_and_their_relationships_are_excluded(self):
         alice = self.make_object(self.person_type, "Alice")
         bob = self.make_object(self.person_type, "Bob", is_active=False)
@@ -173,7 +190,7 @@ class CanonicalLoadingTests(ModelGraphTestCase):
     def test_other_models_data_is_never_loaded(self):
         other = Model.objects.create(workspace=self.workspace, name="Other", revision=1)
         other_type = ObjectType.objects.create(model=other, name="Thing", key="thing", is_active=True)
-        Object.objects.create(model=other, object_type=other_type, name="Elsewhere")
+        Object.objects.create(model=other, object_type=other_type, name="Elsewhere", key="elsewhere")
 
         self.assertEqual(load_effective_dataset(self.model).objects, {})
 

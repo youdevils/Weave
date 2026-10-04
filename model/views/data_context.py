@@ -286,6 +286,7 @@ def apply_field_updates(
 def _canonical_object_values(obj):
     return {
         "name": obj.name,
+        "key": obj.key,
         "description": obj.description,
         "is_active": obj.is_active,
         "attributes": dict(obj.attributes or {}),
@@ -370,6 +371,7 @@ def build_working_objects(
                 id=obj.id,
                 object_type_id=obj.object_type_id,
                 name=effective["name"],
+                key=obj.key,
                 description=effective["description"],
                 is_active=effective["is_active"],
                 attributes=effective["attributes"],
@@ -432,6 +434,7 @@ def build_proposed_only_objects(
                 id=change.target_id,
                 object_type_id=object_type.id,
                 name=after.get("name", ""),
+                key=after.get("key", ""),
                 description=after.get("description", ""),
                 is_active=after.get("is_active", True),
                 attributes=dict(after.get("attributes") or {}),

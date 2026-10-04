@@ -2,26 +2,31 @@
 Plan an Object import: one existing ObjectType, one row per Object.
 
 Per row:
-  1. identify the record  -- OnyxJar Object ID and/or the explicitly chosen match
+  1. identify the record  -- the object's OnyxJar Key (the normal column),
+                             and/or, as advanced/optional cross-checks, its
+                             Database ID and/or the explicitly chosen match
                              attribute, exactly, or no identity (a new record);
   2. accumulate           -- later rows overwrite earlier assignments to the
                              same target field (blank is a real assignment);
   3. after the last row   -- compare each existing record's *final* values with
                              its canonical ones: differences become UPDATEs
                              (canonical before -> final after), the rest NO-OP;
-                             new records become one CREATE each.
+                             new records become one CREATE each, with a new
+                             key derived from its name (never from a key cell
+                             -- see _identify).
 
 Nothing here judges whether a change is allowed.
 """
 
 from ingestion.services import coercion
-from ingestion.services.identity import AttributeIndex
+from ingestion.services.identity import AttributeIndex, KeyIndex
 from ingestion.services.mapping import (
     BUILTIN_FIELD_PATHS,
     FIELD_DESCRIPTION,
     FIELD_IS_ACTIVE,
     FIELD_NAME,
     IDENTITY_ID,
+    IDENTITY_KEY,
 )
 from ingestion.services.plan import (
     CREATE,
@@ -40,6 +45,7 @@ from ingestion.services.plan import (
     values_equal,
 )
 from model.models.object import Object
+from model.services import keys as key_service
 from model.services.field_paths import attribute_field_name
 
 
@@ -50,14 +56,16 @@ def plan_object_import(model, table, target, mapping) -> ImportPlan:
     canonical = {
         row["id"]: row
         for row in Object.objects.filter(model=model, object_type_id=type_id).values(
-            "id", "name", "description", "is_active", "attributes"
+            "id", "name", "key", "description", "is_active", "attributes"
         )
     }
 
+    key_entry = mapping.get(IDENTITY_KEY)
     id_entry = mapping.get(IDENTITY_ID)
     match_entry = mapping.match_column
     value_entries = mapping.value_columns
 
+    key_index = KeyIndex(model, type_id) if key_entry else None
     match_attribute = target.attribute(match_entry.attribute_key) if match_entry else None
     index = (
         AttributeIndex(model, type_id, match_attribute.key) if match_entry else None
@@ -69,7 +77,7 @@ def plan_object_import(model, table, target, mapping) -> ImportPlan:
     problems = []
     accumulator = Accumulator()
 
-    if id_entry is None and match_entry is None:
+    if key_entry is None and id_entry is None and match_entry is None:
         summary.warnings.append(
             "No identity column is mapped, so every row creates a new object. Importing "
             "the same file again will create them again."
@@ -78,7 +86,7 @@ def plan_object_import(model, table, target, mapping) -> ImportPlan:
     for row_number, row in zip(table.row_numbers, table.rows):
 
         outcome = _identify(
-            row_number, row, id_entry, match_entry, match_attribute, index,
+            row_number, row, key_entry, key_index, id_entry, match_entry, match_attribute, index,
             canonical, other_type_ids,
         )
 
@@ -106,7 +114,7 @@ def plan_object_import(model, table, target, mapping) -> ImportPlan:
     if problems:
         return ImportPlan(summary=summary, problems=problems)
 
-    return _emit(target, mapping, value_entries, canonical, accumulator, summary)
+    return _emit(model, target, mapping, value_entries, canonical, accumulator, summary)
 
 
 # ---------------------------------------------------------------------------
@@ -142,13 +150,33 @@ def _ids_of_other_types(model, type_id, table, id_entry):
     )
 
 
-def _identify(row_number, row, id_entry, match_entry, match_attribute, index, canonical, other_type_ids):
+def _identify(row_number, row, key_entry, key_index, id_entry, match_entry, match_attribute, index,
+              canonical, other_type_ids):
 
-    existing_id = None
+    key_id = None
+
+    # -- the OnyxJar Key (the normal identity column) ------------------------
+
+    if key_entry is not None and not coercion.is_blank(row[key_entry.column]):
+
+        cell = row[key_entry.column]
+        matches = key_index.find(str(cell).strip())
+
+        if not matches:
+            return _Identified(problem=problem(
+                "unresolved_identity",
+                f"No object has key '{snippet(cell)}'. Keys are assigned by OnyxJar: leave "
+                "the cell blank to create a new object.",
+                row_number,
+            ))
+
+        key_id = matches[0]
+
+    existing_id = key_id
     match_key = None
     match_value = None
 
-    # -- the OnyxJar Object ID ------------------------------------------------
+    # -- the Database ID (an advanced/optional cross-check) -------------------
 
     if id_entry is not None and not coercion.is_blank(row[id_entry.column]):
 
@@ -158,28 +186,34 @@ def _identify(row_number, row, id_entry, match_entry, match_attribute, index, ca
         if parsed is None:
             return _Identified(problem=problem(
                 "invalid_identity_id",
-                f"'{snippet(cell)}' is not a valid OnyxJar Object ID.",
+                f"'{snippet(cell)}' is not a valid Database ID.",
                 row_number,
             ))
 
-        if parsed in canonical:
-            existing_id = parsed
-
-        elif parsed in other_type_ids:
+        if parsed in other_type_ids:
             return _Identified(problem=problem(
                 "wrong_object_type",
                 f"Object '{snippet(cell)}' belongs to a different object type.",
                 row_number,
             ))
 
-        else:
+        if parsed not in canonical:
             return _Identified(problem=problem(
                 "unresolved_identity",
                 f"No object with id '{snippet(cell)}' exists in this model.",
                 row_number,
             ))
 
-    # -- the match attribute ------------------------------------------------
+        if key_id is not None and parsed != key_id:
+            return _Identified(problem=problem(
+                "identity_mismatch",
+                f"The key and the Database ID on this row identify different objects.",
+                row_number,
+            ))
+
+        existing_id = parsed
+
+    # -- the match attribute (an advanced/optional cross-check) ---------------
 
     matches = None
 
@@ -289,10 +323,17 @@ def _path(entry):
 # ---------------------------------------------------------------------------
 
 
-def _emit(target, mapping, value_entries, canonical, accumulator, summary):
+def _emit(model, target, mapping, value_entries, canonical, accumulator, summary):
 
     changes = []
     items = []
+
+    # Seeded once from the DB, then grown as each new row's key is
+    # allocated, so two new rows in the same import never collide with
+    # each other even though neither is in the database yet.
+    used_keys = key_service.existing_keys_for(
+        "Object", model, parent_type="ObjectType", parent_id=target.type_id,
+    )
 
     for entry in accumulator.targets.values():
 
@@ -338,13 +379,13 @@ def _emit(target, mapping, value_entries, canonical, accumulator, summary):
                     )
                 )
 
-            _preview(items, UPDATE, row["name"], entry, [
+            _preview(items, UPDATE, f"{row['name']} ({row['key']})", entry, [
                 {"field": path, "before": before, "after": after} for path, before, after in fields
             ])
 
             continue
 
-        payload = _create_payload(value_entries, entry)
+        payload = _create_payload(value_entries, entry, used_keys)
 
         summary.creates += 1
 
@@ -360,19 +401,33 @@ def _emit(target, mapping, value_entries, canonical, accumulator, summary):
             )
         )
 
-        _preview(items, CREATE, payload["name"] or "(no name)", entry, _create_fields(payload))
+        label = f"{payload['name'] or '(no name)'} ({payload['key']})"
+        _preview(items, CREATE, label, entry, _create_fields(payload))
 
     return enforce_change_limit(ImportPlan(summary=summary, changes=changes, items=items))
 
 
-def _create_payload(value_entries, entry):
+def _create_payload(value_entries, entry, used_keys):
     """
     The CREATE payload, shaped exactly as the record editor writes it. A blank
     attribute or is_active is left out (unset), so the model default applies.
+
+    The key is always derived from the name here -- never from an identity
+    cell (a key cell only ever identifies an *existing* object; see
+    _identify) -- using the same slug/fallback/suffix rule every other
+    creation path uses (model.services.keys), against `used_keys` (seeded
+    from the DB once by the caller, then grown here as each new row
+    allocates its own) so two new rows in the same import never collide
+    with each other, without a DB round trip per row.
     """
 
+    name = entry.assign.get(FIELD_NAME, "")
+    key = key_service.make_unique_key(name, used_keys, fallback="object")
+    used_keys.add(key)
+
     payload = {
-        "name": entry.assign.get(FIELD_NAME, ""),
+        "name": name,
+        "key": key,
         "description": entry.assign.get(FIELD_DESCRIPTION, ""),
         "is_active": True,
         "attributes": {},

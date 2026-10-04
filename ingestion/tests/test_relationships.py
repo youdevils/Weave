@@ -21,9 +21,9 @@ class RelationshipImportTests(ImportTestCase):
             model=cls.model, object_type=cls.app_type, name=name, attributes={"app_id": app_id}
         )
 
-    def plan(self, rows, *columns):
+    def plan(self, rows, *columns, type_id=None):
         source = self.stage(rows, "rels.csv")
-        return preview_import(self.model, source, self.relationship_mapping(*columns))
+        return preview_import(self.model, source, self.relationship_mapping(*columns, type_id=type_id))
 
     def endpoints(self):
         return (
@@ -55,7 +55,7 @@ class RelationshipImportTests(ImportTestCase):
 
         self.assertEqual(plan.changes[0].after["attributes"], {"since": "2024-01-01"})
 
-    def test_endpoints_can_be_given_by_onyxjar_object_id(self):
+    def test_endpoints_can_be_given_by_database_id(self):
         plan = self.plan(
             [["From", "To"], [str(self.a.id), str(self.b.id)]],
             {"column": 0, "field": "endpoint.subject", "by": "id"},
@@ -199,7 +199,7 @@ class RelationshipImportTests(ImportTestCase):
 
         self.assertEqual([p.row for p in plan.problems], [2, 3])
 
-    # -- OnyxJar Relationship ID ----------------------------------------------------------
+    # -- Database ID (advanced/optional) -----------------------------------------------
 
     def test_a_relationship_id_identifies_the_relationship_without_endpoints(self):
         existing = self.make_uses(self.a, self.b)
@@ -301,13 +301,15 @@ class RelationshipImportTests(ImportTestCase):
                 ),
             )
 
-    def test_the_relationship_rules_are_not_the_importers_concern(self):
-        # Person -> Person is not permitted by the `uses` rule; the plan still
-        # builds the CREATE and leaves the verdict to the Proposal validator.
+    def test_a_resolved_pair_not_permitted_by_the_relationship_rules_blocks(self):
+        # Person -> Person is not permitted by the `uses` rule (Application ->
+        # Application only): each endpoint resolves individually, but the
+        # pair they form together is checked against the rule's actual
+        # allowed pairs and blocks -- it is not left to the Proposal validator.
         from model.models.object import Object
 
         Object.objects.create(model=self.model, object_type=self.person_type, name="Ann", attributes={})
-        person_id_attr = self.attribute(self.person_type, "Badge", "badge", "text")
+        self.attribute(self.person_type, "Badge", "badge", "text")
         Object.objects.filter(name="Ann").update(attributes={"badge": "P1"})
 
         plan = self.plan(
@@ -318,5 +320,86 @@ class RelationshipImportTests(ImportTestCase):
              "object_type_id": str(self.person_type.id)},
         )
 
+        self.assertTrue(plan.blocked)
+        self.assertEqual(plan.problems[0].code, "endpoint_pair_not_allowed")
+        self.assertEqual(plan.changes, [])
+
+    # -- endpoints by OnyxJar Key (the normal path) ------------------------------------
+
+    def test_endpoints_resolve_by_key_searching_all_allowed_types(self):
+        plan = self.plan(
+            [["From", "To"], [self.a.key, self.b.key]],
+            self.by_key(0, "endpoint.subject"), self.by_key(1, "endpoint.object"),
+        )
+
         self.assertFalse(plan.blocked)
-        self.assertEqual(plan.changes[0].operation, "create")
+        self.assertEqual(plan.changes[0].after["subject_id"], str(self.a.id))
+        self.assertEqual(plan.changes[0].after["object_id"], str(self.b.id))
+
+    def test_an_unresolved_endpoint_key_blocks(self):
+        plan = self.plan(
+            [["From", "To"], [self.a.key, "nope"]],
+            self.by_key(0, "endpoint.subject"), self.by_key(1, "endpoint.object"),
+        )
+
+        self.assertTrue(plan.blocked)
+        self.assertEqual(plan.problems[0].code, "unresolved_endpoint")
+
+    def test_an_existing_pair_resolved_by_keys_updates(self):
+        existing = self.make_uses(self.a, self.b, since="2020-01-01")
+
+        plan = self.plan(
+            [["From", "To", "Since"], [self.a.key, self.b.key, "2024-01-01"]],
+            self.by_key(0, "endpoint.subject"), self.by_key(1, "endpoint.object"),
+            {"column": 2, "field": "attribute.since"},
+        )
+
+        (change,) = plan.changes
+        self.assertEqual(change.operation, "update")
+        self.assertEqual(change.target_id, existing.id)
+
+    def _make_flexible_relationship_type(self):
+        from model.models.relationship_type import RelationshipType
+        from model.models.relationship_type_rule import RelationshipTypeRule
+
+        flexible = RelationshipType.objects.create(model=self.model, name="Flexible", key="flexible")
+        RelationshipTypeRule.objects.create(
+            relationship_type=flexible, subject_type=self.app_type, object_type=self.app_type
+        )
+        RelationshipTypeRule.objects.create(
+            relationship_type=flexible, subject_type=self.app_type, object_type=self.person_type
+        )
+        return flexible
+
+    def test_endpoint_key_ambiguous_across_two_allowed_types_blocks(self):
+        from model.models.object import Object
+
+        flexible = self._make_flexible_relationship_type()
+        Object.objects.filter(pk=self.b.pk).update(key="widget")
+        Object.objects.create(model=self.model, object_type=self.person_type, name="Widget Person", key="widget")
+
+        plan = self.plan(
+            [["From", "To"], [self.a.key, "widget"]],
+            self.by_key(0, "endpoint.subject"), self.by_key(1, "endpoint.object"),
+            type_id=flexible.id,
+        )
+
+        self.assertTrue(plan.blocked)
+        self.assertEqual(plan.problems[0].code, "ambiguous_endpoint_key")
+
+    def test_endpoint_key_pinned_to_one_type_is_unambiguous_even_if_key_exists_elsewhere(self):
+        from model.models.object import Object
+
+        flexible = self._make_flexible_relationship_type()
+        Object.objects.filter(pk=self.b.pk).update(key="widget")
+        Object.objects.create(model=self.model, object_type=self.person_type, name="Widget Person", key="widget")
+
+        plan = self.plan(
+            [["From", "To"], [self.a.key, "widget"]],
+            self.by_key(0, "endpoint.subject", self.app_type.id),
+            self.by_key(1, "endpoint.object", self.app_type.id),
+            type_id=flexible.id,
+        )
+
+        self.assertFalse(plan.blocked)
+        self.assertEqual(plan.changes[0].after["object_id"], str(self.b.id))

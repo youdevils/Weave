@@ -21,12 +21,21 @@ existing Proposal validator's job (`model.services.validation`), which Import ne
 - **Blocking, not skipping.** A row whose identity cannot be determined (unresolved, ambiguous, mismatched,
   unreadable id/endpoint) blocks the whole import. Nothing partial is ever created.
 - **Canonical only.** Matching reads `Object` / `Relationship` tables. Other proposals are never consulted.
-- **Identity is explicit and exact:** an OnyxJar Object/Relationship ID, or one attribute the user marks "use to
-  identify" (trimmed once, compared case-sensitively and type-strictly). Names are never matched. OnyxJar Keys do not
-  exist; the resolvers are where they would be added.
+- **Identity is explicit and exact.** For objects, the normal column is the object's OnyxJar Key (assigned by the
+  application; never user-typed). A key cell that matches an existing object's key updates it; one that matches
+  nothing blocks the import; a blank cell creates a new object and leaves the application to assign its key. The
+  internal Database ID and a user-marked "use to identify" attribute remain available as advanced/optional
+  alternatives (trimmed once, compared case-sensitively and type-strictly). Names are never matched.
+- **Relationship endpoints resolve by object key**, searched across every object type the relationship's rules
+  allow on that side. Found in exactly one candidate type ⇒ resolved. Found in zero ⇒ blocked
+  (`unresolved_endpoint`). **Found in more than one ⇒ blocked (`ambiguous_endpoint_key`), never guessed** — map the
+  column to one specific type (pin it), or make the key unique across those types. Once both endpoints resolve, the
+  pair is checked against the relationship type's actual allowed `(subject_type, object_type)` pairs — each side
+  being individually valid does not mean the pair is permitted. Database ID remains an advanced/optional column.
 - **The match attribute is never updated on an existing object** (even when its cell is blank); it is written on CREATE.
 - **Later rows win**, blank is a real assignment, and only *canonical-before → final-after* changes are emitted.
-- **Relationship direction is part of identity.** Endpoints are cross-checks only when a relationship id is given.
+- **Relationship direction is part of identity.** A relationship's identity is its type plus its resolved
+  `(source, target)` endpoints — it has no key of its own.
 - **No deletion or sync semantics.** Import is CREATE / UPDATE / NO-OP.
 - **Blank:** UPDATE ⇒ `null` (`""` for name/description); CREATE ⇒ key omitted (as the record editors do).
 
@@ -39,7 +48,7 @@ existing Proposal validator's job (`model.services.validation`), which Import ne
 | `services/source_file.py` | Store/sanitise/stage/sweep uploaded sources |
 | `services/targets.py`, `mapping.py` | Canonical targets and the validated, canonical mapping document |
 | `services/coercion.py` | Cell → the JSON value a change carries (representation only) |
-| `services/identity.py` | Exact attribute index and endpoint resolution |
+| `services/identity.py` | Key/attribute indexes and endpoint resolution |
 | `services/object_planner.py`, `relationship_planner.py`, `plan.py`, `planner.py` | Rows → `ImportPlan` (changes, problems, summary) |
 | `services/proposals.py` | The one transactional path that creates the proposal and evidence |
 | `access.py`, `views.py`, `uploads.py`, `urls.py` | Owner/Editor only (Viewer 403, non-member 404); size limit on received bytes |
@@ -65,8 +74,8 @@ the Proposal Review page, which renders every change (~13 KB of HTML each); rais
 ## Known limitations / deferred
 
 - One worksheet, one target type per import; no mixed object + relationship imports; endpoints are never created.
-- Composite identity, OnyxJar Keys, a source list/download UI, background processing, persisted import jobs.
+- Composite identity, a source list/download UI, background processing, persisted import jobs.
 - Model Export (`services/model_export.py`) is all-or-nothing: no filters, no object selection, and nothing yet reads its JSON back in.
 - No AI ingestion (the services are structured so it can reuse parsing, planning and proposal creation).
-- Pre-existing hand-made objects with no identifying attribute cannot be matched (by design: no name matching);
-  fill the attribute in first, or use their OnyxJar ID.
+- Relationships have no key of their own (by design — their identity is their type plus their endpoints); objects
+  with no key, no identifying attribute and an unknown Database ID cannot be matched (by design: no name matching).

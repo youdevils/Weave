@@ -1372,8 +1372,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return {
       attribute_name: read("attribute_name", ""),
 
-      attribute_key: read("attribute_key", ""),
-
       attribute_data_type: read("attribute_data_type", "text"),
 
       attribute_description: read("attribute_description", ""),
@@ -1789,8 +1787,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const name = input("attribute_name");
 
-    const key = input("attribute_key");
-
     const dataType = input("attribute_data_type");
 
     const description = input("attribute_description");
@@ -1802,8 +1798,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const nullable = input("attribute_nullable");
 
     writeInputValue(name, values.name);
-
-    writeInputValue(key, values.key);
 
     writeInputValue(dataType, values.data_type);
 

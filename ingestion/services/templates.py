@@ -29,6 +29,7 @@ from dataclasses import dataclass
 
 from django.utils.text import slugify
 
+from ingestion.services.coercion import format_cell, format_is_active_cell
 from ingestion.services.targets import (
     OBJECT,
     RELATIONSHIP,
@@ -46,12 +47,12 @@ CONTENT_TYPES = {
 }
 ZIP_CONTENT_TYPE = "application/zip"
 
-IDENTITY_HEADERS = {OBJECT: "OnyxJar Object ID", RELATIONSHIP: "OnyxJar Relationship ID"}
+IDENTITY_KEY_HEADER = "OnyxJar Key"
 FIELD_NAME_HEADER = "Name"
 FIELD_DESCRIPTION_HEADER = "Description"
 FIELD_IS_ACTIVE_HEADER = "Active"
-ENDPOINT_SUBJECT_HEADER = "Source object"
-ENDPOINT_OBJECT_HEADER = "Target object"
+ENDPOINT_SUBJECT_HEADER = "Source object key"
+ENDPOINT_OBJECT_HEADER = "Target object key"
 
 DATE_TYPES = {"date", "datetime"}
 BOOLEAN_TYPE = "boolean"
@@ -78,28 +79,45 @@ class TemplateColumn:
     comment: str | None = None
 
 
+def _endpoint_type_names(target, type_ids) -> str:
+    names = sorted(target.endpoint_type_name(type_id) or "?" for type_id in type_ids)
+    if len(names) == 1:
+        return names[0]
+    if len(names) == 2:
+        return f"{names[0]} or {names[1]}"
+    return ", ".join(names[:-1]) + f", or {names[-1]}"
+
+
 def template_columns(target) -> list[TemplateColumn]:
     """
     target: a targets.TargetSpec (from resolve_target / object_type_specs /
     relationship_type_specs). Column order:
 
-      object:        OnyxJar Object ID | Name | Description | Active | <attrs>
-      relationship:  OnyxJar Relationship ID | Source object | Target object | Active | <attrs>
+      object:        OnyxJar Key | Name | Description | Active | <attrs>
+      relationship:  Source object key | Target object key | Active | <attrs>
 
-    The identity-id column is always first and always optional: a value in it
-    lets a filled-in file update an existing record instead of creating a new
-    one, without forcing that choice on whoever fills the file in. It maps to
-    the existing "identity.id" field, valid for both object and relationship
-    imports (ingestion.services.mapping.OBJECT_FIELDS / RELATIONSHIP_FIELDS).
+    The normal identity column for each kind is always optional: a value in
+    it lets a filled-in file update an existing record instead of creating a
+    new one, without forcing that choice on whoever fills the file in.
+    Object's own Database ID (the internal UUID) is not part of this
+    generated file -- it stays available as an advanced/optional column the
+    import wizard can map manually, for files that already use it; the
+    normal column here is always the key. Relationship has no key of its
+    own (see ingestion/README.md); its identity is its type plus its
+    endpoints, so there is no identity column for it at all here -- only
+    the endpoint key columns below.
 
     Attribute columns follow target.attributes, already ordered
     (sort_order, name) by targets._attribute_specs.
     """
 
-    columns = [TemplateColumn(IDENTITY_HEADERS[target.kind])]
-
     if target.kind == OBJECT:
-        columns += [
+        columns = [
+            TemplateColumn(
+                IDENTITY_KEY_HEADER,
+                comment="Leave blank to create a new object (OnyxJar assigns its key). "
+                "Enter an existing object's key to update it.",
+            ),
             TemplateColumn(
                 FIELD_NAME_HEADER,
                 required=True,
@@ -109,18 +127,16 @@ def template_columns(target) -> list[TemplateColumn]:
             TemplateColumn(FIELD_IS_ACTIVE_HEADER, is_boolean=True),
         ]
     else:
-        columns += [
+        columns = [
             TemplateColumn(
                 ENDPOINT_SUBJECT_HEADER,
                 required=True,
-                comment="Required: the OnyxJar ID of the source object, or a value "
-                "that uniquely identifies it.",
+                comment=f"Required: the key of a {_endpoint_type_names(target, target.subject_type_ids)} object.",
             ),
             TemplateColumn(
                 ENDPOINT_OBJECT_HEADER,
                 required=True,
-                comment="Required: the OnyxJar ID of the target object, or a value "
-                "that uniquely identifies it.",
+                comment=f"Required: the key of a {_endpoint_type_names(target, target.object_type_ids)} object.",
             ),
             TemplateColumn(FIELD_IS_ACTIVE_HEADER, is_boolean=True),
         ]
@@ -151,14 +167,78 @@ def template_columns(target) -> list[TemplateColumn]:
     return columns
 
 
-def build_csv_template(target) -> bytes:
-    """Header row only -- no data rows (see ingestion/README.md's no_data_rows note:
-    this is a starting point meant to be filled in before it is ever uploaded)."""
+def data_rows(model, target) -> list[list]:
+    """
+    `model`'s current canonical rows for `target`, one row per object/
+    relationship, in exactly template_columns(target) order -- the inverse
+    of what the import wizard reads from a filled-in file. Used only for
+    the optional "download with current data" template; the default,
+    blank starting-point template never calls this (see
+    ingestion/README.md's no_data_rows note).
+    """
+
+    if target.kind == OBJECT:
+        return _object_data_rows(model, target)
+
+    return _relationship_data_rows(model, target)
+
+
+def _object_data_rows(model, target) -> list[list]:
+    from model.models.object import Object
+
+    rows = []
+
+    for obj in Object.objects.filter(model=model, object_type_id=target.type_id).order_by("name", "id"):
+        row = [obj.key, obj.name, obj.description, format_is_active_cell(obj.is_active)]
+
+        for attribute in target.attributes:
+            row.append(format_cell(attribute.data_type, (obj.attributes or {}).get(attribute.key)))
+
+        rows.append(row)
+
+    return rows
+
+
+def _relationship_data_rows(model, target) -> list[list]:
+    from model.models.relationship import Relationship
+
+    rows = []
+
+    query = (
+        Relationship.objects.filter(model=model, relationship_type_id=target.type_id)
+        .select_related("subject", "object")
+        .order_by("id")
+    )
+
+    for relationship in query:
+        row = [
+            relationship.subject.key,
+            relationship.object.key,
+            format_is_active_cell(relationship.is_active),
+        ]
+
+        for attribute in target.attributes:
+            row.append(format_cell(attribute.data_type, (relationship.attributes or {}).get(attribute.key)))
+
+        rows.append(row)
+
+    return rows
+
+
+def build_csv_template(target, rows: list[list] | None = None) -> bytes:
+    """
+    Header row, plus `rows` (see data_rows) when given. Without `rows`,
+    this is a starting point meant to be filled in before it is ever
+    uploaded (see ingestion/README.md's no_data_rows note).
+    """
 
     buffer = io.StringIO(newline="")
-    csv.writer(buffer, lineterminator="\r\n").writerow(
-        [column.header for column in template_columns(target)]
-    )
+    writer = csv.writer(buffer, lineterminator="\r\n")
+    writer.writerow([column.header for column in template_columns(target)])
+
+    for row in rows or ():
+        writer.writerow(row)
+
     # utf-8-sig: Excel-friendly BOM; ingestion.services.parsing.csv_parser already tolerates it.
     return buffer.getvalue().encode("utf-8-sig")
 
@@ -196,7 +276,7 @@ def _sheet_title(target) -> str:
     return title or "Template"
 
 
-def build_xlsx_template(target) -> bytes:
+def build_xlsx_template(target, rows: list[list] | None = None) -> bytes:
     from openpyxl import Workbook
     from openpyxl.comments import Comment
     from openpyxl.styles import Font
@@ -234,6 +314,14 @@ def build_xlsx_template(target) -> bytes:
             sheet.add_data_validation(validation)
             validation.add(data_range)
 
+    # Every data cell is written as its exact Python value (a str for text/
+    # key/boolean columns, a number for NUMBER attributes) -- openpyxl always
+    # stores a str value as Excel's own text type, so a numeric-looking key
+    # (however unlikely) is never silently read back as a number.
+    for row_index, row in enumerate(rows or (), start=2):
+        for col_index, value in enumerate(row, start=1):
+            sheet.cell(row=row_index, column=col_index, value=value)
+
     sheet.freeze_panes = "A2"
 
     buffer = io.BytesIO()
@@ -244,13 +332,20 @@ def build_xlsx_template(target) -> bytes:
 _BUILDERS = {CSV: build_csv_template, XLSX: build_xlsx_template}
 
 
-def build_template(target, file_format: str) -> bytes:
+def build_template(target, file_format: str, *, model=None, with_data: bool = False) -> bytes:
+    """
+    `model` is only read when `with_data` is true (to build its current
+    rows via data_rows); the default, blank starting-point template never
+    touches canonical data.
+    """
+
     try:
         builder = _BUILDERS[file_format]
     except KeyError:
         raise ValueError(f"Unsupported template format: {file_format!r}")
 
-    return builder(target)
+    rows = data_rows(model, target) if with_data else None
+    return builder(target, rows)
 
 
 def _kind_word(target) -> str:
@@ -279,8 +374,9 @@ def _model_slug(model) -> str:
     return slugify(model.name or "") or "model"
 
 
-def template_filename(model, target, file_format: str) -> str:
-    suffix = f"-{_kind_word(target)}-{target.key}-template.{file_format}"
+def template_filename(model, target, file_format: str, *, with_data: bool = False) -> str:
+    data_part = "-with-data" if with_data else ""
+    suffix = f"-{_kind_word(target)}-{target.key}-template{data_part}.{file_format}"
     slug = _model_slug(model)[: 150 - len(suffix)].strip("-") or "model"
     return f"{slug}{suffix}"
 

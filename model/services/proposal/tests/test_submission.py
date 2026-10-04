@@ -184,15 +184,17 @@ class ProcessingAgainstCurrentStateTests(SubmissionTestCase):
         self.assertEqual(proposal.status, Proposal.Status.COMPLETED)
         self.assertTrue(ObjectType.objects.filter(id=object_type_id, key="alpha").exists())
 
-    def test_proposal_invalidated_by_intervening_commit_fails(self):
+    def test_a_key_collision_from_an_intervening_commit_is_silently_regenerated(self):
         model = self._new_model(revision=1)
 
         proposal, object_type_id = self._submit_object_type_create(model, "alpha")
 
         # A conflicting ObjectType with the same key lands canonically
-        # (as if a different proposal committed first) before this
-        # one is processed -- validates against CURRENT state, not
-        # the state at submit time.
+        # (as if a different proposal committed first) before this one is
+        # processed -- validated against CURRENT state, not the state at
+        # submit time. ObjectType's key is regenerable (a proposal links
+        # by target_id, never by key -- see _REGENERABLE_KEY_TYPES), so
+        # this succeeds with a fresh key rather than failing.
         ObjectType.objects.create(model=model, name="Alpha (existing)", key="alpha")
         model.revision = 2
         model.save(update_fields=["revision"])
@@ -201,19 +203,15 @@ class ProcessingAgainstCurrentStateTests(SubmissionTestCase):
 
         proposal.refresh_from_db()
 
-        self.assertEqual(proposal.status, Proposal.Status.FAILED)
+        self.assertEqual(proposal.status, Proposal.Status.COMPLETED)
 
-        result = proposal.submission_result
-        self.assertEqual(result.outcome, result.Outcome.VALIDATION_FAILED)
+        created = ObjectType.objects.get(id=object_type_id)
+        self.assertNotEqual(created.key, "alpha")
+        self.assertTrue(created.key.startswith("alpha"))
 
-        error = result.errors.get()
-        self.assertEqual(error.code, "duplicate_key")
-        self.assertEqual(error.change.target_type, "ObjectType")
-        self.assertEqual(error.change.target_id, object_type_id)
-
-        # Nothing from this proposal was committed.
-        self.assertFalse(
-            ObjectType.objects.filter(id=object_type_id).exists()
+        # The pre-existing canonical row is untouched.
+        self.assertTrue(
+            ObjectType.objects.filter(name="Alpha (existing)", key="alpha").exists()
         )
 
 
@@ -222,26 +220,21 @@ class ErrorAttributionTests(SubmissionTestCase):
     def test_errors_attributed_to_correct_proposal_change(self):
         model = self._new_model(revision=1)
 
-        ObjectType.objects.create(model=model, name="Existing", key="existing")
+        existing = ObjectType.objects.create(model=model, name="Existing", key="existing")
 
         proposal = ProposalService.get_or_create_working(model, self.user)
 
-        duplicate_object_type_id = uuid.uuid4()
+        # Keys are immutable once assigned -- an UPDATE of "key" always
+        # blocks, regardless of collision, so this is a reliable second
+        # defect alongside the Model field error below.
         ProposalService.record_change(
             proposal=proposal,
-            operation=ProposalChange.Operation.CREATE,
+            operation=ProposalChange.Operation.UPDATE,
             target_type="ObjectType",
-            target_id=duplicate_object_type_id,
-            parent_type="Model",
-            parent_id=model.id,
-            before=None,
-            after={
-                "name": "Existing (duplicate)",
-                "key": "existing",
-                "description": "",
-                "sort_order": 0,
-                "is_active": True,
-            },
+            target_id=existing.id,
+            field="key",
+            before={"field": "key", "value": "existing"},
+            after={"field": "key", "value": "renamed"},
         )
 
         ProposalService.record_change(
@@ -266,15 +259,15 @@ class ErrorAttributionTests(SubmissionTestCase):
         errors_by_code = {error.code: error for error in errors}
 
         self.assertEqual(
-            errors_by_code["duplicate_key"].change.target_id,
-            duplicate_object_type_id,
+            errors_by_code["key_immutable"].change.target_id,
+            existing.id,
         )
         self.assertEqual(
             errors_by_code["invalid_change"].change.target_type,
             "Model",
         )
         self.assertNotEqual(
-            errors_by_code["duplicate_key"].change_id,
+            errors_by_code["key_immutable"].change_id,
             errors_by_code["invalid_change"].change_id,
         )
 
@@ -284,40 +277,56 @@ class CommitAtomicityTests(SubmissionTestCase):
     def test_failed_validation_leaves_no_canonical_changes(self):
         model = self._new_model(revision=1)
 
-        ObjectType.objects.create(model=model, name="Existing", key="existing")
+        object_type = ObjectType.objects.create(model=model, name="Existing", key="existing")
+        AttributeDefinition.objects.create(
+            object_type=object_type,
+            name="Existing attr",
+            key="existing_attr",
+            data_type="text",
+        )
 
         proposal = ProposalService.get_or_create_working(model, self.user)
 
+        # Unlike ObjectType/RelationshipType, AttributeDefinition's key
+        # collision is never silently regenerated (see
+        # _REGENERABLE_KEY_TYPES) -- its key is embedded inside sibling
+        # Object/Relationship `attributes` JSON, so a collision reliably
+        # blocks, which is what this test needs to verify atomicity.
         conflicting_id = uuid.uuid4()
         ProposalService.record_change(
             proposal=proposal,
             operation=ProposalChange.Operation.CREATE,
-            target_type="ObjectType",
+            target_type="AttributeDefinition",
             target_id=conflicting_id,
-            parent_type="Model",
-            parent_id=model.id,
+            parent_type="ObjectType",
+            parent_id=object_type.id,
             before=None,
             after={
-                "name": "Existing (duplicate)",
-                "key": "existing",
+                "name": "Existing attr (duplicate)",
+                "key": "existing_attr",
+                "data_type": "text",
                 "description": "",
+                "required": False,
+                "nullable": False,
+                "default_value": None,
                 "sort_order": 0,
+                "config": {},
                 "is_active": True,
             },
         )
 
         ProposalService.submit(proposal)
 
-        object_type_count_before = ObjectType.objects.count()
+        attribute_count_before = AttributeDefinition.objects.count()
         revision_before = model.revision
 
         submission.process(submission.claim_next(model.id).id)
 
         model.refresh_from_db()
 
-        self.assertEqual(ObjectType.objects.count(), object_type_count_before)
+        self.assertEqual(AttributeDefinition.objects.count(), attribute_count_before)
         self.assertEqual(model.revision, revision_before)
-        self.assertFalse(ObjectType.objects.filter(id=conflicting_id).exists())
+        self.assertFalse(AttributeDefinition.objects.filter(id=conflicting_id).exists())
 
     def test_successful_commit_is_atomic_and_revision_increments_once(self):
         model = self._new_model(revision=1)
@@ -337,7 +346,7 @@ class CommitAtomicityTests(SubmissionTestCase):
                 before=None,
                 after={
                     "name": f"Type {index}",
-                    "key": f"type-{index}",
+                    "key": f"type_{index}",
                     "description": "",
                     "sort_order": 0,
                     "is_active": True,
@@ -924,3 +933,177 @@ class DeletedModelTaskTests(SubmissionTestCase):
                 submission.process(proposal_id)
 
         mock_delay.assert_not_called()
+
+
+class KeyAssignmentTests(SubmissionTestCase):
+    """
+    model.services.keys-backed CREATE/UPDATE handling in
+    _apply_create_or_update, across every key-bearing type
+    (ObjectType/RelationshipType/AttributeDefinition/Object).
+    """
+
+    def _submit(self, model, proposal=None):
+        proposal = proposal or ProposalService.get_or_create_working(model, self.user)
+        ProposalService.submit(proposal)
+        submission.process(submission.claim_next(model.id).id)
+        proposal.refresh_from_db()
+        return proposal
+
+    def test_object_type_create_without_key_is_assigned_one(self):
+        model = self._new_model()
+        proposal = ProposalService.get_or_create_working(model, self.user)
+        type_id = uuid.uuid4()
+        ProposalService.record_change(
+            proposal=proposal, operation=ProposalChange.Operation.CREATE,
+            target_type="ObjectType", target_id=type_id, parent_type="Model", parent_id=model.id,
+            before=None,
+            after={"name": "Widget", "description": "", "sort_order": 0, "is_active": True},
+        )
+
+        self._submit(model, proposal)
+
+        self.assertEqual(ObjectType.objects.get(id=type_id).key, "widget")
+
+    def test_object_create_without_key_is_assigned_one(self):
+        model = self._new_model()
+        object_type = ObjectType.objects.create(model=model, name="Widget", key="widget")
+        proposal = ProposalService.get_or_create_working(model, self.user)
+        object_id = uuid.uuid4()
+        ProposalService.record_change(
+            proposal=proposal, operation=ProposalChange.Operation.CREATE,
+            target_type="Object", target_id=object_id,
+            parent_type="ObjectType", parent_id=object_type.id,
+            before=None,
+            after={"name": "Acme Ltd", "description": "", "is_active": True, "attributes": {}},
+        )
+
+        self._submit(model, proposal)
+
+        self.assertEqual(Object.objects.get(id=object_id).key, "acme_ltd")
+
+    def test_object_key_collision_with_canonical_data_is_regenerated(self):
+        model = self._new_model()
+        object_type = ObjectType.objects.create(model=model, name="Widget", key="widget")
+        Object.objects.create(model=model, object_type=object_type, name="Acme Ltd", key="acme_ltd")
+
+        proposal = ProposalService.get_or_create_working(model, self.user)
+        object_id = uuid.uuid4()
+        ProposalService.record_change(
+            proposal=proposal, operation=ProposalChange.Operation.CREATE,
+            target_type="Object", target_id=object_id,
+            parent_type="ObjectType", parent_id=object_type.id,
+            before=None,
+            after={
+                "name": "Acme Ltd 2", "key": "acme_ltd",
+                "description": "", "is_active": True, "attributes": {},
+            },
+        )
+
+        proposal = self._submit(model, proposal)
+
+        self.assertEqual(proposal.status, Proposal.Status.COMPLETED)
+        self.assertEqual(Object.objects.get(id=object_id).key, "acme_ltd_2")
+
+    def test_object_key_does_not_collide_across_object_types(self):
+        model = self._new_model()
+        type_a = ObjectType.objects.create(model=model, name="A", key="a")
+        type_b = ObjectType.objects.create(model=model, name="B", key="b")
+        Object.objects.create(model=model, object_type=type_a, name="Acme Ltd", key="acme_ltd")
+
+        proposal = ProposalService.get_or_create_working(model, self.user)
+        object_id = uuid.uuid4()
+        ProposalService.record_change(
+            proposal=proposal, operation=ProposalChange.Operation.CREATE,
+            target_type="Object", target_id=object_id,
+            parent_type="ObjectType", parent_id=type_b.id,
+            before=None,
+            after={
+                "name": "Acme Ltd", "key": "acme_ltd",
+                "description": "", "is_active": True, "attributes": {},
+            },
+        )
+
+        self._submit(model, proposal)
+
+        self.assertEqual(Object.objects.get(id=object_id).key, "acme_ltd")
+
+    def test_attribute_definition_key_collision_blocks_rather_than_regenerates(self):
+        model = self._new_model()
+        object_type = ObjectType.objects.create(model=model, name="Widget", key="widget")
+        AttributeDefinition.objects.create(
+            object_type=object_type, name="Status", key="status", data_type="text",
+        )
+
+        proposal = ProposalService.get_or_create_working(model, self.user)
+        attr_id = uuid.uuid4()
+        ProposalService.record_change(
+            proposal=proposal, operation=ProposalChange.Operation.CREATE,
+            target_type="AttributeDefinition", target_id=attr_id,
+            parent_type="ObjectType", parent_id=object_type.id,
+            before=None,
+            after={
+                "name": "Status 2", "key": "status", "data_type": "text", "description": "",
+                "required": False, "nullable": False, "default_value": None,
+                "sort_order": 0, "config": {}, "is_active": True,
+            },
+        )
+
+        proposal = self._submit(model, proposal)
+
+        self.assertEqual(proposal.status, Proposal.Status.FAILED)
+        self.assertEqual(proposal.submission_result.errors.get().code, "duplicate_key")
+        self.assertFalse(AttributeDefinition.objects.filter(id=attr_id).exists())
+
+    def test_key_update_is_rejected_for_every_key_bearing_type(self):
+        model = self._new_model()
+        object_type = ObjectType.objects.create(model=model, name="Widget", key="widget")
+        relationship_type = RelationshipType.objects.create(model=model, name="Uses", key="uses")
+        attribute = AttributeDefinition.objects.create(
+            object_type=object_type, name="Status", key="status", data_type="text",
+        )
+        obj = Object.objects.create(model=model, object_type=object_type, name="Acme Ltd", key="acme_ltd")
+
+        cases = [
+            ("ObjectType", object_type.id),
+            ("RelationshipType", relationship_type.id),
+            ("AttributeDefinition", attribute.id),
+            ("Object", obj.id),
+        ]
+
+        for target_type, target_id in cases:
+            with self.subTest(target_type=target_type):
+                proposal = ProposalService.get_or_create_working(model, self.user)
+                ProposalService.record_change(
+                    proposal=proposal, operation=ProposalChange.Operation.UPDATE,
+                    target_type=target_type, target_id=target_id,
+                    field="key",
+                    before={"field": "key", "value": "whatever"},
+                    after={"field": "key", "value": "renamed"},
+                )
+
+                proposal = self._submit(model, proposal)
+
+                self.assertEqual(proposal.status, Proposal.Status.FAILED)
+                error = proposal.submission_result.errors.get(
+                    target_type=target_type, target_id=target_id,
+                )
+                self.assertEqual(error.code, "key_immutable")
+
+    def test_invalid_template_supplied_key_is_reported(self):
+        model = self._new_model()
+        proposal = ProposalService.get_or_create_working(model, self.user)
+        type_id = uuid.uuid4()
+        ProposalService.record_change(
+            proposal=proposal, operation=ProposalChange.Operation.CREATE,
+            target_type="ObjectType", target_id=type_id, parent_type="Model", parent_id=model.id,
+            before=None,
+            after={
+                "name": "Widget", "key": "not-a-valid-key",
+                "description": "", "sort_order": 0, "is_active": True,
+            },
+        )
+
+        proposal = self._submit(model, proposal)
+
+        self.assertEqual(proposal.status, Proposal.Status.FAILED)
+        self.assertEqual(proposal.submission_result.errors.get().code, "invalid_key")

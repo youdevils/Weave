@@ -69,11 +69,16 @@ class ExportModelTests(ImportTestCase):
         self.assertEqual(set(objects_by_name), {"One", "Two"})
         self.assertIn(objects_by_name["One"]["typeId"], object_type_ids)
         self.assertEqual(objects_by_name["One"]["attributes"]["owner"], "Alice")
+        self.assertEqual(objects_by_name["One"]["key"], app.key)
+        self.assertEqual(objects_by_name["Two"]["key"], other_app.key)
 
         self.assertEqual(len(payload["relationships"]), 1)
         relationship = payload["relationships"][0]
         self.assertEqual(relationship["sourceId"], objects_by_name["One"]["id"])
         self.assertEqual(relationship["targetId"], objects_by_name["Two"]["id"])
+        self.assertEqual(relationship["sourceKey"], app.key)
+        self.assertEqual(relationship["targetKey"], other_app.key)
+        self.assertEqual(relationship["typeKey"], self.uses.key)
         self.assertEqual(relationship["attributes"]["since"], "2024-01-01")
 
     def test_the_export_only_contains_this_models_data(self):

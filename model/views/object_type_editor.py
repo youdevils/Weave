@@ -16,6 +16,7 @@ from model.services.entity_fields import (
     OBJECT_TYPE_LIFECYCLE_FIELD,
     OBJECT_TYPE_PROPERTY_FIELDS,
 )
+from model.services import keys
 from model.services.proposal.proposal import ProposalService
 from model.views.active_proposal import get_or_create_active_proposal
 from model.views.common_context import get_model_context
@@ -650,7 +651,6 @@ def _coerce_object_type_property(
 ):
     if field in {
         "name",
-        "key",
         "description",
     }:
         return raw_value.strip()
@@ -676,8 +676,6 @@ def _coerce_object_type_property(
 
 
 def _validate_object_type_property(
-    model,
-    object_type,
     field,
     value,
 ):
@@ -688,32 +686,6 @@ def _validate_object_type_property(
 
         if len(value) > 100:
             return "Name cannot exceed 100 characters."
-
-        return None
-
-    if field == "key":
-
-        if not value:
-            return "Key is required."
-
-        if len(value) > 100:
-            return "Key cannot exceed 100 characters."
-
-        query = ObjectType.objects.filter(
-            model=model,
-            key=value,
-        )
-
-        if isinstance(
-            object_type,
-            ObjectType,
-        ):
-            query = query.exclude(
-                id=object_type.id,
-            )
-
-        if query.exists():
-            return "An object type with this key already exists."
 
         return None
 
@@ -791,13 +763,11 @@ def _coerce_attribute_properties(
         ),
     ).strip()
 
-    key = request.POST.get(
-        "attribute_key",
-        existing_values.get(
-            "key",
-            "",
-        ),
-    ).strip()
+    # Immutable once created: never read from POST, only ever carried
+    # forward from the existing value (blank for a brand-new attribute,
+    # which the create call site fills in via keys.generate_key once
+    # name has validated).
+    key = existing_values.get("key", "")
 
     data_type = request.POST.get(
         "attribute_data_type",
@@ -851,12 +821,6 @@ def _coerce_attribute_properties(
 
     elif len(name) > 100:
         errors["name"] = "Name cannot exceed 100 characters."
-
-    if not key:
-        errors["key"] = "Key is required."
-
-    elif len(key) > 100:
-        errors["key"] = "Key cannot exceed 100 characters."
 
     valid_types = {choice for choice, _label in AttributeDefinition.DataType.choices}
 
@@ -940,59 +904,6 @@ def _coerce_attribute_properties(
         "sort_order": sort_order,
         "config": config,
     }, errors
-
-
-def _validate_attribute_key(
-    object_type,
-    attribute_id,
-    key,
-):
-    if not key:
-        return "Key is required."
-
-    query = AttributeDefinition.objects.filter(
-        object_type=object_type,
-        key=key,
-    )
-
-    if attribute_id:
-        query = query.exclude(
-            id=attribute_id,
-        )
-
-    if query.exists():
-        return "An attribute with this key already exists."
-
-    return None
-
-
-def _validate_proposed_attribute_key(
-    proposal,
-    object_type_id,
-    attribute_id,
-    key,
-):
-    if not proposal:
-        return None
-
-    create_changes = proposal.changes.filter(
-        target_type="AttributeDefinition",
-        operation=ProposalChange.Operation.CREATE,
-        parent_type="ObjectType",
-        parent_id=object_type_id,
-    )
-
-    for change in create_changes:
-
-        if str(change.target_id) == str(attribute_id):
-            continue
-
-        after = change.after or {}
-
-        if after.get("key") == key:
-            return "An attribute with this key already exists."
-
-    return None
 
 
 def _build_form(
@@ -1559,30 +1470,6 @@ def object_type_editor(
             },
         )
 
-        if isinstance(
-            object_type,
-            ObjectType,
-        ):
-
-            canonical_key_error = _validate_attribute_key(
-                object_type=object_type,
-                attribute_id=None,
-                key=submitted_values["key"],
-            )
-
-            if canonical_key_error:
-                errors["key"] = canonical_key_error
-
-        proposed_key_error = _validate_proposed_attribute_key(
-            proposal=proposal,
-            object_type_id=object_type.id,
-            attribute_id=None,
-            key=submitted_values["key"],
-        )
-
-        if proposed_key_error:
-            errors["key"] = proposed_key_error
-
         if errors:
             return JsonResponse(
                 {
@@ -1594,6 +1481,14 @@ def object_type_editor(
             )
 
         attribute_uuid = uuid.uuid4()
+        submitted_values["key"] = keys.generate_key(
+            "AttributeDefinition",
+            submitted_values["name"],
+            model=model,
+            proposal=proposal,
+            parent_type="ObjectType",
+            parent_id=object_type.id,
+        )
 
         ProposalService.record_change(
             proposal=proposal,
@@ -1711,32 +1606,6 @@ def object_type_editor(
             request,
             effective_values,
         )
-
-        if isinstance(
-            object_type,
-            ObjectType,
-        ):
-
-            key_error = _validate_attribute_key(
-                object_type=object_type,
-                attribute_id=(None if attribute_created else attribute_uuid),
-                key=submitted_values["key"],
-            )
-
-            if key_error:
-                errors["key"] = key_error
-
-        if proposal:
-
-            proposed_key_error = _validate_proposed_attribute_key(
-                proposal=proposal,
-                object_type_id=object_type.id,
-                attribute_id=attribute_uuid,
-                key=submitted_values["key"],
-            )
-
-            if proposed_key_error:
-                errors["key"] = proposed_key_error
 
         if errors:
             return JsonResponse(
@@ -2117,8 +1986,6 @@ def object_type_editor(
             )
 
         validation_error = _validate_object_type_property(
-            model,
-            object_type,
             field,
             value,
         )
@@ -2249,11 +2116,6 @@ def object_type_editor(
             "",
         ).strip()
 
-        key = request.POST.get(
-            "key",
-            "",
-        ).strip()
-
         description = request.POST.get(
             "description",
             "",
@@ -2267,18 +2129,6 @@ def object_type_editor(
         elif len(name) > 100:
             errors["name"] = "Name cannot exceed 100 characters."
 
-        if not key:
-            errors["key"] = "Key is required."
-
-        elif len(key) > 100:
-            errors["key"] = "Key cannot exceed 100 characters."
-
-        if ObjectType.objects.filter(
-            model=model,
-            key=key,
-        ).exists():
-            errors["key"] = "An object type with this key already exists."
-
         if errors:
             return _render_editor(
                 request=request,
@@ -2288,7 +2138,7 @@ def object_type_editor(
                 proposal=proposal,
                 effective_values={
                     "name": name,
-                    "key": key,
+                    "key": "",
                     "description": description,
                     "sort_order": 0,
                     "is_active": True,
@@ -2306,6 +2156,7 @@ def object_type_editor(
                 return error_response
 
         object_type_uuid = uuid.uuid4()
+        key = keys.generate_key("ObjectType", name, model=model, proposal=proposal)
 
         ProposalService.record_change(
             proposal=proposal,
