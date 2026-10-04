@@ -1,0 +1,35 @@
+/* =========================================================
+   OnyxJar brand colour tokens — single source of truth.
+
+   The palette and semantic state colours (success/danger/warning/info)
+   that must be identical everywhere OnyxJar is rendered: the public
+   website (onyxjar.css, under its own --ff-* names), the authenticated
+   app (onyxjar-app.css and everything that loads after it, under these
+   same --onyxjar-* names), and the standalone portable Explorer export
+   (explorer.css, which has no app shell and so keeps its own copies —
+   see the comment at the top of that file).
+
+   Role tokens (text/border/surface shades, spacing, radius, font) stay
+   local to each surface: they legitimately differ by information
+   density and are not "brand colours" in the sense this file covers.
+   ========================================================= */
+
+:root {
+  --onyxjar-indigo: #1f1b43;
+  --onyxjar-indigo-strong: #191636;
+  --onyxjar-secondary: #540054;
+  --onyxjar-secondary-strong: #430043;
+  --onyxjar-success: #2f7a5d;
+  --onyxjar-success-strong: #26624a;
+  --onyxjar-danger: #b23a45;
+  --onyxjar-danger-strong: #8e2e37;
+  --onyxjar-warning: #cd912d;
+  --onyxjar-warning-strong: #a47424;
+  --onyxjar-info: #3694a3;
+  --onyxjar-info-strong: #2b7682;
+  --onyxjar-teal: #2f7a5d; /* decorative accent, aligned to the Success token */
+  --onyxjar-sky: #3694a3; /* decorative accent, aligned to the Info token */
+  --onyxjar-ink: #0f172a;
+  --onyxjar-slate: #94a3b8;
+  --onyxjar-mist: #f1f5f9;
+}

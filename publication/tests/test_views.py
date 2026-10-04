@@ -228,9 +228,31 @@ class PageTests(ViewFixture):
         # Publication details and the opening view live in the settings, above the scope panel.
         for marker in ('id="publish-title"', 'id="publish-theme-colour"', 'id="publish-opening-set"'):
             self.assertLess(html.index(marker), html.index('id="publish-scope"'))
-        # The whole-model reset is part of the scope panel, not the viewer.
-        self.assertGreater(html.index('id="publish-clear-scope"'), html.index('id="publish-scope"'))
-        self.assertLess(html.index('id="publish-clear-scope"'), html.index('id="publish-start-title"'))
+        # The Publish button stays in the page header, above the scope panel.
+        self.assertLess(html.index('id="publish-button"'), html.index('id="publish-scope"'))
+        # What will be published (the summary line, then the applied-scope
+        # chips) sits at the top of the preview, above what the viewer is
+        # currently showing (the explorer's own counts and selection) --
+        # not in the scope panel, whose own filter lists can grow long.
+        preview_order = [
+            html.index(marker)
+            for marker in (
+                'id="publish-scope"',
+                'id="model-explorer"',
+                'id="publish-summary"',
+                'id="publish-scope-chips-toggle"',
+                'id="publish-clear-scope"',
+                'id="publish-scope-chips"',
+                'id="explorer-counts"',
+                'id="explorer-chips"',
+                'id="model-explorer-graph"',
+            )
+        ]
+        self.assertEqual(preview_order, sorted(preview_order))
+        # The collapse toggle is wired up correctly.
+        self.assertIn('data-action="toggle-scope-chips"', html)
+        self.assertIn('aria-expanded="true"', html)
+        self.assertIn('aria-controls="publish-scope-chips"', html)
 
     def test_the_preview_keeps_what_the_explorer_needs_and_drops_the_explorer_panels(self):
         html = self.client.get(self.url("publish")).content.decode()

@@ -1,7 +1,10 @@
 /**
- * ObjectType index — bulk Activate/Deactivate. Lifecycle-only: this never
- * grows into generic bulk editing of types (attributes, relationships,
- * cardinalities, identities stay single-item-only).
+ * Type index (ObjectType, RelationshipType) — bulk Activate/Deactivate.
+ * Lifecycle-only: this never grows into generic bulk editing of types
+ * (attributes, relationships, cardinalities, identities stay
+ * single-item-only). Which POST action and id field to use comes from
+ * the form's data-bulk-status-action/data-bulk-id-field attributes, so
+ * this one script serves every type index uniformly.
  *
  * Unlike the data Object bulk editor (a dedicated page), this reuses the
  * index page's own AJAX-action convention (model_editing.js's
@@ -29,6 +32,10 @@ export function initTypeStatusBulkActions(root) {
   const buttons = Array.from(root.querySelectorAll("[data-bulk-type-status]"));
   if (buttons.length === 0) return;
 
+  const statusAction = root.dataset.bulkStatusAction;
+  const idField = root.dataset.bulkIdField;
+  if (!statusAction || !idField) return;
+
   function selectedIds() {
     return Array.from(root.querySelectorAll("[data-bulk-select]:checked")).map(
       (checkbox) => checkbox.value,
@@ -41,9 +48,9 @@ export function initTypeStatusBulkActions(root) {
       if (ids.length === 0) return;
 
       const body = new URLSearchParams();
-      body.set("action", "bulk_set_object_type_status");
+      body.set("action", statusAction);
       body.set("is_active", button.dataset.bulkTypeStatus);
-      ids.forEach((id) => body.append("object_type_id", id));
+      ids.forEach((id) => body.append(idField, id));
 
       const response = await fetch(window.location.pathname, {
         method: "POST",
@@ -62,7 +69,7 @@ export function initTypeStatusBulkActions(root) {
         return;
       }
 
-      window.alert(payload.error || "Could not update the selected object types.");
+      window.alert(payload.error || "Could not update the selected items.");
     });
   });
 }

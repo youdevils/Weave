@@ -8,26 +8,20 @@
 
 /* =========================================================
    Shared design tokens
+
+   The brand palette, semantic colours (danger/success/...) and the
+   app-wide roles (text/border/surface/focus/heading/accent-soft) all
+   come from static/onyxjar/brand/css/tokens.css and
+   workspace/static/workspace/css/onyxjar-app.css, loaded earlier in
+   authenticated_base.html. Only the extra tiers below -- finer than
+   the app-wide roles, needed for this denser editor UI -- are local.
    ========================================================= */
 
 .model-shell {
-  --model-text: #0f172a;
-  --model-text-secondary: #475569;
-  --model-text-muted: #64748b;
-  --model-text-faint: #94a3b8;
-  --model-text-placeholder: #cbd5e1;
-  --model-border: #e2e8f0;
-  --model-border-light: #eef2f6;
-  --model-border-lighter: #f1f5f9;
-  --model-surface: #ffffff;
-  --model-surface-subtle: #f8fafc;
-  --model-surface-hover: #f1f5f9;
-  --model-focus: #1f1b43;
-  --model-danger: #b02a37;
-  --model-accent: #1f1b43;
-  --model-accent-strong: #191636;
-  --model-accent-soft: #eceaf2;
-  --model-heading: var(--model-accent);
+  --onyxjar-text-faint: var(--onyxjar-slate);
+  --onyxjar-text-placeholder: #cbd5e1;
+  --onyxjar-border-light: #eef2f6;
+  --onyxjar-border-lighter: var(--onyxjar-mist);
 }
 
 /* =========================================================
@@ -49,17 +43,17 @@
 .model-sidebar {
   flex: 0 0 260px;
   width: 260px;
-  background: var(--model-surface-subtle);
-  border-right: 1px solid var(--model-border);
+  background: var(--onyxjar-surface-subtle);
+  border-right: 1px solid var(--onyxjar-border);
 }
 
 .model-sidebar-header {
   padding: 1.25rem 1.25rem 1rem;
-  border-bottom: 1px solid var(--model-border);
+  border-bottom: 1px solid var(--onyxjar-border);
 }
 
 .model-sidebar-title {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.3;
@@ -86,7 +80,7 @@
   border: 0;
   border-radius: 0.375rem;
   background: transparent;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -124,18 +118,18 @@
 
 .model-nav-item:hover {
   background: #e9ecef;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 .model-nav-item.active {
-  background: var(--model-accent-soft);
-  color: var(--model-accent-strong);
+  background: var(--onyxjar-accent-soft);
+  color: var(--onyxjar-indigo-strong);
   font-weight: 600;
 }
 .model-nav-child.active {
-  color: var(--model-accent-strong);
+  color: var(--onyxjar-indigo-strong);
   font-weight: 600;
-  background: var(--model-accent-soft);
+  background: var(--onyxjar-accent-soft);
 }
 
 .model-nav-parent {
@@ -143,7 +137,7 @@
 }
 
 .model-nav-count {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.75rem;
 }
 
@@ -159,12 +153,12 @@
   border: 0;
   border-radius: 0.375rem;
   background: transparent;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .model-nav-toggle:hover {
   background: #e9ecef;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 .model-nav-toggle i {
@@ -188,7 +182,7 @@
   display: block;
   margin-left: 0.9rem;
   padding: 0.35rem 0.75rem 0.35rem 1.5rem;
-  border-left: 1px solid var(--model-border);
+  border-left: 1px solid var(--onyxjar-border);
   color: #495057;
   font-size: 0.85rem;
   line-height: 1.4;
@@ -198,20 +192,20 @@
 
 .model-nav-child:hover {
   background: #f1f3f5;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 .model-nav-more {
   display: block;
   margin-left: 0.9rem;
   padding: 0.35rem 0.75rem 0.35rem 1.5rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.8rem;
   text-decoration: none;
 }
 
 .model-nav-more:hover {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 /* =========================================================
@@ -245,7 +239,7 @@
 
 .model-page-eyebrow {
   margin-bottom: 0.35rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -254,7 +248,7 @@
 
 .model-page-title {
   margin: 0;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   font-size: 1.65rem;
   font-weight: 600;
   line-height: 1.25;
@@ -263,7 +257,7 @@
 .model-page-description {
   max-width: 700px;
   margin: 0.45rem 0 0;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.875rem;
   line-height: 1.5;
 }
@@ -298,7 +292,7 @@
 
 .model-overview-eyebrow {
   margin-bottom: 0.35rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -307,7 +301,7 @@
 
 .model-overview h1 {
   margin: 0;
-  color: var(--model-heading);
+  color: var(--onyxjar-heading);
   font-size: 2rem;
   font-weight: 600;
 }
@@ -332,7 +326,7 @@
 
 .model-overview-description-display {
   display: inline;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -351,7 +345,7 @@
 .model-overview-section {
   margin-top: 3rem;
   padding-top: 2.25rem;
-  border-top: 1px solid var(--model-border-light);
+  border-top: 1px solid var(--onyxjar-border-light);
 }
 
 .model-overview-section-heading {
@@ -360,7 +354,7 @@
 
 .model-overview-section-heading h2 {
   margin: 0;
-  color: var(--model-heading);
+  color: var(--onyxjar-heading);
   font-size: 1.2rem;
   font-weight: 600;
 }
@@ -368,7 +362,7 @@
 .model-overview-section-description {
   margin: 0.3rem 0 0;
   max-width: 640px;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.88rem;
   line-height: 1.55;
 }
@@ -380,14 +374,14 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 0 2rem;
   padding: 1.5rem 0;
-  border-top: 1px solid var(--model-border-light);
-  border-bottom: 1px solid var(--model-border-light);
+  border-top: 1px solid var(--onyxjar-border-light);
+  border-bottom: 1px solid var(--onyxjar-border-light);
 }
 
 .model-overview-definition-field {
   position: relative;
   padding-left: 2rem;
-  border-left: 1px solid var(--model-border-light);
+  border-left: 1px solid var(--onyxjar-border-light);
 }
 
 .model-overview-definition-field:first-child {
@@ -405,7 +399,7 @@
 
 .model-overview-field-header h3 {
   margin: 0;
-  color: var(--model-accent);
+  color: var(--onyxjar-indigo);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -413,7 +407,7 @@
 }
 
 .model-field-display {
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   line-height: 1.65;
   overflow-wrap: anywhere;
 }
@@ -424,7 +418,7 @@
 }
 
 .model-field-empty {
-  color: var(--model-text-placeholder);
+  color: var(--onyxjar-text-placeholder);
   font-style: italic;
 }
 
@@ -434,15 +428,15 @@
   border: 0;
   border-radius: 0.3rem;
   background: transparent;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.8rem;
   font-weight: 500;
 }
 
 .model-edit-button:hover,
 .model-inline-edit-button:hover {
-  background: var(--model-surface-hover);
-  color: var(--model-text);
+  background: var(--onyxjar-surface-hover);
+  color: var(--onyxjar-text);
 }
 
 .model-inline-edit-button {
@@ -452,7 +446,7 @@
 
 .model-edit-button:focus-visible,
 .model-inline-edit-button:focus-visible {
-  outline: 2px solid var(--model-focus);
+  outline: 2px solid var(--onyxjar-focus);
   outline-offset: 2px;
 }
 
@@ -476,7 +470,7 @@
   align-items: center;
   gap: 0.35rem;
   margin-top: 0.7rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.3;
@@ -491,12 +485,12 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.75rem;
 }
 
 .model-discard-button:hover {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   text-decoration: underline;
 }
 
@@ -508,13 +502,13 @@
 }
 
 .model-structure-stat {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   font-size: 0.92rem;
   text-decoration: none;
 }
 
 .model-structure-stat:hover {
-  color: var(--model-accent);
+  color: var(--onyxjar-indigo);
   text-decoration: underline;
 }
 
@@ -524,7 +518,7 @@
 }
 
 .model-structure-stat-divider {
-  color: var(--model-border);
+  color: var(--onyxjar-border);
 }
 
 /* -- Model activity -- */
@@ -544,18 +538,18 @@
 }
 
 a.model-activity-stat:hover .model-activity-stat-value {
-  color: var(--model-accent);
+  color: var(--onyxjar-indigo);
   text-decoration: underline;
 }
 
 .model-activity-stat-value {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   font-size: 1.05rem;
   font-weight: 600;
 }
 
 .model-activity-stat-label {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.75rem;
 }
 
@@ -583,7 +577,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.78rem;
   font-weight: 500;
 }
@@ -627,9 +621,9 @@ a.model-activity-stat:hover .model-activity-stat-value {
   height: 65vh;
   min-height: 420px;
   max-height: 760px;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 10px;
-  background: var(--model-surface);
+  background: var(--onyxjar-surface);
 }
 
 /* =========================================================
@@ -658,7 +652,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .appearance-fields {
@@ -672,7 +666,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   margin-bottom: 0.25rem;
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 .appearance-control-row {
@@ -685,9 +679,9 @@ a.model-activity-stat:hover .model-activity-stat-value {
   width: 2.6rem;
   height: 2rem;
   padding: 0.15rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 6px;
-  background: var(--model-surface);
+  background: var(--onyxjar-surface);
   cursor: pointer;
 }
 
@@ -701,11 +695,11 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .appearance-state {
   font-size: 0.75rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .appearance-field[data-overridden="true"] .appearance-state {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   font-weight: 600;
 }
 
@@ -715,20 +709,20 @@ a.model-activity-stat:hover .model-activity-stat-value {
   border: 0;
   background: none;
   font-size: 0.75rem;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   text-decoration: underline;
   cursor: pointer;
 }
 
 .appearance-reset:hover,
 .appearance-reset-all:hover {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 .appearance-help {
   margin-top: 0.25rem;
   font-size: 0.75rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .appearance-footer {
@@ -741,17 +735,17 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .appearance-status {
   font-size: 0.8rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .appearance-status[data-state="error"] {
-  color: var(--model-danger);
+  color: var(--onyxjar-danger);
 }
 
 .appearance-section-note {
   margin: 0.75rem 0 0;
   font-size: 0.78rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .appearance-preview {
@@ -760,9 +754,9 @@ a.model-activity-stat:hover .model-activity-stat-value {
   justify-content: center;
   min-height: 5rem;
   padding: 0.75rem;
-  border: 1px dashed var(--model-border);
+  border: 1px dashed var(--onyxjar-border);
   border-radius: 8px;
-  background: var(--model-surface-subtle);
+  background: var(--onyxjar-surface-subtle);
 }
 
 .appearance-preview-node {
@@ -878,7 +872,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-customise-section {
   margin-top: 2.25rem;
   padding-top: 2rem;
-  border-top: 1px solid var(--model-border-light);
+  border-top: 1px solid var(--onyxjar-border-light);
 }
 
 .model-customise-controls > .model-page-header + .model-customise-section {
@@ -890,14 +884,14 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-customise-section > h2,
 .model-customise-preview-header h2 {
   margin: 0 0 0.2rem;
-  color: var(--model-heading);
+  color: var(--onyxjar-heading);
   font-size: 1.05rem;
   font-weight: 600;
 }
 
 .model-customise-section > p {
   margin: 0 0 1.1rem;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.85rem;
   line-height: 1.5;
 }
@@ -908,7 +902,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   display: flex;
   gap: 1.5rem;
   margin-bottom: 1.25rem;
-  border-bottom: 1px solid var(--model-border);
+  border-bottom: 1px solid var(--onyxjar-border);
 }
 
 .model-customise-tab {
@@ -917,31 +911,31 @@ a.model-activity-stat:hover .model-activity-stat-value {
   border: 0;
   border-bottom: 2px solid transparent;
   background: none;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
 }
 
 .model-customise-tab:hover {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 .model-customise-tab[aria-selected="true"] {
-  border-bottom-color: var(--model-accent);
-  color: var(--model-accent-strong);
+  border-bottom-color: var(--onyxjar-indigo);
+  color: var(--onyxjar-indigo-strong);
   font-weight: 600;
 }
 
 .model-customise-tab:focus-visible {
-  outline: 2px solid var(--model-focus);
+  outline: 2px solid var(--onyxjar-focus);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
 .model-customise-tabpanel-description {
   margin: 0 0 1rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.8rem;
 }
 
@@ -950,13 +944,13 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-customise-reset {
   margin-top: 2.25rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--model-border-light);
+  border-top: 1px solid var(--onyxjar-border-light);
 }
 
 .model-customise-reset p {
   margin: 0.4rem 0 0;
   font-size: 0.78rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 /* -- Preview pane -- */
@@ -977,7 +971,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-customise-preview-header p {
   margin: 0;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.78rem;
 }
 
@@ -1033,13 +1027,13 @@ a.model-activity-stat:hover .model-activity-stat-value {
   align-items: center;
   gap: 0.35rem;
   margin-bottom: 1rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.8rem;
   text-decoration: none;
 }
 
 .model-object-type-editor .model-back-link:hover {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 .model-object-type-editor .model-page-header-actions {
@@ -1067,7 +1061,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-object-type-editor .model-editor-section-header h2 {
   margin: 0;
-  color: var(--model-heading);
+  color: var(--onyxjar-heading);
   font-size: 1.1rem;
   font-weight: 600;
   line-height: 1.3;
@@ -1076,7 +1070,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-object-type-editor .model-editor-section-header p {
   max-width: 700px;
   margin: 0.35rem 0 0;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.82rem;
   line-height: 1.5;
 }
@@ -1088,7 +1082,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-object-type-editor .model-editor-field {
   padding: 0.8rem 0;
-  border-bottom: 1px solid var(--model-border-light);
+  border-bottom: 1px solid var(--onyxjar-border-light);
 }
 
 .model-object-type-editor .model-editor-field:first-child {
@@ -1145,7 +1139,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   grid-row: 2;
   padding-top: 1rem;
   margin-top: 0.75rem;
-  border-top: 1px solid var(--model-border-light);
+  border-top: 1px solid var(--onyxjar-border-light);
 }
 
 @media (max-width: 767.98px) {
@@ -1173,7 +1167,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
     .model-editor-section--compact-grid
     .model-editor-field {
     padding: 0.8rem 0;
-    border-bottom: 1px solid var(--model-border-light);
+    border-bottom: 1px solid var(--onyxjar-border-light);
   }
 
   .model-object-type-editor
@@ -1208,7 +1202,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-object-type-editor .model-editor-field-display {
   min-width: 0;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.875rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -1236,14 +1230,14 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-object-type-editor .model-editor-field-help {
   max-width: 800px;
   margin-top: 0.35rem;
-  color: var(--model-text-faint);
+  color: var(--onyxjar-text-faint);
   font-size: 0.72rem;
   line-height: 1.45;
 }
 
 .model-object-type-editor .model-editor-field-error {
   margin-top: 0.35rem;
-  color: var(--model-danger);
+  color: var(--onyxjar-danger);
   font-size: 0.72rem;
   line-height: 1.45;
 }
@@ -1258,7 +1252,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-object-type-editor .model-proposed-indicator {
   margin-top: 0.55rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.71rem;
 }
 
@@ -1274,13 +1268,13 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-object-type-editor .model-discard-button {
   padding: 0;
   border: 0;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   background: transparent;
   font-size: 0.72rem;
 }
 
 .model-object-type-editor .model-discard-button:hover {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   text-decoration: underline;
 }
 
@@ -1306,9 +1300,9 @@ a.model-activity-stat:hover .model-activity-stat-value {
   gap: 1.5rem;
   margin-top: 1.25rem;
   padding: 1rem 1.1rem;
-  border: 1px solid var(--model-border-light);
+  border: 1px solid var(--onyxjar-border-light);
   border-radius: 0.5rem;
-  background: var(--model-surface-subtle);
+  background: var(--onyxjar-surface-subtle);
 }
 
 .model-object-type-lifecycle-main {
@@ -1325,7 +1319,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-object-type-lifecycle-description {
   max-width: 650px;
   margin-top: 0.3rem;
-  color: var(--model-text-faint);
+  color: var(--onyxjar-text-faint);
   font-size: 0.72rem;
   line-height: 1.5;
 }
@@ -1359,10 +1353,10 @@ a.model-activity-stat:hover .model-activity-stat-value {
   gap: 0.35rem;
   min-height: 30px;
   padding: 0.35rem 0.7rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 999px;
   background: #fff;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.72rem;
   font-weight: 600;
   line-height: 1;
@@ -1392,12 +1386,12 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-object-type-attributes {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--model-border-light);
+  border-top: 1px solid var(--onyxjar-border-light);
 }
 
 .model-object-type-attribute {
   position: relative;
-  border-bottom: 1px solid var(--model-border-light);
+  border-bottom: 1px solid var(--onyxjar-border-light);
   background: #fff;
 }
 
@@ -1432,7 +1426,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-object-type-attribute-meta span {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.71rem;
   line-height: 1.35;
 }
@@ -1451,7 +1445,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-object-type-attribute-description {
   max-width: 760px;
   margin-top: 0.4rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.78rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -1469,7 +1463,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-object-type-attribute-actions .btn:focus-visible {
-  outline: 2px solid var(--model-focus);
+  outline: 2px solid var(--onyxjar-focus);
   outline-offset: 2px;
 }
 
@@ -1486,7 +1480,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   align-items: center;
   gap: 0.35rem;
   margin: 0 0 0.75rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.71rem;
   font-weight: 500;
   line-height: 1.3;
@@ -1513,8 +1507,8 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-object-type-attribute-editor {
   padding: 1rem 1.1rem 1.1rem;
-  border-top: 1px solid var(--model-border-light);
-  background: var(--model-surface-subtle);
+  border-top: 1px solid var(--onyxjar-border-light);
+  background: var(--onyxjar-surface-subtle);
 }
 
 .model-object-type-attribute-editor .model-editor-fields {
@@ -1523,7 +1517,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-object-type-attribute-editor .model-editor-field {
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--model-border-light);
+  border-bottom: 1px solid var(--onyxjar-border-light);
 }
 
 .model-object-type-attribute-editor .model-editor-field:first-child {
@@ -1537,7 +1531,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-object-type-attribute-editor label {
   display: block;
   margin-bottom: 0.35rem;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.77rem;
   font-weight: 600;
 }
@@ -1584,7 +1578,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-object-type-attribute-editor .model-editor-checkboxes .form-check-label {
   margin: 0;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.77rem;
   font-weight: 500;
 }
@@ -1662,14 +1656,14 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-relationship-rules {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--model-border-light);
+  border-top: 1px solid var(--onyxjar-border-light);
 }
 
 .model-relationship-rule {
   position: relative;
   padding: 1rem 0;
-  border-bottom: 1px solid var(--model-border-light);
-  background: var(--model-surface);
+  border-bottom: 1px solid var(--onyxjar-border-light);
+  background: var(--onyxjar-surface);
 }
 
 .model-relationship-rule:last-child {
@@ -1702,13 +1696,13 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-relationship-rule-label {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.7rem;
   font-weight: 600;
 }
 
 .model-relationship-rule-type {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   font-size: 0.85rem;
   font-weight: 600;
   overflow-wrap: anywhere;
@@ -1716,7 +1710,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-relationship-rule-cardinality {
   margin-left: 0.35rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.72rem;
   font-weight: 500;
   white-space: nowrap;
@@ -1728,7 +1722,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   justify-content: center;
   flex: 0 0 auto;
   width: 32px;
-  color: var(--model-text-placeholder);
+  color: var(--onyxjar-text-placeholder);
   font-size: 0.8rem;
 }
 
@@ -1762,14 +1756,14 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-relationship-rule [data-rule-editor],
 .model-relationship-rule [data-new-rule-editor] {
   padding: 1rem 1.1rem 1.1rem;
-  border-top: 1px solid var(--model-border-light);
-  background: var(--model-surface-subtle);
+  border-top: 1px solid var(--onyxjar-border-light);
+  background: var(--onyxjar-surface-subtle);
 }
 
 .model-relationship-rule [data-rule-editor] .model-editor-field,
 .model-relationship-rule [data-new-rule-editor] .model-editor-field {
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--model-border-light);
+  border-bottom: 1px solid var(--onyxjar-border-light);
 }
 
 .model-relationship-rule [data-rule-editor] .model-editor-field:first-child,
@@ -1788,7 +1782,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-relationship-rule [data-new-rule-editor] label {
   display: block;
   margin-bottom: 0.35rem;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.77rem;
   font-weight: 600;
 }
@@ -1810,7 +1804,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   align-items: center;
   gap: 0.9rem;
   padding: 1.25rem 0;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .model-editor-empty-icon {
@@ -1827,7 +1821,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-editor-empty h3 {
   margin: 0;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.84rem;
   font-weight: 600;
 }
@@ -1845,19 +1839,19 @@ a.model-activity-stat:hover .model-activity-stat-value {
   justify-content: flex-end;
   gap: 0.5rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--model-border-light);
+  border-top: 1px solid var(--onyxjar-border-light);
 }
 
 .model-object-type-editor .form-control,
 .model-object-type-editor .form-select {
-  border-color: var(--model-border);
+  border-color: var(--onyxjar-border);
   border-radius: 0.4rem;
   font-size: 0.83rem;
 }
 
 .model-object-type-editor .form-control:focus,
 .model-object-type-editor .form-select:focus {
-  border-color: var(--model-focus);
+  border-color: var(--onyxjar-focus);
   box-shadow: 0 0 0 0.15rem rgba(108, 117, 125, 0.12);
 }
 
@@ -1883,10 +1877,10 @@ a.model-activity-stat:hover .model-activity-stat-value {
   gap: 0.45rem;
   margin-top: 0.15rem;
   padding: 0.35rem 0.7rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 999px;
   background: #fff;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.75rem;
   font-weight: 600;
 }
@@ -1895,7 +1889,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--model-text-muted);
+  background: var(--onyxjar-text-muted);
 }
 
 .model-proposal-summary {
@@ -1906,7 +1900,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   padding: 0.85rem 1rem;
   border: 1px solid #e1e5e8;
   border-radius: 0.5rem;
-  background: var(--model-surface-subtle);
+  background: var(--onyxjar-surface-subtle);
 }
 
 .model-proposal-summary-item {
@@ -1915,7 +1909,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-proposal-summary-value {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.25;
@@ -1923,7 +1917,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-proposal-summary-label {
   margin-top: 0.2rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.7rem;
   font-weight: 500;
 }
@@ -1931,7 +1925,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-proposal-summary-divider {
   width: 1px;
   height: 30px;
-  background: var(--model-border);
+  background: var(--onyxjar-border);
 }
 
 /* =========================================================
@@ -1964,7 +1958,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   top: 50%;
   left: 0.7rem;
   z-index: 2;
-  color: var(--model-text-placeholder);
+  color: var(--onyxjar-text-placeholder);
   font-size: 0.8rem;
   transform: translateY(-50%);
   pointer-events: none;
@@ -1974,7 +1968,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   width: 100%;
   height: 31px;
   padding: 0.25rem 0.65rem 0.25rem 2rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 0.375rem;
   background: #fff;
   color: #343a40;
@@ -1982,11 +1976,11 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-proposal-search input::placeholder {
-  color: var(--model-text-placeholder);
+  color: var(--onyxjar-text-placeholder);
 }
 
 .model-proposal-search input:focus {
-  border-color: var(--model-focus);
+  border-color: var(--onyxjar-focus);
   outline: 0;
   box-shadow: 0 0 0 0.15rem rgba(108, 117, 125, 0.08);
 }
@@ -1997,8 +1991,8 @@ a.model-activity-stat:hover .model-activity-stat-value {
   height: 31px;
   padding-top: 0.2rem;
   padding-bottom: 0.2rem;
-  border-color: var(--model-border);
-  color: var(--model-text-secondary);
+  border-color: var(--onyxjar-border);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.75rem;
 }
 
@@ -2019,12 +2013,12 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-proposal-filter-summary {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.72rem;
 }
 
 .model-proposal-filter-summary strong {
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-weight: 600;
 }
 
@@ -2061,8 +2055,8 @@ a.model-activity-stat:hover .model-activity-stat-value {
   justify-content: space-between;
   min-height: 42px;
   padding: 0.65rem 0.9rem;
-  border-bottom: 1px solid var(--model-border-light);
-  background: var(--model-surface-subtle);
+  border-bottom: 1px solid var(--onyxjar-border-light);
+  background: var(--onyxjar-surface-subtle);
 }
 
 .model-proposal-change-group-title {
@@ -2080,7 +2074,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   padding: 0 0.4rem;
   border-radius: 999px;
   background: #e9ecef;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.68rem;
   font-weight: 600;
 }
@@ -2092,7 +2086,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-proposal-change {
   position: relative;
-  border-bottom: 1px solid var(--model-border-lighter);
+  border-bottom: 1px solid var(--onyxjar-border-lighter);
   background: #fff;
   transition:
     background-color 0.15s ease,
@@ -2164,7 +2158,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-proposal-change-title {
   overflow: hidden;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   font-size: 0.85rem;
   font-weight: 600;
   line-height: 1.35;
@@ -2175,7 +2169,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-proposal-change-detail {
   margin-top: 0.3rem;
   overflow: hidden;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.76rem;
   line-height: 1.4;
   text-overflow: ellipsis;
@@ -2197,7 +2191,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-proposal-change-value-label {
   display: block;
   margin-bottom: 0.12rem;
-  color: var(--model-text-placeholder);
+  color: var(--onyxjar-text-placeholder);
   font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -2207,7 +2201,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-proposal-change-value-text {
   display: block;
   overflow: hidden;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.72rem;
   line-height: 1.35;
   text-overflow: ellipsis;
@@ -2223,12 +2217,12 @@ a.model-activity-stat:hover .model-activity-stat-value {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--model-text-placeholder);
+  color: var(--onyxjar-text-placeholder);
   font-size: 0.7rem;
 }
 
 .model-proposal-empty {
-  color: var(--model-text-placeholder);
+  color: var(--onyxjar-text-placeholder);
   font-style: italic;
   font-weight: 400;
 }
@@ -2249,7 +2243,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  color: var(--model-text-faint);
+  color: var(--onyxjar-text-faint);
   font-size: 0.68rem;
   font-weight: 500;
 }
@@ -2266,14 +2260,14 @@ a.model-activity-stat:hover .model-activity-stat-value {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--model-text-placeholder);
+  background: var(--onyxjar-text-placeholder);
 }
 
 .model-proposal-source {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  color: var(--model-text-faint);
+  color: var(--onyxjar-text-faint);
   font-size: 0.68rem;
 }
 
@@ -2295,12 +2289,12 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-proposal-change-actions .model-proposal-discard {
-  color: var(--model-text-faint);
+  color: var(--onyxjar-text-faint);
 }
 
 .model-proposal-change-actions .model-proposal-discard:hover {
   border-color: #ced4da;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
 }
 
 .model-proposal-change-actions.is-confirming .model-proposal-review,
@@ -2321,7 +2315,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-proposal-discard-confirm-text {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.68rem;
 }
 
@@ -2335,13 +2329,13 @@ a.model-activity-stat:hover .model-activity-stat-value {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.78rem;
   cursor: pointer;
 }
 
 .model-proposal-change-note-open:hover {
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
 }
 
 .model-proposal-change-note:not([data-empty="true"])
@@ -2360,13 +2354,13 @@ a.model-activity-stat:hover .model-activity-stat-value {
   align-items: baseline;
   gap: 0.5rem;
   margin-bottom: 0.3rem;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.78rem;
   font-weight: 500;
 }
 
 .model-proposal-change-note-hint {
-  color: var(--model-text-faint);
+  color: var(--onyxjar-text-faint);
   font-weight: 400;
 }
 
@@ -2401,17 +2395,17 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-proposal-change-note-status {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.72rem;
 }
 
 .model-proposal-change-note-status.is-error {
-  color: var(--model-danger);
+  color: var(--onyxjar-danger);
 }
 
 .model-proposal-change-note-text {
   margin: 0;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.85rem;
 }
 
@@ -2446,19 +2440,19 @@ a.model-activity-stat:hover .model-activity-stat-value {
   align-items: baseline;
   gap: 0.45rem;
   min-width: 0;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .model-proposal-evidence-item > .bi {
   flex: none;
-  color: var(--model-text-placeholder);
+  color: var(--onyxjar-text-placeholder);
 }
 
 .model-proposal-evidence-source {
   flex: none;
   max-width: 40%;
   overflow: hidden;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2476,7 +2470,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
-  color: var(--model-text-faint);
+  color: var(--onyxjar-text-faint);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2497,7 +2491,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   border: 0;
   border-radius: 0.25rem;
   background: none;
-  color: var(--model-text-faint);
+  color: var(--onyxjar-text-faint);
   font-size: 0.72rem;
   cursor: pointer;
 }
@@ -2509,7 +2503,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-proposal-evidence-edit:hover,
 .model-proposal-evidence-remove:hover,
 .model-proposal-evidence-add:hover {
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
 }
 
 .model-proposal-evidence-confirm {
@@ -2553,7 +2547,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-proposal-evidence-error {
   grid-column: 1 / -1;
-  color: var(--model-danger);
+  color: var(--onyxjar-danger);
 }
 
 .model-proposal-evidence-error:empty {
@@ -2576,12 +2570,12 @@ a.model-activity-stat:hover .model-activity-stat-value {
   gap: 0.35rem;
   min-height: 28px;
   padding: 0 0.9rem 0.65rem 5.9rem;
-  color: var(--model-text-faint);
+  color: var(--onyxjar-text-faint);
   font-size: 0.68rem;
 }
 
 .model-proposal-change-parent > i {
-  color: var(--model-text-placeholder);
+  color: var(--onyxjar-text-placeholder);
   font-size: 0.7rem;
 }
 
@@ -2590,7 +2584,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-proposal-change-parent strong {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-weight: 500;
 }
 
@@ -2607,7 +2601,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   padding: 1rem 1.1rem;
   border: 1px solid #dfe3e6;
   border-radius: 0.5rem;
-  background: var(--model-surface-subtle);
+  background: var(--onyxjar-surface-subtle);
 }
 
 .model-proposal-actions-title {
@@ -2618,7 +2612,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-proposal-actions-description {
   margin-top: 0.2rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.72rem;
 }
 
@@ -2630,27 +2624,27 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-empty-state {
   padding: 3rem 2rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 0.5rem;
-  background: var(--model-surface-subtle);
+  background: var(--onyxjar-surface-subtle);
   text-align: center;
 }
 
 .model-empty-state-icon {
   margin-bottom: 0.75rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 1.5rem;
 }
 
 .model-empty-state-title {
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.95rem;
   font-weight: 600;
 }
 
 .model-empty-state h2 {
   margin: 0;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.95rem;
   font-weight: 600;
 }
@@ -2658,7 +2652,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-empty-state p {
   max-width: 500px;
   margin: 0.35rem auto 0;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.85rem;
   line-height: 1.5;
 }
@@ -2666,7 +2660,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-empty-state-description {
   max-width: 500px;
   margin: 0.35rem auto 0;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.85rem;
   line-height: 1.5;
 }
@@ -2696,15 +2690,15 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-data-pending {
   margin-bottom: 1.5rem;
-  border: 1px solid var(--model-border-light);
+  border: 1px solid var(--onyxjar-border-light);
   border-radius: 0.5rem;
-  background: var(--model-surface-subtle);
+  background: var(--onyxjar-surface-subtle);
 }
 
 .model-data-pending-header {
   padding: 0.7rem 1rem;
-  border-bottom: 1px solid var(--model-border-light);
-  color: var(--model-text-muted);
+  border-bottom: 1px solid var(--onyxjar-border-light);
+  color: var(--onyxjar-text-muted);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -2716,7 +2710,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   align-items: center;
   gap: 0.75rem;
   padding: 0.65rem 1rem;
-  border-bottom: 1px solid var(--model-border-light);
+  border-bottom: 1px solid var(--onyxjar-border-light);
   font-size: 0.85rem;
 }
 
@@ -2730,7 +2724,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-data-table-wrapper {
   overflow-x: auto;
-  border: 1px solid var(--model-border-light);
+  border: 1px solid var(--onyxjar-border-light);
   border-radius: 0.5rem;
 }
 
@@ -2742,9 +2736,9 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-data-table thead th {
   padding: 0.65rem 1rem;
-  border-bottom: 1px solid var(--model-border);
-  background: var(--model-surface-subtle);
-  color: var(--model-text-muted);
+  border-bottom: 1px solid var(--onyxjar-border);
+  background: var(--onyxjar-surface-subtle);
+  color: var(--onyxjar-text-muted);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -2755,8 +2749,8 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-data-table tbody td {
   padding: 0.65rem 1rem;
-  border-bottom: 1px solid var(--model-border-light);
-  color: var(--model-text-secondary);
+  border-bottom: 1px solid var(--onyxjar-border-light);
+  color: var(--onyxjar-text-secondary);
   vertical-align: middle;
 }
 
@@ -2765,7 +2759,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-data-table tbody tr:hover {
-  background: var(--model-surface-subtle);
+  background: var(--onyxjar-surface-subtle);
 }
 
 .model-data-table td.is-status {
@@ -2791,7 +2785,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-data-pagination-summary {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.78rem;
 }
 
@@ -2810,7 +2804,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-data-relationship-group-label {
   margin-bottom: 0.35rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -2820,7 +2814,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-data-relationship-item {
   display: block;
   padding: 0.3rem 0;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.85rem;
   text-decoration: none;
 }
@@ -2875,7 +2869,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
     padding-left: 0;
     border-left: 0;
     padding-top: 1.35rem;
-    border-top: 1px solid var(--model-border-light);
+    border-top: 1px solid var(--onyxjar-border-light);
   }
 
   .model-overview-definition-field:first-child {
@@ -3063,14 +3057,14 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-nav-proposal-title {
   overflow: hidden;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   font-size: 0.85rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .model-nav-proposal-meta {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.7rem;
 }
 
@@ -3082,7 +3076,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   height: 7px;
   margin-right: 0.55rem;
   border-radius: 50%;
-  background: var(--model-text-muted);
+  background: var(--onyxjar-text-muted);
 }
 
 .model-nav-proposal-status-failed::before {
@@ -3100,7 +3094,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-nav-empty {
   padding: 0.45rem 0.75rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.8rem;
 }
 
@@ -3113,14 +3107,14 @@ a.model-activity-stat:hover .model-activity-stat-value {
   margin-top: 0.15rem;
   border: 0;
   background: transparent;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.85rem;
   text-align: left;
 }
 
 .model-nav-new-proposal:hover {
   background: #e9ecef;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 /* =========================================================
@@ -3142,12 +3136,12 @@ a.model-activity-stat:hover .model-activity-stat-value {
   border: 0;
   border-radius: 0.375rem;
   background: transparent;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .model-proposal-rename-btn:hover {
   background: #e9ecef;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 .model-proposal-title-input {
@@ -3222,7 +3216,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-proposal-danger-zone {
   margin-top: 1.5rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--model-border-light);
+  border-top: 1px solid var(--onyxjar-border-light);
 }
 
 .model-proposal-abandon-confirm {
@@ -3237,7 +3231,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 .model-proposal-abandon-confirm-text {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.78rem;
 }
 
@@ -3259,7 +3253,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-proposal-success-title {
   margin: 0;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   font-size: 1.15rem;
   font-weight: 600;
   line-height: 1.3;
@@ -3268,7 +3262,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-proposal-success-description {
   max-width: 560px;
   margin: 0.5rem 0 0;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.9rem;
   line-height: 1.5;
 }
@@ -3292,19 +3286,19 @@ a.model-activity-stat:hover .model-activity-stat-value {
   gap: 0.75rem;
   margin-bottom: 0.85rem;
   padding: 0.6rem 1rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 0.5rem;
-  background: var(--model-accent-soft);
+  background: var(--onyxjar-accent-soft);
   font-size: 0.85rem;
 }
 
 .model-bulk-actionbar [data-bulk-count] {
   font-weight: 600;
-  color: var(--model-accent);
+  color: var(--onyxjar-indigo);
 }
 
 .model-data-row[data-selected="true"] {
-  background: var(--model-accent-soft);
+  background: var(--onyxjar-accent-soft);
 }
 
 .model-inline-banner {
@@ -3327,10 +3321,10 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-bulk-results-error {
   margin-bottom: 1rem;
   padding: 0.85rem 1rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 0.5rem;
   background: #fdf2f2;
-  color: var(--model-danger);
+  color: var(--onyxjar-danger);
   font-size: 0.85rem;
 }
 
@@ -3342,10 +3336,10 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-bulk-banner-warning {
   margin-bottom: 1rem;
   padding: 0.65rem 1rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 0.5rem;
-  background: var(--model-surface-subtle);
-  color: var(--model-text-secondary);
+  background: var(--onyxjar-surface-subtle);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.85rem;
 }
 
@@ -3360,7 +3354,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
   align-items: center;
   gap: 0.75rem;
   padding: 0.55rem 0;
-  border-bottom: 1px solid var(--model-border-lighter);
+  border-bottom: 1px solid var(--onyxjar-border-lighter);
 }
 
 .model-bulk-field-row:last-child {
@@ -3369,7 +3363,7 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-bulk-field-label {
   margin: 0;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   font-size: 0.85rem;
   font-weight: 500;
 }
@@ -3386,8 +3380,8 @@ a.model-activity-stat:hover .model-activity-stat-value {
 .model-mixed-values-badge {
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
-  background: var(--model-surface-subtle);
-  color: var(--model-text-muted);
+  background: var(--onyxjar-surface-subtle);
+  color: var(--onyxjar-text-muted);
   font-size: 0.7rem;
   font-weight: 600;
   white-space: nowrap;
@@ -3412,6 +3406,6 @@ a.model-activity-stat:hover .model-activity-stat-value {
 
 .model-proposal-acknowledged-note {
   margin: 1.25rem 0 0;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.82rem;
 }

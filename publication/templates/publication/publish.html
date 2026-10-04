@@ -105,16 +105,12 @@
         <aside class="model-explorer-side publish-scope-panel" id="publish-scope" aria-label="Publication scope">
 
             <header class="publish-scope-header">
-                <div class="publish-scope-heading">
-                    <h3>Publication scope</h3>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="publish-clear-scope" hidden>Include the whole model again</button>
-                </div>
+                <h3>Publication scope</h3>
                 <p class="model-explorer-muted publish-hint">
                     What goes into the publication. The starting point, types and filters below all apply together;
                     nothing you leave out can appear in the file.
                 </p>
                 <div id="publish-notices"></div>
-                <div id="publish-scope-chips" class="model-explorer-chips"></div>
             </header>
 
             <section class="publish-scope-section" aria-labelledby="publish-start-title">
@@ -203,6 +199,24 @@
 
             <p class="publish-preview-summary" id="publish-summary" aria-live="polite"></p>
             <p class="model-explorer-form-error" id="publish-too-large" role="alert" hidden></p>
+
+            <div class="publish-scope-applied" id="publish-scope-applied" hidden>
+                <div class="model-explorer-legend-header">
+                    <button
+                        type="button"
+                        id="publish-scope-chips-toggle"
+                        class="model-explorer-legend-toggle"
+                        data-action="toggle-scope-chips"
+                        aria-expanded="true"
+                        aria-controls="publish-scope-chips"
+                    >
+                        <svg class="onyxjar-icon model-explorer-legend-chevron" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 6l4 4 4-4"/></svg>
+                        <span id="publish-scope-chips-label"></span>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="publish-clear-scope">Include the whole model again</button>
+                </div>
+                <div id="publish-scope-chips" class="model-explorer-chips publish-scope-chips"></div>
+            </div>
 
             {% include "model/_explorer_main.html" with explorer_hide_view_controls=True %}
 

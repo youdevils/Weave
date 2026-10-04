@@ -44,7 +44,7 @@
 
         {% include "model/_index_controls.html" with noun="object types" placeholder="Search object types..." %}
 
-        <form data-bulk-select-form>
+        <form data-bulk-select-form data-bulk-status-action="bulk_set_object_type_status" data-bulk-id-field="object_type_id">
 
             <div class="model-bulk-actionbar" data-bulk-actionbar hidden>
                 <span data-bulk-count aria-live="polite">0 selected</span>

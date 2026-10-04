@@ -3,24 +3,28 @@
 
    Used by the live Explorer, the Publishing preview and the portable
    published Explorer. Contains only Explorer-specific rules; page chrome
-   stays in model.css. The tokens below mirror .model-shell so the portable
-   file (which has no .model-shell) renders identically.
+   stays in model.css. The tokens below mirror .model-shell (and the
+   shared brand tokens model.css itself now draws on) so the portable
+   file -- which has no .model-shell, no onyxjar-app.css and no
+   tokens.css, only this file and portable.css -- renders identically.
+   Hardcoded rather than var()-aliased for exactly that reason: nothing
+   else is guaranteed to be in scope here.
    ========================================================= */
 
 .onyxjar-explorer {
-  --model-text: #212529;
-  --model-text-secondary: #495057;
-  --model-text-muted: #6c757d;
-  --model-text-faint: #8a9198;
-  --model-text-placeholder: #adb5bd;
-  --model-border: #dee2e6;
-  --model-border-light: #e9ecef;
-  --model-border-lighter: #edf0f2;
-  --model-surface: #ffffff;
-  --model-surface-subtle: #f8f9fa;
-  --model-surface-hover: #f1f3f5;
-  --model-focus: #adb5bd;
-  --model-danger: #b02a37;
+  --onyxjar-text: #0f172a;
+  --onyxjar-text-secondary: #475569;
+  --onyxjar-text-muted: #64748b;
+  --onyxjar-text-faint: #94a3b8;
+  --onyxjar-text-placeholder: #cbd5e1;
+  --onyxjar-border: #e2e8f0;
+  --onyxjar-border-light: #eef2f6;
+  --onyxjar-border-lighter: #f1f5f9;
+  --onyxjar-surface: #ffffff;
+  --onyxjar-surface-subtle: #f8fafc;
+  --onyxjar-surface-hover: #f1f5f9;
+  --onyxjar-focus: #1f1b43;
+  --onyxjar-danger: #b23a45;
 }
 
 /* Inline SVG icons (replace the Bootstrap Icons font so nothing loads from a CDN). */
@@ -63,9 +67,9 @@
   min-height: 0;
   overflow-y: auto;
   padding: 1rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 10px;
-  background: var(--model-surface);
+  background: var(--onyxjar-surface);
 }
 
 .model-explorer-main {
@@ -82,9 +86,9 @@
   height: auto;
   min-height: 320px;
   max-height: none;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 10px;
-  background: var(--model-surface);
+  background: var(--onyxjar-surface);
 }
 
 .model-explorer-search {
@@ -97,7 +101,7 @@
   top: 50%;
   left: 0.7rem;
   transform: translateY(-50%);
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   pointer-events: none;
 }
 
@@ -119,13 +123,13 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .model-explorer-filters {
   margin-top: 1rem;
   padding-top: 0.9rem;
-  border-top: 1px solid var(--model-border-light);
+  border-top: 1px solid var(--onyxjar-border-light);
 }
 
 /* Search results ---------------------------------------------------- */
@@ -145,17 +149,17 @@
   gap: 0.15rem;
   width: 100%;
   padding: 0.45rem 0.6rem;
-  border: 1px solid var(--model-border-light);
+  border: 1px solid var(--onyxjar-border-light);
   border-radius: 8px;
-  background: var(--model-surface);
+  background: var(--onyxjar-surface);
   text-align: left;
   cursor: pointer;
 }
 
 .model-explorer-result:hover,
 .model-explorer-result:focus-visible {
-  background: var(--model-surface-hover);
-  border-color: var(--model-border);
+  background: var(--onyxjar-surface-hover);
+  border-color: var(--onyxjar-border);
 }
 
 .model-explorer-result-main {
@@ -168,14 +172,14 @@
 .model-explorer-result-name {
   font-size: 0.88rem;
   font-weight: 600;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 .model-explorer-result-detail,
 .model-explorer-result-footer,
 .model-explorer-empty-note {
   font-size: 0.78rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .model-explorer-result-footer,
@@ -198,9 +202,9 @@
 }
 
 .model-explorer-pill {
-  background: var(--model-surface-subtle);
-  border: 1px solid var(--model-border);
-  color: var(--model-text-secondary);
+  background: var(--onyxjar-surface-subtle);
+  border: 1px solid var(--onyxjar-border);
+  color: var(--onyxjar-text-secondary);
 }
 
 .model-explorer-proposed {
@@ -210,8 +214,8 @@
 }
 
 .model-explorer-hidden-tag {
-  border: 1px dashed var(--model-border);
-  color: var(--model-text-muted);
+  border: 1px dashed var(--onyxjar-border);
+  color: var(--onyxjar-text-muted);
   font-weight: 500;
 }
 
@@ -230,15 +234,15 @@
   align-items: center;
   gap: 0.3rem;
   padding: 0.15rem 0.35rem 0.15rem 0.65rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 999px;
-  background: var(--model-surface-subtle);
+  background: var(--onyxjar-surface-subtle);
   font-size: 0.78rem;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 .model-explorer-chip-selection {
-  border-color: var(--model-focus);
+  border-color: var(--onyxjar-focus);
 }
 
 .model-explorer-chip-remove {
@@ -249,13 +253,13 @@
   border-radius: 50%;
   background: none;
   line-height: 1;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   cursor: pointer;
 }
 
 .model-explorer-chip-remove:hover {
-  background: var(--model-border-light);
-  color: var(--model-text);
+  background: var(--onyxjar-border-light);
+  color: var(--onyxjar-text);
 }
 
 /* State bar ------------------------------------------------------------ */
@@ -277,7 +281,7 @@
 .model-explorer-counts {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 .model-explorer-statebar-actions {
@@ -289,17 +293,17 @@
 .model-explorer-notice {
   margin: 0;
   padding: 0.4rem 0.7rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 8px;
-  background: var(--model-surface-subtle);
+  background: var(--onyxjar-surface-subtle);
   font-size: 0.8rem;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
 }
 
 .model-explorer-form-error {
   margin: 0.35rem 0 0;
   font-size: 0.78rem;
-  color: var(--model-danger);
+  color: var(--onyxjar-danger);
 }
 
 .model-explorer-form-error:empty {
@@ -326,7 +330,7 @@
 .model-explorer-count {
   font-size: 0.72rem;
   font-weight: 500;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 /* Type marker drawn as inline SVG (see explorer-render.js); a compact, fixed footprint. */
@@ -359,11 +363,11 @@
   width: 1.35rem;
   height: 1.1rem;
   border-radius: 2px;
-  border: 1.5px solid var(--model-text-muted);
+  border: 1.5px solid var(--onyxjar-text-muted);
   background-image: repeating-linear-gradient(
     45deg,
-    var(--model-text-muted) 0,
-    var(--model-text-muted) 1px,
+    var(--onyxjar-text-muted) 0,
+    var(--onyxjar-text-muted) 1px,
     transparent 1px,
     transparent 5px
   );
@@ -389,7 +393,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.78rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .model-explorer-legend-subrow-label {
@@ -431,7 +435,7 @@
 
 .model-explorer-description {
   font-size: 0.85rem;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
 }
 
 .model-explorer-attributes {
@@ -443,13 +447,13 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.3rem 0;
-  border-bottom: 1px solid var(--model-border-light);
+  border-bottom: 1px solid var(--onyxjar-border-light);
   font-size: 0.84rem;
 }
 
 .model-explorer-attribute dt {
   font-weight: 500;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
 }
 
 .model-explorer-attribute dd {
@@ -465,7 +469,7 @@
 }
 
 .model-explorer-muted {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.82rem;
 }
 
@@ -515,13 +519,13 @@
 
 .model-explorer-provenance-entry {
   padding: 0.5rem 0 0.5rem 0.75rem;
-  border-left: 2px solid var(--model-border);
+  border-left: 2px solid var(--onyxjar-border);
   font-size: 0.85rem;
 }
 
 .model-explorer-provenance-note {
   margin: 0.25rem 0 0;
-  color: var(--model-text-secondary);
+  color: var(--onyxjar-text-secondary);
   font-size: 0.82rem;
   overflow-wrap: anywhere;
   white-space: pre-line;
@@ -553,15 +557,15 @@
 }
 
 .model-explorer-evidence-item > .onyxjar-icon {
-  color: var(--model-text-placeholder);
+  color: var(--onyxjar-text-placeholder);
 }
 
 .model-explorer-evidence-note {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .model-explorer-arrow {
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .model-explorer-link {
@@ -569,7 +573,7 @@
   border: 0;
   background: none;
   font: inherit;
-  color: var(--model-focus, #4c6ef5);
+  color: var(--onyxjar-focus, #4c6ef5);
   text-align: left;
   cursor: pointer;
 }
@@ -581,7 +585,7 @@
 .model-explorer-link-quiet {
   margin-left: auto;
   font-size: 0.75rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .model-explorer-endpoints {
@@ -599,7 +603,7 @@
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .model-explorer-empty-state {
@@ -610,7 +614,7 @@
   padding: 2rem 0.5rem;
   text-align: center;
   font-size: 0.85rem;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
 }
 
 .model-explorer-empty-state .onyxjar-icon {
@@ -651,7 +655,7 @@
 .model-explorer-panel-title {
   font-size: 0.72rem;
   font-weight: 800;
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   white-space: nowrap;
 }
 
@@ -663,16 +667,16 @@
   width: 28px;
   height: 28px;
   padding: 0;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 6px;
-  background: var(--model-surface-subtle);
-  color: var(--model-text-secondary);
+  background: var(--onyxjar-surface-subtle);
+  color: var(--onyxjar-text-secondary);
   cursor: pointer;
 }
 
 .model-explorer-panel-toggle:hover {
-  background: var(--model-border-light);
-  color: var(--model-text);
+  background: var(--onyxjar-border-light);
+  color: var(--onyxjar-text);
 }
 
 .model-explorer-panel-toggle .onyxjar-icon {
@@ -721,10 +725,10 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.35rem 0.65rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 999px;
-  background: var(--model-surface);
-  color: var(--model-text-secondary);
+  background: var(--onyxjar-surface);
+  color: var(--onyxjar-text-secondary);
   font: inherit;
   font-size: 0.78rem;
   font-weight: 600;
@@ -732,8 +736,8 @@
 }
 
 .model-explorer-reopen-tab:hover {
-  background: var(--model-surface-hover);
-  color: var(--model-text);
+  background: var(--onyxjar-surface-hover);
+  color: var(--onyxjar-text);
 }
 
 .model-explorer-reopen-tab .onyxjar-icon {
@@ -826,7 +830,7 @@
   margin: 1rem 0 0.4rem;
   font-size: 0.72rem;
   font-weight: 500;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   cursor: pointer;
 }
 

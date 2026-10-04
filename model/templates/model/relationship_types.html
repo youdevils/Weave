@@ -45,6 +45,15 @@
 
         {% include "model/_index_controls.html" with noun="relationship types" placeholder="Search relationship types..." %}
 
+        <form data-bulk-select-form data-bulk-status-action="bulk_set_relationship_type_status" data-bulk-id-field="relationship_type_id">
+
+            <div class="model-bulk-actionbar" data-bulk-actionbar hidden>
+                <span data-bulk-count aria-live="polite">0 selected</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bulk-type-status="true">Activate</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bulk-type-status="false">Deactivate</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bulk-clear>Clear selection</button>
+            </div>
+
         <div class="model-index-grid">
 
             {% for relationship_type in relationship_types %}
@@ -52,12 +61,22 @@
                 <article
                     class="model-index-card{% if relationship_type.is_proposed %} model-index-card-proposed{% endif %}"
                     data-index-item
+                    data-bulk-row
                     data-active="{{ relationship_type.canonical_is_active|yesno:'true,false' }}"
                     data-search="{{ relationship_type.name|lower }} {{ relationship_type.key|lower }}"
                     {% if not relationship_type.canonical_is_active %}hidden{% endif %}
                 >
 
                     <div class="model-index-card-top">
+
+                        <input
+                            type="checkbox"
+                            name="relationship_type_id"
+                            value="{{ relationship_type.id }}"
+                            data-bulk-select
+                            aria-label="Select {{ relationship_type.name|default:'Untitled' }}"
+                            class="model-index-card-select"
+                        >
 
                         <h2 class="model-index-card-title">
                             <a
@@ -112,6 +131,8 @@
 
         </div>
 
+        </form>
+
         {% include "model/_index_noresults.html" %}
 
     {% else %}
@@ -148,4 +169,6 @@
 {% block extra_js %}
 {{ block.super }}
 <script type="module" src="{% static 'model/js/model-index.js' %}"></script>
+<script type="module" src="{% static 'model/js/bulk-edit/selection-boot.js' %}"></script>
+<script type="module" src="{% static 'model/js/bulk-edit/type-status-boot.js' %}"></script>
 {% endblock %}

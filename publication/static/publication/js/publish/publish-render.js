@@ -29,6 +29,13 @@ export function renderScopeChips(chips) {
     .join("");
 }
 
+/** The scope-chips toggle's label: "Publication scope · 3 filters". Plain
+ * text (set via textContent, not innerHTML), so a literal middot, not the
+ * HTML entity used elsewhere in this file. */
+export function renderScopeChipsLabel(count) {
+  return `Publication scope · ${plural(count, "filter", "filters")}`;
+}
+
 /** Shown on a type that is selected but has nothing in the current result (it is not an exclusion, and not "inactive"). */
 export const EMPTY_TYPE_TITLE = "No matching data in the current result";
 

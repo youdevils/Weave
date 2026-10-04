@@ -52,6 +52,8 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
     openingSet: $("publish-opening-set"),
     openingClear: $("publish-opening-clear"),
     previous: $("publish-previous"),
+    scopeApplied: $("publish-scope-applied"),
+    scopeChipsLabel: $("publish-scope-chips-label"),
     clearScope: $("publish-clear-scope"),
     button: $("publish-button"),
     status: $("publish-status"),
@@ -114,9 +116,10 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
     renderTypeGroup("relationship", el.relationshipTypeRows, el.selectAllRelationshipTypes);
     el.filterNote.innerHTML = view.renderFilterNote(config.scope.attribute_filters.length);
     el.builder.innerHTML = explorerRender.renderFilterBuilder(facets, builderDraft);
-    el.chips.innerHTML = view.renderScopeChips(
-      state.describeScope(config, facets, rootNames, explorerState.describeAttributeFilter),
-    );
+    const chips = state.describeScope(config, facets, rootNames, explorerState.describeAttributeFilter);
+    el.chips.innerHTML = view.renderScopeChips(chips);
+    el.scopeChipsLabel.textContent = view.renderScopeChipsLabel(chips.length);
+    el.scopeApplied.hidden = chips.length === 0;
     el.traversal.innerHTML = view.renderTraversal(
       config.scope.traversal.roots,
       rootNames,
@@ -124,7 +127,6 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
       bootstrap.depth,
     );
     el.notices.innerHTML = view.renderNotices(notices);
-    el.clearScope.hidden = !state.hasScope(config);
     if (lastResults) el.results.innerHTML = view.renderLocatorResults(lastResults, startingIds());
   }
 
@@ -337,17 +339,32 @@ export function startPublishing({ kit, bootstrap, api = createPublishApi({ urls:
         actionElement.setAttribute("aria-expanded", String(!rows.classList.toggle("collapsed")));
         break;
       }
-      case "remove-scope-chip":
-        scopeChanged(
-          state.removeScopeChip(config, { kind: actionElement.dataset.chipKind, key: actionElement.dataset.chipKey }),
-        );
-        break;
       case "add-filter": {
         const built = kit.readFilterBuilder(el.builder);
         el.builderMessage.textContent = built?.error || "";
         if (built?.filter) scopeChanged(state.addAttributeFilter(config, built.filter));
         break;
       }
+      default:
+        break;
+    }
+  });
+
+  // The scope chips live in the preview header, outside #publish-scope, so
+  // they need their own delegated listener rather than reusing el.scope's.
+  el.scopeApplied.addEventListener("click", (event) => {
+    const actionElement = event.target.closest("[data-action]");
+    if (!actionElement) return;
+
+    switch (actionElement.dataset.action) {
+      case "toggle-scope-chips":
+        actionElement.setAttribute("aria-expanded", String(!el.chips.classList.toggle("collapsed")));
+        break;
+      case "remove-scope-chip":
+        scopeChanged(
+          state.removeScopeChip(config, { kind: actionElement.dataset.chipKind, key: actionElement.dataset.chipKey }),
+        );
+        break;
       default:
         break;
     }

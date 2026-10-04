@@ -11,16 +11,19 @@
    ========================================================= */
 
 :root {
-  /* Palette (brand tokens) */
-  --ff-indigo: #1f1b43;
-  --ff-indigo-strong: #191636;
-  --ff-secondary: #540054;
-  --ff-secondary-strong: #430043;
-  --ff-teal: #2f7a5d; /* decorative accent, aligned to the Success token */
-  --ff-sky: #3694a3; /* decorative accent, aligned to the Info token */
-  --ff-ink: #0f172a;
-  --ff-slate: #94a3b8;
-  --ff-mist: #f1f5f9;
+  /* Palette (brand tokens) — sourced from static/onyxjar/brand/css/tokens.css,
+     loaded before this file in website/templates/website/base.html. The
+     authenticated app consumes the same tokens under its own --onyxjar-*
+     names (workspace/static/workspace/css/onyxjar-app.css). */
+  --ff-indigo: var(--onyxjar-indigo);
+  --ff-indigo-strong: var(--onyxjar-indigo-strong);
+  --ff-secondary: var(--onyxjar-secondary);
+  --ff-secondary-strong: var(--onyxjar-secondary-strong);
+  --ff-teal: var(--onyxjar-teal); /* decorative accent, aligned to the Success token */
+  --ff-sky: var(--onyxjar-sky); /* decorative accent, aligned to the Info token */
+  --ff-ink: var(--onyxjar-ink);
+  --ff-slate: var(--onyxjar-slate);
+  --ff-mist: var(--onyxjar-mist);
 
   /* Roles */
   --ff-bg: #f8fafc;

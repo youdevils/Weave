@@ -1,7 +1,7 @@
 /* =========================================================
    Model index pages
    Object types, relationship types and the two data type choosers.
-   Tokens (--model-*) come from .model-shell in model.css.
+   Tokens (--onyxjar-*) come from .model-shell in model.css.
    ========================================================= */
 
 .model-index {
@@ -52,7 +52,7 @@
   border: 0;
   border-radius: 0.25rem;
   background: transparent;
-  color: var(--model-text-faint);
+  color: var(--onyxjar-text-faint);
   font-size: 0.7rem;
   transform: translateY(-50%);
 }
@@ -62,17 +62,17 @@
 }
 
 .model-index-search-clear:hover {
-  background: var(--model-surface-hover);
-  color: var(--model-text);
+  background: var(--onyxjar-surface-hover);
+  color: var(--onyxjar-text);
 }
 
 .model-index-filter {
   display: inline-flex;
   flex: 0 0 auto;
   overflow: hidden;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 0.375rem;
-  background: var(--model-surface);
+  background: var(--onyxjar-surface);
 }
 
 .model-index-filter button {
@@ -80,28 +80,28 @@
   padding: 0 0.85rem;
   border: 0;
   background: transparent;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.8rem;
   font-weight: 500;
 }
 
 .model-index-filter button + button {
-  border-left: 1px solid var(--model-border);
+  border-left: 1px solid var(--onyxjar-border);
 }
 
 .model-index-filter button:hover {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
 }
 
 .model-index-filter button[aria-pressed="true"] {
-  background: var(--model-accent-soft);
-  color: var(--model-accent-strong);
+  background: var(--onyxjar-accent-soft);
+  color: var(--onyxjar-indigo-strong);
   font-weight: 600;
 }
 
 .model-index-filter button:focus-visible {
   position: relative;
-  outline: 2px solid var(--model-focus);
+  outline: 2px solid var(--onyxjar-focus);
   outline-offset: -2px;
 }
 
@@ -120,9 +120,9 @@
   gap: 0.35rem;
   min-width: 0;
   padding: 1rem 1.1rem;
-  border: 1px solid var(--model-border);
+  border: 1px solid var(--onyxjar-border);
   border-radius: 10px;
-  background: var(--model-surface);
+  background: var(--onyxjar-surface);
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
@@ -159,7 +159,7 @@
 }
 
 .model-index-card-link {
-  color: var(--model-text);
+  color: var(--onyxjar-text);
   text-decoration: none;
 }
 
@@ -172,7 +172,7 @@
 }
 
 .model-index-card-link:hover {
-  color: var(--model-accent-strong);
+  color: var(--onyxjar-indigo-strong);
 }
 
 .model-index-card-link:focus-visible {
@@ -180,7 +180,7 @@
 }
 
 .model-index-card-link:focus-visible::after {
-  outline: 2px solid var(--model-focus);
+  outline: 2px solid var(--onyxjar-focus);
   outline-offset: 2px;
 }
 
@@ -203,8 +203,8 @@
   gap: 0.3rem;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
-  background: var(--model-border-lighter);
-  color: var(--model-text-muted);
+  background: var(--onyxjar-border-lighter);
+  color: var(--onyxjar-text-muted);
   font-size: 0.7rem;
   font-weight: 600;
   line-height: 1.4;
@@ -216,8 +216,8 @@
 }
 
 .model-index-badge-proposed {
-  background: var(--model-accent-soft);
-  color: var(--model-accent-strong);
+  background: var(--onyxjar-accent-soft);
+  color: var(--onyxjar-indigo-strong);
 }
 
 .model-index-card-badges .model-discard-button {
@@ -230,7 +230,7 @@
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
-  color: var(--model-text-muted);
+  color: var(--onyxjar-text-muted);
   font-size: 0.85rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -240,7 +240,7 @@
 }
 
 .model-index-card-description-empty {
-  color: var(--model-text-faint);
+  color: var(--onyxjar-text-faint);
   font-style: italic;
 }
 
@@ -251,7 +251,7 @@
   gap: 0.25rem 0.9rem;
   margin-top: auto;
   padding-top: 0.5rem;
-  color: var(--model-text-faint);
+  color: var(--onyxjar-text-faint);
   font-size: 0.75rem;
 }
 
@@ -271,8 +271,8 @@
 }
 
 .model-index-card[data-selected="true"] {
-  border-color: var(--model-accent);
-  background: var(--model-accent-soft);
+  border-color: var(--onyxjar-indigo);
+  background: var(--onyxjar-accent-soft);
 }
 
 /* -- No results -- */

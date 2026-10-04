@@ -11,6 +11,7 @@ import {
   renderPreviousNote,
   renderPublishSuccess,
   renderScopeChips,
+  renderScopeChipsLabel,
   renderSummary,
   renderTraversal,
 } from "../static/publication/js/publish/publish-render.js";
@@ -24,6 +25,11 @@ test("scope chips carry the action, kind and key, and escape their label", () =>
   assert.match(html, /data-chip-kind="root"/);
   assert.match(html, /data-chip-key="o1"/);
   assert.doesNotMatch(html, /<img/);
+});
+
+test("the scope-chips toggle label counts singular and plural filters", () => {
+  assert.equal(renderScopeChipsLabel(1), "Publication scope · 1 filter");
+  assert.equal(renderScopeChipsLabel(3), "Publication scope · 3 filters");
 });
 
 test("with no starting point the publication starts from the whole model", () => {

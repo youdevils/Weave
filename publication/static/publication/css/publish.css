@@ -29,7 +29,7 @@
 
 .publish-status {
     min-height: 1.2em;
-    color: var(--model-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.78rem;
 }
 
@@ -50,7 +50,7 @@
     margin-bottom: 0.2rem;
     font-size: 0.78rem;
     font-weight: 600;
-    color: var(--model-text-secondary);
+    color: var(--onyxjar-text-secondary);
 }
 
 .publish-colour,
@@ -66,9 +66,9 @@
     width: 2.4rem;
     height: 1.9rem;
     padding: 0.1rem;
-    border: 1px solid var(--model-border);
+    border: 1px solid var(--onyxjar-border);
     border-radius: 0.3rem;
-    background: var(--model-surface);
+    background: var(--onyxjar-surface);
     cursor: pointer;
 }
 
@@ -77,7 +77,7 @@
 .publish-settings {
     margin-bottom: 1.75rem;
     padding-bottom: 1.25rem;
-    border-bottom: 1px solid var(--model-border-light);
+    border-bottom: 1px solid var(--onyxjar-border-light);
 }
 
 .publish-settings-title {
@@ -86,7 +86,7 @@
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--model-text-muted);
+    color: var(--onyxjar-text-muted);
 }
 
 .publish-settings-grid {
@@ -108,7 +108,7 @@
 .publish-opening-summary {
     margin: 0 0 0.5rem;
     font-size: 0.85rem;
-    color: var(--model-text-secondary);
+    color: var(--onyxjar-text-secondary);
 }
 
 .publish-settings-notes {
@@ -134,9 +134,9 @@
     min-height: 0;
     overflow-y: auto;
     padding: 0 1rem 1rem;
-    border: 1px solid var(--model-border);
+    border: 1px solid var(--onyxjar-border);
     border-radius: 10px;
-    background: var(--model-surface);
+    background: var(--onyxjar-surface);
 }
 
 /* The heading, chips and the whole-model reset stay in view while the sections scroll. */
@@ -146,29 +146,21 @@
     z-index: 1;
     margin: 0 -1rem 0.25rem;
     padding: 1rem 1rem 0.6rem;
-    border-bottom: 1px solid var(--model-border-light);
-    background: var(--model-surface);
+    border-bottom: 1px solid var(--onyxjar-border-light);
+    background: var(--onyxjar-surface);
+}
+
+.publish-scope-header h3 {
+    margin: 0;
 }
 
 .publish-scope-header .publish-hint {
     margin: 0.35rem 0 0;
 }
 
-.publish-scope-heading {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-}
-
-.publish-scope-header .model-explorer-chips:not(:empty) {
-    margin-top: 0.6rem;
-}
-
 .publish-scope-section {
     padding-bottom: 1rem;
-    border-bottom: 1px solid var(--model-border-light);
+    border-bottom: 1px solid var(--onyxjar-border-light);
 }
 
 .publish-scope-section:last-child {
@@ -205,7 +197,7 @@
     align-items: center;
     gap: 0.4rem;
     padding: 0.25rem 0.5rem;
-    border: 1px solid var(--model-border);
+    border: 1px solid var(--onyxjar-border);
     border-radius: 0.4rem;
     font-size: 0.85rem;
 }
@@ -239,14 +231,46 @@
     margin: 0;
     font-size: 0.85rem;
     font-weight: 500;
-    color: var(--model-text-secondary);
+    color: var(--onyxjar-text-secondary);
 }
 
 .publish-revision {
     margin-left: 0.4rem;
-    color: var(--model-text-muted);
+    color: var(--onyxjar-text-muted);
     font-size: 0.78rem;
     font-weight: 500;
+}
+
+/* What will be published, above what the viewer is currently showing
+   (the explorer's own statebar, included right after this block). */
+.publish-scope-applied[hidden] {
+    display: none;
+}
+
+.publish-scope-applied {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--onyxjar-border-light);
+}
+
+.publish-scope-chips-toggle {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--onyxjar-text-secondary);
+}
+
+/* Capped so a long filter list never squeezes the graph canvas; the
+   collapse toggle above is the other half of that safeguard. */
+.publish-scope-chips {
+    max-height: 4.5rem;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.publish-scope-chips.collapsed {
+    display: none;
 }
 
 /* -- banners and empty state ------------------------------------------------------ */
@@ -254,7 +278,7 @@
 .publish-banner {
     margin-bottom: 1rem;
     padding: 0.6rem 0.85rem;
-    border: 1px solid var(--model-border);
+    border: 1px solid var(--onyxjar-border);
     border-radius: 0.5rem;
     font-size: 0.88rem;
 }
@@ -274,7 +298,7 @@
 .publish-banner-error {
     border-color: #ffa8a8;
     background: #fff5f5;
-    color: var(--model-danger);
+    color: var(--onyxjar-danger);
 }
 
 .publish-empty {
@@ -282,7 +306,7 @@
 }
 
 .publication-back {
-    color: var(--model-text-muted);
+    color: var(--onyxjar-text-muted);
 }
 
 /* -- narrower widths ------------------------------------------------------------------ */
