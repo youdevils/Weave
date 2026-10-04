@@ -22,11 +22,11 @@
   --model-surface: #ffffff;
   --model-surface-subtle: #f8fafc;
   --model-surface-hover: #f1f5f9;
-  --model-focus: #1F1B43;
+  --model-focus: #1f1b43;
   --model-danger: #b02a37;
-  --model-accent: #1F1B43;
+  --model-accent: #1f1b43;
   --model-accent-strong: #191636;
-  --model-accent-soft: #ECEAF2;
+  --model-accent-soft: #eceaf2;
   --model-heading: var(--model-accent);
 }
 
@@ -405,7 +405,7 @@
 
 .model-overview-field-header h3 {
   margin: 0;
-  color: var(--model-text-muted);
+  color: var(--model-accent);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -3400,7 +3400,6 @@ a.model-activity-stat:hover .model-activity-stat-value {
 }
 
 @media (max-width: 720px) {
-
   .model-bulk-actionbar {
     flex-wrap: wrap;
   }
@@ -3409,7 +3408,6 @@ a.model-activity-stat:hover .model-activity-stat-value {
     grid-template-columns: 1fr;
     gap: 0.35rem;
   }
-
 }
 
 .model-proposal-acknowledged-note {

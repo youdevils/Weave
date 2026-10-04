@@ -260,13 +260,13 @@
 
                 {% if purpose_value %}
 
-                    {{ purpose_value }}
+                    <small>{{ purpose_value }}</small>
 
                 {% else %}
 
-                    <span class="model-field-empty">
+                    <small class="model-field-empty">
                         Not defined
-                    </span>
+                    </small>
 
                 {% endif %}
 
@@ -371,13 +371,13 @@
 
                 {% if scope_value %}
 
-                    {{ scope_value }}
+                    <small>{{ scope_value }}</small>
 
                 {% else %}
 
-                    <span class="model-field-empty">
+                    <small class="model-field-empty">
                         Not defined
-                    </span>
+                    </small>
 
                 {% endif %}
 
@@ -482,13 +482,13 @@
 
                 {% if exclusions_value %}
 
-                    {{ exclusions_value }}
+                    <small>{{ exclusions_value }}</small>
 
                 {% else %}
 
-                    <span class="model-field-empty">
+                    <small class="model-field-empty">
                         Not defined
-                    </span>
+                    </small>
 
                 {% endif %}
 
@@ -602,6 +602,28 @@
 
         </div>
 
+        <div class="model-activity-stats">
+
+            <div class="model-activity-stat">
+                <span class="model-activity-stat-value">{{ model.revision }}</span>
+                <span class="model-activity-stat-label">Revision</span>
+            </div>
+
+            <a
+                href="{% url 'publication:publication_history' model.id %}"
+                class="model-activity-stat"
+            >
+                <span class="model-activity-stat-value">{{ publications_count }}</span>
+                <span class="model-activity-stat-label">Publications</span>
+            </a>
+
+            <div class="model-activity-stat">
+                <span class="model-activity-stat-value">{{ model.updated_at|date:"M j, Y" }}</span>
+                <span class="model-activity-stat-label">Last updated</span>
+            </div>
+
+        </div>
+
 
         <div class="model-ontology-graph-panel">
 
@@ -652,42 +674,6 @@
         ></div>
 
     </section>
-
-
-    <!-- ============================================================
-         MODEL ACTIVITY
-         ============================================================ -->
-
-    <section class="model-overview-section model-overview-activity">
-
-        <div class="model-overview-section-heading">
-            <h2>Model activity</h2>
-        </div>
-
-        <div class="model-activity-stats">
-
-            <div class="model-activity-stat">
-                <span class="model-activity-stat-value">{{ model.revision }}</span>
-                <span class="model-activity-stat-label">Revision</span>
-            </div>
-
-            <a
-                href="{% url 'publication:publication_history' model.id %}"
-                class="model-activity-stat"
-            >
-                <span class="model-activity-stat-value">{{ publications_count }}</span>
-                <span class="model-activity-stat-label">Publications</span>
-            </a>
-
-            <div class="model-activity-stat">
-                <span class="model-activity-stat-value">{{ model.updated_at|date:"M j, Y" }}</span>
-                <span class="model-activity-stat-label">Last updated</span>
-            </div>
-
-        </div>
-
-    </section>
-
 
 </div>
 

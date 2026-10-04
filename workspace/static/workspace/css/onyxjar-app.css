@@ -6,82 +6,86 @@
    ========================================================== */
 
 :root {
+  /* Brand palette */
+  --onyxjar-indigo: #1f1b43;
+  --onyxjar-indigo-strong: #191636;
+  --onyxjar-secondary: #540054;
+  --onyxjar-secondary-strong: #430043;
+  --onyxjar-success: #2f7a5d;
+  --onyxjar-success-strong: #26624a;
+  --onyxjar-danger: #b23a45;
+  --onyxjar-danger-strong: #8e2e37;
+  --onyxjar-warning: #cd912d;
+  --onyxjar-warning-strong: #a47424;
+  --onyxjar-info: #3694a3;
+  --onyxjar-info-strong: #2b7682;
+  --onyxjar-teal: #2f7a5d; /* decorative accent, aligned to the Success token */
+  --onyxjar-sky: #3694a3; /* decorative accent, aligned to the Info token */
+  --onyxjar-ink: #0f172a;
+  --onyxjar-slate: #94a3b8;
+  --onyxjar-mist: #f1f5f9;
 
-    /* Brand palette */
-    --onyxjar-indigo: #1F1B43;
-    --onyxjar-indigo-strong: #191636;
-    --onyxjar-secondary: #540054;
-    --onyxjar-secondary-strong: #430043;
-    --onyxjar-success: #2F7A5D;
-    --onyxjar-success-strong: #26624A;
-    --onyxjar-danger: #B23A45;
-    --onyxjar-danger-strong: #8E2E37;
-    --onyxjar-warning: #CD912D;
-    --onyxjar-warning-strong: #A47424;
-    --onyxjar-info: #3694A3;
-    --onyxjar-info-strong: #2B7682;
-    --onyxjar-teal: #2F7A5D; /* decorative accent, aligned to the Success token */
-    --onyxjar-sky: #3694A3; /* decorative accent, aligned to the Info token */
-    --onyxjar-ink: #0f172a;
-    --onyxjar-slate: #94a3b8;
-    --onyxjar-mist: #f1f5f9;
+  --onyxjar-bg: #f8fafc;
+  --onyxjar-surface: #ffffff;
+  --onyxjar-surface-subtle: #f8fafc;
+  --onyxjar-surface-hover: #f1f5f9;
+  --onyxjar-text: var(--onyxjar-ink);
+  --onyxjar-text-muted: #64748b;
+  --onyxjar-text-secondary: #475569;
+  --onyxjar-heading: var(--onyxjar-indigo);
+  --onyxjar-accent-soft: #eceaf2;
+  --onyxjar-border: #e2e8f0;
+  --onyxjar-focus: #1f1b43;
 
-    --onyxjar-bg: #f8fafc;
-    --onyxjar-surface: #ffffff;
-    --onyxjar-surface-subtle: #f8fafc;
-    --onyxjar-surface-hover: #f1f5f9;
-    --onyxjar-text: var(--onyxjar-ink);
-    --onyxjar-text-muted: #64748b;
-    --onyxjar-text-secondary: #475569;
-    --onyxjar-heading: var(--onyxjar-indigo);
-    --onyxjar-accent-soft: #ECEAF2;
-    --onyxjar-border: #e2e8f0;
-    --onyxjar-focus: #1F1B43;
+  --onyxjar-radius-sm: 10px;
+  --onyxjar-radius: 16px;
+  --onyxjar-shadow-soft:
+    0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 18px rgba(15, 23, 42, 0.05);
 
-    --onyxjar-radius-sm: 10px;
-    --onyxjar-radius: 16px;
-    --onyxjar-shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 18px rgba(15, 23, 42, 0.05);
+  --onyxjar-font:
+    "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
 
-    --onyxjar-font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-
-    /* Bootstrap root-level overrides (reboot/link/focus rules, and the .bg-, .text- and .border-
+  /* Bootstrap root-level overrides (reboot/link/focus rules, and the .bg-, .text- and .border-
        utility classes, read these live) */
-    --bs-primary: var(--onyxjar-indigo);
-    --bs-primary-rgb: 31, 27, 67;
-    --bs-secondary: var(--onyxjar-secondary);
-    --bs-secondary-rgb: 84, 0, 84;
-    --bs-success: var(--onyxjar-success);
-    --bs-success-rgb: 47, 122, 93;
-    --bs-danger: var(--onyxjar-danger);
-    --bs-danger-rgb: 178, 58, 69;
-    --bs-warning: var(--onyxjar-warning);
-    --bs-warning-rgb: 205, 145, 45;
-    --bs-info: var(--onyxjar-info);
-    --bs-info-rgb: 54, 148, 163;
-    --bs-link-color: var(--onyxjar-indigo);
-    --bs-link-color-rgb: 31, 27, 67;
-    --bs-link-hover-color: var(--onyxjar-indigo-strong);
-    --bs-link-hover-color-rgb: 25, 22, 54;
-    --bs-focus-ring-color: rgba(31, 27, 67, 0.25);
-    --bs-border-radius: 0.5rem;
-    --bs-border-radius-sm: 0.375rem;
-    --bs-border-radius-lg: 0.75rem;
-
+  --bs-primary: var(--onyxjar-indigo);
+  --bs-primary-rgb: 31, 27, 67;
+  --bs-secondary: var(--onyxjar-secondary);
+  --bs-secondary-rgb: 84, 0, 84;
+  --bs-success: var(--onyxjar-success);
+  --bs-success-rgb: 47, 122, 93;
+  --bs-danger: var(--onyxjar-danger);
+  --bs-danger-rgb: 178, 58, 69;
+  --bs-warning: var(--onyxjar-warning);
+  --bs-warning-rgb: 205, 145, 45;
+  --bs-info: var(--onyxjar-info);
+  --bs-info-rgb: 54, 148, 163;
+  --bs-link-color: var(--onyxjar-indigo);
+  --bs-link-color-rgb: 31, 27, 67;
+  --bs-link-hover-color: var(--onyxjar-indigo-strong);
+  --bs-link-hover-color-rgb: 25, 22, 54;
+  --bs-focus-ring-color: rgba(31, 27, 67, 0.25);
+  --bs-border-radius: 0.5rem;
+  --bs-border-radius-sm: 0.375rem;
+  --bs-border-radius-lg: 0.75rem;
 }
-
 
 /* ==========================================================
    Typography
    ========================================================== */
 
 body {
-    font-family: var(--onyxjar-font);
+  font-family: var(--onyxjar-font);
 }
 
-h1, h2, h3, h4, h5, h6 {
-    color: var(--onyxjar-heading);
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--onyxjar-heading);
 }
-
 
 /* ==========================================================
    Bootstrap component overrides
@@ -93,139 +97,139 @@ h1, h2, h3, h4, h5, h6 {
    ========================================================== */
 
 .btn-primary {
-    --bs-btn-bg: var(--onyxjar-indigo);
-    --bs-btn-border-color: var(--onyxjar-indigo);
-    --bs-btn-hover-bg: var(--onyxjar-indigo-strong);
-    --bs-btn-hover-border-color: var(--onyxjar-indigo-strong);
-    --bs-btn-active-bg: var(--onyxjar-indigo-strong);
-    --bs-btn-active-border-color: var(--onyxjar-indigo-strong);
-    --bs-btn-focus-shadow-rgb: 31, 27, 67;
+  --bs-btn-bg: var(--onyxjar-indigo);
+  --bs-btn-border-color: var(--onyxjar-indigo);
+  --bs-btn-hover-bg: var(--onyxjar-indigo-strong);
+  --bs-btn-hover-border-color: var(--onyxjar-indigo-strong);
+  --bs-btn-active-bg: var(--onyxjar-indigo-strong);
+  --bs-btn-active-border-color: var(--onyxjar-indigo-strong);
+  --bs-btn-focus-shadow-rgb: 31, 27, 67;
 }
 
 .btn-outline-primary {
-    --bs-btn-color: var(--onyxjar-indigo);
-    --bs-btn-border-color: var(--onyxjar-indigo);
-    --bs-btn-hover-bg: var(--onyxjar-indigo);
-    --bs-btn-hover-border-color: var(--onyxjar-indigo);
-    --bs-btn-active-bg: var(--onyxjar-indigo);
-    --bs-btn-active-border-color: var(--onyxjar-indigo);
-    --bs-btn-focus-shadow-rgb: 31, 27, 67;
+  --bs-btn-color: var(--onyxjar-indigo);
+  --bs-btn-border-color: var(--onyxjar-indigo);
+  --bs-btn-hover-bg: var(--onyxjar-indigo);
+  --bs-btn-hover-border-color: var(--onyxjar-indigo);
+  --bs-btn-active-bg: var(--onyxjar-indigo);
+  --bs-btn-active-border-color: var(--onyxjar-indigo);
+  --bs-btn-focus-shadow-rgb: 31, 27, 67;
 }
 
 .btn-secondary {
-    --bs-btn-bg: var(--onyxjar-secondary);
-    --bs-btn-border-color: var(--onyxjar-secondary);
-    --bs-btn-hover-bg: var(--onyxjar-secondary-strong);
-    --bs-btn-hover-border-color: var(--onyxjar-secondary-strong);
-    --bs-btn-active-bg: var(--onyxjar-secondary-strong);
-    --bs-btn-active-border-color: var(--onyxjar-secondary-strong);
-    --bs-btn-focus-shadow-rgb: 84, 0, 84;
+  --bs-btn-bg: var(--onyxjar-secondary);
+  --bs-btn-border-color: var(--onyxjar-secondary);
+  --bs-btn-hover-bg: var(--onyxjar-secondary-strong);
+  --bs-btn-hover-border-color: var(--onyxjar-secondary-strong);
+  --bs-btn-active-bg: var(--onyxjar-secondary-strong);
+  --bs-btn-active-border-color: var(--onyxjar-secondary-strong);
+  --bs-btn-focus-shadow-rgb: 84, 0, 84;
 }
 
 .btn-outline-secondary {
-    --bs-btn-color: var(--onyxjar-secondary);
-    --bs-btn-border-color: var(--onyxjar-secondary);
-    --bs-btn-hover-bg: var(--onyxjar-secondary);
-    --bs-btn-hover-border-color: var(--onyxjar-secondary);
-    --bs-btn-active-bg: var(--onyxjar-secondary);
-    --bs-btn-active-border-color: var(--onyxjar-secondary);
-    --bs-btn-focus-shadow-rgb: 84, 0, 84;
+  --bs-btn-color: var(--onyxjar-secondary);
+  --bs-btn-border-color: var(--onyxjar-secondary);
+  --bs-btn-hover-bg: var(--onyxjar-secondary);
+  --bs-btn-hover-border-color: var(--onyxjar-secondary);
+  --bs-btn-active-bg: var(--onyxjar-secondary);
+  --bs-btn-active-border-color: var(--onyxjar-secondary);
+  --bs-btn-focus-shadow-rgb: 84, 0, 84;
 }
 
 .btn-success {
-    --bs-btn-bg: var(--onyxjar-success);
-    --bs-btn-border-color: var(--onyxjar-success);
-    --bs-btn-hover-bg: var(--onyxjar-success-strong);
-    --bs-btn-hover-border-color: var(--onyxjar-success-strong);
-    --bs-btn-active-bg: var(--onyxjar-success-strong);
-    --bs-btn-active-border-color: var(--onyxjar-success-strong);
-    --bs-btn-focus-shadow-rgb: 47, 122, 93;
+  --bs-btn-bg: var(--onyxjar-success);
+  --bs-btn-border-color: var(--onyxjar-success);
+  --bs-btn-hover-bg: var(--onyxjar-success-strong);
+  --bs-btn-hover-border-color: var(--onyxjar-success-strong);
+  --bs-btn-active-bg: var(--onyxjar-success-strong);
+  --bs-btn-active-border-color: var(--onyxjar-success-strong);
+  --bs-btn-focus-shadow-rgb: 47, 122, 93;
 }
 
 .btn-outline-success {
-    --bs-btn-color: var(--onyxjar-success);
-    --bs-btn-border-color: var(--onyxjar-success);
-    --bs-btn-hover-bg: var(--onyxjar-success);
-    --bs-btn-hover-border-color: var(--onyxjar-success);
-    --bs-btn-active-bg: var(--onyxjar-success);
-    --bs-btn-active-border-color: var(--onyxjar-success);
-    --bs-btn-focus-shadow-rgb: 47, 122, 93;
+  --bs-btn-color: var(--onyxjar-success);
+  --bs-btn-border-color: var(--onyxjar-success);
+  --bs-btn-hover-bg: var(--onyxjar-success);
+  --bs-btn-hover-border-color: var(--onyxjar-success);
+  --bs-btn-active-bg: var(--onyxjar-success);
+  --bs-btn-active-border-color: var(--onyxjar-success);
+  --bs-btn-focus-shadow-rgb: 47, 122, 93;
 }
 
 .btn-danger {
-    --bs-btn-bg: var(--onyxjar-danger);
-    --bs-btn-border-color: var(--onyxjar-danger);
-    --bs-btn-hover-bg: var(--onyxjar-danger-strong);
-    --bs-btn-hover-border-color: var(--onyxjar-danger-strong);
-    --bs-btn-active-bg: var(--onyxjar-danger-strong);
-    --bs-btn-active-border-color: var(--onyxjar-danger-strong);
-    --bs-btn-focus-shadow-rgb: 178, 58, 69;
+  --bs-btn-bg: var(--onyxjar-danger);
+  --bs-btn-border-color: var(--onyxjar-danger);
+  --bs-btn-hover-bg: var(--onyxjar-danger-strong);
+  --bs-btn-hover-border-color: var(--onyxjar-danger-strong);
+  --bs-btn-active-bg: var(--onyxjar-danger-strong);
+  --bs-btn-active-border-color: var(--onyxjar-danger-strong);
+  --bs-btn-focus-shadow-rgb: 178, 58, 69;
 }
 
 .btn-outline-danger {
-    --bs-btn-color: var(--onyxjar-danger);
-    --bs-btn-border-color: var(--onyxjar-danger);
-    --bs-btn-hover-bg: var(--onyxjar-danger);
-    --bs-btn-hover-border-color: var(--onyxjar-danger);
-    --bs-btn-active-bg: var(--onyxjar-danger);
-    --bs-btn-active-border-color: var(--onyxjar-danger);
-    --bs-btn-focus-shadow-rgb: 178, 58, 69;
+  --bs-btn-color: var(--onyxjar-danger);
+  --bs-btn-border-color: var(--onyxjar-danger);
+  --bs-btn-hover-bg: var(--onyxjar-danger);
+  --bs-btn-hover-border-color: var(--onyxjar-danger);
+  --bs-btn-active-bg: var(--onyxjar-danger);
+  --bs-btn-active-border-color: var(--onyxjar-danger);
+  --bs-btn-focus-shadow-rgb: 178, 58, 69;
 }
 
 .btn-warning {
-    --bs-btn-bg: var(--onyxjar-warning);
-    --bs-btn-border-color: var(--onyxjar-warning);
-    --bs-btn-hover-bg: var(--onyxjar-warning-strong);
-    --bs-btn-hover-border-color: var(--onyxjar-warning-strong);
-    --bs-btn-active-bg: var(--onyxjar-warning-strong);
-    --bs-btn-active-border-color: var(--onyxjar-warning-strong);
-    --bs-btn-focus-shadow-rgb: 205, 145, 45;
+  --bs-btn-bg: var(--onyxjar-warning);
+  --bs-btn-border-color: var(--onyxjar-warning);
+  --bs-btn-hover-bg: var(--onyxjar-warning-strong);
+  --bs-btn-hover-border-color: var(--onyxjar-warning-strong);
+  --bs-btn-active-bg: var(--onyxjar-warning-strong);
+  --bs-btn-active-border-color: var(--onyxjar-warning-strong);
+  --bs-btn-focus-shadow-rgb: 205, 145, 45;
 }
 
 .btn-outline-warning {
-    --bs-btn-color: var(--onyxjar-warning);
-    --bs-btn-border-color: var(--onyxjar-warning);
-    --bs-btn-hover-bg: var(--onyxjar-warning);
-    --bs-btn-hover-border-color: var(--onyxjar-warning);
-    --bs-btn-active-bg: var(--onyxjar-warning);
-    --bs-btn-active-border-color: var(--onyxjar-warning);
-    --bs-btn-focus-shadow-rgb: 205, 145, 45;
+  --bs-btn-color: var(--onyxjar-warning);
+  --bs-btn-border-color: var(--onyxjar-warning);
+  --bs-btn-hover-bg: var(--onyxjar-warning);
+  --bs-btn-hover-border-color: var(--onyxjar-warning);
+  --bs-btn-active-bg: var(--onyxjar-warning);
+  --bs-btn-active-border-color: var(--onyxjar-warning);
+  --bs-btn-focus-shadow-rgb: 205, 145, 45;
 }
 
 .btn-info {
-    --bs-btn-bg: var(--onyxjar-info);
-    --bs-btn-border-color: var(--onyxjar-info);
-    --bs-btn-hover-bg: var(--onyxjar-info-strong);
-    --bs-btn-hover-border-color: var(--onyxjar-info-strong);
-    --bs-btn-active-bg: var(--onyxjar-info-strong);
-    --bs-btn-active-border-color: var(--onyxjar-info-strong);
-    --bs-btn-focus-shadow-rgb: 54, 148, 163;
+  --bs-btn-bg: var(--onyxjar-info);
+  --bs-btn-border-color: var(--onyxjar-info);
+  --bs-btn-hover-bg: var(--onyxjar-info-strong);
+  --bs-btn-hover-border-color: var(--onyxjar-info-strong);
+  --bs-btn-active-bg: var(--onyxjar-info-strong);
+  --bs-btn-active-border-color: var(--onyxjar-info-strong);
+  --bs-btn-focus-shadow-rgb: 54, 148, 163;
 }
 
 .btn-outline-info {
-    --bs-btn-color: var(--onyxjar-info);
-    --bs-btn-border-color: var(--onyxjar-info);
-    --bs-btn-hover-bg: var(--onyxjar-info);
-    --bs-btn-hover-border-color: var(--onyxjar-info);
-    --bs-btn-active-bg: var(--onyxjar-info);
-    --bs-btn-active-border-color: var(--onyxjar-info);
-    --bs-btn-focus-shadow-rgb: 54, 148, 163;
+  --bs-btn-color: var(--onyxjar-info);
+  --bs-btn-border-color: var(--onyxjar-info);
+  --bs-btn-hover-bg: var(--onyxjar-info);
+  --bs-btn-hover-border-color: var(--onyxjar-info);
+  --bs-btn-active-bg: var(--onyxjar-info);
+  --bs-btn-active-border-color: var(--onyxjar-info);
+  --bs-btn-focus-shadow-rgb: 54, 148, 163;
 }
 
 .form-control:focus,
 .form-select:focus {
-    border-color: var(--onyxjar-indigo);
-    box-shadow: 0 0 0 0.25rem rgba(31, 27, 67, 0.15);
+  border-color: var(--onyxjar-indigo);
+  box-shadow: 0 0 0 0.25rem rgba(31, 27, 67, 0.15);
 }
 
 .form-check-input:checked {
-    background-color: var(--onyxjar-indigo);
-    border-color: var(--onyxjar-indigo);
+  background-color: var(--onyxjar-indigo);
+  border-color: var(--onyxjar-indigo);
 }
 
 .form-check-input:focus {
-    border-color: var(--onyxjar-indigo);
-    box-shadow: 0 0 0 0.25rem rgba(31, 27, 67, 0.15);
+  border-color: var(--onyxjar-indigo);
+  box-shadow: 0 0 0 0.25rem rgba(31, 27, 67, 0.15);
 }
 
 /* Soft-tint alert overrides (Django messages), following Bootstrap's own
@@ -233,156 +237,163 @@ h1, h2, h3, h4, h5, h6 {
    border, and the darkened "-strong" shade for readable body text. */
 
 .alert-success {
-    --bs-alert-color: var(--onyxjar-success-strong);
-    --bs-alert-bg: color-mix(in srgb, var(--onyxjar-success) 12%, white);
-    --bs-alert-border-color: color-mix(in srgb, var(--onyxjar-success) 35%, white);
+  --bs-alert-color: var(--onyxjar-success-strong);
+  --bs-alert-bg: color-mix(in srgb, var(--onyxjar-success) 12%, white);
+  --bs-alert-border-color: color-mix(
+    in srgb,
+    var(--onyxjar-success) 35%,
+    white
+  );
 }
 
 .alert-danger {
-    --bs-alert-color: var(--onyxjar-danger-strong);
-    --bs-alert-bg: color-mix(in srgb, var(--onyxjar-danger) 12%, white);
-    --bs-alert-border-color: color-mix(in srgb, var(--onyxjar-danger) 35%, white);
+  --bs-alert-color: var(--onyxjar-danger-strong);
+  --bs-alert-bg: color-mix(in srgb, var(--onyxjar-danger) 12%, white);
+  --bs-alert-border-color: color-mix(in srgb, var(--onyxjar-danger) 35%, white);
 }
 
 .alert-warning {
-    --bs-alert-color: var(--onyxjar-warning-strong);
-    --bs-alert-bg: color-mix(in srgb, var(--onyxjar-warning) 15%, white);
-    --bs-alert-border-color: color-mix(in srgb, var(--onyxjar-warning) 40%, white);
+  --bs-alert-color: var(--onyxjar-warning-strong);
+  --bs-alert-bg: color-mix(in srgb, var(--onyxjar-warning) 15%, white);
+  --bs-alert-border-color: color-mix(
+    in srgb,
+    var(--onyxjar-warning) 40%,
+    white
+  );
 }
 
 .alert-info {
-    --bs-alert-color: var(--onyxjar-info-strong);
-    --bs-alert-bg: color-mix(in srgb, var(--onyxjar-info) 12%, white);
-    --bs-alert-border-color: color-mix(in srgb, var(--onyxjar-info) 35%, white);
+  --bs-alert-color: var(--onyxjar-info-strong);
+  --bs-alert-bg: color-mix(in srgb, var(--onyxjar-info) 12%, white);
+  --bs-alert-border-color: color-mix(in srgb, var(--onyxjar-info) 35%, white);
 }
-
 
 /* ==========================================================
    Navbar / footer
    ========================================================== */
 
 .onyxjar-navbar-logo {
-    height: 28px;
-    width: auto;
+  height: 28px;
+  width: auto;
 }
 
 .onyxjar-footer-logo {
-    height: 24px;
-    width: auto;
+  height: 24px;
+  width: auto;
 }
 
 .onyxjar-page-title {
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    color: var(--onyxjar-ink);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--onyxjar-ink);
 }
 
 .onyxjar-page-eyebrow {
-    margin-bottom: 0.35rem;
-    color: var(--onyxjar-text-muted);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+  margin-bottom: 0.35rem;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .onyxjar-page-description {
-    max-width: 700px;
-    margin: 0.45rem 0 0;
-    color: var(--onyxjar-text-muted);
-    font-size: 0.875rem;
-    line-height: 1.5;
+  max-width: 700px;
+  margin: 0.45rem 0 0;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
 .onyxjar-back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    color: var(--onyxjar-text-muted);
-    font-size: 0.8rem;
-    text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.8rem;
+  text-decoration: none;
 }
 
 .onyxjar-back-link:hover {
-    color: var(--onyxjar-ink);
+  color: var(--onyxjar-ink);
 }
 
 .onyxjar-empty-state {
-    padding: 3rem 2rem;
-    border: 1px solid var(--onyxjar-border);
-    border-radius: var(--onyxjar-radius-sm);
-    background: var(--onyxjar-surface-subtle);
-    text-align: center;
+  padding: 3rem 2rem;
+  border: 1px solid var(--onyxjar-border);
+  border-radius: var(--onyxjar-radius-sm);
+  background: var(--onyxjar-surface-subtle);
+  text-align: center;
 }
 
 .onyxjar-empty-state .onyxjar-empty-icon {
-    margin-bottom: 0.75rem;
-    font-size: 1.5rem;
-    color: var(--onyxjar-text-muted);
+  margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+  color: var(--onyxjar-text-muted);
 }
 
 .onyxjar-empty-state h2,
 .onyxjar-empty-state h3 {
-    margin: 0;
-    color: var(--onyxjar-text-secondary);
-    font-size: 0.95rem;
-    font-weight: 600;
+  margin: 0;
+  color: var(--onyxjar-text-secondary);
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .onyxjar-empty-state p {
-    max-width: 500px;
-    margin: 0.35rem auto 0;
-    color: var(--onyxjar-text-muted);
-    font-size: 0.85rem;
-    line-height: 1.5;
+  max-width: 500px;
+  margin: 0.35rem auto 0;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
 .onyxjar-status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.35rem 0.7rem;
-    border: 1px solid var(--onyxjar-border);
-    border-radius: 999px;
-    background: #fff;
-    font-size: 0.72rem;
-    font-weight: 600;
-    line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--onyxjar-border);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .onyxjar-status-soon {
-    border-color: #e2e2e2;
-    background: #f7f7f7;
-    color: #6c6c6c;
+  border-color: #e2e2e2;
+  background: #f7f7f7;
+  color: #6c6c6c;
 }
 
 .onyxjar-status-pill-progress {
-    border-color: color-mix(in srgb, var(--onyxjar-warning) 40%, white);
-    background: color-mix(in srgb, var(--onyxjar-warning) 12%, white);
-    color: var(--onyxjar-warning-strong);
+  border-color: color-mix(in srgb, var(--onyxjar-warning) 40%, white);
+  background: color-mix(in srgb, var(--onyxjar-warning) 12%, white);
+  color: var(--onyxjar-warning-strong);
 }
 
 .onyxjar-status-pill-review {
-    border-color: color-mix(in srgb, var(--onyxjar-info) 40%, white);
-    background: color-mix(in srgb, var(--onyxjar-info) 12%, white);
-    color: var(--onyxjar-info-strong);
+  border-color: color-mix(in srgb, var(--onyxjar-info) 40%, white);
+  background: color-mix(in srgb, var(--onyxjar-info) 12%, white);
+  color: var(--onyxjar-info-strong);
 }
 
 .onyxjar-status-pill-failed {
-    border-color: color-mix(in srgb, var(--onyxjar-danger) 40%, white);
-    background: color-mix(in srgb, var(--onyxjar-danger) 12%, white);
-    color: var(--onyxjar-danger-strong);
+  border-color: color-mix(in srgb, var(--onyxjar-danger) 40%, white);
+  background: color-mix(in srgb, var(--onyxjar-danger) 12%, white);
+  color: var(--onyxjar-danger-strong);
 }
 
 .onyxjar-status-pill-completed {
-    border-color: color-mix(in srgb, var(--onyxjar-success) 40%, white);
-    background: color-mix(in srgb, var(--onyxjar-success) 12%, white);
-    color: var(--onyxjar-success-strong);
+  border-color: color-mix(in srgb, var(--onyxjar-success) 40%, white);
+  background: color-mix(in srgb, var(--onyxjar-success) 12%, white);
+  color: var(--onyxjar-success-strong);
 }
 
 .onyxjar-avatar {
-    width: 32px;
-    height: 32px;
+  width: 32px;
+  height: 32px;
 }
 
 /* ==========================================================
@@ -390,40 +401,42 @@ h1, h2, h3, h4, h5, h6 {
    ========================================================== */
 
 .onyxjar-activity-panel {
-    background: var(--onyxjar-surface);
-    border: 1px solid var(--onyxjar-border);
-    border-radius: var(--onyxjar-radius-sm);
-    padding: 1rem;
+  background: var(--onyxjar-mist);
+  border: 1px solid var(--onyxjar-border);
+  border-radius: var(--onyxjar-radius-sm);
+  padding: 1rem;
 }
 
 .onyxjar-activity-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    max-height: 70vh;
-    overflow-y: auto;
-    padding-right: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
 .onyxjar-activity-card {
-    position: relative;
-    border: 1px solid var(--onyxjar-border);
-    border-radius: var(--onyxjar-radius-sm);
-    padding: 0.75rem;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  background: var(--onyxjar-bg);
+  border: 1px solid var(--onyxjar-border);
+  border-radius: var(--onyxjar-radius-sm);
+  padding: 0.75rem;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .onyxjar-activity-card:hover {
-    border-color: var(--onyxjar-indigo);
-    box-shadow: var(--onyxjar-shadow-soft);
+  border-color: var(--onyxjar-indigo);
+  box-shadow: var(--onyxjar-shadow-soft);
 }
 
 .onyxjar-activity-empty .onyxjar-empty-icon {
-    margin-bottom: 0.5rem;
-    font-size: 1.5rem;
-    color: var(--onyxjar-text-muted);
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+  color: var(--onyxjar-text-muted);
 }
-
 
 /* ==========================================================
    Global Bootstrap component polish
@@ -434,50 +447,50 @@ h1, h2, h3, h4, h5, h6 {
    ========================================================== */
 
 .card {
-    border: 1px solid var(--onyxjar-border);
-    border-radius: var(--onyxjar-radius-sm);
-    box-shadow: none;
-    transition:
-        border-color 0.15s ease,
-        box-shadow 0.15s ease,
-        transform 0.15s ease;
+  border: 1px solid var(--onyxjar-border);
+  border-radius: var(--onyxjar-radius-sm);
+  box-shadow: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
 
 .card.shadow-sm:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
-    transform: translateY(-1px);
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
 }
 
 .modal-content {
-    border: 1px solid var(--onyxjar-border);
-    border-radius: var(--onyxjar-radius-sm);
-    box-shadow: var(--onyxjar-shadow-soft);
+  border: 1px solid var(--onyxjar-border);
+  border-radius: var(--onyxjar-radius-sm);
+  box-shadow: var(--onyxjar-shadow-soft);
 }
 
 .alert {
-    border-radius: var(--onyxjar-radius-sm);
-    border-width: 1px;
+  border-radius: var(--onyxjar-radius-sm);
+  border-width: 1px;
 }
 
 .dropdown-menu {
-    border: 1px solid var(--onyxjar-border);
-    border-radius: var(--onyxjar-radius-sm);
-    box-shadow: var(--onyxjar-shadow-soft);
+  border: 1px solid var(--onyxjar-border);
+  border-radius: var(--onyxjar-radius-sm);
+  box-shadow: var(--onyxjar-shadow-soft);
 }
 
 /* The notifications dropdown is now the single surface for Django messages
    (the duplicate body-level stripe was removed) -- give it comfortable
    width/padding so it doesn't feel cramped as the sole notification UI. */
 #messagesDropdown + .dropdown-menu {
-    min-width: 320px;
-    max-width: 380px;
+  min-width: 320px;
+  max-width: 380px;
 }
 
 #messagesDropdown + .dropdown-menu .dropdown-item-text {
-    padding: 0.6rem 1rem;
+  padding: 0.6rem 1rem;
 }
 
 #messagesDropdown + .dropdown-menu .dropdown-item-text + .dropdown-item-text {
-    border-top: 1px solid var(--onyxjar-border);
+  border-top: 1px solid var(--onyxjar-border);
 }
