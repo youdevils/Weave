@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from account.models import CustomUser
+from assisted.models import AssistedTask
 from model.models.model import Model
 from model.models.object_type import ObjectType
 from model.models.proposal import Proposal, ProposalChange
@@ -127,7 +128,7 @@ class SidebarTests(TestCase):
 
         self.assertEqual(
             parser.section_labels,
-            ["Understand", "Define model", "Model data", "Proposals", "Publishing"],
+            ["Proposals", "Assisted Work", "Understand", "Define model", "Model data", "Publishing"],
         )
 
     def test_top_level_headings_are_never_collapsible(self):
@@ -200,7 +201,7 @@ class SidebarTests(TestCase):
         self.assertIn("Proposals", parser.section_labels)
         list_url = reverse("model:proposal_list", args=[self.model.id])
         self.assertNotIn(f'href="{list_url}"', html)
-        proposals_section = html.split("GOVERN", 1)[1].split("PUBLISHING", 1)[0]
+        proposals_section = html.split("GOVERN", 1)[1].split("ASSISTED WORK", 1)[0]
         self.assertNotIn("model-nav-parent", proposals_section)
         self.assertNotIn("model-nav-group", proposals_section)
         self.assertIn('id="model-new-proposal-btn"', html)
@@ -263,3 +264,75 @@ class SidebarTests(TestCase):
         self.assertIn("Assisted: create", html)
         self.assertIn(reverse("model:proposal", args=[self.model.id, ai_proposal.id]), html)
         self.assertRegex(html, r'model-nav-count">\s*1\s*</span>')
+
+
+class AssistedWorkSidebarTests(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.workspace = Workspace.objects.create(name="Test Workspace")
+
+        cls.user = CustomUser.objects.create_user(
+            email="user@example.com",
+            password="test-password",
+        )
+
+        WorkspaceMember.objects.create(
+            workspace=cls.workspace,
+            user=cls.user,
+            role=WorkspaceMember.Role.OWNER,
+        )
+
+        cls.model = Model.objects.create(
+            workspace=cls.workspace,
+            name="Test Model",
+            revision=1,
+        )
+
+    def setUp(self):
+        self.client.force_login(self.user)
+
+    def sidebar_html(self):
+        response = self.client.get(reverse("model:overview", args=[self.model.id]))
+        self.assertEqual(response.status_code, 200)
+
+        html = response.content.decode()
+        start = html.index('<aside class="model-sidebar">')
+        end = html.index("</aside>", start)
+        return html[start:end]
+
+    def test_no_active_task_shows_plain_link(self):
+        html = self.sidebar_html()
+
+        self.assertIn("Assisted Work", html)
+        self.assertNotIn("model-nav-assisted-meta", html)
+
+    def test_active_task_shows_compact_status(self):
+        AssistedTask.objects.create(
+            workspace=self.workspace,
+            creator=self.user,
+            operation=AssistedTask.Operation.RECONCILE,
+            model=self.model,
+            status=AssistedTask.Status.RUNNING,
+            submitted_intent="Reconcile the latest status update.",
+        )
+
+        html = self.sidebar_html()
+
+        self.assertIn("model-nav-assisted-status-running", html)
+        self.assertRegex(html, r"Reconcile\s*&middot;\s*In progress")
+
+    def test_completed_task_does_not_appear_in_compact_status(self):
+        AssistedTask.objects.create(
+            workspace=self.workspace,
+            creator=self.user,
+            operation=AssistedTask.Operation.RECONCILE,
+            model=self.model,
+            status=AssistedTask.Status.COMPLETED,
+            submitted_intent="Reconcile the latest status update.",
+        )
+
+        html = self.sidebar_html()
+
+        self.assertNotIn("model-nav-assisted-meta", html)
+        self.assertNotIn("model-nav-assisted-status-completed", html)

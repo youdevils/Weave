@@ -12,6 +12,7 @@ from model.views.active_proposal import (
     live_proposals_queryset,
     resolve_active_proposal,
 )
+from assisted.services.activity import active_task_for_model
 
 # =====================================================================
 # Shared proposal helpers
@@ -1138,4 +1139,8 @@ def get_model_context(
         # -------------------------------------------------------------
         "active_proposal": active_proposal,
         "proposals": proposals,
+        # -------------------------------------------------------------
+        # Assisted Work state (sidebar status line)
+        # -------------------------------------------------------------
+        "active_assisted_task": active_task_for_model(model),
     }

@@ -3105,6 +3105,55 @@ a.model-activity-stat:hover .model-activity-stat-value {
   background: #2f855a;
 }
 
+/* =========================================================
+   Assisted Work sidebar entry
+   ========================================================= */
+
+.model-nav-assisted-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.model-nav-assisted-meta {
+  color: var(--onyxjar-text-muted);
+  font-size: 0.7rem;
+}
+
+.model-nav-assisted::before {
+  content: "";
+  flex: 0 0 auto;
+  align-self: center;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.55rem;
+  border-radius: 50%;
+  background: var(--onyxjar-text-muted);
+}
+
+/* AssistedTask.Status values (queued/running/ready_for_review/completed/
+   failed) differ from Proposal.Status's own vocabulary above
+   (queued/processing/completed/failed) -- these selectors are deliberately
+   not a copy-paste of the proposal ones. */
+
+.model-nav-assisted-status-queued::before,
+.model-nav-assisted-status-running::before {
+  background: #b8860b;
+}
+
+.model-nav-assisted-status-ready_for_review::before {
+  background: var(--onyxjar-info);
+}
+
+.model-nav-assisted-status-completed::before {
+  background: #2f855a;
+}
+
+.model-nav-assisted-status-failed::before {
+  background: #c0392b;
+}
+
 .model-nav-empty {
   padding: 0.45rem 0.75rem;
   color: var(--onyxjar-text-muted);

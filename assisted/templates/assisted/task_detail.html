@@ -1,0 +1,93 @@
+{% extends "model/model_base.html" %}
+
+{% load static assisted_status %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'assisted/css/assisted.css' %}">
+{% endblock %}
+
+{% block model_content %}
+
+<div class="assisted-detail">
+
+    <div class="mb-3">
+        <a href="{% url 'assisted:landing' model.id %}" class="onyxjar-back-link">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            Assisted Work
+        </a>
+    </div>
+
+    <div class="model-page-header">
+
+        <div>
+
+            <div class="model-page-eyebrow">{{ task.get_operation_display }}</div>
+
+            <h1 class="model-page-title">{{ task.get_operation_display }}</h1>
+
+        </div>
+
+        <div class="model-page-header-actions">
+            {% assisted_status_badge task %}
+        </div>
+
+    </div>
+
+    {% if task.submitted_intent %}
+        <section class="model-overview-section">
+            <div class="model-overview-section-heading">
+                <h2>Intent</h2>
+            </div>
+            <p>&ldquo;{{ task.submitted_intent }}&rdquo;</p>
+        </section>
+    {% endif %}
+
+    {% if task.evidence.count %}
+        <section class="model-overview-section">
+            <div class="model-overview-section-heading">
+                <h2>Inputs</h2>
+            </div>
+            <p>{{ task.evidence.count }} document{{ task.evidence.count|pluralize }}</p>
+        </section>
+    {% endif %}
+
+    <section class="model-overview-section">
+
+        <div class="model-overview-section-heading">
+            <h2>Result</h2>
+        </div>
+
+        {% if task.proposal_id %}
+
+            <p>
+                {{ change_count }} proposed change{{ change_count|pluralize }}.
+            </p>
+
+            <a href="{% url 'model:proposal' task.model_id task.proposal_id %}" class="btn btn-primary">
+                Review proposal
+            </a>
+
+        {% elif task.status == "failed" %}
+
+            <p>
+                {{ task.failure_reason|default:"OnyxJar could not complete this operation." }}
+            </p>
+
+        {% elif task.operation == "assess" and task.status == "completed" %}
+
+            <p>Assessment available.</p>
+
+        {% else %}
+
+            <p>
+                {{ task.ai_outcome|default:"No model changes were identified." }}
+            </p>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

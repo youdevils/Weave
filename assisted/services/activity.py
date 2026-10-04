@@ -46,3 +46,37 @@ def active_tasks_by_model_id(tasks):
         for task in tasks
         if task.status in AssistedTask.ACTIVE_STATUSES and task.model_id is not None
     }
+
+
+def active_task_for_model(model):
+    """
+    The one active AssistedTask for `model`, or None. A trivial existence
+    lookup, not a new invariant -- relies on the same
+    unique_active_assisted_task_per_model DB constraint AssistedTask already
+    enforces. Used to drive the model sidebar's "Assisted Work" status line
+    and the Assisted Work landing page's "Current work" card.
+    """
+
+    return model.assisted_tasks.filter(status__in=AssistedTask.ACTIVE_STATUSES).first()
+
+
+def recent_tasks_for_model(model, exclude_active=True, limit=10):
+    """
+    Reverse-chronological AssistedTask history for one model's own Assisted
+    Work page -- not a new activity subsystem, the same read-only shape as
+    recent_tasks_for_workspace above, just scoped to one model instead of a
+    workspace. Active tasks are excluded by default since they're already
+    shown separately as "Current work"; the sidebar/landing page should never
+    show the same task in both places.
+    """
+
+    qs = (
+        model.assisted_tasks.select_related("proposal")
+        .annotate(change_count=Count("proposal__changes"))
+        .order_by("-created_at")
+    )
+
+    if exclude_active:
+        qs = qs.exclude(status__in=AssistedTask.ACTIVE_STATUSES)
+
+    return qs[:limit]

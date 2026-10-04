@@ -1,0 +1,74 @@
+/* ==========================================================
+   Assisted Work
+   Almost everything here reuses existing idioms already loaded
+   globally (onyxjar-app.css) or via model.css/index.css:
+   .model-page-header*, .model-index-grid/.model-index-card,
+   .onyxjar-status-pill, .onyxjar-activity-*, .model-empty-state,
+   .model-overview-section*. Net-new rules only below.
+   ========================================================== */
+
+.assisted-current-work {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--onyxjar-border);
+  border-radius: 10px;
+  background: var(--onyxjar-surface);
+}
+
+.assisted-current-work-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.assisted-current-work-operation {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.assisted-current-work-intent {
+  margin: 0;
+  color: var(--onyxjar-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.assisted-entry {
+  max-width: 640px;
+}
+
+.assisted-entry-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.assisted-file-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.assisted-file-list-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--onyxjar-border);
+  border-radius: 6px;
+  margin-bottom: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.assisted-file-list-item-size {
+  color: var(--onyxjar-text-muted);
+}
+
+.assisted-file-list-empty {
+  color: var(--onyxjar-text-muted);
+  font-size: 0.85rem;
+}

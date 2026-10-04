@@ -1,0 +1,99 @@
+{% extends "model/model_base.html" %}
+
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'assisted/css/assisted.css' %}">
+{% endblock %}
+
+{% block model_content %}
+
+<div class="assisted-entry">
+
+    <div class="model-page-header">
+
+        <div>
+
+            <div class="model-page-eyebrow">Assisted work</div>
+
+            <h1 class="model-page-title">Reconcile</h1>
+
+            <p class="model-page-description">
+                Provide an intent and supporting information. OnyxJar will
+                use these to identify potential updates to the model.
+            </p>
+
+        </div>
+
+    </div>
+
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="assisted-entry-form">
+
+        {% csrf_token %}
+
+        <div class="mb-3">
+
+            <label for="assistedReconcileIntent" class="form-label">
+                Intent
+            </label>
+
+            <textarea
+                id="assistedReconcileIntent"
+                name="intent"
+                class="form-control"
+                rows="8"
+                required
+                placeholder="These documents show the latest current state for some of our systems."
+            >{{ request.POST.intent }}</textarea>
+
+        </div>
+
+        <div class="mb-3">
+
+            <label for="assistedReconcileEvidence" class="form-label">
+                Supporting information
+            </label>
+
+            <input
+                type="file"
+                id="assistedReconcileEvidence"
+                name="evidence"
+                class="form-control"
+                multiple
+            >
+
+            <ul class="assisted-file-list" id="assistedReconcileFileList">
+                <li class="assisted-file-list-empty">No files selected</li>
+            </ul>
+
+        </div>
+
+        <div class="assisted-entry-actions">
+
+            <a href="{% url 'assisted:landing' model.id %}" class="btn btn-outline-secondary">
+                Cancel
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+                Start reconciliation
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'assisted/js/reconcile.js' %}"></script>
+{% endblock %}

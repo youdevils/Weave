@@ -1,3 +1,4 @@
+{% load assisted_status %}
 {% with active_url_name=request.resolver_match.url_name %}
 
 <aside class="model-sidebar">
@@ -73,6 +74,50 @@
                     <i class="bi bi-plus-lg"></i>
                     New proposal
                 </button>
+
+            </div>
+
+        </div>
+
+        <!-- ================================================================
+             ASSISTED WORK
+             ================================================================ -->
+
+        <div class="model-nav-section">
+
+            <div class="model-nav-section-row">
+
+                <div class="model-nav-section-label">
+                    Assisted Work
+                </div>
+
+            </div>
+
+            <div class="model-nav-children">
+
+                <a
+                    href="{% url 'assisted:landing' model.id %}"
+                    class="
+                        model-nav-item
+                        model-nav-assisted
+                        {% if active_assisted_task %}
+                            model-nav-assisted-status-{{ active_assisted_task.status }}
+                        {% endif %}
+                        {% if active_url_name == 'landing' or active_url_name == 'reconcile' or active_url_name == 'change' or active_url_name == 'assess' or active_url_name == 'task_detail' %}
+                            active
+                        {% endif %}
+                    "
+                >
+                    <span class="model-nav-assisted-main">
+                        <span>Assisted Work</span>
+
+                        {% if active_assisted_task %}
+                            <span class="model-nav-assisted-meta">
+                                {{ active_assisted_task.get_operation_display }} &middot; {% assisted_status_label active_assisted_task %}
+                            </span>
+                        {% endif %}
+                    </span>
+                </a>
 
             </div>
 

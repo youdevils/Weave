@@ -1,0 +1,151 @@
+{% extends "model/model_base.html" %}
+
+{% load static assisted_status %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'model/css/index.css' %}">
+<link rel="stylesheet" href="{% static 'assisted/css/assisted.css' %}">
+{% endblock %}
+
+{% block model_content %}
+
+<div class="assisted-landing">
+
+    <div class="model-page-header">
+
+        <div>
+
+            <div class="model-page-eyebrow">Assisted work</div>
+
+            <h1 class="model-page-title">Assisted Work</h1>
+
+            <p class="model-page-description">
+                Use assisted workflows to reconcile new information with
+                this model, propose changes, or assess the model.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    {% if active_assisted_task %}
+
+        <section class="model-overview-section assisted-current-work-section">
+
+            <div class="model-overview-section-heading">
+                <h2>Current work</h2>
+            </div>
+
+            <div class="assisted-current-work">
+
+                <div class="assisted-current-work-header">
+                    <span class="assisted-current-work-operation">
+                        {{ active_assisted_task.get_operation_display }}
+                    </span>
+                    {% assisted_status_badge active_assisted_task %}
+                </div>
+
+                {% if active_assisted_task.submitted_intent %}
+                    <p class="assisted-current-work-intent">
+                        &ldquo;{{ active_assisted_task.submitted_intent|truncatechars:160 }}&rdquo;
+                    </p>
+                {% endif %}
+
+            </div>
+
+        </section>
+
+    {% endif %}
+
+
+    <section class="model-overview-section">
+
+        <div class="model-overview-section-heading">
+            <h2>Available assistance</h2>
+            <p class="model-overview-section-description">
+                Choose how you'd like OnyxJar to help with this model.
+            </p>
+        </div>
+
+        <div class="model-index-grid">
+
+            <article class="model-index-card">
+                <h2 class="model-index-card-title">Reconcile</h2>
+                <p class="model-index-card-description">
+                    Bring new information into the model.
+                </p>
+                <div class="model-index-card-meta">
+                    <a href="{% url 'assisted:reconcile' model.id %}" class="btn btn-primary btn-sm">
+                        Start
+                    </a>
+                </div>
+            </article>
+
+            <article class="model-index-card">
+                <h2 class="model-index-card-title">Change</h2>
+                <p class="model-index-card-description">
+                    Propose a structured change to the model.
+                </p>
+                <div class="model-index-card-meta">
+                    <a href="{% url 'assisted:change' model.id %}" class="btn btn-primary btn-sm">
+                        Start
+                    </a>
+                </div>
+            </article>
+
+            <article class="model-index-card">
+                <h2 class="model-index-card-title">Assess</h2>
+                <p class="model-index-card-description">
+                    Assess the model against a question or area of concern.
+                </p>
+                <div class="model-index-card-meta">
+                    <a href="{% url 'assisted:assess' model.id %}" class="btn btn-primary btn-sm">
+                        Start
+                    </a>
+                </div>
+            </article>
+
+        </div>
+
+    </section>
+
+
+    <section class="model-overview-section">
+
+        <div class="model-overview-section-heading">
+            <h2>Recent assisted work</h2>
+        </div>
+
+        {% if recent_tasks %}
+
+            <div class="onyxjar-activity-panel">
+
+                <div class="onyxjar-activity-list">
+
+                    {% for task in recent_tasks %}
+                        {% include "assisted/_recent_work_card.html" with task=task %}
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        {% else %}
+
+            <div class="model-empty-state">
+                <div class="model-empty-state-icon">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <h2>No assisted work yet for this model</h2>
+                <p>Start with one of the options above.</p>
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

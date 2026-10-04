@@ -12,6 +12,7 @@ urlpatterns = [
         "model/", include(("publication.urls", "publication"), namespace="publication")
     ),
     path("model/", include(("ingestion.urls", "ingestion"), namespace="ingestion")),
+    path("model/", include(("assisted.urls", "assisted"), namespace="assisted")),
     path("viewer/", include(("viewer.urls", "viewer"), namespace="viewer")),
     path("workspace/", include(("workspace.urls", "workspace"), namespace="workspace")),
     # path("api/", include(("api.urls", "api"), namespace="api")),

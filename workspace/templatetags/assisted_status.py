@@ -32,3 +32,20 @@ def assisted_status_badge(task):
         modifier,
         label,
     )
+
+
+@register.simple_tag
+def assisted_status_label(task):
+    """
+    The label half of _BADGES with no markup -- for surfaces that need the
+    plain status text (e.g. the model sidebar's compact "Reconcile · In
+    progress" line), so that text can never drift from the pill badge shown
+    elsewhere for the exact same status.
+    """
+
+    if task is None:
+        return ""
+
+    label, _modifier = _BADGES.get(task.status, (task.get_status_display(), ""))
+
+    return label
