@@ -21,6 +21,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
+from account.services.entitlement import user_can_publish
 from model.services.appearance import AppearanceService
 from model.services.model_graph.facets import build_facets
 from model.services.model_graph.search import search_objects
@@ -66,6 +67,10 @@ def _bad_request(message="The request body must be a JSON object."):
 @require_GET
 def publish(request, model_id):
     model = get_publishable_model(request, model_id)
+
+    if not user_can_publish(request.user):
+        return render(request, "publication/publish_unavailable.html", {"model": model})
+
     model, canonical = publishing.load_canonical(model.id)
     defaults, previous = resolve_defaults(model, canonical)
 

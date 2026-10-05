@@ -382,22 +382,22 @@ class PasswordResetConfirmTests(TestCase):
         self.assertFalse(response.context["validlink"])
 
 
-class AssistedEntitlementTests(TestCase):
+class PlanEntitlementTests(TestCase):
     """
-    account.models.CustomUser.assisted_tier and
-    account.services.entitlement.user_can_run_assisted -- the minimal
-    BASIC/ENHANCED capability entitlement that gates Assisted execution.
+    account.models.CustomUser.plan and account.services.entitlement -- the
+    central Plan entitlement layer (model limits, publication access, and
+    Assisted execution) that replaced the old BASIC/ENHANCED assisted_tier.
     """
 
     def setUp(self):
         self.users = get_user_model().objects
 
-    def test_a_new_user_defaults_to_basic(self):
+    def test_a_new_user_defaults_to_learner(self):
         user = self.users.create_user(email="brand-new@example.com", password="pw")
 
-        self.assertEqual(user.assisted_tier, user.AssistedTier.BASIC)
+        self.assertEqual(user.plan, user.Plan.LEARNER)
 
-    def test_an_existing_user_created_before_the_field_existed_reads_as_basic(self):
+    def test_an_existing_user_created_before_the_field_existed_reads_as_learner(self):
         # There is no backfill migration to simulate here -- the field's
         # `default` is exactly what a pre-existing row without an explicit
         # value resolves to, so this is the same guarantee a real migration
@@ -405,22 +405,52 @@ class AssistedEntitlementTests(TestCase):
         user = self.users.create_user(email="pre-existing@example.com", password="pw")
         user.refresh_from_db()
 
-        self.assertEqual(user.assisted_tier, user.AssistedTier.BASIC)
+        self.assertEqual(user.plan, user.Plan.LEARNER)
 
-    def test_basic_user_cannot_run_assisted(self):
+    def test_learner_user_cannot_run_assisted(self):
         from account.services.entitlement import user_can_run_assisted
 
-        user = self.users.create_user(email="basic@example.com", password="pw")
+        user = self.users.create_user(email="learner@example.com", password="pw")
 
         self.assertFalse(user_can_run_assisted(user))
 
-    def test_enhanced_user_can_run_assisted(self):
+    def test_collaborator_user_can_run_assisted(self):
         from account.services.entitlement import user_can_run_assisted
 
         user = self.users.create_user(
-            email="enhanced@example.com",
+            email="collaborator@example.com",
             password="pw",
-            assisted_tier=get_user_model().AssistedTier.ENHANCED,
+            plan=get_user_model().Plan.COLLABORATOR,
         )
 
         self.assertTrue(user_can_run_assisted(user))
+
+    def test_model_limit_by_plan(self):
+        from account.services.entitlement import user_model_limit
+
+        learner = self.users.create_user(email="limit-learner@example.com", password="pw")
+        communicator = self.users.create_user(
+            email="limit-communicator@example.com", password="pw", plan=get_user_model().Plan.COMMUNICATOR
+        )
+        collaborator = self.users.create_user(
+            email="limit-collaborator@example.com", password="pw", plan=get_user_model().Plan.COLLABORATOR
+        )
+
+        self.assertEqual(user_model_limit(learner), 2)
+        self.assertEqual(user_model_limit(communicator), 10)
+        self.assertEqual(user_model_limit(collaborator), 20)
+
+    def test_publication_enabled_by_plan(self):
+        from account.services.entitlement import user_can_publish
+
+        learner = self.users.create_user(email="pub-learner@example.com", password="pw")
+        communicator = self.users.create_user(
+            email="pub-communicator@example.com", password="pw", plan=get_user_model().Plan.COMMUNICATOR
+        )
+        collaborator = self.users.create_user(
+            email="pub-collaborator@example.com", password="pw", plan=get_user_model().Plan.COLLABORATOR
+        )
+
+        self.assertFalse(user_can_publish(learner))
+        self.assertTrue(user_can_publish(communicator))
+        self.assertTrue(user_can_publish(collaborator))

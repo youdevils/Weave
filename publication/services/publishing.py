@@ -30,6 +30,7 @@ from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
 
+from account.services.entitlement import user_can_publish
 from model.models.model import Model
 from model.services.appearance import schema as appearance_schema
 from model.services.model_graph.loader import load_effective_dataset
@@ -85,6 +86,13 @@ class PublicationSnapshotMissing(PublicationError):
 
     status = 404
     code = "snapshot_missing"
+
+
+class PublicationEntitlementDenied(PublicationError):
+    """The acting user's plan does not include Publication creation."""
+
+    status = 403
+    code = "entitlement_denied"
 
 
 def max_objects() -> int:
@@ -216,7 +224,17 @@ def publish(model_id, user, raw_config, expected) -> PublishedArtifact:
     Publish exactly what ``expected`` (the revision and digest of the user's
     preview) describes. Raises a ``PublicationError`` subclass on any failure,
     having stored nothing.
+
+    The entitlement check runs first and before any model locking -- this is
+    the authoritative "publication creation" gate: every caller of this
+    function gets it, not just the UI form, so a non-Communicator/Collaborator
+    user cannot reach it by calling the backend directly. Viewing/downloading
+    an already-created Publication is a separate, ungated path -- see
+    publication.access.get_viewable_publication_model.
     """
+    if not user_can_publish(user):
+        raise PublicationEntitlementDenied("Publishing is available on the Communicator plan.")
+
     try:
         with transaction.atomic():
             # The same lock a proposal commit and a model deletion take: the revision

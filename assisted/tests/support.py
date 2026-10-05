@@ -137,8 +137,8 @@ class AssistedTestCase(TestCase):
         # separate concern from role, covered on its own in
         # assisted.tests.test_lifecycle / test_execution.
         for user in (cls.owner, cls.editor, cls.other_editor):
-            user.assisted_tier = CustomUser.AssistedTier.ENHANCED
-            user.save(update_fields=["assisted_tier"])
+            user.plan = CustomUser.Plan.COLLABORATOR
+            user.save(update_fields=["plan"])
 
         for user, role in (
             (cls.owner, WorkspaceMember.Role.OWNER),

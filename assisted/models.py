@@ -120,6 +120,12 @@ class AssistedTask(models.Model):
     refinement_cycles = models.PositiveIntegerField(default=0)
     context_expansions = models.PositiveIntegerField(default=0)
 
+    # Denormalized copy of AIExecution.usage["total_tokens"] at finish time --
+    # captured before a FAILED Create's bootstrap Model (and therefore its
+    # AIExecution) is deleted, so Assisted token usage survives for the
+    # account-level allowance in account.services.entitlement.
+    tokens_used = models.PositiveIntegerField(default=0)
+
     # A single bounded natural-language statement (ai.services.intent caps it
     # at settings.AI_MAX_INTENT_CHARS) -- small and user-authored, kept here
     # so workspace history remains meaningful even once the Model is gone.

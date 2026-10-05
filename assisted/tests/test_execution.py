@@ -134,7 +134,7 @@ class RunAndFinishTests(AssistedExecutionTestCase):
         task.refresh_from_db()
         self.assertEqual(task.status, AssistedTask.Status.READY_FOR_REVIEW)
 
-    def test_a_basic_creator_is_rejected_at_the_worker_boundary_without_calling_the_provider(self):
+    def test_a_learner_creator_is_rejected_at_the_worker_boundary_without_calling_the_provider(self):
         """
         The worker-side entitlement check is deliberately independent of the
         one in assisted.services.lifecycle.start_assisted_create: it exists
@@ -145,8 +145,8 @@ class RunAndFinishTests(AssistedExecutionTestCase):
         reached despite the entitlement denial.
         """
 
-        self.owner.assisted_tier = CustomUser.AssistedTier.BASIC
-        self.owner.save(update_fields=["assisted_tier"])
+        self.owner.plan = CustomUser.Plan.LEARNER
+        self.owner.save(update_fields=["plan"])
 
         task = self.make_task()
 
@@ -160,7 +160,7 @@ class RunAndFinishTests(AssistedExecutionTestCase):
         self.assertIsNone(task.model)
         self.assertFalse(Model.objects.filter(id=self.model.id).exists())
 
-    def test_an_enhanced_creator_is_unaffected_by_the_entitlement_check(self):
+    def test_a_collaborator_creator_is_unaffected_by_the_entitlement_check(self):
         task = self.make_task()
 
         execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.id)]))

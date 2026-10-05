@@ -30,8 +30,8 @@ class AssistedTaskActive(Exception):
 
 
 class AssistedEntitlementDenied(Exception):
-    """This user's Assisted entitlement (account.CustomUser.assisted_tier)
-    does not currently allow running Assisted operations."""
+    """This user's Plan (account.CustomUser.plan) does not currently allow
+    running Assisted operations."""
 
 
 class BootstrapModelGone(Exception):
@@ -144,13 +144,13 @@ def start_assisted_create(*, workspace, model, user, intent_text, files) -> Assi
 
     The entitlement check runs first and before any Model locking/reclaim --
     this is the authoritative "request/task creation" gate: every caller of
-    this function gets it, not just the UI form, so a BASIC user cannot
-    reach it by calling the backend directly.
+    this function gets it, not just the UI form, so a non-Collaborator user
+    cannot reach it by calling the backend directly.
     """
 
     if not user_can_run_assisted(user):
         raise AssistedEntitlementDenied(
-            "Assisted Create is available on the Enhanced tier."
+            "Assisted Create is available on the Collaborator plan."
         )
 
     _reclaim_stale(model.pk)

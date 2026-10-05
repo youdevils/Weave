@@ -224,9 +224,9 @@ class StartAssistedCreateEntitlementTests(AssistedTestCase):
     def setUp(self):
         self.model = self.make_model()
 
-    def test_a_basic_owner_cannot_start_an_assisted_task(self):
-        self.owner.assisted_tier = CustomUser.AssistedTier.BASIC
-        self.owner.save(update_fields=["assisted_tier"])
+    def test_a_learner_owner_cannot_start_an_assisted_task(self):
+        self.owner.plan = CustomUser.Plan.LEARNER
+        self.owner.save(update_fields=["plan"])
 
         with self.assertRaises(AssistedEntitlementDenied):
             start_assisted_create(
@@ -236,7 +236,7 @@ class StartAssistedCreateEntitlementTests(AssistedTestCase):
 
         self.assertEqual(AssistedTask.objects.filter(model=self.model).count(), 0)
 
-    def test_an_enhanced_owner_can_still_start_an_assisted_task(self):
+    def test_a_collaborator_owner_can_still_start_an_assisted_task(self):
         task = start_assisted_create(
             workspace=self.workspace, model=self.model, user=self.owner,
             intent_text="Track widgets.", files=[],

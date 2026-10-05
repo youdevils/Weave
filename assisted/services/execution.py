@@ -26,6 +26,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from account.services.entitlement import user_can_run_assisted
+from ai.models import AIExecution
 from ai.services.orchestrator import run_ai_operation
 
 from assisted.models import AssistedTask
@@ -101,7 +102,7 @@ def run_and_finish(assisted_task_id, *, provider=None) -> None:
         _finish_failed(
             task,
             failure_reason_code=AssistedTask.FailureReasonCode.ENTITLEMENT_DENIED,
-            failure_reason="This user is not entitled to run Assisted operations.",
+            failure_reason="This user's plan does not include Assisted Work.",
         )
         return
 
@@ -142,12 +143,15 @@ def _finish_ready(task, *, result) -> None:
     if locked.status != AssistedTask.Status.RUNNING:
         return  # redelivered/raced; another worker already finished this
 
+    usage = AIExecution.objects.filter(pk=result.execution_id).values_list("usage", flat=True).first()
+
     locked.status = AssistedTask.Status.READY_FOR_REVIEW
     locked.proposal_id = result.proposal_id
     locked.ai_execution_id = result.execution_id
     locked.ai_outcome = result.outcome.value if result.outcome else ""
     locked.refinement_cycles = result.refinement_cycles
     locked.context_expansions = result.context_expansions
+    locked.tokens_used = (usage or {}).get("total_tokens", 0)
     locked.ready_for_review_at = timezone.now()
     locked.save(
         update_fields=[
@@ -157,6 +161,7 @@ def _finish_ready(task, *, result) -> None:
             "ai_outcome",
             "refinement_cycles",
             "context_expansions",
+            "tokens_used",
             "ready_for_review_at",
             "updated_at",
         ]

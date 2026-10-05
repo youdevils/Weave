@@ -25,15 +25,26 @@
             </p>
         </div>
 
-        <div class="mt-3 mt-md-0">
+        <div class="mt-3 mt-md-0 text-md-end">
 
-            <a
-                href="{% url 'workspace:create_model' %}"
-                class="btn btn-primary"
-            >
-                <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
-                Create model
-            </a>
+            {% if at_model_limit %}
+                <span class="btn btn-primary disabled" aria-disabled="true">
+                    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
+                    Create model
+                </span>
+                <p class="text-muted small mb-0 mt-1">
+                    Your {{ request.user.get_plan_display }} plan allows up to {{ model_limit }} models.
+                    Delete a model to free up a slot.
+                </p>
+            {% else %}
+                <a
+                    href="{% url 'workspace:create_model' %}"
+                    class="btn btn-primary"
+                >
+                    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
+                    Create model
+                </a>
+            {% endif %}
 
         </div>
 

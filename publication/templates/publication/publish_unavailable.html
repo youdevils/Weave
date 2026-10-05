@@ -1,0 +1,29 @@
+{% extends "publication/publication_base.html" %}
+
+{% block publication_content %}
+
+<div class="publish-page" id="publish-page">
+
+    <div class="model-page-header">
+
+        <div>
+
+            <div class="model-page-eyebrow">Publishing</div>
+
+            <h1 class="model-page-title">Publish</h1>
+
+            <p class="model-page-description">
+                Publishing is available on the Communicator plan.
+            </p>
+
+        </div>
+
+    </div>
+
+    <p>
+        <a href="{% url 'model:overview' model.id %}">Back to {{ model.name }}</a>
+    </p>
+
+</div>
+
+{% endblock %}

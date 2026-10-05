@@ -24,6 +24,14 @@ class PublicationTestCase(ModelGraphTestCase):
         WorkspaceMember.objects.create(workspace=cls.workspace, user=cls.editor, role=WorkspaceMember.Role.EDITOR)
         WorkspaceMember.objects.create(workspace=cls.workspace, user=cls.viewer, role=WorkspaceMember.Role.VIEWER)
 
+        # These are the users every non-entitlement test in this app expects
+        # to be able to actually create a Publication -- entitlement is a
+        # separate concern from role, covered on its own in
+        # publication.tests.test_entitlement.
+        for user in (cls.owner, cls.editor):
+            user.plan = CustomUser.Plan.COMMUNICATOR
+            user.save(update_fields=["plan"])
+
         cls.other_workspace = Workspace.objects.create(name="Other Workspace")
         WorkspaceMember.objects.create(
             workspace=cls.other_workspace, user=cls.stranger, role=WorkspaceMember.Role.OWNER

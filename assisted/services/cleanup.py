@@ -18,6 +18,8 @@ from django.utils import timezone
 
 from model.services.model_deletion import ModelDeletionBlocked, delete_model
 
+from ai.models import AIExecution
+
 from assisted.models import AssistedTask
 
 logger = logging.getLogger(__name__)
@@ -35,7 +37,12 @@ def fail_task(task: AssistedTask, *, failure_reason_code, failure_reason, result
         task.ai_outcome = result.outcome.value if result.outcome else ""
         task.refinement_cycles = result.refinement_cycles
         task.context_expansions = result.context_expansions
-        update_fields += ["ai_outcome", "refinement_cycles", "context_expansions"]
+        # Captured here, before any bootstrap-Model deletion below, since
+        # AIExecution.model is CASCADE and would otherwise take this usage
+        # data with it -- see assisted.models.AssistedTask.tokens_used.
+        usage = AIExecution.objects.filter(pk=result.execution_id).values_list("usage", flat=True).first()
+        task.tokens_used = (usage or {}).get("total_tokens", 0)
+        update_fields += ["ai_outcome", "refinement_cycles", "context_expansions", "tokens_used"]
 
     task.save(update_fields=update_fields)
 

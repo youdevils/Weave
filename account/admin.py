@@ -13,8 +13,8 @@ from account.models import (
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
 
-    list_display = ("email", "is_staff", "is_active", "email_verified", "assisted_tier")
-    list_filter = ("is_staff", "is_active", "email_verified", "assisted_tier")
+    list_display = ("email", "is_staff", "is_active", "email_verified", "plan")
+    list_filter = ("is_staff", "is_active", "email_verified", "plan")
     search_fields = ("email",)
     ordering = ("email",)
 
@@ -34,7 +34,7 @@ class CustomUserAdmin(UserAdmin):
         ),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
         ("Email Verification", {"fields": ("email_verified",)}),
-        ("Assisted entitlement", {"fields": ("assisted_tier",)}),
+        ("Plan", {"fields": ("plan",)}),
     )
 
     add_fieldsets = (

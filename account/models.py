@@ -44,9 +44,10 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
 
-    class AssistedTier(models.TextChoices):
-        BASIC = "basic", "Basic"
-        ENHANCED = "enhanced", "Enhanced"
+    class Plan(models.TextChoices):
+        LEARNER = "learner", "Learner"
+        COMMUNICATOR = "communicator", "Communicator"
+        COLLABORATOR = "collaborator", "Collaborator"
 
     email = models.EmailField(unique=True)
     email_verified = models.BooleanField(default=False)
@@ -55,14 +56,15 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
 
-    # Capability entitlement gating Assisted (AI-driven) execution -- not a
-    # billing/subscription model. BASIC is the safe default for both new and
-    # pre-existing rows: see account.services.entitlement.user_can_run_assisted
-    # for the single place this is turned into an allow/deny decision.
-    assisted_tier = models.CharField(
+    # Commercial plan, gating model capacity, Publication creation, and
+    # Assisted (AI-driven) execution -- not staff/superuser-exempt, applies
+    # uniformly to every account. LEARNER is the safe default for both new
+    # and pre-existing rows: see account.services.entitlement for the single
+    # place a Plan is turned into allow/deny decisions and numeric limits.
+    plan = models.CharField(
         max_length=20,
-        choices=AssistedTier.choices,
-        default=AssistedTier.BASIC,
+        choices=Plan.choices,
+        default=Plan.LEARNER,
     )
 
     USERNAME_FIELD = "email"

@@ -12,10 +12,11 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 
 from account.notifications import notify_unverified_email
-from account.services.entitlement import user_can_run_assisted
+from account.services.entitlement import user_can_run_assisted, user_model_limit
 from ai.services.intent import InvalidIntent
 from model.models.model import Model
 from model.services.model_deletion import ModelDeletionBlocked, delete_model
+from model.services.model_limits import ModelLimitReached, ensure_can_create_model
 from model.services.model_template.builder import TemplateDefinitionError
 from model.services.model_template.loader import (
     TEMPLATES,
@@ -48,10 +49,12 @@ def index(request):
     if not request.user.email_verified:
         notify_unverified_email(request)
 
-    memberships = request.user.workspace_memberships.select_related(
-        "workspace",
-    ).prefetch_related(
-        "workspace__models",
+    memberships = list(
+        request.user.workspace_memberships.select_related(
+            "workspace",
+        ).prefetch_related(
+            "workspace__models",
+        )
     )
 
     since = timezone.now() - timedelta(days=ASSISTED_ACTIVITY_WINDOW_DAYS)
@@ -67,12 +70,21 @@ def index(request):
 
     assisted_activity.sort(key=lambda task: task.created_at, reverse=True)
 
+    model_limit = user_model_limit(request.user)
+    own_membership = memberships[0] if memberships else None
+    at_model_limit = (
+        own_membership is not None
+        and len(own_membership.workspace.models.all()) >= model_limit
+    )
+
     return render(
         request,
         "workspace/dashboard.html",
         {
             "memberships": memberships,
             "assisted_activity": assisted_activity,
+            "model_limit": model_limit,
+            "at_model_limit": at_model_limit,
         },
     )
 
@@ -89,6 +101,12 @@ def create_model(request):
     workspace = membership.workspace
 
     if request.method == "POST":
+        try:
+            ensure_can_create_model(request.user, workspace)
+        except ModelLimitReached as exc:
+            messages.error(request, str(exc))
+            return redirect("workspace:index")
+
         model = Model.objects.create(
             workspace=workspace,
             name=request.POST.get("name", "").strip(),

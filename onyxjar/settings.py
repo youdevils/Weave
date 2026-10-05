@@ -311,6 +311,15 @@ ASSISTED_MAX_EVIDENCE_TOTAL_BYTES = 5_000_000  # 5 MB total
 ASSISTED_MAX_EVIDENCE_EXTRACTED_CHARS = 20_000  # ~5k tokens per file, heuristic
 
 # ------------------------------------------------------------------------------------
+# PLAN ENTITLEMENTS (account app)
+# ------------------------------------------------------------------------------------
+
+# Collaborator plan's monthly Assisted token allowance. None = unlimited.
+# Value intentionally undecided this iteration -- the architecture supports a
+# real number later with no further migration; see account.services.entitlement.
+ASSISTED_TOKEN_LIMIT_COLLABORATOR = None
+
+# ------------------------------------------------------------------------------------
 # DEFAULT AUTO FIELD
 # ------------------------------------------------------------------------------------
 
