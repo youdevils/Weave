@@ -9,7 +9,7 @@ from model.models.model import Model
 from model.models.object_type import ObjectType
 from workspace.models import Workspace, WorkspaceMember
 
-from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef
+from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef, EvidenceAssessment, EvidenceItem
 from ai.services.result_schema import (
     AIStructuredResult,
     Interpretation,
@@ -43,6 +43,14 @@ def unresolved_result():
 
 
 def create_object_plan(object_type_id, name="New widget", token="tmp:1"):
+    """
+    The canonical "AI successfully creates one widget" plan, shared by
+    Create and Reconcile tests. assessment defaults to "supported" (with one
+    evidence item) so this plan compiles cleanly under Reconcile's
+    plan_sufficiency_check too -- Create ignores the field entirely, so this
+    default is safe for Create's existing tests as well.
+    """
+
     return AIStructuredResult(
         interpretation=Interpretation(restated_intent="Create a widget."),
         change_plan=ChangePlan(
@@ -54,6 +62,8 @@ def create_object_plan(object_type_id, name="New widget", token="tmp:1"):
                     target_ref=_new(token),
                     parent_ref=_existing(object_type_id),
                     fields={"name": name},
+                    assessment=EvidenceAssessment(verdict="supported"),
+                    evidence=[EvidenceItem(source="notes.txt")],
                 )
             ],
         ),

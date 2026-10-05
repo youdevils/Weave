@@ -17,13 +17,15 @@ class ResolveContextRequestsTests(AIServiceTestCase):
         self.model = self.make_model()
         self.object_type = self.make_object_type(self.model)
         self.relationship_type = self.make_relationship_type(self.model)
-        self.subject = self.make_object(self.model, self.object_type, name="Subject")
-        self.target = self.make_object(self.model, self.object_type, name="Target")
+        self.subject = self.make_object(self.model, self.object_type, name="Subject", key="subject")
+        self.target = self.make_object(self.model, self.object_type, name="Target", key="target")
         self.relationship = self.make_relationship(self.model, self.relationship_type, self.subject, self.target)
         self.dataset = load_effective_dataset(self.model, proposal=None)
 
     def test_resolvable_object_reference_becomes_expansion_seed(self):
-        requests = [ContextRequest(reference=EntityRef(kind="existing", id=str(self.subject.id)))]
+        requests = [
+            ContextRequest(reference=EntityRef(kind="existing", id=f"{self.object_type.key}:{self.subject.key}"))
+        ]
 
         resolution = resolve_context_requests(requests, dataset=self.dataset)
 
@@ -56,6 +58,22 @@ class ResolveContextRequestsTests(AIServiceTestCase):
 
         self.assertEqual(resolution.seeds, [])
         self.assertEqual(len(resolution.unresolved), 1)
+
+    def test_a_bare_type_key_used_as_existing_object_reference_is_unresolvable(self):
+        """
+        A bare ObjectType key (no "{type_key}:{key}" composite) is not a
+        valid Object reference, even though the type itself genuinely
+        exists -- guards against dataset.object_by_key() ever mistaking a
+        type-only string for a well-formed object key-path.
+        """
+
+        requests = [ContextRequest(reference=EntityRef(kind="existing", id=self.object_type.key))]
+
+        resolution = resolve_context_requests(requests, dataset=self.dataset)
+
+        self.assertEqual(resolution.seeds, [])
+        self.assertEqual(len(resolution.unresolved), 1)
+        self.assertEqual(resolution.unresolved[0].code, "unresolvable_context_reference")
 
 
 class ExpansionStateTests(AIServiceTestCase):

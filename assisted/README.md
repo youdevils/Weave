@@ -54,7 +54,7 @@ setup form -> AssistedTask(QUEUED) -> Celery -> run_ai_operation()
 | `services/evidence_extraction.py` | Evidence text extraction (plain text/PDF/.docx), reused by both upload-time validation and worker-time AI ingestion |
 | `uploads.py` | Per-file upload size limiting (duplicated from `ingestion.uploads`) |
 | `signals.py` | Receivers for `model.signals.proposal_committed` / `proposal_abandoned` |
-| `tasks.py` | The one Celery task, `run_assisted_create` |
+| `tasks.py` | The one Celery task, `run_assisted_operation` (shared by every Assisted operation) |
 
 ## Known limitations
 

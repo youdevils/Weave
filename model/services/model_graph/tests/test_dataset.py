@@ -14,10 +14,12 @@ from .builders import (
     TEAM,
     USES,
     WEB,
+    attribute_definition,
     object_type,
     obj,
     rel,
     relationship_type,
+    relationship_type_rule,
     rule,
     sample_dataset,
     uid,
@@ -102,3 +104,95 @@ class AdjacencyTests(SimpleTestCase):
         )
 
         self.assertIsNone(dataset.rule_for(dataset.relationship(uid(1))))
+
+
+class KeyLookupTests(SimpleTestCase):
+    """
+    The AI-facing key-based lookups (ai.services.change_plan's domain
+    table): every "existing"-kind EntityRef resolves against one of these,
+    except the "relationship" domain, which has no key-based counterpart at
+    all (see dataset.relationship, unaffected here) -- Relationship has no
+    key and no uniqueness constraint that could ever back a safe synthetic
+    composite.
+    """
+
+    def test_object_type_by_key(self):
+        dataset = sample_dataset()
+
+        self.assertEqual(dataset.object_type_by_key("person").id, uid(PERSON))
+        self.assertIsNone(dataset.object_type_by_key("does_not_exist"))
+
+    def test_relationship_type_by_key(self):
+        dataset = sample_dataset()
+
+        self.assertEqual(dataset.relationship_type_by_key("uses").id, uid(USES))
+        self.assertIsNone(dataset.relationship_type_by_key("does_not_exist"))
+
+    def test_object_by_key(self):
+        dataset = sample_dataset()
+
+        self.assertEqual(dataset.object_by_key("person:alice").id, uid(ALICE))
+        self.assertEqual(dataset.object_by_key("person:alice_two").id, uid(ALICE_TWO))
+
+    def test_object_by_key_malformed_or_unknown_is_none(self):
+        dataset = sample_dataset()
+
+        self.assertIsNone(dataset.object_by_key("alice"))  # missing "type:" prefix -- wrong arity
+        self.assertIsNone(dataset.object_by_key("ghost_type:alice"))  # unknown type
+        self.assertIsNone(dataset.object_by_key("person:ghost"))  # unknown object key
+
+    def test_relationship_type_rule_by_key(self):
+        dataset = EffectiveDataset(
+            object_types=[object_type(PERSON, "Person"), object_type(TEAM, "Team")],
+            relationship_types=[relationship_type(MEMBER_OF, "Member of")],
+            objects=[],
+            relationships=[],
+            relationship_type_rules=[relationship_type_rule(1, MEMBER_OF, PERSON, TEAM)],
+        )
+
+        found = dataset.relationship_type_rule_by_key("member_of:person:team")
+        self.assertIsNotNone(found)
+        self.assertEqual(found.relationship_type_id, uid(MEMBER_OF))
+
+    def test_relationship_type_rule_by_key_malformed_or_unknown_is_none(self):
+        dataset = EffectiveDataset(
+            object_types=[object_type(PERSON, "Person"), object_type(TEAM, "Team")],
+            relationship_types=[relationship_type(MEMBER_OF, "Member of")],
+            objects=[],
+            relationships=[],
+            relationship_type_rules=[relationship_type_rule(1, MEMBER_OF, PERSON, TEAM)],
+        )
+
+        self.assertIsNone(dataset.relationship_type_rule_by_key("member_of:person"))  # wrong arity
+        self.assertIsNone(dataset.relationship_type_rule_by_key("ghost:person:team"))  # unknown type
+        self.assertIsNone(dataset.relationship_type_rule_by_key("member_of:team:person"))  # swapped pair
+
+    def test_attribute_definition_by_key(self):
+        dataset = EffectiveDataset(
+            object_types=[object_type(PERSON, "Person")],
+            relationship_types=[],
+            objects=[],
+            relationships=[],
+            attribute_definitions=[
+                attribute_definition(1, "email", "Email", "text", parent_type="ObjectType", parent_number=PERSON)
+            ],
+        )
+
+        found = dataset.attribute_definition_by_key("ObjectType:person:email")
+        self.assertIsNotNone(found)
+        self.assertEqual(found.key, "email")
+
+    def test_attribute_definition_by_key_malformed_or_unknown_is_none(self):
+        dataset = EffectiveDataset(
+            object_types=[object_type(PERSON, "Person")],
+            relationship_types=[],
+            objects=[],
+            relationships=[],
+            attribute_definitions=[
+                attribute_definition(1, "email", "Email", "text", parent_type="ObjectType", parent_number=PERSON)
+            ],
+        )
+
+        self.assertIsNone(dataset.attribute_definition_by_key("person:email"))  # wrong arity
+        self.assertIsNone(dataset.attribute_definition_by_key("Object:person:email"))  # bad literal
+        self.assertIsNone(dataset.attribute_definition_by_key("RelationshipType:person:email"))  # wrong parent type

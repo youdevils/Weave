@@ -9,13 +9,20 @@ parent_id/before/after) -- see ai.services.proposal_compiler for the mapping
 -- but is intentionally its own, separate contract: the AI never sees or
 produces a ProposalChange directly.
 
-Existing entities are referenced by their real, stable OnyxJar id (an
-EntityRef with kind="existing"). New entities -- not yet in the canonical
-model -- are referenced by an arbitrary temporary token (kind="new") that
-only has meaning within this one Change Plan, so other actions in the same
-plan can point at an entity that doesn't exist yet. OnyxJar (the Proposal
-Compiler), not the AI, is the only thing that ever mints the real id a "new"
-token will become.
+Existing entities are referenced by their stable OnyxJar semantic key (an
+EntityRef with kind="existing") -- a bare `key` for ObjectType/
+RelationshipType, a "{type_key}:{key}" composite for Object, and similar
+composites for AttributeDefinition/RelationshipTypeRule (see TARGET_DOMAIN
+below and ai.services.ontology_context, which renders the exact copyable
+string for each). Relationship is the one deliberate exception, addressed
+by its real database id, since it has no key and no natural uniqueness
+constraint that could ever back a safe synthetic one. New entities -- not
+yet in the canonical model -- are referenced by an arbitrary temporary
+token (kind="new") that only has meaning within this one Change Plan, so
+other actions in the same plan can point at an entity that doesn't exist
+yet. OnyxJar (the Proposal Compiler), not the AI, is the only thing that
+ever mints the real database id a "new" token or an "existing" key will
+become.
 
 Phase 1 deliberately keeps this bounded: a "new" token may be the target_ref
 of at most one action (a "create"), never also later "update"d within the
@@ -83,19 +90,32 @@ _IMPLIED_PARENT_DOMAIN: dict[str, str] = {
     "RelationshipTypeRule": "relationship_type",
 }
 
-_TARGET_DOMAIN: dict[str, str] = {
+# Public (no leading underscore): ai.services.proposal_compiler.TempRefResolver
+# needs the exact same domain for a given target_type/action -- importing
+# this mapping (and the three helpers below) keeps that one source of truth,
+# rather than risking a second, drifting copy.
+TARGET_DOMAIN: dict[str, str] = {
     "Object": "object",
     "Relationship": "relationship",
     "ObjectType": "object_type",
     "RelationshipType": "relationship_type",
-    # Not modelled as directly addressable entities in EffectiveDataset --
-    # existence of these two is left to the real Proposal validation/apply
-    # pipeline (which does check them, against real DB rows) rather than
-    # this deterministic pre-check. A documented Phase 1 boundary, not an
-    # oversight.
-    "AttributeDefinition": "unverifiable",
-    "RelationshipTypeRule": "unverifiable",
+    "AttributeDefinition": "attribute_definition",
+    "RelationshipTypeRule": "relationship_type_rule",
 }
+
+
+def target_domain(target_type: str) -> str:
+    return TARGET_DOMAIN.get(target_type, "unverifiable")
+
+
+def parent_domain(action: "ChangeAction") -> str:
+    if action.target_type == "AttributeDefinition":
+        return "object_type" if action.parent_type == "ObjectType" else "relationship_type"
+    return _IMPLIED_PARENT_DOMAIN.get(action.target_type, "unverifiable")
+
+
+def field_ref_domain(target_type: str) -> str:
+    return "object" if target_type == "Relationship" else "object_type"
 
 
 def entity_ref_fields_for(target_type: str) -> tuple[str, ...]:
@@ -111,6 +131,23 @@ class EvidenceItem(BaseModel):
     source: str
     locator: str = ""
     note: str = ""
+
+
+class EvidenceAssessment(BaseModel):
+    """
+    A candidate action's own self-reported judgement of whether its
+    `evidence` actually supports it -- distinct from the task-level
+    OperationOutcome.UNRESOLVED (a different layer: one is about a single
+    candidate, the other about the whole run), so "unresolved" is
+    deliberately not one of this field's verdict values. Never trusted at
+    face value: ai.services.evidence_assessment.assess_change_plan applies a
+    deterministic OJ-side backstop over this on top of whatever the AI
+    reports here (e.g. a "supported" delete with empty `evidence` is always
+    downgraded regardless of verdict).
+    """
+
+    verdict: Literal["supported", "unsupported", "ambiguous", "conflicting", "requires_more_context"] = "unsupported"
+    reasoning: str = ""
 
 
 class UnresolvedIssue(BaseModel):
@@ -228,6 +265,11 @@ class ChangeAction(BaseModel):
     fields: list[FieldEntry] = Field(default_factory=list)
     rationale: str = ""
     evidence: list[EvidenceItem] = Field(default_factory=list)
+    # Only meaningful to operations that supply a plan_sufficiency_check
+    # (ai.services.operations.OperationDefinition) -- defaults to
+    # "unsupported" so an operation that never sets it (Create) can't
+    # accidentally read a false "supported" on a field nothing ever filled in.
+    assessment: EvidenceAssessment = Field(default_factory=EvidenceAssessment)
 
     @field_validator("fields", mode="before")
     @classmethod
@@ -318,15 +360,25 @@ def _issue(code: str, message: str, ref: Optional[EntityRef] = None) -> Unresolv
 
 
 def _resolves_in_domain(domain: str, ref_id: str, dataset) -> bool:
+    # Every domain but "relationship" addresses an existing entity by its
+    # semantic key/key-path (ai.services.ontology_context / context_builder
+    # render the exact copyable string into AI context -- see those
+    # modules); "relationship" is the one deliberate exception, addressed by
+    # real id, since Relationship has no key and no natural uniqueness
+    # constraint that could ever back a safe synthetic composite.
     if domain == "object":
-        return dataset.object(ref_id) is not None
+        return dataset.object_by_key(ref_id) is not None
     if domain == "relationship":
         return dataset.relationship(ref_id) is not None
     if domain == "object_type":
-        return dataset.object_type(ref_id) is not None
+        return dataset.object_type_by_key(ref_id) is not None
     if domain == "relationship_type":
-        return dataset.relationship_type(ref_id) is not None
-    return True  # "unverifiable" -- not flagged here, see _TARGET_DOMAIN docstring
+        return dataset.relationship_type_by_key(ref_id) is not None
+    if domain == "attribute_definition":
+        return dataset.attribute_definition_by_key(ref_id) is not None
+    if domain == "relationship_type_rule":
+        return dataset.relationship_type_rule_by_key(ref_id) is not None
+    return True  # forward-compat only -- every current target type now has a real domain
 
 
 def validate_change_plan(plan: ChangePlan, dataset) -> list[UnresolvedIssue]:
@@ -394,40 +446,33 @@ def validate_change_plan(plan: ChangePlan, dataset) -> list[UnresolvedIssue]:
         # Rule 4: every "existing" ref anywhere in the action must resolve
         # against canonical state (where EffectiveDataset can verify it).
         if action.target_ref.kind == "existing":
-            domain = _TARGET_DOMAIN.get(action.target_type, "unverifiable")
-            if not _resolves_in_domain(domain, action.target_ref.id, dataset):
+            if not _resolves_in_domain(target_domain(action.target_type), action.target_ref.id, dataset):
                 issues.append(
                     _issue(
                         "unresolvable_existing_reference",
-                        f"No {action.target_type} with id '{action.target_ref.id}' exists.",
+                        f"No {action.target_type} with key '{action.target_ref.id}' exists.",
                         action.target_ref,
                     )
                 )
 
         if action.parent_ref is not None:
-            if action.target_type == "AttributeDefinition":
-                parent_domain = (
-                    "object_type" if action.parent_type == "ObjectType" else "relationship_type"
-                )
-                if action.parent_type is None:
-                    issues.append(
-                        _issue(
-                            "attribute_definition_requires_parent_type",
-                            "An AttributeDefinition action must declare parent_type "
-                            "('ObjectType' or 'RelationshipType').",
-                            action.parent_ref,
-                        )
+            if action.target_type == "AttributeDefinition" and action.parent_type is None:
+                issues.append(
+                    _issue(
+                        "attribute_definition_requires_parent_type",
+                        "An AttributeDefinition action must declare parent_type "
+                        "('ObjectType' or 'RelationshipType').",
+                        action.parent_ref,
                     )
-            else:
-                parent_domain = _IMPLIED_PARENT_DOMAIN.get(action.target_type, "unverifiable")
+                )
 
             if action.parent_ref.kind == "new":
                 referenced_new_tokens.add(action.parent_ref.id)
-            elif not _resolves_in_domain(parent_domain, action.parent_ref.id, dataset):
+            elif not _resolves_in_domain(parent_domain(action), action.parent_ref.id, dataset):
                 issues.append(
                     _issue(
                         "unresolvable_existing_reference",
-                        f"No parent entity with id '{action.parent_ref.id}' exists.",
+                        f"No parent entity with key '{action.parent_ref.id}' exists.",
                         action.parent_ref,
                     )
                 )
@@ -436,12 +481,11 @@ def validate_change_plan(plan: ChangePlan, dataset) -> list[UnresolvedIssue]:
             if ref.kind == "new":
                 referenced_new_tokens.add(ref.id)
                 continue
-            field_domain = "object" if action.target_type == "Relationship" else "object_type"
-            if not _resolves_in_domain(field_domain, ref.id, dataset):
+            if not _resolves_in_domain(field_ref_domain(action.target_type), ref.id, dataset):
                 issues.append(
                     _issue(
                         "unresolvable_existing_reference",
-                        f"No entity with id '{ref.id}' exists.",
+                        f"No entity with key '{ref.id}' exists.",
                         ref,
                     )
                 )

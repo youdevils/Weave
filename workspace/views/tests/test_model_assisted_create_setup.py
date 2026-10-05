@@ -49,7 +49,7 @@ class RoleGateTests(Base):
     def test_owner_may_submit(self):
         self.client.force_login(self.owner)
 
-        with patch("assisted.tasks.run_assisted_create.delay") as mock_delay:
+        with patch("assisted.tasks.run_assisted_operation.delay") as mock_delay:
             with self.captureOnCommitCallbacks(execute=True):
                 response = self.client.post(self.url(), {"intent": "Track widgets."}, follow=True)
 
@@ -60,7 +60,7 @@ class RoleGateTests(Base):
     def test_editor_may_submit(self):
         self.client.force_login(self.editor)
 
-        with patch("assisted.tasks.run_assisted_create.delay"):
+        with patch("assisted.tasks.run_assisted_operation.delay"):
             with self.captureOnCommitCallbacks(execute=True):
                 response = self.client.post(self.url(), {"intent": "Track widgets."}, follow=True)
 
@@ -102,7 +102,7 @@ class SubmissionTests(Base):
         self.assertContains(response, "Assisted creation")
 
     def test_blank_intent_re_renders_with_an_error(self):
-        with patch("assisted.tasks.run_assisted_create.delay") as mock_delay:
+        with patch("assisted.tasks.run_assisted_operation.delay") as mock_delay:
             response = self.client.post(self.url(), {"intent": "   "})
 
         self.assertEqual(response.status_code, 200)
@@ -113,7 +113,7 @@ class SubmissionTests(Base):
     def test_too_many_files_re_renders_with_an_error(self):
         files = [SimpleUploadedFile("a.txt", b"one"), SimpleUploadedFile("b.txt", b"two")]
 
-        with patch("assisted.tasks.run_assisted_create.delay") as mock_delay:
+        with patch("assisted.tasks.run_assisted_operation.delay") as mock_delay:
             response = self.client.post(self.url(), {"intent": "Track widgets.", "evidence": files})
 
         self.assertEqual(response.status_code, 200)
@@ -121,7 +121,7 @@ class SubmissionTests(Base):
         mock_delay.assert_not_called()
 
     def test_a_second_submission_while_one_is_active_is_rejected(self):
-        with patch("assisted.tasks.run_assisted_create.delay"):
+        with patch("assisted.tasks.run_assisted_operation.delay"):
             with self.captureOnCommitCallbacks(execute=True):
                 self.client.post(self.url(), {"intent": "First."}, follow=True)
 
@@ -135,7 +135,7 @@ class SubmissionTests(Base):
         self.assertEqual(AssistedTask.objects.filter(model=self.model).count(), 1)
 
     def test_dispatch_only_follows_a_durable_commit(self):
-        with patch("assisted.tasks.run_assisted_create.delay") as mock_delay:
+        with patch("assisted.tasks.run_assisted_operation.delay") as mock_delay:
             with self.captureOnCommitCallbacks(execute=True):
                 self.client.post(self.url(), {"intent": "Track widgets."})
 
@@ -157,7 +157,7 @@ class EntitlementGateTests(Base):
         self.owner.save(update_fields=["plan"])
         self.client.force_login(self.owner)
 
-        with patch("assisted.tasks.run_assisted_create.delay") as mock_delay:
+        with patch("assisted.tasks.run_assisted_operation.delay") as mock_delay:
             response = self.client.post(self.url(), {"intent": "Track widgets."}, follow=True)
 
         self.assertRedirects(
@@ -172,7 +172,7 @@ class EntitlementGateTests(Base):
         self.editor.save(update_fields=["plan"])
         self.client.force_login(self.editor)
 
-        with patch("assisted.tasks.run_assisted_create.delay") as mock_delay:
+        with patch("assisted.tasks.run_assisted_operation.delay") as mock_delay:
             response = self.client.post(self.url(), {"intent": "Track widgets."}, follow=True)
 
         self.assertRedirects(
@@ -185,7 +185,7 @@ class EntitlementGateTests(Base):
     def test_a_collaborator_owner_may_still_submit(self):
         self.client.force_login(self.owner)
 
-        with patch("assisted.tasks.run_assisted_create.delay"):
+        with patch("assisted.tasks.run_assisted_operation.delay"):
             with self.captureOnCommitCallbacks(execute=True):
                 response = self.client.post(self.url(), {"intent": "Track widgets."}, follow=True)
 

@@ -28,6 +28,7 @@ from django.utils import timezone
 from account.services.entitlement import user_can_run_assisted
 from ai.models import AIExecution
 from ai.services.orchestrator import run_ai_operation
+from model.services.proposal.proposal import ProposalLimitReached
 
 from assisted.models import AssistedTask
 from assisted.services.cleanup import fail_task
@@ -115,6 +116,19 @@ def run_and_finish(assisted_task_id, *, provider=None) -> None:
             assets=_assets_for(task),
             provider=provider,
         )
+    except ProposalLimitReached:
+        # The orchestrator's own fail-fast ProposalService.assert_capacity
+        # check (an optimisation, not the authoritative gate -- see
+        # ai.services.orchestrator) raised before any provider call. Give
+        # this a specific message instead of letting it fall into the
+        # generic exception handler below.
+        _finish_failed(
+            task,
+            failure_reason_code=AssistedTask.FailureReasonCode.EXECUTION_FAILED,
+            failure_reason="This model already has the maximum number of open proposals; "
+            "resolve or discard one before running this again.",
+        )
+        return
     except Exception:
         logger.exception("Unexpected error running assisted task %s", assisted_task_id)
         _finish_failed(
@@ -128,6 +142,8 @@ def run_and_finish(assisted_task_id, *, provider=None) -> None:
 
     if decision.status == AssistedTask.Status.READY_FOR_REVIEW:
         _finish_ready(task, result=result)
+    elif decision.status == AssistedTask.Status.COMPLETED:
+        _finish_completed(task, outcome_detail=decision.outcome_detail, result=result)
     else:
         _finish_failed(
             task,
@@ -163,6 +179,45 @@ def _finish_ready(task, *, result) -> None:
             "context_expansions",
             "tokens_used",
             "ready_for_review_at",
+            "updated_at",
+        ]
+    )
+
+
+@transaction.atomic
+def _finish_completed(task, *, outcome_detail, result) -> None:
+    """
+    A non-Proposal success (today: Reconcile's NO_CHANGE_REQUIRED/UNRESOLVED/
+    NEEDS_USER_CLARIFICATION, per ReconcileOutcomePolicy) -- the only path
+    that reaches AssistedTask.Status.COMPLETED directly, rather than via the
+    proposal_committed signal in assisted.signals. `proposal` is left
+    untouched (None); there is no reviewable artifact.
+    """
+
+    locked = AssistedTask.objects.select_for_update().get(pk=task.pk)
+    if locked.status != AssistedTask.Status.RUNNING:
+        return  # redelivered/raced; another worker already finished this
+
+    usage = AIExecution.objects.filter(pk=result.execution_id).values_list("usage", flat=True).first()
+
+    locked.status = AssistedTask.Status.COMPLETED
+    locked.ai_execution_id = result.execution_id
+    locked.ai_outcome = result.outcome.value if result.outcome else ""
+    locked.outcome_detail = outcome_detail
+    locked.refinement_cycles = result.refinement_cycles
+    locked.context_expansions = result.context_expansions
+    locked.tokens_used = (usage or {}).get("total_tokens", 0)
+    locked.completed_at = timezone.now()
+    locked.save(
+        update_fields=[
+            "status",
+            "ai_execution",
+            "ai_outcome",
+            "outcome_detail",
+            "refinement_cycles",
+            "context_expansions",
+            "tokens_used",
+            "completed_at",
             "updated_at",
         ]
     )

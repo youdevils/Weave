@@ -24,8 +24,8 @@ class BuildContextPacketTests(AIServiceTestCase):
     def test_includes_ontology_slice(self):
         packet = build_context_packet(model=self.model, intent=self.intent)
 
-        node_ids = {node["id"] for node in packet.ontology.get("nodes", [])}
-        self.assertIn(str(self.object_type.id), node_ids)
+        object_type_keys = {ot["key"] for ot in packet.ontology.get("object_types", [])}
+        self.assertIn(self.object_type.key, object_type_keys)
 
     def test_includes_supplied_assets(self):
         assets = [{"name": "spec.txt", "content": "Some content.", "mime_type": "text/plain"}]
@@ -42,6 +42,38 @@ class BuildContextPacketTests(AIServiceTestCase):
         packet = build_context_packet(model=self.model, intent=self.intent, previous_issues=issues)
 
         self.assertEqual(packet.previous_attempt_issues[0]["code"], "bad")
+
+    def test_a_validation_issues_canonical_uuid_never_crosses_into_previous_attempt_issues(self):
+        """
+        Regression guard: model.services.validation.result.ValidationIssue.target_id
+        is always a real canonical database UUID (set by the generic, AI-unaware
+        validation machinery apply_and_validate shares with human-authored Proposal
+        review, and by ai.services.proposal_compiler.InvalidFieldError) -- it must
+        never cross the AI-facing boundary. message/field/target_type alone must
+        remain sufficient.
+        """
+        import uuid
+
+        from model.services.validation.result import ValidationIssue
+
+        leaking_uuid = uuid.uuid4()
+        issues = [
+            ValidationIssue(
+                code="invalid_field",
+                message="Object has no field(s): location.",
+                field="location",
+                target_type="Object",
+                target_id=leaking_uuid,
+            )
+        ]
+
+        packet = build_context_packet(model=self.model, intent=self.intent, previous_issues=issues)
+        entry = packet.previous_attempt_issues[0]
+
+        self.assertNotIn("target_id", entry)
+        self.assertNotIn(str(leaking_uuid), entry.values())
+        self.assertEqual(entry["field"], "location")
+        self.assertEqual(entry["target_type"], "Object")
 
     @override_settings(AI_CONTEXT_MAX_OBJECTS=2, AI_CONTEXT_MAX_HOPS=2, AI_CONTEXT_MAX_BYTES=10_000_000)
     def test_initial_context_bounded_by_ai_context_max_objects(self):
@@ -140,7 +172,7 @@ class BuildContextPacketTests(AIServiceTestCase):
             self.make_object(self.model, self.object_type, name=f"Widget {index}")
 
         small_assets = [{"name": "a.txt", "content": "x", "mime_type": "text/plain"}]
-        large_assets = [{"name": "a.txt", "content": "x" * 1500, "mime_type": "text/plain"}]
+        large_assets = [{"name": "a.txt", "content": "x" * 3000, "mime_type": "text/plain"}]
 
         with override_settings(AI_CONTEXT_MAX_BYTES=5500, AI_CONTEXT_MAX_OBJECTS=300, AI_CONTEXT_MAX_HOPS=2):
             small_packet = build_context_packet(model=self.model, intent=self.intent, assets=small_assets)

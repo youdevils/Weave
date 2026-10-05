@@ -81,7 +81,7 @@
         {% else %}
 
             <p>
-                {{ task.ai_outcome|default:"No model changes were identified." }}
+                {{ task.outcome_detail|default:task.ai_outcome|default:"No model changes were identified." }}
             </p>
 
         {% endif %}

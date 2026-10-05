@@ -5,6 +5,7 @@ from django.test import override_settings
 from account.models import CustomUser
 from model.models.model import Model
 from model.models.proposal import Proposal
+from model.services.proposal.proposal import ProposalService
 
 from ai.services.provider import ProviderError
 
@@ -76,7 +77,7 @@ class RunAndFinishTests(AssistedExecutionTestCase):
     def test_ready_for_review_sets_the_proposal_and_execution(self):
         task = self.make_task()
 
-        execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.id)]))
+        execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.key)]))
 
         task.refresh_from_db()
         self.assertEqual(task.status, AssistedTask.Status.READY_FOR_REVIEW)
@@ -129,7 +130,7 @@ class RunAndFinishTests(AssistedExecutionTestCase):
         task = self.make_task(status=AssistedTask.Status.READY_FOR_REVIEW)
 
         # Must not raise, and must not touch an already-finished task.
-        execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.id)]))
+        execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.key)]))
 
         task.refresh_from_db()
         self.assertEqual(task.status, AssistedTask.Status.READY_FOR_REVIEW)
@@ -163,7 +164,7 @@ class RunAndFinishTests(AssistedExecutionTestCase):
     def test_a_collaborator_creator_is_unaffected_by_the_entitlement_check(self):
         task = self.make_task()
 
-        execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.id)]))
+        execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.key)]))
 
         task.refresh_from_db()
         self.assertEqual(task.status, AssistedTask.Status.READY_FOR_REVIEW)
@@ -171,7 +172,7 @@ class RunAndFinishTests(AssistedExecutionTestCase):
     def test_plain_text_evidence_passes_through_unchanged(self):
         task = self.make_task()
         self.make_evidence(task, filename="notes.txt", content=b"hello evidence", content_type="text/plain")
-        provider = ScriptedProvider([create_object_plan(self.object_type.id)])
+        provider = ScriptedProvider([create_object_plan(self.object_type.key)])
 
         execution.run_and_finish(task.id, provider=provider)
 
@@ -182,7 +183,7 @@ class RunAndFinishTests(AssistedExecutionTestCase):
         pdf_bytes = build_minimal_pdf("Quarterly numbers go here")
         task = self.make_task()
         self.make_evidence(task, filename="report.pdf", content=pdf_bytes, content_type="application/pdf")
-        provider = ScriptedProvider([create_object_plan(self.object_type.id)])
+        provider = ScriptedProvider([create_object_plan(self.object_type.key)])
 
         with override_settings(ASSISTED_MAX_EVIDENCE_EXTRACTED_CHARS=10):
             execution.run_and_finish(task.id, provider=provider)
@@ -194,3 +195,90 @@ class RunAndFinishTests(AssistedExecutionTestCase):
         self.assertNotIn("�", asset["content"])
         self.assertIn("truncated", asset["content"])
         self.assertLessEqual(len(asset["content"]) - len("\n\n[... evidence truncated at 10 characters]"), 10)
+
+
+class ReconcileRunAndFinishTests(AssistedExecutionTestCase):
+    """
+    Unlike Create, Reconcile's Model pre-exists -- these tests use
+    operation=RECONCILE throughout and never expect the Model to be deleted
+    on failure, and expect NO_CHANGE_REQUIRED/UNRESOLVED/
+    NEEDS_USER_CLARIFICATION to reach COMPLETED (via the new
+    execution._finish_completed path), never FAILED.
+    """
+
+    def make_task(self, **kwargs):
+        kwargs.setdefault("operation", AssistedTask.Operation.RECONCILE)
+        return super().make_task(**kwargs)
+
+    def test_ready_for_review_still_uses_the_proposal_path(self):
+        task = self.make_task()
+
+        execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.key)]))
+
+        task.refresh_from_db()
+        self.assertEqual(task.status, AssistedTask.Status.READY_FOR_REVIEW)
+        self.assertIsNotNone(task.proposal)
+
+    def test_no_change_required_completes_without_a_proposal(self):
+        task = self.make_task()
+
+        execution.run_and_finish(task.id, provider=ScriptedProvider([no_change_result()]))
+
+        task.refresh_from_db()
+        self.assertEqual(task.status, AssistedTask.Status.COMPLETED)
+        self.assertIsNone(task.proposal)
+        self.assertEqual(task.ai_outcome, "no_change_required")
+        self.assertTrue(task.outcome_detail)
+        self.assertIsNotNone(task.completed_at)
+        # The Model is never a bootstrap artifact for Reconcile -- it must
+        # survive regardless of outcome.
+        self.assertTrue(Model.objects.filter(id=self.model.id).exists())
+
+    def test_unresolved_completes_without_a_proposal(self):
+        task = self.make_task()
+
+        # Reconcile's own OperationDefinition.max_refinement_cycles=5 is
+        # fixed and takes priority over the global setting -- unlike
+        # Create's equivalent test, overriding AI_MAX_REFINEMENT_CYCLES here
+        # would have no effect, so this scripts exactly Reconcile's own budget.
+        execution.run_and_finish(task.id, provider=ScriptedProvider([unresolved_result()] * 5))
+
+        task.refresh_from_db()
+        self.assertEqual(task.status, AssistedTask.Status.COMPLETED)
+        self.assertIsNone(task.proposal)
+        self.assertEqual(task.ai_outcome, "unresolved")
+
+    def test_needs_clarification_completes_without_a_proposal(self):
+        task = self.make_task()
+
+        execution.run_and_finish(task.id, provider=ScriptedProvider([clarification_result()]))
+
+        task.refresh_from_db()
+        self.assertEqual(task.status, AssistedTask.Status.COMPLETED)
+        self.assertIsNone(task.proposal)
+        self.assertEqual(task.ai_outcome, "needs_user_clarification")
+
+    def test_token_usage_is_denormalized_on_the_completed_path(self):
+        task = self.make_task()
+
+        execution.run_and_finish(task.id, provider=ScriptedProvider([no_change_result()]))
+
+        task.refresh_from_db()
+        self.assertGreater(task.tokens_used, 0)
+
+    def test_proposal_limit_reached_fails_with_a_specific_message(self):
+        from django.conf import settings
+
+        for _ in range(settings.PROPOSAL_MAX_LIVE_PER_MODEL):
+            ProposalService.create_working(self.model, self.owner)
+
+        task = self.make_task()
+
+        execution.run_and_finish(task.id, provider=RaisingProvider(ProviderError("must not be called")))
+
+        task.refresh_from_db()
+        self.assertEqual(task.status, AssistedTask.Status.FAILED)
+        self.assertEqual(task.failure_reason_code, AssistedTask.FailureReasonCode.EXECUTION_FAILED)
+        self.assertIn("maximum number of open proposals", task.failure_reason)
+        # Reconcile's Model is never deleted, unlike Create's bootstrap Model.
+        self.assertTrue(Model.objects.filter(id=self.model.id).exists())

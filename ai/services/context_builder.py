@@ -17,17 +17,28 @@ from model.services.model_graph.loader import load_effective_dataset
 from model.services.model_graph.projection import project
 from model.services.model_graph.query import ExplorerQuery
 from model.services.model_graph.reachability import reachable_within
-from model.services.ontology_graph.compiler import compile_ontology_graph
 from publication.services.bundle import canonical_json
 
 from ai.services.context_expansion import ExpansionState, initial_expansion_state
 from ai.services.context_schema import ContextPacket
+from ai.services.ontology_context import compile_ontology_context
 
 
 def _issue_to_dict(issue) -> dict:
     """Tolerant conversion: accepts model.services.validation.result.ValidationIssue
     (code/message/field/target_type/target_id) or
-    ai.services.change_plan.UnresolvedIssue (code/message/target_ref)."""
+    ai.services.change_plan.UnresolvedIssue (code/message/target_ref).
+
+    Deliberately never includes target_id: it is always a canonical database
+    UUID (model.services.validation.result.ValidationIssue.target_id), which
+    must never cross into AI-facing context -- the semantic-key architecture
+    (ai.services.change_plan's TARGET_DOMAIN/EntityRef) exists precisely to
+    keep existing-entity references key/ref-based for the AI. message/field/
+    target_type already fully describe the defect on their own (every
+    ValidationIssue.message in this codebase is self-contained, human-
+    readable prose naming the entity by name, not by id) -- there is no
+    non-UUID substitute to add here because nothing besides the human
+    Proposal-review UI ever needed target_id in the first place."""
 
     if hasattr(issue, "model_dump"):
         return issue.model_dump(mode="json")
@@ -37,7 +48,6 @@ def _issue_to_dict(issue) -> dict:
         "message": getattr(issue, "message", ""),
         "field": getattr(issue, "field", None),
         "target_type": getattr(issue, "target_type", None),
-        "target_id": str(getattr(issue, "target_id", "")) or None,
     }
 
 
@@ -76,8 +86,65 @@ def _reachable_object_ids(dataset, seed_object_ids) -> set[str]:
     return reachable_within(seed_object_ids, adjacency, settings.AI_CONTEXT_MAX_HOPS)
 
 
+def _ref_for_object(dataset, object_id) -> str | None:
+    obj = dataset.object(object_id)
+    object_type = dataset.object_types.get(obj.type_id) if obj else None
+    return f"{object_type.key}:{obj.key}" if obj and object_type else None
+
+
+def _add_object_ref(ref_dict: dict, dataset) -> dict:
+    """
+    Enriches an _object_ref-shaped dict (id/name/typeId/typeName/
+    isProposed/inView -- see model.services.model_graph.details) with the
+    AI-facing `ref`/`typeKey` composite -- post-processing only, so
+    model.services.model_graph.details stays completely untouched (it is
+    also used by the live Explorer UI and by Publication's committed
+    golden-fixture parity suite, neither of which should ever see an
+    AI-specific field).
+    """
+
+    return {
+        **ref_dict,
+        "ref": _ref_for_object(dataset, ref_dict["id"]),
+        "typeKey": dataset.object_types[ref_dict["typeId"]].key,
+    }
+
+
+def _enrich_object_payload(detail: dict, dataset) -> dict:
+    return {
+        **detail,
+        "ref": _ref_for_object(dataset, detail["id"]),
+        "relationships": [
+            {
+                **group,
+                "items": [
+                    {**item, "counterpart": _add_object_ref(item["counterpart"], dataset)}
+                    for item in group["items"]
+                ],
+            }
+            for group in detail["relationships"]
+        ],
+    }
+
+
+def _enrich_relationship_payload(detail: dict, dataset) -> dict:
+    # No top-level "ref" added here -- Relationship has no key or natural
+    # uniqueness constraint that could back a safe synthetic one, so it
+    # stays addressed by its real id (see ai.services.change_plan's domain
+    # table: "relationship" is the one deliberate exception).
+    return {
+        **detail,
+        "source": _add_object_ref(detail["source"], dataset),
+        "target": _add_object_ref(detail["target"], dataset),
+    }
+
+
 def _payload_for(dataset, object_ids) -> tuple[list[dict], list[dict], int]:
-    objects_payload = [d for d in (object_details(dataset, oid) for oid in object_ids) if d is not None]
+    objects_payload = [
+        _enrich_object_payload(d, dataset)
+        for d in (object_details(dataset, oid) for oid in object_ids)
+        if d is not None
+    ]
 
     relationship_ids = {
         r.id
@@ -85,7 +152,9 @@ def _payload_for(dataset, object_ids) -> tuple[list[dict], list[dict], int]:
         if r.source_id in object_ids and r.target_id in object_ids
     }
     relationships_payload = [
-        d for d in (relationship_details(dataset, rid) for rid in relationship_ids) if d is not None
+        _enrich_relationship_payload(d, dataset)
+        for d in (relationship_details(dataset, rid) for rid in relationship_ids)
+        if d is not None
     ]
 
     size = len(canonical_json({"objects": objects_payload, "relationships": relationships_payload}).encode("utf-8"))
@@ -141,7 +210,7 @@ def build_context_packet(
     expansion_state = expansion_state or initial_expansion_state()
 
     dataset = load_effective_dataset(model, proposal=None)
-    ontology_payload = compile_ontology_graph(model, proposal=None).to_dict()
+    ontology_payload = compile_ontology_context(dataset)
 
     # Additive: the deterministic base slice is never discarded by an
     # expansion cycle, only ever added to -- see the module docstring and
@@ -191,8 +260,8 @@ def build_context_packet(
     )
 
     model_is_empty = (
-        not ontology_payload.get("nodes")
-        and not ontology_payload.get("edges")
+        not ontology_payload.get("object_types")
+        and not ontology_payload.get("relationship_types")
         and not objects_payload
         and not relationships_payload
     )

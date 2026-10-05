@@ -237,7 +237,7 @@ class ValidateChangePlanTests(AIServiceTestCase):
     def setUp(self):
         self.model = self.make_model()
         self.object_type = self.make_object_type(self.model, key="widget")
-        self.object = self.make_object(self.model, self.object_type, name="Widget 1")
+        self.object = self.make_object(self.model, self.object_type, name="Widget 1", key="widget_1")
         self.dataset = load_effective_dataset(self.model, proposal=None)
 
     def test_create_action_requires_new_target_ref(self):
@@ -247,8 +247,8 @@ class ValidateChangePlanTests(AIServiceTestCase):
                 ChangeAction(
                     operation="create",
                     target_type="Object",
-                    target_ref=_existing(self.object.id),
-                    parent_ref=_existing(self.object_type.id),
+                    target_ref=_existing(f"widget:{self.object.key}"),
+                    parent_ref=_existing(self.object_type.key),
                     fields={"name": "X"},
                 )
             ],
@@ -291,7 +291,7 @@ class ValidateChangePlanTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="Object",
-                    target_ref=_existing(self.object.id),
+                    target_ref=_existing(f"widget:{self.object.key}"),
                     fields={},
                 )
             ],
@@ -307,7 +307,7 @@ class ValidateChangePlanTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="Object",
-                    target_ref=_existing(uuid.uuid4()),
+                    target_ref=_existing("widget:does_not_exist"),
                     fields={"name": "X"},
                 )
             ],
@@ -325,9 +325,9 @@ class ValidateChangePlanTests(AIServiceTestCase):
                     operation="create",
                     target_type="Relationship",
                     target_ref=_new("tmp:rel"),
-                    parent_ref=_existing(relationship_type.id),
+                    parent_ref=_existing(relationship_type.key),
                     fields={
-                        "subject_id": _existing(self.object.id).model_dump(),
+                        "subject_id": _existing(f"widget:{self.object.key}").model_dump(),
                         "object_id": _new("tmp:ghost").model_dump(),
                     },
                 )
@@ -345,7 +345,7 @@ class ValidateChangePlanTests(AIServiceTestCase):
                     operation="create",
                     target_type="Object",
                     target_ref=_new("tmp:1"),
-                    parent_ref=_existing(self.object_type.id),
+                    parent_ref=_existing(self.object_type.key),
                     fields={"name": "New widget"},
                 ),
                 ChangeAction(
@@ -370,13 +370,13 @@ class ValidateChangePlanTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="Object",
-                    target_ref=_existing(self.object.id),
+                    target_ref=_existing(f"widget:{self.object.key}"),
                     fields={"name": "A"},
                 ),
                 ChangeAction(
                     operation="update",
                     target_type="Object",
-                    target_ref=_existing(self.object.id),
+                    target_ref=_existing(f"widget:{self.object.key}"),
                     fields={"name": "B"},
                 ),
             ],
@@ -394,7 +394,7 @@ class ValidateChangePlanTests(AIServiceTestCase):
                     operation="create",
                     target_type="Object",
                     target_ref=_new("tmp:1"),
-                    parent_ref=_existing(self.object_type.id),
+                    parent_ref=_existing(self.object_type.key),
                     fields={"name": "New widget"},
                     rationale="The intent asked for a new widget.",
                 ),
@@ -420,11 +420,11 @@ class ValidateChangePlanTests(AIServiceTestCase):
                     operation="create",
                     target_type="RelationshipTypeRule",
                     target_ref=_new("tmp:rule"),
-                    parent_ref=_existing(relationship_type.id),
+                    parent_ref=_existing(relationship_type.key),
                     fields=[
                         FieldEntry(
                             key="subject_type_id",
-                            value=FieldValue(entity_ref_value=_existing(self.object_type.id)),
+                            value=FieldValue(entity_ref_value=_existing(self.object_type.key)),
                         ),
                         FieldEntry(key="object_type_id", value=FieldValue(string_value="BusinessLeadership")),
                     ],
@@ -447,11 +447,11 @@ class ValidateChangePlanTests(AIServiceTestCase):
                     operation="create",
                     target_type="RelationshipTypeRule",
                     target_ref=_new("tmp:rule"),
-                    parent_ref=_existing(relationship_type.id),
+                    parent_ref=_existing(relationship_type.key),
                     fields=[
                         FieldEntry(
                             key="subject_type_ref",
-                            value=FieldValue(entity_ref_value=_existing(self.object_type.id)),
+                            value=FieldValue(entity_ref_value=_existing(self.object_type.key)),
                         ),
                         FieldEntry(key="object_type_ref", value=FieldValue(string_value="BusinessLeadership")),
                     ],
@@ -469,8 +469,13 @@ class ValidateChangePlanTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="Object",
-                    target_ref=_existing(self.object.id),
-                    fields=[FieldEntry(key="name", value=FieldValue(entity_ref_value=_existing(uuid.uuid4())))],
+                    target_ref=_existing(f"widget:{self.object.key}"),
+                    fields=[
+                        FieldEntry(
+                            key="name",
+                            value=FieldValue(entity_ref_value=_existing(f"widget:{self.object.key}")),
+                        )
+                    ],
                 )
             ],
         )
@@ -485,7 +490,7 @@ class ValidateChangePlanTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="Object",
-                    target_ref=_existing(self.object.id),
+                    target_ref=_existing(f"widget:{self.object.key}"),
                     fields=[FieldEntry(key="name", value=FieldValue(string_value="X", number_value=1))],
                 )
             ],
@@ -501,7 +506,7 @@ class ValidateChangePlanTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="Object",
-                    target_ref=_existing(self.object.id),
+                    target_ref=_existing(f"widget:{self.object.key}"),
                     fields=[
                         FieldEntry(key="name", value=FieldValue(string_value="X")),
                         FieldEntry(key="name", value=FieldValue(string_value="Y")),
@@ -526,11 +531,11 @@ class ValidateChangePlanTests(AIServiceTestCase):
                     operation="create",
                     target_type="RelationshipTypeRule",
                     target_ref=_new("tmp:rule"),
-                    parent_ref=_existing(relationship_type.id),
+                    parent_ref=_existing(relationship_type.key),
                     fields=[
                         FieldEntry(
                             key="subject_type_ref",
-                            value=FieldValue(entity_ref_value=_existing(self.object_type.id)),
+                            value=FieldValue(entity_ref_value=_existing(self.object_type.key)),
                         ),
                         FieldEntry(
                             key="subject_type_id",

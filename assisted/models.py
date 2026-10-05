@@ -115,6 +115,11 @@ class AssistedTask(models.Model):
     failure_reason_code = models.CharField(max_length=30, choices=FailureReasonCode.choices, blank=True)
     failure_reason = models.TextField(blank=True)
 
+    # A short human-readable explanation for a non-Proposal COMPLETED outcome
+    # (e.g. Reconcile's NO_CHANGE_REQUIRED/UNRESOLVED/NEEDS_USER_CLARIFICATION) --
+    # kept separate from failure_reason, which is semantically failure-only.
+    outcome_detail = models.TextField(blank=True)
+
     # Denormalized copies of AIExecution's own counters -- small integers,
     # not a "large AI payload", safe to duplicate for post-deletion history.
     refinement_cycles = models.PositiveIntegerField(default=0)

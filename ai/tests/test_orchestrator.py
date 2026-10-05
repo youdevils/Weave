@@ -175,7 +175,7 @@ class RunAIOperationTests(AIServiceTestCase):
         self.assertIsNone(result.proposal_id)
 
     def test_proposal_only_created_on_ready_for_review(self):
-        result = self._run(ScriptedProvider([_create_object_plan(self.object_type.id)]))
+        result = self._run(ScriptedProvider([_create_object_plan(self.object_type.key)]))
 
         self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
         self.assertIsNotNone(result.proposal_id)
@@ -184,7 +184,7 @@ class RunAIOperationTests(AIServiceTestCase):
         self.assertEqual(proposal.source, Proposal.Source.AI)
 
     def test_no_proposal_created_for_unresolved(self):
-        bad = _invalid_create_plan(self.object_type.id)
+        bad = _invalid_create_plan(self.object_type.key)
         result = self._run(ScriptedProvider([bad, bad, bad, bad]))
 
         self.assertEqual(result.outcome, OperationOutcome.UNRESOLVED)
@@ -192,8 +192,8 @@ class RunAIOperationTests(AIServiceTestCase):
         self.assertEqual(Proposal.objects.filter(model=self.model).count(), 0)
 
     def test_intermediate_refinement_cycles_leave_no_persisted_rows(self):
-        bad = _invalid_create_plan(self.object_type.id)
-        good = _create_object_plan(self.object_type.id)
+        bad = _invalid_create_plan(self.object_type.key)
+        good = _create_object_plan(self.object_type.key)
 
         result = self._run(ScriptedProvider([bad, bad, good]))
 
@@ -202,7 +202,7 @@ class RunAIOperationTests(AIServiceTestCase):
         self.assertEqual(Object.objects.filter(model=self.model).count(), 0)
 
     def test_execution_status_completed_with_outcome_unresolved_on_cycle_exhaustion(self):
-        bad = _invalid_create_plan(self.object_type.id)
+        bad = _invalid_create_plan(self.object_type.key)
         result = self._run(ScriptedProvider([bad, bad, bad, bad]))
 
         self.assertEqual(result.execution_status, ExecutionStatus.COMPLETED)
@@ -229,7 +229,7 @@ class RunAIOperationTests(AIServiceTestCase):
         self.assertNotIn("super-secret-detail", result.explanation)
 
     def test_explain_only_called_for_unresolved_when_setting_enabled(self):
-        bad = _invalid_create_plan(self.object_type.id)
+        bad = _invalid_create_plan(self.object_type.key)
         provider = ScriptedProvider([bad, bad, bad, bad])
 
         with override_settings(AI_FINAL_EXPLANATION_ENABLED=True):
@@ -239,7 +239,7 @@ class RunAIOperationTests(AIServiceTestCase):
         self.assertEqual(result.explanation, provider.explanation)
 
     def test_explain_only_skipped_when_setting_disabled(self):
-        bad = _invalid_create_plan(self.object_type.id)
+        bad = _invalid_create_plan(self.object_type.key)
         provider = ScriptedProvider([bad, bad, bad, bad])
 
         with override_settings(AI_FINAL_EXPLANATION_ENABLED=False):
@@ -283,15 +283,15 @@ class RunAIOperationTests(AIServiceTestCase):
 
     def test_findings_on_successful_plan_surfaced_not_discarded(self):
         finding = Finding(message="Note: this is a best guess.", severity="info")
-        result = self._run(ScriptedProvider([_create_object_plan(self.object_type.id, findings=[finding])]))
+        result = self._run(ScriptedProvider([_create_object_plan(self.object_type.key, findings=[finding])]))
 
         self.assertEqual(len(result.findings), 1)
         self.assertEqual(result.findings[0].message, finding.message)
 
     def test_findings_reflect_only_the_determining_cycle_not_accumulated(self):
-        cycle_1 = _invalid_create_plan(self.object_type.id)
+        cycle_1 = _invalid_create_plan(self.object_type.key)
         cycle_1.findings = [Finding(message="From cycle 1.")]
-        cycle_2 = _create_object_plan(self.object_type.id, findings=[Finding(message="From cycle 2.")])
+        cycle_2 = _create_object_plan(self.object_type.key, findings=[Finding(message="From cycle 2.")])
 
         result = self._run(ScriptedProvider([cycle_1, cycle_2]))
 
@@ -321,8 +321,8 @@ class RunAIOperationTests(AIServiceTestCase):
         relationship_type = self.make_relationship_type(self.model, key="connects_to")
         other_object_type = self.make_object_type(self.model, key="gadget", name="Gadget")
 
-        bad = _relationship_type_rule_plan_with_bad_ref(relationship_type.id, self.object_type.id)
-        good = _relationship_type_rule_plan(relationship_type.id, self.object_type.id, other_object_type.id)
+        bad = _relationship_type_rule_plan_with_bad_ref(relationship_type.key, self.object_type.key)
+        good = _relationship_type_rule_plan(relationship_type.key, self.object_type.key, other_object_type.key)
 
         result = self._run(ScriptedProvider([bad, good]))
 

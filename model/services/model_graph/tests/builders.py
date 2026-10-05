@@ -5,11 +5,13 @@ import uuid
 from model.services.model_graph.dataset import (
     AttributeSpec,
     CardinalityRule,
+    EffectiveAttributeDefinition,
     EffectiveDataset,
     EffectiveObject,
     EffectiveObjectType,
     EffectiveRelationship,
     EffectiveRelationshipType,
+    EffectiveRelationshipTypeRule,
 )
 
 
@@ -42,15 +44,41 @@ def rule(subject_type, object_type_, subject=(0, None), obj=(0, None)):
     return CardinalityRule(uid(subject_type), uid(object_type_), subject[0], subject[1], obj[0], obj[1])
 
 
-def obj(number, type_number, name, attributes=None, proposed=False, created=False, description=""):
+def obj(number, type_number, name, attributes=None, proposed=False, created=False, description="", key=None):
     return EffectiveObject(
         id=uid(number),
         type_id=uid(type_number),
         name=name,
+        key=key if key is not None else name.lower().replace(" ", "_"),
         description=description,
         attributes=attributes or {},
         is_proposed=proposed,
         is_created=created,
+    )
+
+
+def attribute_definition(number, key, name, data_type, *, parent_type, parent_number):
+    return EffectiveAttributeDefinition(
+        id=uid(number),
+        key=key,
+        name=name,
+        data_type=data_type,
+        parent_type=parent_type,
+        parent_id=uid(parent_number),
+    )
+
+
+def relationship_type_rule(number, relationship_type_number, subject_type_number, object_type_number, **cardinality):
+    cardinality.setdefault("subject_minimum", 0)
+    cardinality.setdefault("subject_maximum", None)
+    cardinality.setdefault("object_minimum", 0)
+    cardinality.setdefault("object_maximum", None)
+    return EffectiveRelationshipTypeRule(
+        id=uid(number),
+        relationship_type_id=uid(relationship_type_number),
+        subject_type_id=uid(subject_type_number),
+        object_type_id=uid(object_type_number),
+        **cardinality,
     )
 
 
@@ -100,7 +128,7 @@ def sample_dataset() -> EffectiveDataset:
         objects=[
             obj(ALICE, PERSON, "Alice", {"email": "alice@example.com"}),
             obj(BOB, PERSON, "Bob"),
-            obj(ALICE_TWO, PERSON, "Alice", {"email": "alice.two@example.com"}),
+            obj(ALICE_TWO, PERSON, "Alice", {"email": "alice.two@example.com"}, key="alice_two"),
             obj(OPS, TEAM, "Ops"),
             obj(
                 WEB,

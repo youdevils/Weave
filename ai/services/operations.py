@@ -11,7 +11,7 @@ machinery.
 """
 
 from dataclasses import dataclass
-from typing import FrozenSet, Literal, Type
+from typing import Callable, FrozenSet, Literal, Optional, Type
 
 from pydantic import BaseModel
 
@@ -34,6 +34,22 @@ class OperationDefinition:
     required_context_categories: FrozenSet[str]
     input_schema: Type[BaseModel]
     output_schema: Type[BaseModel]
+    # Optional, operation-specific extension points consumed generically by
+    # ai.services.orchestrator.run_ai_operation -- never branched on
+    # operation_id there. All three default to a no-op for an operation that
+    # doesn't set them (Create today; Change/Assess can opt in later).
+    #
+    # plan_sufficiency_check: run against the AI's structured ChangePlan
+    # after it already passed validate_change_plan's deterministic reference
+    # checks; any issues it returns feed back into refinement exactly like
+    # every other issue source in the loop.
+    plan_sufficiency_check: Optional[Callable[[object], list]] = None
+    # prompt_fragment: appended to the shared system prompt
+    # (ai.services.orchestrator._system_prompt) after its universal text.
+    prompt_fragment: str = ""
+    # max_refinement_cycles: this operation's own bounded refinement budget.
+    # None means "use the global settings.AI_MAX_REFINEMENT_CYCLES default."
+    max_refinement_cycles: Optional[int] = None
 
 
 _REGISTRY: dict[str, OperationDefinition] = {}

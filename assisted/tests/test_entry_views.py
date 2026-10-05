@@ -1,3 +1,6 @@
+from unittest.mock import patch
+
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from account.models import CustomUser
@@ -9,6 +12,10 @@ class ReconcileEntryViewTests(AssistedTestCase):
 
     def setUp(self):
         self.model = self.make_model()
+        # Reconcile requires something to reconcile against -- most tests in
+        # this class don't reach that check (blocked earlier by role/blank
+        # intent), but the ones that do need a non-empty Model.
+        self.make_object_type(self.model)
 
     def url(self):
         return reverse("assisted:reconcile", args=[self.model.id])
@@ -30,20 +37,69 @@ class ReconcileEntryViewTests(AssistedTestCase):
         self.assertContains(response, "before starting")
         self.assertEqual(AssistedTask.objects.count(), 0)
 
-    def test_valid_submit_shows_stub_message_and_persists_nothing(self):
+    def test_valid_submit_creates_a_queued_task_and_redirects_to_task_detail(self):
+        self.client.force_login(self.owner)
+        files = [SimpleUploadedFile("notes.txt", b"Process X is now Active.")]
+
+        with patch("assisted.tasks.run_assisted_operation.delay") as mock_delay:
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(
+                    self.url(),
+                    {"intent": "These documents show the latest status.", "evidence": files},
+                    follow=True,
+                )
+
+        self.assertEqual(response.status_code, 200)
+        task = AssistedTask.objects.get()
+        self.assertEqual(task.operation, AssistedTask.Operation.RECONCILE)
+        self.assertEqual(task.model_id, self.model.id)
+        self.assertEqual(AssistedTaskEvidence.objects.filter(task=task).count(), 1)
+        # Not assisted:task_detail -- that 404s while the task is still
+        # active, by design (see assisted.views.task_detail).
+        self.assertRedirects(response, reverse("assisted:landing", args=[self.model.id]))
+        mock_delay.assert_called_once_with(str(task.id))
+
+    def test_submit_without_evidence_is_rejected_and_persists_nothing(self):
         self.client.force_login(self.owner)
 
+        response = self.client.post(self.url(), {"intent": "These documents show the latest status."})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Attach at least one supporting document")
+        self.assertEqual(AssistedTask.objects.count(), 0)
+
+    def test_submit_against_an_empty_model_is_rejected(self):
+        empty_model = self.make_model(name="Empty Model")
+        self.client.force_login(self.owner)
+        files = [SimpleUploadedFile("notes.txt", b"Something.")]
+
         response = self.client.post(
-            self.url(),
-            {"intent": "These documents show the latest status."},
+            reverse("assisted:reconcile", args=[empty_model.id]),
+            {"intent": "Anything.", "evidence": files},
             follow=True,
         )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertRedirects(response, reverse("assisted:landing", args=[self.model.id]))
-        self.assertContains(response, "isn&#x27;t available yet")
+        self.assertRedirects(response, reverse("assisted:landing", args=[empty_model.id]))
+        self.assertContains(response, "no structure yet to reconcile against")
         self.assertEqual(AssistedTask.objects.count(), 0)
-        self.assertEqual(AssistedTaskEvidence.objects.count(), 0)
+
+    def test_a_second_submission_while_one_is_active_is_rejected(self):
+        self.client.force_login(self.owner)
+        files = [SimpleUploadedFile("notes.txt", b"Something.")]
+
+        with patch("assisted.tasks.run_assisted_operation.delay"):
+            with self.captureOnCommitCallbacks(execute=True):
+                self.client.post(
+                    self.url(), {"intent": "First.", "evidence": files}, follow=True
+                )
+
+        with patch("assisted.tasks.run_assisted_operation.delay"):
+            response = self.client.post(
+                self.url(), {"intent": "Second.", "evidence": files}, follow=True
+            )
+
+        self.assertRedirects(response, reverse("assisted:landing", args=[self.model.id]))
+        self.assertEqual(AssistedTask.objects.filter(model=self.model).count(), 1)
 
     def test_viewer_gets_403_on_get(self):
         self.client.force_login(self.viewer)

@@ -18,6 +18,7 @@ from django.utils import timezone
 
 from account.services.entitlement import user_can_run_assisted
 from ai.services.intent import validate_intent
+from ai.services.operations import get_operation
 from model.models.model import Model
 
 from assisted.models import AssistedTask
@@ -36,12 +37,32 @@ class AssistedEntitlementDenied(Exception):
 
 class BootstrapModelGone(Exception):
     """
-    This model no longer exists. Reachable when the caller's own stale
-    QUEUED/RUNNING CREATE task against this exact Model gets reclaimed by
-    _reclaim_stale() below -- fail_task() deletes a CREATE task's bootstrap
-    Model as part of that reclaim, which can be the very Model this call was
-    about to reuse for a fresh attempt.
+    This model no longer exists. For a bootstrap operation (Create), this is
+    reachable when the caller's own stale QUEUED/RUNNING task against this
+    exact Model gets reclaimed by _reclaim_stale() below -- fail_task()
+    deletes a Create task's bootstrap Model as part of that reclaim, which
+    can be the very Model this call was about to reuse for a fresh attempt.
+    For a non-bootstrap operation (Reconcile), the Model is never deleted by
+    this app's own cleanup, so this is only reachable via a genuine,
+    unrelated deletion racing this call.
     """
+
+
+class EvidenceRequired(ValueError):
+    """This operation requires at least one supporting document."""
+
+
+class EmptyModelNotReconcilable(ValueError):
+    """This model has no structure yet to reconcile against."""
+
+
+def _model_has_structure(model) -> bool:
+    return (
+        model.object_types.exists()
+        or model.relationship_types.exists()
+        or model.model_objects.exists()
+        or model.model_relationships.exists()
+    )
 
 
 @transaction.atomic
@@ -94,30 +115,33 @@ def _reclaim_stale(model_id) -> None:
 
 
 @transaction.atomic
-def _create_task(*, workspace, model_id, user, intent_text, files) -> AssistedTask:
+def _create_task(*, workspace, model_id, user, operation, intent_text, files) -> AssistedTask:
     """
     The actual lock-then-check-then-create step, in its own transaction so
     that _reclaim_stale's cleanup above (possibly including this Model's own
-    deletion) is never rolled back by what happens here.
+    deletion) is never rolled back by what happens here. Shared by every
+    Assisted operation (today: Create and Reconcile) -- operation-specific
+    preconditions (entitlement wording, empty-model rejection, etc.) live in
+    each start_assisted_*() wrapper below, not here.
     """
 
     try:
         locked_model = Model.objects.select_for_update().get(pk=model_id)
     except Model.DoesNotExist:
-        raise BootstrapModelGone(
-            "This model no longer exists: a previous assisted attempt against "
-            "it failed and was cleaned up. Create a new model to try again."
-        ) from None
+        raise BootstrapModelGone("This model no longer exists.") from None
 
     if AssistedTask.objects.filter(model=locked_model, status__in=AssistedTask.ACTIVE_STATUSES).exists():
         raise AssistedTaskActive("This model already has an assisted operation in progress.")
+
+    if get_operation(operation).evidence == "required" and not files:
+        raise EvidenceRequired("Attach at least one supporting document to run this operation.")
 
     intent = validate_intent(intent_text)
 
     task = AssistedTask.objects.create(
         workspace=workspace,
         creator=user,
-        operation=AssistedTask.Operation.CREATE,
+        operation=operation,
         model=locked_model,
         status=AssistedTask.Status.QUEUED,
         submitted_intent=intent.text,
@@ -126,9 +150,9 @@ def _create_task(*, workspace, model_id, user, intent_text, files) -> AssistedTa
     create_evidence(task, files)
 
     def _dispatch():
-        from assisted.tasks import run_assisted_create
+        from assisted.tasks import run_assisted_operation
 
-        run_assisted_create.delay(str(task.id))
+        run_assisted_operation.delay(str(task.id))
 
     transaction.on_commit(_dispatch)
 
@@ -155,4 +179,43 @@ def start_assisted_create(*, workspace, model, user, intent_text, files) -> Assi
 
     _reclaim_stale(model.pk)
 
-    return _create_task(workspace=workspace, model_id=model.pk, user=user, intent_text=intent_text, files=files)
+    return _create_task(
+        workspace=workspace,
+        model_id=model.pk,
+        user=user,
+        operation=AssistedTask.Operation.CREATE,
+        intent_text=intent_text,
+        files=files,
+    )
+
+
+def start_assisted_reconcile(*, workspace, model, user, intent_text, files) -> AssistedTask:
+    """
+    Creates the AssistedTask for Assisted Reconcile against an
+    already-existing Model (never a bootstrap artifact -- see
+    AssistedTask.BOOTSTRAP_MODEL_OPERATIONS). Same authoritative-gate-first
+    ordering as start_assisted_create: entitlement, then the
+    Reconcile-specific "something must already exist to reconcile against"
+    precondition, then the shared reclaim-then-lock-then-create step.
+    """
+
+    if not user_can_run_assisted(user):
+        raise AssistedEntitlementDenied(
+            "Assisted Reconcile is available on the Collaborator plan."
+        )
+
+    if not _model_has_structure(model):
+        raise EmptyModelNotReconcilable(
+            "This model has no structure yet to reconcile against. Use Create to build an initial model first."
+        )
+
+    _reclaim_stale(model.pk)
+
+    return _create_task(
+        workspace=workspace,
+        model_id=model.pk,
+        user=user,
+        operation=AssistedTask.Operation.RECONCILE,
+        intent_text=intent_text,
+        files=files,
+    )

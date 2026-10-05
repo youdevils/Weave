@@ -39,10 +39,19 @@ npm test
 ## Architecture
 
 Django 5.2 + DRF + Celery monolith, apps listed in `onyxjar/settings.py` `INSTALLED_APPS`:
-`account`, `model`, `ai`, `api`, `ingestion`, `publication`, `viewer`, `website`, `workspace`.
-`ai` and `api` are currently empty scaffolds (stub `views.py`, no real code yet) — `api`'s URLs
-aren't even wired into `onyxjar/urls.py`. Routing note: `publication` and `ingestion` are both
-mounted under the `/model/` prefix alongside `model` itself.
+`account`, `model`, `ai`, `assisted`, `api`, `ingestion`, `publication`, `viewer`, `website`,
+`workspace`. `api` is currently an empty scaffold (stub `views.py`, no real code yet) — its URLs
+aren't even wired into `onyxjar/urls.py`. `ai` is **not** a scaffold: it's a fully-built,
+operation-agnostic AI orchestration substrate (`ai/services/orchestrator.py::run_ai_operation`,
+a `ChangePlan`/`AIStructuredResult` schema, bounded refinement/context-expansion, the Proposal
+compiler) that any Assisted operation plugs into via one `OperationDefinition`
+(`ai/services/operations.py`), registered in `ai/services/operation_definitions.py`. `assisted`
+is the user-facing wrapper around it — `AssistedTask`/`AssistedTaskEvidence`, per-operation
+lifecycle/outcome-policy services, and the Assisted Work UI (landing/entry/task-detail pages).
+As of this writing, CREATE and RECONCILE are real; CHANGE and ASSESS are registered as
+`AssistedTask.Operation` choices but still stubbed at the view layer
+(`assisted/views.py::change_entry`/`assess_entry`). Routing note: `publication` and `ingestion`
+are both mounted under the `/model/` prefix alongside `model` itself.
 
 ### Canonical data model
 

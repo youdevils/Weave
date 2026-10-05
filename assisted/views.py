@@ -2,23 +2,37 @@
 Views only translate HTTP <-> the Assisted Work services/templates; the real
 logic lives in assisted/services/.
 
-Reconcile, Change and Assess are all "entry UI, stubbed submission" in this
-build: none of them call into assisted.services.lifecycle, none of them
-create an AssistedTask or AssistedTaskEvidence row. Only CREATE (started from
-workspace/views/views.py::model_assisted_create_setup) is wired to real
-execution today.
+Change and Assess remain "entry UI, stubbed submission": neither calls into
+assisted.services.lifecycle, neither creates an AssistedTask or
+AssistedTaskEvidence row. CREATE (started from
+workspace/views/views.py::model_assisted_create_setup) and RECONCILE
+(reconcile_entry below) are wired to real execution.
 """
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_GET
 
 from account.services.entitlement import user_can_run_assisted
+from ai.services.intent import InvalidIntent
+
 from assisted.access import get_assisted_workable_model
 from assisted.models import AssistedTask
 from assisted.services.activity import recent_tasks_for_model
+from assisted.services.evidence import AssistedEvidenceInvalid
+from assisted.services.lifecycle import (
+    AssistedEntitlementDenied,
+    AssistedTaskActive,
+    BootstrapModelGone,
+    EmptyModelNotReconcilable,
+    EvidenceRequired,
+    start_assisted_reconcile,
+)
+from assisted.uploads import LimitedUploadHandler
 from model.views.common_context import get_model_context
 
 NOT_AVAILABLE_MESSAGE = "{operation} isn't available yet in this build."
@@ -43,8 +57,26 @@ def _stub_submit(request, model, *, operation_label, redirect_model_id):
     return redirect("assisted:landing", model_id=redirect_model_id)
 
 
-@login_required
+@csrf_exempt
 def reconcile_entry(request, model_id):
+    """
+    The handler that enforces the per-file size limit has to be installed
+    before anything reads the request body, and Django's CSRF middleware
+    would do exactly that, so this thin outer view exempts itself, installs
+    the handler and hands over to a csrf-protected view -- the same split
+    workspace.views.views.model_assisted_create_setup (and, before it,
+    ingestion.views.import_upload) already uses.
+    """
+
+    handler = LimitedUploadHandler(request, max_bytes=settings.ASSISTED_MAX_EVIDENCE_FILE_BYTES)
+    request.upload_handlers = [handler]
+
+    return _reconcile_entry(request, model_id, handler=handler)
+
+
+@csrf_protect
+@login_required
+def _reconcile_entry(request, model_id, handler):
     model = get_assisted_workable_model(request, model_id)
 
     if request.method == "POST":
@@ -55,7 +87,39 @@ def reconcile_entry(request, model_id):
             context["error"] = "Describe what this information should update before starting."
             return render(request, "assisted/reconcile.html", context)
 
-        return _stub_submit(request, model, operation_label="Reconciliation", redirect_model_id=model.id)
+        files = request.FILES.getlist("evidence")
+
+        if handler.too_large:
+            messages.error(request, "One of the attached files is too large.")
+            return render(request, "assisted/reconcile.html", get_model_context(request, model.id))
+
+        if len(files) > settings.ASSISTED_MAX_EVIDENCE_FILES:
+            messages.error(request, f"Attach at most {settings.ASSISTED_MAX_EVIDENCE_FILES} files.")
+            return render(request, "assisted/reconcile.html", get_model_context(request, model.id))
+
+        try:
+            task = start_assisted_reconcile(
+                workspace=model.workspace,
+                model=model,
+                user=request.user,
+                intent_text=intent,
+                files=files,
+            )
+        except (AssistedTaskActive, AssistedEntitlementDenied, EmptyModelNotReconcilable, BootstrapModelGone) as exc:
+            messages.error(request, str(exc))
+            return redirect("assisted:landing", model_id=model.id)
+        except (EvidenceRequired, InvalidIntent, AssistedEvidenceInvalid) as exc:
+            context = get_model_context(request, model.id)
+            context["error"] = str(exc)
+            return render(request, "assisted/reconcile.html", context)
+
+        messages.success(request, "Reconciliation started. We'll let you know when it's ready for review.")
+        # Not assisted:task_detail -- that view 404s while a task is still
+        # ACTIVE (QUEUED/RUNNING/READY_FOR_REVIEW), by design (an in-flight
+        # job's internals are never inspectable, see assisted.views.task_detail).
+        # The landing page's "Current work" card is the right place to land
+        # right after submission, same as Create's redirect to workspace:index.
+        return redirect("assisted:landing", model_id=model.id)
 
     context = get_model_context(request, model.id)
     return render(request, "assisted/reconcile.html", context)

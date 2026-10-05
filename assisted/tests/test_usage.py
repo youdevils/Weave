@@ -42,7 +42,7 @@ class TokensUsedDenormalizationTests(AssistedUsageTestCase):
     def test_tokens_used_is_recorded_on_a_successful_run(self):
         task = self.make_task()
 
-        execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.id)]))
+        execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.key)]))
 
         task.refresh_from_db()
         self.assertEqual(task.status, AssistedTask.Status.READY_FOR_REVIEW)

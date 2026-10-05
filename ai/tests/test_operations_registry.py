@@ -56,11 +56,12 @@ class OperationRegistryTests(SimpleTestCase):
         with self.assertRaises(DuplicateOperation):
             register_operation(_definition("synthetic_a"))
 
-    def test_only_create_is_registered_so_far(self):
+    def test_create_and_reconcile_are_registered_change_and_assess_are_not(self):
         # Registered by ai.services.operation_definitions.register_all(),
         # called from AiConfig.ready().
         self.assertEqual(get_operation("create").operation_id, "create")
+        self.assertEqual(get_operation("reconcile").operation_id, "reconcile")
 
-        for operation_id in ("reconcile", "change", "assess"):
+        for operation_id in ("change", "assess"):
             with self.assertRaises(UnknownOperation):
                 get_operation(operation_id)

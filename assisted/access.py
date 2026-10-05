@@ -23,11 +23,14 @@ should never be shown a live "Start reconciliation" button that would then
 Also checked here: the acting user's Assisted entitlement
 (account.services.entitlement.user_can_run_assisted), so Reconcile/Change/
 Assess's entry forms are gated the same way Create's already is at
-assisted.services.lifecycle.start_assisted_create. Reconcile/Change/Assess
-have no real execution yet (assisted.views._stub_submit) -- when they do,
-their execution service must call user_can_run_assisted at its own
-authoritative pre-execution point exactly like lifecycle.py does, not
-invent a second check.
+assisted.services.lifecycle.start_assisted_create. This is a UI-layer
+fail-fast, not the authoritative gate -- Reconcile's own
+start_assisted_reconcile (and Create's start_assisted_create) each call
+user_can_run_assisted again at their own authoritative pre-execution point,
+exactly like each other, so a non-Collaborator user can't reach real
+execution by calling the backend directly. Change/Assess have no real
+execution yet (assisted.views._stub_submit) -- when they do, follow the
+same pattern.
 """
 
 from django.core.exceptions import PermissionDenied

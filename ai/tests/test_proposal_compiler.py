@@ -30,7 +30,7 @@ class CompileChangePlanTests(AIServiceTestCase):
     def setUp(self):
         self.model = self.make_model()
         self.object_type = self.make_object_type(self.model, key="widget")
-        self.object = self.make_object(self.model, self.object_type, name="Widget 1")
+        self.object = self.make_object(self.model, self.object_type, name="Widget 1", key="widget_1")
         self.proposal = ProposalService.create_working(
             self.model, self.user, source=Proposal.Source.AI
         )
@@ -42,7 +42,7 @@ class CompileChangePlanTests(AIServiceTestCase):
                     operation="create",
                     target_type="Object",
                     target_ref=_new("tmp:1"),
-                    parent_ref=_existing(self.object_type.id),
+                    parent_ref=_existing(self.object_type.key),
                     fields={"name": "New widget", "description": "", "is_active": True},
                 )
             ]
@@ -116,7 +116,7 @@ class CompileChangePlanTests(AIServiceTestCase):
                     operation="create",
                     target_type="Object",
                     target_ref=_new("tmp:1"),
-                    parent_ref=_existing(self.object_type.id),
+                    parent_ref=_existing(self.object_type.key),
                     fields={"name": "New widget", "attributes.cost": 42.5},
                 )
             ]
@@ -135,7 +135,7 @@ class CompileChangePlanTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="Object",
-                    target_ref=_existing(self.object.id),
+                    target_ref=_existing(f"widget:{self.object.key}"),
                     fields={"name": "Renamed", "description": "New description"},
                 )
             ]
@@ -153,7 +153,7 @@ class CompileChangePlanTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="Object",
-                    target_ref=_existing(self.object.id),
+                    target_ref=_existing(f"widget:{self.object.key}"),
                     fields={"name": "Renamed"},
                 )
             ]
@@ -171,16 +171,16 @@ class CompileChangePlanTests(AIServiceTestCase):
                     operation="create",
                     target_type="Object",
                     target_ref=_new("tmp:new_obj"),
-                    parent_ref=_existing(self.object_type.id),
+                    parent_ref=_existing(self.object_type.key),
                     fields={"name": "New widget"},
                 ),
                 ChangeAction(
                     operation="create",
                     target_type="Relationship",
                     target_ref=_new("tmp:rel"),
-                    parent_ref=_existing(relationship_type.id),
+                    parent_ref=_existing(relationship_type.key),
                     fields={
-                        "subject_id": _existing(self.object.id).model_dump(),
+                        "subject_id": _existing(f"widget:{self.object.key}").model_dump(),
                         "object_id": _new("tmp:new_obj").model_dump(),
                     },
                 ),
@@ -200,7 +200,7 @@ class CompileChangePlanTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="Object",
-                    target_ref=_existing(self.object.id),
+                    target_ref=_existing(f"widget:{self.object.key}"),
                     fields={"name": "Renamed"},
                     rationale="The intent asked for a rename.",
                 )
@@ -220,7 +220,7 @@ class CompileChangePlanTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="Object",
-                    target_ref=_existing(self.object.id),
+                    target_ref=_existing(f"widget:{self.object.key}"),
                     fields={"name": "Renamed"},
                     rationale="Why I did this.",
                     evidence=[EvidenceItem(source="doc.pdf", locator="p.3", note="Source context.")],
@@ -238,7 +238,7 @@ class CompileChangePlanTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="Object",
-                    target_ref=_existing(self.object.id),
+                    target_ref=_existing(f"widget:{self.object.key}"),
                     fields={"name": "Renamed"},
                 )
             ]
@@ -248,6 +248,34 @@ class CompileChangePlanTests(AIServiceTestCase):
 
         self.proposal.refresh_from_db()
         self.assertEqual(self.proposal.status, Proposal.Status.WORKING)
+
+    def test_existing_attribute_definition_is_resolved_by_its_composite_definition_ref(self):
+        """
+        End-to-end proof that the "attribute_definition" domain (a
+        previously-"unverifiable" Phase 1 boundary, now a real, checked
+        domain) resolves an UPDATE targeting an *existing* AttributeDefinition
+        by its "{ObjectType|RelationshipType}:{parent_key}:{key}" composite
+        ref, exactly as ai.services.ontology_context renders it.
+        """
+        attribute_definition = self.make_attribute_definition(
+            object_type=self.object_type, key="capacity", name="Capacity", data_type="number"
+        )
+        plan = ChangePlan(
+            actions=[
+                ChangeAction(
+                    operation="update",
+                    target_type="AttributeDefinition",
+                    target_ref=_existing(f"ObjectType:{self.object_type.key}:capacity"),
+                    fields={"name": "Max Capacity"},
+                )
+            ]
+        )
+
+        created = compile_change_plan(model=self.model, user=self.user, change_plan=plan, proposal=self.proposal)
+
+        self.assertEqual(len(created), 1)
+        self.assertEqual(str(created[0].target_id), str(attribute_definition.id))
+        self.assertEqual(created[0].after, {"field": "name", "value": "Max Capacity"})
 
 
 class KeyFallbackCompileTests(AIServiceTestCase):
@@ -362,7 +390,7 @@ class KeyFallbackCompileTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="ObjectType",
-                    target_ref=_existing(object_type.id),
+                    target_ref=_existing(object_type.key),
                     fields={"key": "renamed"},
                 )
             ]
@@ -384,7 +412,7 @@ class KeyFallbackCompileTests(AIServiceTestCase):
                     operation="create",
                     target_type="RelationshipTypeRule",
                     target_ref=_new("tmp:1"),
-                    parent_ref=_existing(relationship_type.id),
+                    parent_ref=_existing(relationship_type.key),
                     fields={
                         "subject_type_id": str(object_type.id),
                         "object_type_id": str(object_type.id),
@@ -407,7 +435,7 @@ class KeyFallbackCompileTests(AIServiceTestCase):
                     operation="create",
                     target_type="Object",
                     target_ref=_new("tmp:1"),
-                    parent_ref=_existing(object_type.id),
+                    parent_ref=_existing(object_type.key),
                     fields={"name": "Widget 1"},
                 )
             ]
@@ -507,10 +535,10 @@ class InvalidFieldCompileTests(AIServiceTestCase):
                     operation="create",
                     target_type="RelationshipTypeRule",
                     target_ref=_new("tmp:rule"),
-                    parent_ref=_existing(relationship_type.id),
+                    parent_ref=_existing(relationship_type.key),
                     fields={
-                        "subject_type_id": _existing(subject_type.id).model_dump(),
-                        "object_type_id": _existing(object_type.id).model_dump(),
+                        "subject_type_id": _existing(subject_type.key).model_dump(),
+                        "object_type_id": _existing(object_type.key).model_dump(),
                         "subject_minimum": 0,
                         "subject_maximum": 1,
                         "object_minimum": 0,
@@ -545,10 +573,10 @@ class InvalidFieldCompileTests(AIServiceTestCase):
                             operation="create",
                             target_type="RelationshipTypeRule",
                             target_ref=_new(f"tmp:rule-{value}"),
-                            parent_ref=_existing(relationship_type.id),
+                            parent_ref=_existing(relationship_type.key),
                             fields={
-                                "subject_type_id": _existing(subject_type.id).model_dump(),
-                                "object_type_id": _existing(object_type.id).model_dump(),
+                                "subject_type_id": _existing(subject_type.key).model_dump(),
+                                "object_type_id": _existing(object_type.key).model_dump(),
                                 "subject_minimum": value,
                                 "subject_maximum": value,
                                 "object_minimum": value,
@@ -581,10 +609,10 @@ class InvalidFieldCompileTests(AIServiceTestCase):
                     operation="create",
                     target_type="RelationshipTypeRule",
                     target_ref=_new("tmp:rule"),
-                    parent_ref=_existing(relationship_type.id),
+                    parent_ref=_existing(relationship_type.key),
                     fields={
-                        "subject_type_ref": _existing(subject_type.id).model_dump(),
-                        "object_type_ref": _existing(object_type.id).model_dump(),
+                        "subject_type_ref": _existing(subject_type.key).model_dump(),
+                        "object_type_ref": _existing(object_type.key).model_dump(),
                         "subject_minimum": 0,
                         "subject_maximum": 1,
                         "object_minimum": 0,
@@ -639,7 +667,7 @@ class InvalidFieldCompileTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="ObjectType",
-                    target_ref=_existing(object_type.id),
+                    target_ref=_existing(object_type.key),
                     fields={"to": "x", "from": "y"},
                 )
             ]
@@ -657,7 +685,7 @@ class InvalidFieldCompileTests(AIServiceTestCase):
                 ChangeAction(
                     operation="update",
                     target_type="ObjectType",
-                    target_ref=_existing(object_type.id),
+                    target_ref=_existing(object_type.key),
                     fields={"name": "Renamed"},
                 )
             ]
@@ -675,7 +703,7 @@ class InvalidFieldCompileTests(AIServiceTestCase):
                     operation="create",
                     target_type="Object",
                     target_ref=_new("tmp:1"),
-                    parent_ref=_existing(object_type.id),
+                    parent_ref=_existing(object_type.key),
                     fields={"name": "Widget 1", "attributes.cost": 42.5},
                 )
             ]
@@ -701,7 +729,7 @@ class CompileAndValidateTests(AIServiceTestCase):
                     operation="create",
                     target_type="Object",
                     target_ref=_new("tmp:1"),
-                    parent_ref=_existing(self.object_type.id),
+                    parent_ref=_existing(self.object_type.key),
                     fields={"name": "New widget"},
                 )
             ],
@@ -719,7 +747,7 @@ class CompileAndValidateTests(AIServiceTestCase):
                     operation="create",
                     target_type="Object",
                     target_ref=_new("tmp:1"),
-                    parent_ref=_existing(self.object_type.id),
+                    parent_ref=_existing(self.object_type.key),
                     fields={"name": ""},
                 )
             ],

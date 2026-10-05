@@ -4,8 +4,12 @@ from assisted.services import execution
 
 
 @shared_task
-def run_assisted_create(assisted_task_id):
+def run_assisted_operation(assisted_task_id):
     """
+    Shared by every Assisted operation (Create, Reconcile, and future
+    Change/Assess) -- execution.run_and_finish reads task.operation itself,
+    so there is nothing operation-specific about this task.
+
     Not acks_late/autoretry_for -- redelivery-safety comes from
     execution.claim()'s re-check-under-lock, the same convention
     model.tasks.proposal_tasks already uses (no retry decorators anywhere in

@@ -58,6 +58,11 @@ def run_ai_operation(
     provider = provider or OpenAIProvider()
     operation = get_operation(operation_id)
     intent = validate_intent(intent_text)
+    max_refinement_cycles = (
+        operation.max_refinement_cycles
+        if operation.max_refinement_cycles is not None
+        else settings.AI_MAX_REFINEMENT_CYCLES
+    )
 
     if operation.can_produce_proposal:
         # Fail-fast optimisation only; ProposalService.create_working inside
@@ -154,7 +159,7 @@ def run_ai_operation(
                 ]
                 refinement_cycle += 1
                 AIExecutionService.increment_refinement_cycle(execution)
-                if refinement_cycle >= settings.AI_MAX_REFINEMENT_CYCLES:
+                if refinement_cycle >= max_refinement_cycles:
                     break
                 continue
 
@@ -166,7 +171,7 @@ def run_ai_operation(
                     previous_issues = structured.unresolved_issues
                     refinement_cycle += 1
                     AIExecutionService.increment_refinement_cycle(execution)
-                    if refinement_cycle >= settings.AI_MAX_REFINEMENT_CYCLES:
+                    if refinement_cycle >= max_refinement_cycles:
                         break
                     continue
 
@@ -182,9 +187,19 @@ def run_ai_operation(
                 previous_issues = plan_issues
                 refinement_cycle += 1
                 AIExecutionService.increment_refinement_cycle(execution)
-                if refinement_cycle >= settings.AI_MAX_REFINEMENT_CYCLES:
+                if refinement_cycle >= max_refinement_cycles:
                     break
                 continue
+
+            if operation.plan_sufficiency_check is not None:
+                sufficiency_issues = operation.plan_sufficiency_check(structured.change_plan)
+                if sufficiency_issues:
+                    previous_issues = sufficiency_issues
+                    refinement_cycle += 1
+                    AIExecutionService.increment_refinement_cycle(execution)
+                    if refinement_cycle >= max_refinement_cycles:
+                        break
+                    continue
 
             if not operation.can_produce_proposal:
                 previous_issues = [
@@ -213,7 +228,7 @@ def run_ai_operation(
             previous_issues = result.issues
             refinement_cycle += 1
             AIExecutionService.increment_refinement_cycle(execution)
-            if refinement_cycle >= settings.AI_MAX_REFINEMENT_CYCLES:
+            if refinement_cycle >= max_refinement_cycles:
                 break
 
         explanation = ""
@@ -254,16 +269,27 @@ def _system_prompt(operation, context) -> str:
         f"You are assisting with the OnyxJar AI operation '{operation.operation_id}' "
         f"({operation.description}). Respond only with the requested structured "
         "schema. Only reference entities that appear in the supplied context, or "
-        "name them via context_requests; never invent ids. "
+        "name them via context_requests; never invent one. "
         "Every entity reference (a ChangeAction's target_ref/parent_ref, or a "
         "field like subject_type_ref/object_type_ref/subject_ref/object_ref) is "
         "an EntityRef, never a bare string or number: use "
-        "{\"kind\": \"existing\", \"id\": \"<real id from context>\"} for an entity "
-        "that already exists, or {\"kind\": \"new\", \"id\": \"<a token you choose>\"} "
-        "for one you are creating in this same Change Plan -- OnyxJar, not you, "
-        "mints its real id. A \"new\" token may be referenced by any later action "
-        "in the same plan (e.g. an Object's parent_ref, or a RelationshipTypeRule's "
+        "{\"kind\": \"new\", \"id\": \"<a token you choose>\"} for an entity you are "
+        "creating in this same Change Plan -- OnyxJar, not you, mints its real "
+        "database id. A \"new\" token may be referenced by any later action in the "
+        "same plan (e.g. an Object's parent_ref, or a RelationshipTypeRule's "
         "subject_type_ref/object_type_ref) to build on an entity you just created. "
+        "For an entity that already exists, use {\"kind\": \"existing\", \"id\": "
+        "\"<exact key or ref from context>\"}. `id` here is never a database id -- "
+        "it is the exact `key` (for an ObjectType/RelationshipType, e.g. \"venue\") "
+        "or the exact `ref`/`definitionRef` composite string OnyxJar shows you in "
+        "context for that entity (for example \"venue:eden_park\" for an Object, or "
+        "\"has_stage:tournament:stage\" for a RelationshipTypeRule). Copy it "
+        "verbatim, character for character -- never invent one, never shorten or "
+        "reformat it, and never assemble one yourself by concatenating pieces you "
+        "saw separately (e.g. a type's key plus an instance's key) -- always use "
+        "the single precomposed string OnyxJar already gave you. The one "
+        "exception: an existing Relationship is referenced by the real id OnyxJar "
+        "shows for it, because a Relationship has no key of its own. "
         "When creating a new ObjectType, RelationshipType, AttributeDefinition or "
         "Object, never supply its `key` -- OnyxJar always assigns one from the name "
         "itself, and any key you do supply is ignored. A RelationshipType itself has no subject/object fields: to "
@@ -278,4 +304,6 @@ def _system_prompt(operation, context) -> str:
             "Objects, or Relationships at all -- you are defining its initial "
             "ontology from scratch, entirely via \"new\" EntityRef tokens."
         )
+    if operation.prompt_fragment:
+        prompt += " " + operation.prompt_fragment
     return prompt

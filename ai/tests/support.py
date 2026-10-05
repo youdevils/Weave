@@ -20,6 +20,9 @@ from ai.services.provider import AIProvider, ProviderResult
 def fake_operation(
     operation_id="test_op",
     can_produce_proposal=True,
+    plan_sufficiency_check=None,
+    prompt_fragment="",
+    max_refinement_cycles=None,
 ) -> OperationDefinition:
     return OperationDefinition(
         operation_id=operation_id,
@@ -30,6 +33,9 @@ def fake_operation(
         required_context_categories=frozenset(),
         input_schema=ChangePlan,
         output_schema=ChangePlan,
+        plan_sufficiency_check=plan_sufficiency_check,
+        prompt_fragment=prompt_fragment,
+        max_refinement_cycles=max_refinement_cycles,
     )
 
 

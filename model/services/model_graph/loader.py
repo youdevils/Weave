@@ -46,11 +46,13 @@ from model.views.data_context import (
 from .dataset import (
     AttributeSpec,
     CardinalityRule,
+    EffectiveAttributeDefinition,
     EffectiveDataset,
     EffectiveObject,
     EffectiveObjectType,
     EffectiveRelationship,
     EffectiveRelationshipType,
+    EffectiveRelationshipTypeRule,
 )
 
 Operation = ProposalChange.Operation
@@ -104,6 +106,30 @@ def _attribute_specs(definitions) -> tuple[AttributeSpec, ...]:
     return tuple(specs)
 
 
+def _attribute_definition_entries(definitions, *, parent_type: str, parent_id: str) -> list:
+    """
+    AI-facing addressability for an AttributeDefinition -- reuses exactly the
+    same `definitions` list _attribute_specs() above already consumes, just
+    keeping fields that one discards (id, parent linkage). No new query.
+    """
+
+    entries = []
+    for definition in definitions:
+        if not getattr(definition, "is_active", True):
+            continue
+        entries.append(
+            EffectiveAttributeDefinition(
+                id=str(definition.id),
+                key=definition.key,
+                name=definition.name or definition.key,
+                data_type=str(definition.data_type),
+                parent_type=parent_type,
+                parent_id=parent_id,
+            )
+        )
+    return entries
+
+
 def _load_types(model, proposal, keep_inactive_types=False):
     working_object_types = _build_working_object_types(
         ObjectType.objects.filter(model=model).order_by("sort_order", "name"),
@@ -116,49 +142,84 @@ def _load_types(model, proposal, keep_inactive_types=False):
         lookup,
     )
 
-    object_types = [
-        EffectiveObjectType(
-            id=str(t.id),
-            key=t.key,
-            name=t.name,
-            is_proposed=bool(t.is_proposed),
-            attributes=_attribute_specs(build_object_attribute_definitions(t, proposal)),
+    object_types = []
+    attribute_definitions = []
+    for t in working_object_types:
+        if not (t.is_active or keep_inactive_types):
+            continue
+        definitions = build_object_attribute_definitions(t, proposal)
+        object_types.append(
+            EffectiveObjectType(
+                id=str(t.id),
+                key=t.key,
+                name=t.name,
+                is_proposed=bool(t.is_proposed),
+                attributes=_attribute_specs(definitions),
+            )
         )
-        for t in working_object_types
-        if t.is_active or keep_inactive_types
-    ]
+        attribute_definitions += _attribute_definition_entries(
+            definitions, parent_type="ObjectType", parent_id=str(t.id)
+        )
+
     known_object_type_ids = {t.id for t in object_types}
     inactive = {str(t.id) for t in working_object_types if not t.is_active} if keep_inactive_types else set()
 
-    relationship_types = [
-        EffectiveRelationshipType(
-            id=str(t.id),
-            key=t.key,
-            name=t.name,
-            is_proposed=bool(t.is_proposed),
-            attributes=_attribute_specs(build_relationship_attribute_definitions(t, proposal)),
-            rules=tuple(
-                CardinalityRule(
-                    subject_type_id=str(rule.subject_type_id),
-                    object_type_id=str(rule.object_type_id),
-                    subject_minimum=rule.subject_minimum,
-                    subject_maximum=rule.subject_maximum,
-                    object_minimum=rule.object_minimum,
-                    object_maximum=rule.object_maximum,
-                )
-                for rule in t.rules
-                if not getattr(rule, "is_deleted", False)
-            ),
+    relationship_types = []
+    relationship_type_rules = []
+    for t in working_relationship_types:
+        if not (t.is_active or keep_inactive_types):
+            continue
+        definitions = build_relationship_attribute_definitions(t, proposal)
+        active_rules = [rule for rule in t.rules if not getattr(rule, "is_deleted", False)]
+        relationship_types.append(
+            EffectiveRelationshipType(
+                id=str(t.id),
+                key=t.key,
+                name=t.name,
+                is_proposed=bool(t.is_proposed),
+                attributes=_attribute_specs(definitions),
+                rules=tuple(
+                    CardinalityRule(
+                        subject_type_id=str(rule.subject_type_id),
+                        object_type_id=str(rule.object_type_id),
+                        subject_minimum=rule.subject_minimum,
+                        subject_maximum=rule.subject_maximum,
+                        object_minimum=rule.object_minimum,
+                        object_maximum=rule.object_maximum,
+                    )
+                    for rule in active_rules
+                ),
+            )
         )
-        for t in working_relationship_types
-        if t.is_active or keep_inactive_types
-    ]
+        attribute_definitions += _attribute_definition_entries(
+            definitions, parent_type="RelationshipType", parent_id=str(t.id)
+        )
+        relationship_type_rules += [
+            EffectiveRelationshipTypeRule(
+                id=str(rule.id),
+                relationship_type_id=str(t.id),
+                subject_type_id=str(rule.subject_type_id),
+                object_type_id=str(rule.object_type_id),
+                subject_minimum=rule.subject_minimum,
+                subject_maximum=rule.subject_maximum,
+                object_minimum=rule.object_minimum,
+                object_maximum=rule.object_maximum,
+            )
+            for rule in active_rules
+        ]
 
     if keep_inactive_types:
         inactive |= {str(t.id) for t in working_relationship_types if not t.is_active}
 
     # ``inactive``: the ids of the inactive types kept only if they turn out to hold active records.
-    return object_types, relationship_types, known_object_type_ids, inactive
+    return (
+        object_types,
+        relationship_types,
+        known_object_type_ids,
+        inactive,
+        attribute_definitions,
+        relationship_type_rules,
+    )
 
 
 def _load_objects(model, changes, known_object_type_ids):
@@ -302,9 +363,14 @@ def load_effective_dataset(model, proposal=None, *, keep_inactive_types=False) -
     (there is nothing to describe or publish), while an active type is always
     kept, even when it has none.
     """
-    object_types, relationship_types, known_object_type_ids, inactive = _load_types(
-        model, proposal, keep_inactive_types
-    )
+    (
+        object_types,
+        relationship_types,
+        known_object_type_ids,
+        inactive,
+        attribute_definitions,
+        relationship_type_rules,
+    ) = _load_types(model, proposal, keep_inactive_types)
     changes = _ChangeIndex(proposal)
 
     dataset = EffectiveDataset(
@@ -312,6 +378,8 @@ def load_effective_dataset(model, proposal=None, *, keep_inactive_types=False) -
         relationship_types=relationship_types,
         objects=_load_objects(model, changes, known_object_type_ids),
         relationships=_load_relationships(model, changes),
+        attribute_definitions=attribute_definitions,
+        relationship_type_rules=relationship_type_rules,
     )
     if not inactive:
         return dataset
@@ -326,4 +394,6 @@ def load_effective_dataset(model, proposal=None, *, keep_inactive_types=False) -
         relationship_types=[t for t in dataset.relationship_types.values() if t.id not in unused],
         objects=list(dataset.objects.values()),
         relationships=list(dataset.relationships.values()),
+        attribute_definitions=list(dataset.attribute_definitions.values()),
+        relationship_type_rules=list(dataset.relationship_type_rules.values()),
     )

@@ -63,7 +63,7 @@ def resolve_context_requests(requests: list[ContextRequest], *, dataset) -> Expa
             )
             continue
 
-        obj = dataset.object(ref.id)
+        obj = dataset.object_by_key(ref.id)
         if obj is not None:
             seeds.add(obj.id)
             continue
@@ -79,7 +79,7 @@ def resolve_context_requests(requests: list[ContextRequest], *, dataset) -> Expa
         unresolved.append(
             UnresolvedIssue(
                 code="unresolvable_context_reference",
-                message=f"No Object or Relationship with id '{ref.id}' exists.",
+                message=f"No Object (by key) or Relationship (by id) matches '{ref.id}'.",
                 target_ref=ref,
             )
         )

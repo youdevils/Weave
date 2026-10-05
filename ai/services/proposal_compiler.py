@@ -25,13 +25,21 @@ from model.models.model import Model
 from model.models.proposal import Proposal, ProposalChange
 from model.services import entity_fields, keys
 from model.services.field_paths import ATTRIBUTE_FIELD_PREFIX
+from model.services.model_graph.loader import load_effective_dataset
 from model.services.proposal.evidence import EvidenceService
 from model.services.proposal.proposal import ProposalService
 from model.services.proposal.review import ProposalReviewService
 from model.services.proposal.validation_runner import apply_and_validate
 from model.services.validation.result import ValidationIssue
 
-from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef
+from ai.services.change_plan import (
+    ChangeAction,
+    ChangePlan,
+    EntityRef,
+    field_ref_domain,
+    parent_domain,
+    target_domain,
+)
 
 _IMPLIED_PARENT_TYPE = {
     "Object": "ObjectType",
@@ -134,23 +142,66 @@ def _assign_key(model, proposal, action: ChangeAction, parent_type, parent_id, a
     also_used.add(generated)
 
 
+_KEY_LOOKUP = {
+    "object_type": lambda dataset, key: dataset.object_type_by_key(key),
+    "relationship_type": lambda dataset, key: dataset.relationship_type_by_key(key),
+    "object": lambda dataset, key: dataset.object_by_key(key),
+    "attribute_definition": lambda dataset, key: dataset.attribute_definition_by_key(key),
+    "relationship_type_rule": lambda dataset, key: dataset.relationship_type_rule_by_key(key),
+}
+
+
+class UnresolvableKeyError(ChangePlanCompilationError):
+    """
+    An "existing"-kind EntityRef's key/key-path doesn't resolve against the
+    canonical dataset. validate_change_plan's own rule 4 already guarantees
+    this never fires in practice (it checks every existing-ref against the
+    same dataset shape moments earlier, in the same request) -- this is a
+    defensive backstop against the narrow window between that check and
+    this compile attempt, not the primary gate.
+    """
+
+    def __init__(self, *, domain: str, key: str):
+        super().__init__(f"No {domain} with key '{key}' exists.")
+        self.domain = domain
+        self.key = key
+
+    def issue(self) -> ValidationIssue:
+        return ValidationIssue(code="unresolvable_existing_reference", message=str(self))
+
+
 class TempRefResolver:
     """
-    Mints exactly one real uuid.uuid4() per distinct "new" temp token,
-    memoised so every reference to that token across the whole Change Plan
-    resolves to the same id. The AI never sees or chooses a real id for a
-    new entity -- only OnyxJar, here, does.
+    Resolves every EntityRef to a real uuid.UUID: for "new" tokens, mints
+    exactly one uuid.uuid4() per distinct token, memoised so every
+    reference to that token across the whole Change Plan resolves to the
+    same id (the AI never sees or chooses a real id for a new entity --
+    only OnyxJar, here, does -- and this minting is domain-agnostic, since
+    a "new" token's string is opaque and never parsed). For "existing"
+    refs, looks the key/key-path up against `dataset` for every domain
+    except "relationship" (Relationship has no key or natural uniqueness
+    constraint that could back a safe synthetic one, so it is addressed by
+    its real id directly, unchanged from before this module supported keys
+    at all).
     """
 
-    def __init__(self):
+    def __init__(self, dataset):
+        self._dataset = dataset
         self._minted: dict[str, uuid.UUID] = {}
 
-    def resolve(self, ref: EntityRef) -> uuid.UUID:
-        if ref.kind == "existing":
+    def resolve(self, ref: EntityRef, *, domain: str) -> uuid.UUID:
+        if ref.kind == "new":
+            if ref.id not in self._minted:
+                self._minted[ref.id] = uuid.uuid4()
+            return self._minted[ref.id]
+
+        if domain == "relationship":
             return uuid.UUID(str(ref.id))
-        if ref.id not in self._minted:
-            self._minted[ref.id] = uuid.uuid4()
-        return self._minted[ref.id]
+
+        entity = _KEY_LOOKUP[domain](self._dataset, ref.id)
+        if entity is None:
+            raise UnresolvableKeyError(domain=domain, key=ref.id)
+        return uuid.UUID(str(entity.id))
 
 
 def _parent_type_for(action: ChangeAction) -> str:
@@ -163,7 +214,7 @@ def _parent_type_for(action: ChangeAction) -> str:
     return _IMPLIED_PARENT_TYPE.get(action.target_type, "")
 
 
-def _resolve_field_value(value, resolver: TempRefResolver):
+def _resolve_field_value(value, resolver: TempRefResolver, *, domain: str):
     """
     `value` is already a native Python value (FieldValue.native()) -- an
     EntityRef instance for a relationship endpoint/parent reference, or a
@@ -171,7 +222,7 @@ def _resolve_field_value(value, resolver: TempRefResolver):
     itself is what now distinguishes an entity reference from a scalar.
     """
     if isinstance(value, EntityRef):
-        return str(resolver.resolve(value))
+        return str(resolver.resolve(value, domain=domain))
     return value
 
 
@@ -198,25 +249,27 @@ def compile_change_plan(*, model, user, change_plan: ChangePlan, proposal) -> li
     ProposalService.submit() -- the proposal stays WORKING.
     """
 
-    resolver = TempRefResolver()
+    dataset = load_effective_dataset(model, proposal=None)
+    resolver = TempRefResolver(dataset)
     specs: list[dict] = []
     action_ranges: list[tuple[ChangeAction, int, int]] = []
     claimed_keys: dict[tuple, set] = {}  # (target_type, parent_type, parent_id) -> keys claimed so far
 
     for action in change_plan.actions:
-        target_id = resolver.resolve(action.target_ref)
+        target_id = resolver.resolve(action.target_ref, domain=target_domain(action.target_type))
         parent_type = _parent_type_for(action)
         if action.parent_ref is not None:
-            parent_id = resolver.resolve(action.parent_ref)
+            parent_id = resolver.resolve(action.parent_ref, domain=parent_domain(action))
         elif parent_type == "Model":
             parent_id = model.id
         else:
             parent_id = None
         start = len(specs)
+        field_domain = field_ref_domain(action.target_type)
 
         if action.operation == "create":
             after = {
-                key: _resolve_field_value(value, resolver)
+                key: _resolve_field_value(value, resolver, domain=field_domain)
                 for key, value in action.fields_dict().items()
             }
             bad = entity_fields.illegal_fields(action.target_type, after.keys(), operation="create")
@@ -249,7 +302,7 @@ def compile_change_plan(*, model, user, change_plan: ChangePlan, proposal) -> li
 
             for entry in action.fields:
                 key = entry.key
-                resolved_value = _resolve_field_value(entry.value.native(), resolver)
+                resolved_value = _resolve_field_value(entry.value.native(), resolver, domain=field_domain)
                 specs.append(
                     {
                         "operation": ProposalChange.Operation.UPDATE,

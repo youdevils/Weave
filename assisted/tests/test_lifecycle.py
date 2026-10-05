@@ -14,7 +14,10 @@ from assisted.services.lifecycle import (
     AssistedEntitlementDenied,
     AssistedTaskActive,
     BootstrapModelGone,
+    EmptyModelNotReconcilable,
+    EvidenceRequired,
     start_assisted_create,
+    start_assisted_reconcile,
 )
 from assisted.tests.support import AssistedTestCase, build_minimal_pdf
 
@@ -211,6 +214,145 @@ class StartAssistedCreateTests(AssistedTestCase):
 
         recent.refresh_from_db()
         self.assertEqual(recent.status, AssistedTask.Status.QUEUED)
+
+
+class StartAssistedReconcileTests(AssistedTestCase):
+
+    def setUp(self):
+        self.model = self.make_model()
+        self.make_object_type(self.model)
+
+    def _file(self, name="notes.txt", content=b"hello evidence"):
+        return [SimpleUploadedFile(name, content)]
+
+    def test_creates_a_queued_task_and_dispatches_on_commit(self):
+        with self.captureOnCommitCallbacks(execute=False) as callbacks:
+            task = start_assisted_reconcile(
+                workspace=self.workspace,
+                model=self.model,
+                user=self.owner,
+                intent_text="Reconcile with the new documents.",
+                files=self._file(),
+            )
+
+        self.assertEqual(task.status, AssistedTask.Status.QUEUED)
+        self.assertEqual(task.operation, AssistedTask.Operation.RECONCILE)
+        self.assertEqual(task.model_id, self.model.id)
+        self.assertEqual(len(callbacks), 1)
+
+    def test_invalid_intent_rolls_back_the_whole_creation(self):
+        with self.assertRaises(InvalidIntent):
+            start_assisted_reconcile(
+                workspace=self.workspace, model=self.model, user=self.owner,
+                intent_text="   ", files=self._file(),
+            )
+
+        self.assertEqual(AssistedTask.objects.filter(model=self.model).count(), 0)
+
+    def test_no_evidence_is_rejected(self):
+        with self.assertRaises(EvidenceRequired):
+            start_assisted_reconcile(
+                workspace=self.workspace, model=self.model, user=self.owner,
+                intent_text="Reconcile.", files=[],
+            )
+
+        self.assertEqual(AssistedTask.objects.filter(model=self.model).count(), 0)
+
+    def test_an_empty_model_is_rejected_before_any_task_is_created(self):
+        empty_model = self.make_model(name="Empty Model")
+
+        with self.assertRaises(EmptyModelNotReconcilable):
+            start_assisted_reconcile(
+                workspace=self.workspace, model=empty_model, user=self.owner,
+                intent_text="Reconcile.", files=self._file(),
+            )
+
+        self.assertEqual(AssistedTask.objects.filter(model=empty_model).count(), 0)
+
+    def test_a_model_with_only_objects_no_object_types_counted_separately_is_still_empty(self):
+        # Defence against a trivial bypass: an object_types-only model with
+        # zero actual Objects/Relationships is still "nothing to reconcile
+        # against" by this check's own OR logic only if *every* category is
+        # empty -- this asserts the positive case: one ObjectType is already
+        # enough structure to proceed.
+        model_with_one_type = self.make_model(name="Barely Started")
+        self.make_object_type(model_with_one_type)
+
+        task = start_assisted_reconcile(
+            workspace=self.workspace, model=model_with_one_type, user=self.owner,
+            intent_text="Reconcile.", files=self._file(),
+        )
+
+        self.assertEqual(task.status, AssistedTask.Status.QUEUED)
+
+    def test_evidence_is_stored_against_the_task(self):
+        task = start_assisted_reconcile(
+            workspace=self.workspace, model=self.model, user=self.owner,
+            intent_text="Reconcile.", files=self._file(),
+        )
+
+        evidence = task.evidence.get()
+        self.assertEqual(evidence.original_filename, "notes.txt")
+
+    def test_a_second_attempt_against_the_same_model_is_rejected(self):
+        start_assisted_reconcile(
+            workspace=self.workspace, model=self.model, user=self.owner,
+            intent_text="First.", files=self._file(),
+        )
+
+        with self.assertRaises(AssistedTaskActive):
+            start_assisted_reconcile(
+                workspace=self.workspace, model=self.model, user=self.editor,
+                intent_text="Second.", files=self._file(),
+            )
+
+        self.assertEqual(AssistedTask.objects.filter(model=self.model).count(), 1)
+
+    def test_a_stale_task_is_reclaimed_without_deleting_the_pre_existing_model(self):
+        """
+        Unlike Create's bootstrap Model, Reconcile's Model is never deleted
+        by fail_task (see assisted.services.cleanup.fail_task's
+        BOOTSTRAP_MODEL_OPERATIONS gate) -- so reclaiming a stale Reconcile
+        task must let this second call succeed normally, not raise
+        BootstrapModelGone.
+        """
+
+        stale = start_assisted_reconcile(
+            workspace=self.workspace, model=self.model, user=self.owner,
+            intent_text="First.", files=self._file(),
+        )
+        _backdate(stale, minutes=10)
+
+        task = start_assisted_reconcile(
+            workspace=self.workspace, model=self.model, user=self.owner,
+            intent_text="Second.", files=self._file(),
+        )
+
+        stale.refresh_from_db()
+        self.assertEqual(stale.status, AssistedTask.Status.FAILED)
+        self.assertEqual(stale.failure_reason_code, AssistedTask.FailureReasonCode.STALE_TIMED_OUT)
+        self.assertIsNotNone(stale.model_id)
+        self.assertTrue(Model.objects.filter(id=self.model.id).exists())
+        self.assertEqual(task.status, AssistedTask.Status.QUEUED)
+
+
+class StartAssistedReconcileEntitlementTests(AssistedTestCase):
+
+    def setUp(self):
+        self.model = self.make_model()
+        self.make_object_type(self.model)
+
+    def test_a_learner_owner_cannot_start_a_reconcile_task(self):
+        self.owner.plan = CustomUser.Plan.LEARNER
+        self.owner.save(update_fields=["plan"])
+
+        with self.assertRaises(AssistedEntitlementDenied):
+            start_assisted_reconcile(
+                workspace=self.workspace, model=self.model, user=self.owner,
+                intent_text="Reconcile.", files=[SimpleUploadedFile("notes.txt", b"hello")],
+            )
+
+        self.assertEqual(AssistedTask.objects.filter(model=self.model).count(), 0)
 
 
 class StartAssistedCreateEntitlementTests(AssistedTestCase):
