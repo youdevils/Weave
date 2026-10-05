@@ -60,56 +60,74 @@
     {% endif %}
 
 
-    <section class="model-overview-section">
+    {% if can_use_assisted %}
 
-        <div class="model-overview-section-heading">
-            <h2>Available assistance</h2>
-            <p class="model-overview-section-description">
-                Choose how you'd like OnyxJar to help with this model.
-            </p>
-        </div>
+        <section class="model-overview-section">
 
-        <div class="model-index-grid">
-
-            <article class="model-index-card">
-                <h2 class="model-index-card-title">Reconcile</h2>
-                <p class="model-index-card-description">
-                    Bring new information into the model.
+            <div class="model-overview-section-heading">
+                <h2>Available assistance</h2>
+                <p class="model-overview-section-description">
+                    Choose how you'd like OnyxJar to help with this model.
                 </p>
-                <div class="model-index-card-meta">
-                    <a href="{% url 'assisted:reconcile' model.id %}" class="btn btn-primary btn-sm">
-                        Start
-                    </a>
+            </div>
+
+            <div class="model-index-grid">
+
+                <article class="model-index-card">
+                    <h2 class="model-index-card-title">Reconcile</h2>
+                    <p class="model-index-card-description">
+                        Bring new information into the model.
+                    </p>
+                    <div class="model-index-card-meta">
+                        <a href="{% url 'assisted:reconcile' model.id %}" class="btn btn-primary btn-sm">
+                            Start
+                        </a>
+                    </div>
+                </article>
+
+                <article class="model-index-card">
+                    <h2 class="model-index-card-title">Change</h2>
+                    <p class="model-index-card-description">
+                        Propose a structured change to the model.
+                    </p>
+                    <div class="model-index-card-meta">
+                        <a href="{% url 'assisted:change' model.id %}" class="btn btn-primary btn-sm">
+                            Start
+                        </a>
+                    </div>
+                </article>
+
+                <article class="model-index-card">
+                    <h2 class="model-index-card-title">Assess</h2>
+                    <p class="model-index-card-description">
+                        Assess the model against a question or area of concern.
+                    </p>
+                    <div class="model-index-card-meta">
+                        <a href="{% url 'assisted:assess' model.id %}" class="btn btn-primary btn-sm">
+                            Start
+                        </a>
+                    </div>
+                </article>
+
+            </div>
+
+        </section>
+
+    {% else %}
+
+        <section class="model-overview-section">
+
+            <div class="model-empty-state">
+                <div class="model-empty-state-icon">
+                    <i class="bi bi-stars"></i>
                 </div>
-            </article>
+                <h2>Assisted Work</h2>
+                <p>Assisted Work is available on the Collaborator plan.</p>
+            </div>
 
-            <article class="model-index-card">
-                <h2 class="model-index-card-title">Change</h2>
-                <p class="model-index-card-description">
-                    Propose a structured change to the model.
-                </p>
-                <div class="model-index-card-meta">
-                    <a href="{% url 'assisted:change' model.id %}" class="btn btn-primary btn-sm">
-                        Start
-                    </a>
-                </div>
-            </article>
+        </section>
 
-            <article class="model-index-card">
-                <h2 class="model-index-card-title">Assess</h2>
-                <p class="model-index-card-description">
-                    Assess the model against a question or area of concern.
-                </p>
-                <div class="model-index-card-meta">
-                    <a href="{% url 'assisted:assess' model.id %}" class="btn btn-primary btn-sm">
-                        Start
-                    </a>
-                </div>
-            </article>
-
-        </div>
-
-    </section>
+    {% endif %}
 
 
     <section class="model-overview-section">

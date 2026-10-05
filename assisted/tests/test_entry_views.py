@@ -1,5 +1,6 @@
 from django.urls import reverse
 
+from account.models import CustomUser
 from assisted.models import AssistedTask, AssistedTaskEvidence
 from assisted.tests.support import AssistedTestCase
 
@@ -65,6 +66,22 @@ class ReconcileEntryViewTests(AssistedTestCase):
         response = self.client.get(self.url())
 
         self.assertEqual(response.status_code, 404)
+
+    def test_owner_without_the_assisted_entitlement_still_gets_403(self):
+        """
+        The landing page now hides these entry points for a plan without
+        Assisted Work (see LandingViewEntitlementTests), but the entry views
+        themselves must keep rejecting a direct hit regardless -- a user must
+        never reach real Assisted Work execution through a guessed/bookmarked
+        URL just because the UI stopped linking to it.
+        """
+        self.owner.plan = CustomUser.Plan.LEARNER
+        self.owner.save(update_fields=["plan"])
+        self.client.force_login(self.owner)
+
+        response = self.client.get(self.url())
+
+        self.assertEqual(response.status_code, 403)
 
 
 class ChangeAndAssessEntryViewTests(AssistedTestCase):

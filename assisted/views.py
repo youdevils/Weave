@@ -15,6 +15,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET
 
+from account.services.entitlement import user_can_run_assisted
 from assisted.access import get_assisted_workable_model
 from assisted.models import AssistedTask
 from assisted.services.activity import recent_tasks_for_model
@@ -28,6 +29,11 @@ NOT_AVAILABLE_MESSAGE = "{operation} isn't available yet in this build."
 def landing(request, model_id):
     context = get_model_context(request, model_id)
     context["recent_tasks"] = recent_tasks_for_model(context["model"])
+    # UI-only: tells the template whether to offer the Reconcile/Change/Assess
+    # entry cards at all, so a user on a plan without Assisted Work never
+    # reaches a 403 through the normal landing-page flow. The real gate stays
+    # assisted.access.get_assisted_workable_model, unchanged, on each entry view.
+    context["can_use_assisted"] = user_can_run_assisted(request.user)
 
     return render(request, "assisted/landing.html", context)
 
