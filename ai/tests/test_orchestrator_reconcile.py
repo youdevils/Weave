@@ -15,15 +15,23 @@ isolation.
 
 from django.test import override_settings
 
-from model.models.proposal import Proposal
+from model.models.proposal import Proposal, ProposalChange
 
-from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef, EvidenceAssessment, EvidenceItem
+from ai.services.change_plan import (
+    ChangeAction,
+    ChangePlan,
+    EntityRef,
+    EvidenceAssessment,
+    EvidenceItem,
+    UnresolvedIssue,
+)
 from ai.services.operations import _unregister_operation, register_operation
 from ai.services.orchestrator import run_ai_operation
 from ai.services.result_schema import (
     AIStructuredResult,
     ContextRequest,
     ExecutionStatus,
+    Finding,
     Interpretation,
     OperationOutcome,
 )
@@ -521,32 +529,509 @@ class RelationshipTypeRuleAsParentRefConfusionTests(AIServiceTestCase):
 
 class ReconcilePromptGuidanceTests(AIServiceTestCase):
     """
-    Direct coverage that Fix #5's two new prompt clauses are actually
-    present in RECONCILE_PROMPT_FRAGMENT -- the behavioral tests above prove
-    the plumbing those clauses rely on works; this proves the guidance text
-    itself ships.
+    Direct coverage that the reasoning-contract guidance text actually
+    ships: the EntityRef-mechanics clauses now live in the generic
+    _system_prompt (operation-agnostic -- proven present for Create too,
+    not just Reconcile), while the four-sources/dependency-closure
+    principles live in RECONCILE_PROMPT_FRAGMENT. The behavioral tests
+    elsewhere in this module prove the plumbing those clauses rely on
+    works; this proves the guidance text itself ships.
     """
 
     def setUp(self):
         self.model = self.make_model()
 
+    def _system_prompt_for(self, operation_id):
+        provider = ScriptedProvider([_no_change()])
+        run_ai_operation(
+            operation_id=operation_id, model=self.model, user=self.user,
+            intent_text="Reconcile this model with the new documents.", provider=provider,
+        )
+        return provider.system_prompts[0]
+
     def test_confirmed_absence_guidance_is_present(self):
-        provider = ScriptedProvider([_no_change()])
-        run_ai_operation(
-            operation_id="reconcile", model=self.model, user=self.user,
-            intent_text="Reconcile this model with the new documents.", provider=provider,
+        self.assertIn(
+            "confirmed absence does not by itself mean stop",
+            self._system_prompt_for("reconcile"),
         )
 
-        self.assertIn("confirmed absence does not by itself mean stop", provider.system_prompts[0])
-
-    def test_relationship_type_rule_vs_relationship_type_parent_guidance_is_present(self):
-        provider = ScriptedProvider([_no_change()])
-        run_ai_operation(
-            operation_id="reconcile", model=self.model, user=self.user,
-            intent_text="Reconcile this model with the new documents.", provider=provider,
-        )
-
+    def test_relationship_type_rule_vs_relationship_type_parent_guidance_is_present_for_reconcile(self):
         self.assertIn(
             "never itself the parent of a Relationship",
-            provider.system_prompts[0],
+            self._system_prompt_for("reconcile"),
+        )
+
+    def test_entity_ref_mechanics_guidance_is_present_for_create_too(self):
+        # R12/R14/R19 are schema-shape facts, not reasoning-about-evidence
+        # rules -- they now live in the generic _system_prompt so every
+        # operation (including Create) benefits, not just Reconcile.
+        prompt = self._system_prompt_for("create")
+
+        self.assertIn("never itself the parent of a Relationship", prompt)
+        self.assertIn("never use a type's key as an existing-kind EntityRef", prompt)
+        self.assertIn("treat that as proof the reference itself was wrong", prompt)
+
+    def test_dependency_closure_guidance_is_reconcile_only(self):
+        # The four-sources/dependency-closure principles are genuine
+        # reasoning-about-evidence content, scoped to Reconcile -- Create
+        # never receives them.
+        self.assertNotIn("Dependency closure (recursive", self._system_prompt_for("create"))
+        self.assertIn("Dependency closure (recursive", self._system_prompt_for("reconcile"))
+
+
+class RugbyDependencyClosureTests(AIServiceTestCase):
+    """
+    Pressure-tests the reasoning contract's dependency-closure principle
+    (RECONCILE_PROMPT_FRAGMENT's "Dependency closure" paragraph) against a
+    full three-hop mandatory chain: Tournament -has_stage-> Stage
+    -has_match-> Match -has_team-> Team x2, -played_at-> Venue. Covers the
+    brief's cases A-H plus an anti-overreach check (a pre-existing,
+    already-valid, unrelated Sponsor this reconciliation never touches).
+
+    The fixture's own Tournament is given a complete, already-valid chain
+    in setUp (created directly, not via the AI) rather than left bare:
+    model.services.validation.cardinality.validate_cardinality runs
+    model-wide on every single compile_and_validate attempt, unconditional
+    on what a given cycle's ChangePlan actually touches -- a bare
+    pre-existing Tournament with zero Stages would make has_stage's
+    object_minimum=1 fail *every* test in this class regardless of intent,
+    which is not a real reachable state anyway (the same whole-model check
+    would have blocked whatever proposal first added that Tournament
+    without a Stage). Cases below that need a *missing* dependency (G, H)
+    introduce a second, brand-new branch under this same valid baseline,
+    rather than ever leaving the baseline itself invalid.
+
+    Like every other test in this module, these script the *desired*
+    post-fix behavior and prove the orchestrator's existing plumbing
+    carries it through to the right outcome -- they are capability/
+    regression tests, not proof the real model always reasons this way.
+
+    Case H (refinement feedback treated as new knowledge) is additionally,
+    and more simply, covered end-to-end by
+    ai.tests.test_refinement_feedback_leak.CardinalityViolationLeakTests
+    (a single, non-chained cardinality rule) -- this class's own Case H
+    test exercises the same principle two hops deep in the chain instead
+    of one, which only this fixture can demonstrate.
+    """
+
+    def setUp(self):
+        self.model = self.make_model()
+        self.tournament_type = self.make_object_type(self.model, key="tournament")
+        self.stage_type = self.make_object_type(self.model, key="stage")
+        self.match_type = self.make_object_type(self.model, key="match")
+        self.team_type = self.make_object_type(self.model, key="team")
+        self.venue_type = self.make_object_type(self.model, key="venue")
+        self.sponsor_type = self.make_object_type(self.model, key="sponsor")
+
+        self.has_stage = self.make_relationship_type(self.model, key="has_stage")
+        self.has_match = self.make_relationship_type(self.model, key="has_match")
+        self.has_team = self.make_relationship_type(self.model, key="has_team")
+        self.played_at = self.make_relationship_type(self.model, key="played_at")
+        # Sponsors is a real, optional relationship type (object_minimum=0,
+        # the make_rule default) -- a Tournament is never required to have
+        # one. Used only by the anti-overreach test below to prove Reconcile
+        # doesn't invent a connection to it just because it's visible in
+        # context.
+        self.sponsors = self.make_relationship_type(self.model, key="sponsors")
+        self.make_rule(self.sponsors, self.tournament_type, self.sponsor_type)
+
+        self.make_attribute_definition(object_type=self.venue_type, key="capacity", data_type="number")
+
+        self.has_stage_rule = self.make_rule(self.has_stage, self.tournament_type, self.stage_type, object_minimum=1)
+        self.has_match_rule = self.make_rule(self.has_match, self.stage_type, self.match_type, object_minimum=1)
+        self.has_team_rule = self.make_rule(self.has_team, self.match_type, self.team_type, object_minimum=2)
+        self.played_at_rule = self.make_rule(self.played_at, self.match_type, self.venue_type, object_minimum=1)
+
+        self.tournament = self.make_object(
+            self.model, self.tournament_type, name="2027 Championship", key="championship_2027"
+        )
+        # A complete, already-valid pre-existing chain for self.tournament --
+        # see the class docstring for why this can't be left bare.
+        self.existing_stage = self.make_object(self.model, self.stage_type, name="Qualifying Stage", key="qualifying_stage")
+        self.existing_match = self.make_object(self.model, self.match_type, name="Qualifier Match", key="qualifier_match")
+        self.existing_team_a = self.make_object(self.model, self.team_type, name="Qualifier Team A", key="qualifier_team_a")
+        self.existing_team_b = self.make_object(self.model, self.team_type, name="Qualifier Team B", key="qualifier_team_b")
+        self.existing_venue = self.make_object(self.model, self.venue_type, name="Qualifier Venue", key="qualifier_venue")
+        self.make_relationship(self.model, self.has_stage, self.tournament, self.existing_stage)
+        self.make_relationship(self.model, self.has_match, self.existing_stage, self.existing_match)
+        self.make_relationship(self.model, self.has_team, self.existing_match, self.existing_team_a)
+        self.make_relationship(self.model, self.has_team, self.existing_match, self.existing_team_b)
+        self.make_relationship(self.model, self.played_at, self.existing_match, self.existing_venue)
+
+        # A pre-existing, unconnected Sponsor -- visible in context, never
+        # mentioned by any test's evidence. Used only by the anti-overreach
+        # test below.
+        self.sponsor = self.make_object(self.model, self.sponsor_type, name="Acme Corp", key="acme_corp")
+
+    def _run(self, provider):
+        return run_ai_operation(
+            operation_id="reconcile", model=self.model, user=self.user,
+            intent_text="Add the venues and stages listed in the flyer, create any relationships "
+                        "that should be associated as well.",
+            provider=provider,
+        )
+
+    def _tournament_ref(self):
+        return _existing(f"{self.tournament_type.key}:{self.tournament.key}")
+
+    def _full_chain_actions(self, *, include_team_b, stage_token="tmp:stage", match_token="tmp:match"):
+        """
+        The full evidenced Tournament->Stage->Match->{Team x2, Venue}
+        chain, as one list of ChangeActions. include_team_b=False omits
+        the second Team (and its has_team relationship) to deliberately
+        under-supply has_team's object_minimum=2 -- used by Case H to
+        force a reactive cardinality failure two hops into the chain.
+        """
+
+        actions = [
+            ChangeAction(
+                operation="create", target_type="Object", target_ref=_new(stage_token),
+                parent_ref=_existing(self.stage_type.key), fields={"name": "Pool Stage"},
+                assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer names this stage."),
+                evidence=[EvidenceItem(source="flyer.pdf")],
+            ),
+            ChangeAction(
+                operation="create", target_type="Relationship", target_ref=_new(f"{stage_token}:rel"),
+                parent_ref=_existing(self.has_stage.key),
+                fields={"subject_ref": self._tournament_ref(), "object_ref": _new(stage_token)},
+                assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer states this."),
+                evidence=[EvidenceItem(source="flyer.pdf")],
+            ),
+            ChangeAction(
+                operation="create", target_type="Object", target_ref=_new(match_token),
+                parent_ref=_existing(self.match_type.key), fields={"name": "Pool Stage - Match 1"},
+                assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer names this match."),
+                evidence=[EvidenceItem(source="flyer.pdf")],
+            ),
+            ChangeAction(
+                operation="create", target_type="Relationship", target_ref=_new(f"{match_token}:rel"),
+                parent_ref=_existing(self.has_match.key),
+                fields={"subject_ref": _new(stage_token), "object_ref": _new(match_token)},
+                assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer states this."),
+                evidence=[EvidenceItem(source="flyer.pdf")],
+            ),
+            ChangeAction(
+                operation="create", target_type="Object", target_ref=_new(f"{match_token}:team_a"),
+                parent_ref=_existing(self.team_type.key), fields={"name": "Team A"},
+                assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer names this team."),
+                evidence=[EvidenceItem(source="flyer.pdf")],
+            ),
+            ChangeAction(
+                operation="create", target_type="Relationship", target_ref=_new(f"{match_token}:has_team_a"),
+                parent_ref=_existing(self.has_team.key),
+                fields={"subject_ref": _new(match_token), "object_ref": _new(f"{match_token}:team_a")},
+                assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer states this."),
+                evidence=[EvidenceItem(source="flyer.pdf")],
+            ),
+            ChangeAction(
+                operation="create", target_type="Object", target_ref=_new(f"{match_token}:venue"),
+                parent_ref=_existing(self.venue_type.key),
+                fields={"name": "Eden Park", "attributes.capacity": 50000},
+                assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer names this venue."),
+                evidence=[EvidenceItem(source="flyer.pdf")],
+            ),
+            ChangeAction(
+                operation="create", target_type="Relationship", target_ref=_new(f"{match_token}:played_at"),
+                parent_ref=_existing(self.played_at.key),
+                fields={"subject_ref": _new(match_token), "object_ref": _new(f"{match_token}:venue")},
+                assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer states this."),
+                evidence=[EvidenceItem(source="flyer.pdf")],
+            ),
+        ]
+        if include_team_b:
+            actions += [
+                ChangeAction(
+                    operation="create", target_type="Object", target_ref=_new(f"{match_token}:team_b"),
+                    parent_ref=_existing(self.team_type.key), fields={"name": "Team B"},
+                    assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer names this team."),
+                    evidence=[EvidenceItem(source="flyer.pdf")],
+                ),
+                ChangeAction(
+                    operation="create", target_type="Relationship", target_ref=_new(f"{match_token}:has_team_b"),
+                    parent_ref=_existing(self.has_team.key),
+                    fields={"subject_ref": _new(match_token), "object_ref": _new(f"{match_token}:team_b")},
+                    assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer states this."),
+                    evidence=[EvidenceItem(source="flyer.pdf")],
+                ),
+            ]
+        return actions
+
+    def _full_chain_plan(self, **kwargs):
+        return AIStructuredResult(
+            interpretation=Interpretation(restated_intent="Add the stage, match, teams, and venue from the flyer."),
+            change_plan=ChangePlan(
+                summary="Add the stage, match, teams, and venue from the flyer.",
+                actions=self._full_chain_actions(**kwargs),
+            ),
+        )
+
+    # -- Case A: existing entity is referenced, not recreated --------------
+
+    def test_case_a_existing_entity_is_referenced_not_recreated(self):
+        plan = AIStructuredResult(
+            interpretation=Interpretation(restated_intent="Update the tournament's description."),
+            change_plan=ChangePlan(
+                summary="Update the tournament's description.",
+                actions=[
+                    ChangeAction(
+                        operation="update",
+                        target_type="Object",
+                        target_ref=self._tournament_ref(),
+                        fields={"description": "Rugby World Cup qualifier."},
+                        assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer states this."),
+                        evidence=[EvidenceItem(source="flyer.pdf")],
+                    )
+                ],
+            ),
+        )
+
+        result = self._run(ScriptedProvider([plan]))
+
+        self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
+        self.assertEqual(result.refinement_cycles, 0)
+        self.assertIsNotNone(result.proposal_id)
+        # No second Tournament Object was created to satisfy this update.
+        self.assertEqual(
+            ProposalChange.objects.filter(
+                proposal_id=result.proposal_id, target_type="Object", operation="create",
+            ).count(),
+            0,
+        )
+
+    # -- Case B/C/D: context tri-state --------------------------------------
+    #
+    # Deliberately uses Sponsor, not Tournament: Tournament itself carries a
+    # mandatory dependency (has_stage), so creating a *new* bare Tournament
+    # would immediately trip Principle 4's dependency closure -- a separate
+    # concern from the context tri-state these three cases are about.
+    # Sponsor has no mandatory dependency of its own.
+
+    def _uncertain_sponsor_b(self):
+        return AIStructuredResult(
+            interpretation=Interpretation(restated_intent="Check whether Sponsor B already exists."),
+            context_requests=[
+                ContextRequest(
+                    reference=_existing(f"{self.sponsor_type.key}:sponsor_b"),
+                    reason="Need to confirm whether Sponsor B already exists.",
+                )
+            ],
+        )
+
+    def test_case_b_absence_is_uncertain_so_it_asks_before_guessing(self):
+        result = self._run(ScriptedProvider([self._uncertain_sponsor_b()] * 5))
+
+        self.assertEqual(result.outcome, OperationOutcome.UNRESOLVED)
+        self.assertTrue(
+            any(issue.code == "unresolvable_context_reference" for issue in result.unresolved_issues)
+        )
+
+    def test_case_c_confirmed_absence_plus_evidence_creates_it(self):
+        create_sponsor_b = AIStructuredResult(
+            interpretation=Interpretation(restated_intent="Create Sponsor B."),
+            change_plan=ChangePlan(
+                summary="Create Sponsor B.",
+                actions=[
+                    ChangeAction(
+                        operation="create",
+                        target_type="Object",
+                        target_ref=_new("tmp:sponsor_b"),
+                        parent_ref=_existing(self.sponsor_type.key),
+                        fields={"name": "Sponsor B"},
+                        assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer names it."),
+                        evidence=[EvidenceItem(source="flyer.pdf")],
+                    )
+                ],
+            ),
+        )
+
+        result = self._run(ScriptedProvider([self._uncertain_sponsor_b(), create_sponsor_b]))
+
+        self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
+        self.assertEqual(result.refinement_cycles, 1)
+        self.assertIsNotNone(result.proposal_id)
+
+    def test_case_d_confirmed_absence_without_evidence_invents_nothing(self):
+        result = self._run(ScriptedProvider([self._uncertain_sponsor_b(), _no_change()]))
+
+        self.assertEqual(result.outcome, OperationOutcome.NO_CHANGE_REQUIRED)
+        self.assertIsNone(result.proposal_id)
+
+    # -- Case E: unmodelled attribute ----------------------------------------
+
+    def test_case_e_primary_unmodelled_attribute_is_proactively_omitted_with_a_finding(self):
+        plan = AIStructuredResult(
+            interpretation=Interpretation(restated_intent="Add the venue from the flyer."),
+            findings=[
+                Finding(
+                    message="The flyer lists a Location for Eden Park, but Venue has no Location "
+                            "attribute -- omitted from this plan.",
+                    severity="info",
+                )
+            ],
+            change_plan=ChangePlan(
+                summary="Add the venue from the flyer.",
+                actions=[
+                    ChangeAction(
+                        operation="create",
+                        target_type="Object",
+                        target_ref=_new("tmp:venue"),
+                        parent_ref=_existing(self.venue_type.key),
+                        fields={"name": "Eden Park", "attributes.capacity": 50000},
+                        assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer names this venue."),
+                        evidence=[EvidenceItem(source="flyer.pdf")],
+                    )
+                ],
+            ),
+        )
+
+        result = self._run(ScriptedProvider([plan]))
+
+        self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
+        self.assertEqual(result.refinement_cycles, 0)
+        self.assertTrue(any("Location" in finding.message for finding in result.findings))
+
+    def test_case_e_secondary_reactive_backstop_still_recovers(self):
+        # Unchanged existing behavior for when proactive omission doesn't
+        # happen: the deep validation/refinement path is still the backstop.
+        invalid = AIStructuredResult(
+            interpretation=Interpretation(restated_intent="Add the venue from the flyer."),
+            change_plan=ChangePlan(
+                summary="Add the venue from the flyer.",
+                actions=[
+                    ChangeAction(
+                        operation="create",
+                        target_type="Object",
+                        target_ref=_new("tmp:venue"),
+                        parent_ref=_existing(self.venue_type.key),
+                        fields={"name": "Eden Park", "attributes.location": "Auckland, New Zealand"},
+                        assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer names this venue."),
+                        evidence=[EvidenceItem(source="flyer.pdf")],
+                    )
+                ],
+            ),
+        )
+        corrected = AIStructuredResult(
+            interpretation=Interpretation(restated_intent="Add the venue from the flyer."),
+            change_plan=ChangePlan(
+                summary="Add the venue from the flyer.",
+                actions=[
+                    ChangeAction(
+                        operation="create",
+                        target_type="Object",
+                        target_ref=_new("tmp:venue2"),
+                        parent_ref=_existing(self.venue_type.key),
+                        fields={"name": "Eden Park"},
+                        assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer names this venue."),
+                        evidence=[EvidenceItem(source="flyer.pdf")],
+                    )
+                ],
+            ),
+        )
+
+        result = self._run(ScriptedProvider([invalid, corrected]))
+
+        self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
+        self.assertEqual(result.refinement_cycles, 1)
+
+    # -- Case F: full recursive chain, fully evidenced -----------------------
+
+    def test_case_f_full_evidenced_chain_is_proposed_in_one_pass(self):
+        result = self._run(ScriptedProvider([self._full_chain_plan(include_team_b=True)]))
+
+        self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
+        self.assertEqual(result.refinement_cycles, 0)
+        self.assertEqual(
+            ProposalChange.objects.filter(proposal_id=result.proposal_id, target_type="Object").count(),
+            5,  # Stage, Match, Team A, Team B, Venue
+        )
+        self.assertEqual(
+            ProposalChange.objects.filter(proposal_id=result.proposal_id, target_type="Relationship").count(),
+            5,  # has_stage, has_match, has_team x2, played_at
+        )
+
+    # -- Case G: unevidenced hop, invalidity propagates back up -------------
+
+    def test_case_g_unevidenced_hop_propagates_invalidity_up_the_chain(self):
+        # The flyer evidences the Stage and its one Match, but never names
+        # any Teams for that Match. has_team's object_minimum=2 can't be
+        # met, so the Match is unsafe to propose -- and since it's this
+        # Stage's only evidenced Match, the Stage is unsafe to propose too.
+        no_teams = AIStructuredResult(
+            interpretation=Interpretation(restated_intent="Add the stage and match from the flyer."),
+            unresolved_issues=[
+                UnresolvedIssue(
+                    code="missing_mandatory_dependency",
+                    message="Match 'Pool Stage - Match 1' requires at least 2 Team relationships "
+                            "(has_team), but the flyer does not name any teams for this match -- "
+                            "the Stage and Match that depend on it are not included.",
+                )
+            ],
+        )
+
+        result = self._run(ScriptedProvider([no_teams] * 5))
+
+        self.assertEqual(result.outcome, OperationOutcome.UNRESOLVED)
+        self.assertIsNone(result.proposal_id)
+        self.assertEqual(len(result.unresolved_issues), 1)
+        self.assertIn("has_team", result.unresolved_issues[0].message)
+
+    # -- Anti-overreach: an unrelated, already-valid entity is left alone --
+
+    def test_anti_overreach_unrelated_entity_is_not_touched_just_because_its_in_context(self):
+        # self.sponsor exists, is visible in context, and the Sponsors
+        # relationship type is a real, satisfiable connection -- but no
+        # evidence in this run ever mentions it. A reconciliation scoped to
+        # the Tournament's description must not invent a Sponsors
+        # relationship just because the connection is structurally possible
+        # and the Sponsor happens to be sitting right there in context.
+        plan = AIStructuredResult(
+            interpretation=Interpretation(restated_intent="Update the tournament's description."),
+            change_plan=ChangePlan(
+                summary="Update the tournament's description.",
+                actions=[
+                    ChangeAction(
+                        operation="update",
+                        target_type="Object",
+                        target_ref=self._tournament_ref(),
+                        fields={"description": "Rugby World Cup qualifier."},
+                        assessment=EvidenceAssessment(verdict="supported", reasoning="The flyer states this."),
+                        evidence=[EvidenceItem(source="flyer.pdf")],
+                    )
+                ],
+            ),
+        )
+
+        result = self._run(ScriptedProvider([plan]))
+
+        self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
+        self.assertEqual(
+            ProposalChange.objects.filter(
+                proposal_id=result.proposal_id, parent_id=self.sponsors.id,
+            ).count(),
+            0,
+        )
+        self.assertEqual(
+            ProposalChange.objects.filter(
+                proposal_id=result.proposal_id, parent_id=self.sponsor_type.id,
+            ).count(),
+            0,
+        )
+
+    # -- Case H: refinement feedback is new knowledge, two hops deep --------
+
+    def test_case_h_cardinality_feedback_two_hops_deep_is_treated_as_new_knowledge(self):
+        # Cycle 1 under-supplies has_team (only Team A, minimum is 2) --
+        # compile_and_validate rejects the whole plan and rolls back
+        # everything (nothing is left committed, by design). Cycle 2 must
+        # therefore resubmit the entire chain, this time with both Teams.
+        under_supplied = self._full_chain_plan(include_team_b=False)
+        complete = self._full_chain_plan(include_team_b=True)
+
+        result = self._run(ScriptedProvider([under_supplied, complete]))
+
+        self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
+        self.assertEqual(result.refinement_cycles, 1)
+        self.assertEqual(
+            ProposalChange.objects.filter(proposal_id=result.proposal_id, target_type="Object").count(),
+            5,
         )
