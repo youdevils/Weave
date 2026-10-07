@@ -21,10 +21,10 @@ class OutcomeDecision:
     status: str  # AssistedTask.Status.READY_FOR_REVIEW, .COMPLETED, or .FAILED
     failure_reason_code: str = ""
     failure_reason: str = ""
-    # Only meaningful when status == COMPLETED (a non-Proposal success, e.g.
-    # Reconcile's NO_CHANGE_REQUIRED/UNRESOLVED/NEEDS_USER_CLARIFICATION):
-    # written to AssistedTask.outcome_detail, never failure_reason, which is
-    # semantically failure-only.
+    # For COMPLETED (a non-Proposal success, e.g. Reconcile's
+    # NO_CHANGE_REQUIRED/UNRESOLVED/NEEDS_USER_CLARIFICATION), or a partially
+    # complete READY_FOR_REVIEW: written to AssistedTask.outcome_detail, never
+    # failure_reason, which is semantically failure-only.
     outcome_detail: str = ""
 
 
@@ -107,6 +107,17 @@ class ReconcileOutcomePolicy:
         outcome = operation_result.outcome
 
         if outcome == OperationOutcome.READY_FOR_REVIEW:
+            blocked = list(getattr(operation_result, "blocked_targets", None) or [])
+            if getattr(operation_result, "completeness", "") == "partial" and blocked:
+                names = ", ".join(f"'{b['target']}'" for b in blocked[:5])
+                return OutcomeDecision(
+                    AssistedTask.Status.READY_FOR_REVIEW,
+                    outcome_detail=(
+                        f"Partially completed: {len(blocked)} requested item{'s' if len(blocked) != 1 else ''} "
+                        f"({names}) could not be reconciled from the evidence and {'are' if len(blocked) != 1 else 'is'} "
+                        "not in the proposal. See the notes below."
+                    ),
+                )
             return OutcomeDecision(AssistedTask.Status.READY_FOR_REVIEW)
 
         if outcome == OperationOutcome.NO_CHANGE_REQUIRED:

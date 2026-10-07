@@ -82,7 +82,7 @@ class OpenAIProvider(AIProvider):
             f"{attempts} attempt(s)."
         ) from last_error
 
-    def explain(self, *, context, issues: list, config: ProviderConfig) -> str:
+    def explain(self, *, context, issues: list, config: ProviderConfig) -> ProviderResult:
         client = self._client()
 
         try:
@@ -109,7 +109,13 @@ class OpenAIProvider(AIProvider):
         except openai.OpenAIError as error:
             raise ProviderError(str(error)) from error
 
-        return response.output_text or ""
+        return ProviderResult(
+            parsed=None,
+            raw_text=response.output_text or "",
+            usage=_usage_dict(response.usage),
+            provider="openai",
+            provider_model=response.model or config.model,
+        )
 
 
 def _canonical_payload(payload: dict) -> str:

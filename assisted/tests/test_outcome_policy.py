@@ -110,6 +110,23 @@ class ReconcileOutcomePolicyTests(SimpleTestCase):
 
         self.assertEqual(decision.status, AssistedTask.Status.READY_FOR_REVIEW)
 
+    def test_a_partial_proposal_is_ready_for_review_and_says_what_was_left_out(self):
+        blocked = [{"target": "Pool Stage", "cluster_id": "E2", "type_key": "stage", "reason": "blocked",
+                    "missing_requirements": [], "dependants": ["Match 1"]}]
+        result = _result(ExecutionStatus.COMPLETED, OperationOutcome.READY_FOR_REVIEW, proposal_id=uuid.uuid4(),
+                         completeness="partial", blocked_targets=blocked)
+
+        decision = self.policy.decide(operation_result=result)
+
+        self.assertEqual(decision.status, AssistedTask.Status.READY_FOR_REVIEW)
+        self.assertIn("Partially completed", decision.outcome_detail)
+        self.assertIn("'Pool Stage'", decision.outcome_detail)
+
+    def test_a_complete_proposal_has_no_outcome_detail(self):
+        result = _result(ExecutionStatus.COMPLETED, OperationOutcome.READY_FOR_REVIEW, proposal_id=uuid.uuid4(), completeness="complete")
+
+        self.assertEqual(self.policy.decide(operation_result=result).outcome_detail, "")
+
     def test_execution_failed_is_the_only_path_to_a_failed_status(self):
         result = _result(ExecutionStatus.FAILED, OperationOutcome.FAILED)
 

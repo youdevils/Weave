@@ -1,0 +1,35 @@
+{
+ "kind": "provider",
+ "stage": "adjudication",
+ "attempt": 2,
+ "decision": "advance",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "indirect_classification:A7",
+    "option_id": "refers_to_intermediate",
+    "excerpt": "Stage | Match | Venue\nPool A | Japan v Samoa | Sky Stadium",
+    "note": "The excerpt lists a specific match (Japan v Samoa) at a venue (Sky Stadium), referring explicitly to a match, without identifying it beyond teams."
+   },
+   {
+    "question_id": "indirect_classification:A8",
+    "option_id": "refers_to_intermediate",
+    "excerpt": "Stage | Match | Venue\nPool B | Australia v Argentina | Forsyth Barr Stadium",
+    "note": "The evidence enumerates a Pool B match (Australia v Argentina) at Forsyth Barr Stadium, which refers to a match (intermediate entity) hosting relationship."
+   },
+   {
+    "question_id": "indirect_classification:A9",
+    "option_id": "refers_to_intermediate",
+    "excerpt": "Stage | Match | Venue\nPool B | South Africa v Tonga | FMG Stadium Waikato",
+    "note": "The structure of the evidence again points to a specific match, indicating the venue hosts that match."
+   },
+   {
+    "question_id": "indirect_classification:A11",
+    "option_id": "refers_to_intermediate",
+    "excerpt": "Stage | Match | Venue\nQuarter-final | Pool B winner v Pool A runner-up | Sky Stadium",
+    "note": "The relationship is expressed via a specific (though not uniquely identified) match: Quarter-final, teams, venue."
+   }
+  ]
+ }
+}

@@ -256,26 +256,67 @@ WEBSITE_CONTACT_FORM_RECIPIENT = os.getenv(
 
 AI_DEFAULT_OPENAI_MODEL = os.getenv("AI_DEFAULT_OPENAI_MODEL", "gpt-4.1")
 
-# Bounded refinement: a compiled Change Plan that still fails validation is
-# retried with the issues fed back as context, up to this many times before
-# the operation is marked UNRESOLVED.
-AI_MAX_REFINEMENT_CYCLES = 3
+# Staged Assisted workflows (ai.services.workflow). Budgets count *logical*
+# provider calls per stage across the whole run (a correction or a
+# review-driven re-plan both consume from the stage's own budget);
+# OpenAIProvider's internal transport retries (AI_MAX_PROVIDER_RETRIES) are
+# not logical calls and never count here.
+AI_CREATE_PLANNING_MAX_CALLS = 3
+# Reconcile (ai/README.md): Extraction batches (intent framing + evidence
+# claims; small evidence is one batch) and their item/segment-level
+# correction calls, typed Adjudication rounds (and their correction calls),
+# Gap Probe rounds (and their correction calls) for unsatisfied structural
+# requirements, and Verification reviews (and the re-ask of an unroutable
+# objection). The workflow converges by revisiting stages (a probe's claims
+# may raise new questions, an answer may expose a new evidence gap), so every
+# class of work is bounded separately: corrections never consume rounds.
+AI_RECONCILE_EXTRACTION_MAX_BATCHES = 4
+AI_RECONCILE_EXTRACTION_MAX_CORRECTION_CALLS = 2
+AI_RECONCILE_ADJUDICATION_MAX_ROUNDS = 3
+AI_RECONCILE_ADJUDICATION_MAX_CORRECTION_CALLS = 2
+AI_RECONCILE_GAP_PROBE_MAX_ROUNDS = 2
+AI_RECONCILE_GAP_PROBE_MAX_CORRECTION_CALLS = 1
+AI_RECONCILE_VERIFICATION_MAX_CALLS = 3
+AI_RECONCILE_VERIFICATION_MAX_CORRECTION_CALLS = 1
+# Hard backstop on logical workflow calls for any one run, whatever the
+# per-stage budgets add up to.
+AI_WORKFLOW_MAX_PROVIDER_CALLS = 14
+# Opt-in, dev-only run tracing (ai.services.tracing): when set, every step's
+# payload/output and Reconcile state snapshot is written as JSON under this
+# directory. Never stored in the database; unset by default.
+AI_TRACE_DIR = os.getenv("AI_TRACE_DIR") or None
+# Deterministic (non-provider) workflow steps any one run may take -- a
+# backstop against a routing loop, never reached by a well-formed run.
+AI_WORKFLOW_MAX_DETERMINISTIC_STEPS = 40
+# The terminal explain()-only call on an UNRESOLVED run sits OUTSIDE the
+# workflow budget above, under its own cap -- so the absolute per-run
+# ceiling is AI_WORKFLOW_MAX_PROVIDER_CALLS + AI_TERMINAL_EXPLANATION_MAX_CALLS.
+AI_TERMINAL_EXPLANATION_MAX_CALLS = 1
 
-# Bounded context expansion: growing the context packet when the AI names a
-# specific missing reference, before giving up on that avenue.
-AI_MAX_CONTEXT_EXPANSIONS = 3
-
-# Deterministic context sizing (mirrors ExplorerQuery's DEFAULT_LIMIT=300 /
-# MAX_LIMIT=1000 as a scale reference).
+# Deterministic context sizing. AI_CONTEXT_MAX_OBJECTS bounds the records in
+# any one semantic context; AI_CONTEXT_MAX_BYTES bounds its serialised size.
 AI_CONTEXT_MAX_OBJECTS = 300
-AI_CONTEXT_MAX_HOPS = 2
-
-# Byte ceiling on the serialised ContextPacket (canonical_json length).
 AI_CONTEXT_MAX_BYTES = 100_000
+# EvidenceGraph bounds (entities + assertions + facts per graph).
+AI_EVIDENCE_MAX_ITEMS = 300
+AI_PROVENANCE_MAX_EXCERPT_CHARS = 500
+# Structural options OnyxJar offers for one ambiguous mapping/identity
+# question, and the evidence text a Gap Probe / Verification call may see.
+AI_MAPPING_MAX_OPTIONS = 8
+# Segment text per Extraction batch (evidence within one batch is extracted
+# in a single call), per Gap Probe evidence pack, and per Verification call.
+AI_EXTRACTION_BATCH_MAX_CHARS = 12_000
+AI_GAP_PROBE_PACK_MAX_CHARS = 8_000
+AI_VERIFY_EVIDENCE_MAX_CHARS = 24_000
 
-# ProposalChanges one AI operation's compiled plan may produce (same order of
-# magnitude as IMPORT_MAX_CHANGES=1000; AI plans are expected far smaller).
-AI_MAX_CHANGE_PLAN_ACTIONS = 100
+# OJ feedback issues sent back to any one correction attempt, and findings
+# kept on an AssistedTask.
+AI_FEEDBACK_MAX_ISSUES = 30
+AI_MAX_TASK_FINDINGS = 30
+
+# ProposalChanges one AI operation's compiled ChangeSet may produce (same order of
+# magnitude as IMPORT_MAX_CHANGES=1000; AI ChangeSets are expected far smaller).
+AI_MAX_CHANGE_SET_ACTIONS = 100
 
 # User-supplied intent text length.
 AI_MAX_INTENT_CHARS = 4000
@@ -283,8 +324,8 @@ AI_MAX_INTENT_CHARS = 4000
 AI_PROVIDER_TIMEOUT_SECONDS = 60
 AI_MAX_PROVIDER_RETRIES = 2
 
-# Policy switch for the explain()-only call made when an operation reaches
-# AI_MAX_REFINEMENT_CYCLES without a valid result.
+# Policy switch for the explain()-only call made when a staged workflow ends
+# UNRESOLVED (see AI_TERMINAL_EXPLANATION_MAX_CALLS).
 AI_FINAL_EXPLANATION_ENABLED = True
 
 # ------------------------------------------------------------------------------------
@@ -296,8 +337,12 @@ AI_FINAL_EXPLANATION_ENABLED = True
 # next time anything checks for an active task against its Model.
 ASSISTED_TASK_QUEUED_STUCK_THRESHOLD = timedelta(minutes=5)
 
-# How long a RUNNING AssistedTask may run before it's treated as orphaned
-# (its worker died) and lazily reclaimed the same way.
+# How long a RUNNING AssistedTask may go without a heartbeat before it's
+# treated as orphaned (its worker died) and lazily reclaimed the same way.
+# Staged workflows heartbeat (AssistedTask.updated_at) before every provider
+# call, so this measures inactivity, not total run time -- it only has to
+# exceed one provider call's worst case (AI_PROVIDER_TIMEOUT_SECONDS x
+# (AI_MAX_PROVIDER_RETRIES + 1)) plus deterministic staging/validation.
 ASSISTED_TASK_RUNNING_STUCK_THRESHOLD = timedelta(minutes=15)
 
 # Evidence files a user may attach when starting Assisted Create. Extracted

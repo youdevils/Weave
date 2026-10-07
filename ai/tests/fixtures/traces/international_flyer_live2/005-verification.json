@@ -1,0 +1,12 @@
+{
+ "kind": "provider",
+ "stage": "verification",
+ "attempt": 1,
+ "decision": "finish",
+ "output": {
+  "schema_version": "1.1",
+  "verdict": "approved",
+  "objections": [],
+  "summary": "All extracted stages and venues are directly supported by the evidence segments, and the relationships claimed correspond to explicit statements in the text and tables. There are no missed or misread evidence items, and rejected claims are validly dismissed due to their excerpts not appearing in the referenced segment. The existing frame and structural decisions match the user's intent and the provided evidence. There are no material deficiencies, and the result is approved."
+ }
+}

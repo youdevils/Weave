@@ -11,9 +11,8 @@ Single source of truth for what were previously independent, and in one
 case verbatim duplicated, allowlists spread across
 model/views/object_type_editor.py, model/views/relationship_type_editor.py
 and model/views/data_object_editor.py -- those views now import from here.
-ai.services.proposal_compiler's AI-generated-field preflight check (see
-InvalidFieldError there) reuses this directly, rather than maintaining a
-fourth copy.
+ai.services.resolution's AI-generated-ChangeSet preflight check reuses this
+directly, rather than maintaining a fourth copy.
 """
 
 from model.services.field_paths import ATTRIBUTE_FIELD_PREFIX
@@ -53,7 +52,7 @@ OBJECT_LIFECYCLE_FIELD = "is_active"
 # allowlist of its own.
 RELATIONSHIP_PROPERTY_FIELDS = frozenset({"valid_from", "valid_to"})
 RELATIONSHIP_LIFECYCLE_FIELD = "is_active"
-RELATIONSHIP_ENDPOINT_FIELDS = ("subject_id", "object_id")  # mirrors ai.services.change_plan's own constant
+RELATIONSHIP_ENDPOINT_FIELDS = ("subject_id", "object_id")
 
 _ATTRIBUTE_BEARING_FIELD = "attributes"
 _ATTRIBUTE_HOST_TYPES = ("Object", "Relationship")
@@ -87,7 +86,7 @@ def illegal_fields(target_type: str, field_keys, *, operation: str = "create") -
     Which of `field_keys` are not legal for `target_type` on the given
     `operation` ("create" or "update"), preserving input order. `key` is
     legal to supply on a CREATE (where it's silently overwritten by
-    model.services.keys regardless -- see ai.services.proposal_compiler)
+    model.services.keys regardless -- see ai.services.resolution)
     but illegal on an UPDATE, since keys never change after creation.
 
     For Object/Relationship, a key beginning with "attributes." (the

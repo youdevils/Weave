@@ -7,8 +7,8 @@ compiler) without duplicating it, and never replaces the normal human-review
 `Proposal` pipeline.
 
 ```
-setup form -> AssistedTask(QUEUED) -> Celery -> run_ai_operation()
-   -> outcome policy -> READY_FOR_REVIEW | FAILED
+setup form -> AssistedTask(QUEUED) -> Celery -> run_ai_operation()   (staged workflow, see ai/README.md)
+   -> outcome policy -> READY_FOR_REVIEW | COMPLETED (non-Proposal outcome) | FAILED
    -> (model.signals.proposal_committed / proposal_abandoned) -> COMPLETED | FAILED
 ```
 
@@ -36,6 +36,20 @@ setup form -> AssistedTask(QUEUED) -> Celery -> run_ai_operation()
   `AssistedTask.BOOTSTRAP_MODEL_OPERATIONS` (today: `CREATE`) -- Reconcile/
   Change/Assess operate against a Model that pre-existed the task and must
   never be touched by a failed task.
+- **A staged run heartbeats.** `services/execution.py` passes `on_progress`
+  (updates `updated_at`/`current_stage` before every provider call, so the
+  stale-RUNNING reclaim measures inactivity, not run length) and
+  `should_commit` (re-checks, under a row lock inside the final commit
+  transaction, that the task is still RUNNING -- a reclaimed task can never
+  leave an orphaned Proposal).
+- **Every terminal transition copies the same result fields**
+  (`services/results.py::apply_result`): outcome, corrections, provider calls,
+  per-stage summary, tokens, `completeness`, and bounded user-facing
+  `findings` -- before any bootstrap-Model deletion.
+- **A Reconcile Proposal may be partial.** When some requested items can't be
+  reconciled from the evidence (`ai/README.md`, partial outcomes), the task is
+  still READY_FOR_REVIEW with `completeness="partial"`; the left-out items are
+  material `findings`, and `outcome_detail` says so on the task page.
 - **`proposal_committed`/`proposal_abandoned` are synchronous domain
   signals**, not commit-notification plumbing -- see `model/signals.py` for
   why they fire inside the same transaction as the Proposal transition
@@ -50,6 +64,7 @@ setup form -> AssistedTask(QUEUED) -> Celery -> run_ai_operation()
 | `services/execution.py` | Celery-worker side: claim, run the orchestrator, interpret the result |
 | `services/outcome_policy.py` | Per-operation AI-outcome -> AssistedTask mapping |
 | `services/cleanup.py` | Shared terminal-FAILED transition + operation-gated Model deletion |
+| `services/results.py` | The result fields every terminal transition copies onto the task |
 | `services/evidence.py` | Evidence file validation/storage |
 | `services/evidence_extraction.py` | Evidence text extraction (plain text/PDF/.docx), reused by both upload-time validation and worker-time AI ingestion |
 | `uploads.py` | Per-file upload size limiting (duplicated from `ingestion.uploads`) |

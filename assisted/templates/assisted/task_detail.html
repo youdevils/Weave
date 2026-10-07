@@ -58,7 +58,23 @@
             <h2>Result</h2>
         </div>
 
-        {% if task.proposal_id %}
+        {% if task.status == "running" and task.current_stage %}
+
+            <p class="text-muted">
+                {% if task.current_stage == "extraction" %}Reading the evidence&hellip;
+                {% elif task.current_stage == "extraction_correction" %}Re-checking parts of the evidence&hellip;
+                {% elif task.current_stage == "adjudication" %}Resolving what the evidence means&hellip;
+                {% elif task.current_stage == "gap_probe" or task.current_stage == "gap_probe_correction" %}Looking for missing details&hellip;
+                {% elif task.current_stage == "planning" %}Working out the changes&hellip;
+                {% elif task.current_stage == "verification" %}Checking the result&hellip;
+                {% else %}Finishing up&hellip;{% endif %}
+            </p>
+
+        {% elif task.proposal_id %}
+
+            {% if task.completeness == "partial" and task.outcome_detail %}
+                <p class="assisted-partial">{{ task.outcome_detail }}</p>
+            {% endif %}
 
             <p>
                 {{ change_count }} proposed change{{ change_count|pluralize }}.
@@ -87,6 +103,19 @@
         {% endif %}
 
     </section>
+
+    {% if task.findings %}
+        <section class="model-overview-section">
+            <div class="model-overview-section-heading">
+                <h2>Notes</h2>
+            </div>
+            <ul class="assisted-findings">
+                {% for finding in task.findings %}
+                    <li class="assisted-finding assisted-finding--{{ finding.severity }}">{{ finding.message }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
 
 </div>
 

@@ -1,10 +1,35 @@
 from django.contrib import admin
 
-from ai.models import AIExecution
+from ai.models import AIExecution, AIExecutionStep
+
+
+class AIExecutionStepInline(admin.TabularInline):
+    model = AIExecutionStep
+    extra = 0
+    can_delete = False
+    ordering = ("sequence", "call_index")
+    fields = (
+        "sequence",
+        "call_index",
+        "provider_call",
+        "stage",
+        "stage_attempt",
+        "decision",
+        "verdict",
+        "issue_codes",
+        "usage",
+        "started_at",
+        "ended_at",
+    )
+    readonly_fields = fields
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(AIExecution)
 class AIExecutionAdmin(admin.ModelAdmin):
+    inlines = [AIExecutionStepInline]
     list_display = (
         "operation",
         "model",
@@ -35,6 +60,8 @@ class AIExecutionAdmin(admin.ModelAdmin):
         "outcome",
         "provider",
         "provider_model",
+        "provider_calls",
+        "stage_summary",
         "refinement_cycles",
         "context_expansions",
         "usage",

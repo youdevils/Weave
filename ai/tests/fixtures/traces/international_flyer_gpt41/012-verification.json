@@ -1,0 +1,12 @@
+{
+ "kind": "provider",
+ "stage": "verification",
+ "attempt": 1,
+ "decision": "finish",
+ "output": {
+  "schema_version": "1.1",
+  "verdict": "approved",
+  "objections": [],
+  "summary": "The proposed changes (creation of the tournament and team entities) are all supported by direct evidence from the flyer. Blocked targets are either unavailable or not explicitly stated in a way the model can express, and this is correctly reflected in the rationale and the notes. The approach is appropriately cautious regarding relationships, as the evidence does not always state both entities and the relationship directly in a single segment or in a structurally supported compound. All dropped or not represented claims were for good evidence-based reasons. No corrections required."
+ }
+}

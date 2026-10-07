@@ -3,6 +3,13 @@ The Celery-worker side of an Assisted operation: claim the task, run the
 existing AI orchestration, and interpret the result into a terminal
 AssistedTask transition.
 
+A staged run makes several provider calls. Before each one the worker
+heartbeats (AssistedTask.updated_at/current_stage, see _heartbeat), so the
+stale-RUNNING reclaim measures inactivity rather than total run time; and the
+final Proposal commit re-checks, under a row lock inside the commit
+transaction, that this task is still RUNNING (_still_running), so a task
+reclaimed meanwhile can never leave an orphaned Proposal behind.
+
 Idempotency is "redelivery-safe by construction", the same convention
 model.tasks.proposal_tasks already uses -- not acks_late/autoretry_for. claim()
 re-checks status under a lock before transitioning to RUNNING, exactly like
@@ -26,14 +33,14 @@ from django.db import transaction
 from django.utils import timezone
 
 from account.services.entitlement import user_can_run_assisted
-from ai.models import AIExecution
 from ai.services.orchestrator import run_ai_operation
 from model.services.proposal.proposal import ProposalLimitReached
 
 from assisted.models import AssistedTask
 from assisted.services.cleanup import fail_task
-from assisted.services.evidence_extraction import bounded, extract_text
+from assisted.services.evidence_extraction import bounded, bounded_blocks, extract_text
 from assisted.services.outcome_policy import get_outcome_policy
+from assisted.services.results import apply_result
 
 logger = logging.getLogger(__name__)
 
@@ -65,16 +72,48 @@ def _assets_for(task):
     """
 
     assets = []
+    limit = settings.ASSISTED_MAX_EVIDENCE_EXTRACTED_CHARS
     for item in task.evidence.all():
         extracted = extract_text(bytes(item.content), filename=item.original_filename)
-        assets.append(
-            {
-                "name": item.original_filename,
-                "content": bounded(extracted.text, max_chars=settings.ASSISTED_MAX_EVIDENCE_EXTRACTED_CHARS),
-                "mime_type": extracted.mime_type,
-            }
-        )
+        asset = {
+            "name": item.original_filename,
+            "content": bounded(extracted.text, max_chars=limit),
+            "mime_type": extracted.mime_type,
+        }
+        if extracted.blocks:
+            # Structural blocks (ai.services.sources segments them); the
+            # bounded flat text stays as the fallback/truncation signal.
+            asset["blocks"], truncated = bounded_blocks(extracted.blocks, max_chars=limit)
+            if truncated and "[... evidence truncated" not in asset["content"]:
+                asset["content"] += f"\n\n[... evidence truncated at {limit} characters]"
+        assets.append(asset)
     return assets
+
+
+def _heartbeat(task_id):
+    def beat(stage_id: str) -> None:
+        AssistedTask.objects.filter(pk=task_id, status=AssistedTask.Status.RUNNING).update(
+            current_stage=stage_id[:30], updated_at=timezone.now()
+        )
+
+    return beat
+
+
+def _still_running(task_id):
+    def check() -> bool:
+        # Called inside the commit's own transaction: the row lock is held
+        # until the Proposal is committed, so a concurrent stale reclaim
+        # (assisted.services.lifecycle._reclaim_stale) waits, then sees a
+        # fresh heartbeat.
+        return (
+            AssistedTask.objects.select_for_update()
+            .filter(pk=task_id, status=AssistedTask.Status.RUNNING)
+            .values_list("pk", flat=True)
+            .first()
+            is not None
+        )
+
+    return check
 
 
 def run_and_finish(assisted_task_id, *, provider=None) -> None:
@@ -115,6 +154,8 @@ def run_and_finish(assisted_task_id, *, provider=None) -> None:
             intent_text=task.submitted_intent,
             assets=_assets_for(task),
             provider=provider,
+            on_progress=_heartbeat(task.pk),
+            should_commit=_still_running(task.pk),
         )
     except ProposalLimitReached:
         # The orchestrator's own fail-fast ProposalService.assert_capacity
@@ -141,7 +182,7 @@ def run_and_finish(assisted_task_id, *, provider=None) -> None:
     decision = get_outcome_policy(task.operation).decide(operation_result=result)
 
     if decision.status == AssistedTask.Status.READY_FOR_REVIEW:
-        _finish_ready(task, result=result)
+        _finish_ready(task, result=result, outcome_detail=decision.outcome_detail)
     elif decision.status == AssistedTask.Status.COMPLETED:
         _finish_completed(task, outcome_detail=decision.outcome_detail, result=result)
     else:
@@ -154,32 +195,25 @@ def run_and_finish(assisted_task_id, *, provider=None) -> None:
 
 
 @transaction.atomic
-def _finish_ready(task, *, result) -> None:
+def _finish_ready(task, *, result, outcome_detail="") -> None:
     locked = AssistedTask.objects.select_for_update().get(pk=task.pk)
     if locked.status != AssistedTask.Status.RUNNING:
         return  # redelivered/raced; another worker already finished this
 
-    usage = AIExecution.objects.filter(pk=result.execution_id).values_list("usage", flat=True).first()
-
     locked.status = AssistedTask.Status.READY_FOR_REVIEW
     locked.proposal_id = result.proposal_id
     locked.ai_execution_id = result.execution_id
-    locked.ai_outcome = result.outcome.value if result.outcome else ""
-    locked.refinement_cycles = result.refinement_cycles
-    locked.context_expansions = result.context_expansions
-    locked.tokens_used = (usage or {}).get("total_tokens", 0)
+    locked.outcome_detail = outcome_detail
     locked.ready_for_review_at = timezone.now()
     locked.save(
         update_fields=[
             "status",
             "proposal",
             "ai_execution",
-            "ai_outcome",
-            "refinement_cycles",
-            "context_expansions",
-            "tokens_used",
+            "outcome_detail",
             "ready_for_review_at",
             "updated_at",
+            *apply_result(locked, result),
         ]
     )
 
@@ -198,27 +232,18 @@ def _finish_completed(task, *, outcome_detail, result) -> None:
     if locked.status != AssistedTask.Status.RUNNING:
         return  # redelivered/raced; another worker already finished this
 
-    usage = AIExecution.objects.filter(pk=result.execution_id).values_list("usage", flat=True).first()
-
     locked.status = AssistedTask.Status.COMPLETED
     locked.ai_execution_id = result.execution_id
-    locked.ai_outcome = result.outcome.value if result.outcome else ""
     locked.outcome_detail = outcome_detail
-    locked.refinement_cycles = result.refinement_cycles
-    locked.context_expansions = result.context_expansions
-    locked.tokens_used = (usage or {}).get("total_tokens", 0)
     locked.completed_at = timezone.now()
     locked.save(
         update_fields=[
             "status",
             "ai_execution",
-            "ai_outcome",
             "outcome_detail",
-            "refinement_cycles",
-            "context_expansions",
-            "tokens_used",
             "completed_at",
             "updated_at",
+            *apply_result(locked, result),
         ]
     )
 

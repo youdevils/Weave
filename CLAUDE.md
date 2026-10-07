@@ -24,6 +24,12 @@ python manage.py test ingestion.tests.test_duplicates.SomeTestCase.test_method  
 npm test                                      # JS unit tests (Node's built-in runner)
 ```
 
+The real-provider rugby Reconcile E2E test is opt-in (it spends OpenAI tokens):
+
+```
+ONYXJAR_LIVE_AI_TESTS=1 python manage.py test ai.tests.test_reconcile_workflow.LiveRugbyTests
+```
+
 `npm test` runs `viewer/jstests/`, `model/jstests/`, `publication/jstests/`,
 `ingestion/jstests/`, and `website/jstests/` in one pass (see `package.json`).
 
@@ -42,10 +48,19 @@ Django 5.2 + DRF + Celery monolith, apps listed in `onyxjar/settings.py` `INSTAL
 `account`, `model`, `ai`, `assisted`, `api`, `ingestion`, `publication`, `viewer`, `website`,
 `workspace`. `api` is currently an empty scaffold (stub `views.py`, no real code yet) — its URLs
 aren't even wired into `onyxjar/urls.py`. `ai` is **not** a scaffold: it's a fully-built,
-operation-agnostic AI orchestration substrate (`ai/services/orchestrator.py::run_ai_operation`,
-a `ChangePlan`/`AIStructuredResult` schema, bounded refinement/context-expansion, the Proposal
-compiler) that any Assisted operation plugs into via one `OperationDefinition`
-(`ai/services/operations.py`), registered in `ai/services/operation_definitions.py`. `assisted`
+operation-agnostic AI orchestration substrate that any Assisted operation plugs into via one
+`OperationDefinition` (`ai/services/operations.py`: a ChangeSet `OperationPolicy` + a staged
+`WorkflowDefinition` factory), registered in `ai/services/operation_definitions.py`. Every
+operation runs on the bounded staged engine (`ai/services/workflow/engine.py`, entered via
+`ai/services/orchestrator.py::run_ai_operation`): Create = one Planning stage that authors a
+`ChangeSet`; Reconcile = Extraction (`IntentFrame` + `EvidenceGraph` claims) -> deterministic
+analysis (`ai/services/reconcile/`: mapping, identity, Evidence-Selective Closure) -> optional
+Adjudication / Gap Probe -> deterministic compile (`ChangeSet` v3 + `ChangeTrace`) ->
+Verification, stages in `ai/services/stages/`. AI steps only make excerpted semantic claims;
+OnyxJar owns structure and never invents a claim (the Semantic Claim Invariant). The AI never sees
+canonical UUIDs or Explorer/graph payloads; OnyxJar resolves ChangeSets
+(`ai/services/resolution.py`), stages them speculatively (always rolled back) and commits the
+final Proposal (`ai/services/staging.py`), which may be partial (`OperationPolicy.partial_outcome`). Read `ai/README.md` before changing any of this. `assisted`
 is the user-facing wrapper around it — `AssistedTask`/`AssistedTaskEvidence`, per-operation
 lifecycle/outcome-policy services, and the Assisted Work UI (landing/entry/task-detail pages).
 As of this writing, CREATE and RECONCILE are real; CHANGE and ASSESS are registered as

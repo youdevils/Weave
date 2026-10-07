@@ -97,13 +97,17 @@ class OpenAIProviderGenerateStructuredTests(SimpleTestCase):
 class OpenAIProviderExplainTests(SimpleTestCase):
 
     @patch("ai.services.openai_provider.openai.OpenAI")
-    def test_explain_returns_plain_text(self, mock_openai_cls):
-        from ai.services.context_schema import ContextPacket
-
+    def test_explain_returns_text_with_usage(self, mock_openai_cls):
         mock_client = mock_openai_cls.return_value
-        mock_client.responses.create.return_value = MagicMock(output_text="Here's why.")
+        mock_client.responses.create.return_value = MagicMock(
+            output_text="Here's why.",
+            model="gpt-4.1",
+            usage=MagicMock(input_tokens=3, output_tokens=2, total_tokens=5),
+        )
 
-        context = ContextPacket(intent="x", model_id="id", model_name="M", model_revision=1, byte_size=0)
-        explanation = OpenAIProvider().explain(context=context, issues=[], config=_config())
+        result = OpenAIProvider().explain(context={"intent": "x"}, issues=[], config=_config())
 
-        self.assertEqual(explanation, "Here's why.")
+        self.assertEqual(result.raw_text, "Here's why.")
+        # The explanation call is real provider cost: its usage must reach
+        # the run's token accounting like any other call's.
+        self.assertEqual(result.usage["total_tokens"], 5)

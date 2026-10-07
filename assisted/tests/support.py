@@ -9,65 +9,86 @@ from model.models.model import Model
 from model.models.object_type import ObjectType
 from workspace.models import Workspace, WorkspaceMember
 
-from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef, EvidenceAssessment, EvidenceItem
-from ai.services.result_schema import (
-    AIStructuredResult,
-    Interpretation,
-    UnresolvedIssue,
-)
+from ai.services.artifacts import Clarification
+from ai.services.change_set import PlanResult
 
 # Re-exported so test modules only need one import line.
-from ai.tests.support import RaisingProvider, ScriptedProvider  # noqa: F401
+from ai.tests.support import (  # noqa: F401
+    RaisingProvider,
+    ScriptedProvider,
+    approve,
+    entity,
+    extraction,
+    extraction_clarification,
+    frame,
+    objection,
+    plan,
+    reject,
+    target,
+)
 
 
-def _new(token):
-    return EntityRef(kind="new", id=token)
-
-
-def _existing(id_):
-    return EntityRef(kind="existing", id=str(id_))
+# -- Assisted Create: one Planning stage, so each helper is one scripted call --
 
 
 def clarification_result():
-    return AIStructuredResult(needs_clarification=True, clarification_question="Which widget?")
+    return PlanResult(clarification=Clarification(needed=True, question="Which widget?"))
 
 
 def no_change_result():
-    return AIStructuredResult(interpretation=Interpretation(restated_intent="Nothing to do."))
+    return plan([], summary="Nothing to do.")
 
 
 def unresolved_result():
-    return AIStructuredResult(
-        unresolved_issues=[UnresolvedIssue(code="ambiguous", message="Too ambiguous to act on.")],
+    """A ChangeSet that can never resolve (it names a type that doesn't exist)."""
+
+    return plan([
+        {"kind": "create_object", "action_id": "a1", "token": "w", "type": {"kind": "existing", "key": "no_such_type"},
+         "name": "New widget"},
+    ])
+
+
+def create_object_plan(object_type_key, name="New widget", token="tmp:1"):
+    """The canonical "AI successfully creates one widget" Create plan."""
+
+    return plan(
+        [{"kind": "create_object", "action_id": "a1", "token": token,
+          "type": {"kind": "existing", "key": object_type_key}, "name": name,
+          "provenance": [{"source_id": "intent", "excerpt": "widgets"}]}],
+        summary="Create a widget.",
     )
 
 
-def create_object_plan(object_type_id, name="New widget", token="tmp:1"):
-    """
-    The canonical "AI successfully creates one widget" plan, shared by
-    Create and Reconcile tests. assessment defaults to "supported" (with one
-    evidence item) so this plan compiles cleanly under Reconcile's
-    plan_sufficiency_check too -- Create ignores the field entirely, so this
-    default is safe for Create's existing tests as well.
-    """
+# -- Assisted Reconcile: Extraction -> (deterministic) -> Verification scripts --
+# Tasks built directly in tests carry no evidence files, so provenance cites
+# the intent ("Track widgets.").
 
-    return AIStructuredResult(
-        interpretation=Interpretation(restated_intent="Create a widget."),
-        change_plan=ChangePlan(
-            summary="Create a widget.",
-            actions=[
-                ChangeAction(
-                    operation="create",
-                    target_type="Object",
-                    target_ref=_new(token),
-                    parent_ref=_existing(object_type_id),
-                    fields={"name": name},
-                    assessment=EvidenceAssessment(verdict="supported"),
-                    evidence=[EvidenceItem(source="notes.txt")],
-                )
-            ],
-        ),
+
+def _widget_extraction(object_type_key, name="Widget"):
+    return extraction(
+        frame([target("T1", "widgets", "widgets", hint=object_type_key)]),
+        entity("E1", name, "widget", hint=object_type_key, excerpt="widgets", source_id="intent"),
     )
+
+
+def reconcile_ready_script(object_type_key, name="Widget"):
+    return [_widget_extraction(object_type_key, name), approve()]
+
+
+def reconcile_no_change_script():
+    return [extraction(frame()), approve()]
+
+
+def reconcile_clarification_script():
+    return [extraction_clarification("Which widget?")]
+
+
+def reconcile_unresolved_script(object_type_key="widget"):
+    """The reviewer's material objection persists after it was routed back
+    once: a completed UNRESOLVED outcome, never a failure."""
+
+    same = objection("decision", "E1", "evidence_misread", "The intent does not describe a new widget.")
+    return [_widget_extraction(object_type_key), reject(same), reject(same)]
 
 
 def build_minimal_pdf(text: str) -> bytes:

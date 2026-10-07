@@ -19,6 +19,10 @@ from assisted.tests.support import (
     clarification_result,
     create_object_plan,
     no_change_result,
+    reconcile_clarification_script,
+    reconcile_no_change_script,
+    reconcile_ready_script,
+    reconcile_unresolved_script,
     unresolved_result,
 )
 
@@ -108,7 +112,7 @@ class RunAndFinishTests(AssistedExecutionTestCase):
     def test_unresolved_fails_the_task(self):
         task = self.make_task()
 
-        with override_settings(AI_MAX_REFINEMENT_CYCLES=1):
+        with override_settings(AI_CREATE_PLANNING_MAX_CALLS=1):
             execution.run_and_finish(task.id, provider=ScriptedProvider([unresolved_result()] * 2))
 
         task.refresh_from_db()
@@ -176,8 +180,11 @@ class RunAndFinishTests(AssistedExecutionTestCase):
 
         execution.run_and_finish(task.id, provider=provider)
 
-        assets = provider.user_payloads[0]["assets"]
-        self.assertEqual(assets, [{"name": "notes.txt", "content": "hello evidence", "mime_type": "text/plain"}])
+        evidence = provider.user_payloads[0]["evidence"]
+        self.assertEqual(
+            evidence,
+            [{"source_id": "S1", "name": "notes.txt", "mime_type": "text/plain", "text": "hello evidence", "truncated": False}],
+        )
 
     def test_pdf_evidence_is_extracted_and_bounded_not_raw_decoded(self):
         pdf_bytes = build_minimal_pdf("Quarterly numbers go here")
@@ -188,7 +195,9 @@ class RunAndFinishTests(AssistedExecutionTestCase):
         with override_settings(ASSISTED_MAX_EVIDENCE_EXTRACTED_CHARS=10):
             execution.run_and_finish(task.id, provider=provider)
 
-        asset = provider.user_payloads[0]["assets"][0]
+        source = provider.user_payloads[0]["evidence"][0]
+        asset = {"content": source["text"]}
+        self.assertTrue(source["truncated"])
         # No U+FFFD replacement characters -- real extracted text, not a raw
         # binary-bytes decode -- and bounded to the (deliberately tiny, for
         # this test) per-file character cap, with a truncation indicator.
@@ -213,7 +222,7 @@ class ReconcileRunAndFinishTests(AssistedExecutionTestCase):
     def test_ready_for_review_still_uses_the_proposal_path(self):
         task = self.make_task()
 
-        execution.run_and_finish(task.id, provider=ScriptedProvider([create_object_plan(self.object_type.key)]))
+        execution.run_and_finish(task.id, provider=ScriptedProvider(reconcile_ready_script(self.object_type.key)))
 
         task.refresh_from_db()
         self.assertEqual(task.status, AssistedTask.Status.READY_FOR_REVIEW)
@@ -222,7 +231,7 @@ class ReconcileRunAndFinishTests(AssistedExecutionTestCase):
     def test_no_change_required_completes_without_a_proposal(self):
         task = self.make_task()
 
-        execution.run_and_finish(task.id, provider=ScriptedProvider([no_change_result()]))
+        execution.run_and_finish(task.id, provider=ScriptedProvider(reconcile_no_change_script()))
 
         task.refresh_from_db()
         self.assertEqual(task.status, AssistedTask.Status.COMPLETED)
@@ -237,11 +246,9 @@ class ReconcileRunAndFinishTests(AssistedExecutionTestCase):
     def test_unresolved_completes_without_a_proposal(self):
         task = self.make_task()
 
-        # Reconcile's own OperationDefinition.max_refinement_cycles=5 is
-        # fixed and takes priority over the global setting -- unlike
-        # Create's equivalent test, overriding AI_MAX_REFINEMENT_CYCLES here
-        # would have no effect, so this scripts exactly Reconcile's own budget.
-        execution.run_and_finish(task.id, provider=ScriptedProvider([unresolved_result()] * 5))
+        # The reviewer's objection persists: a completed non-Proposal
+        # outcome, not a failure.
+        execution.run_and_finish(task.id, provider=ScriptedProvider(reconcile_unresolved_script(self.object_type.key)))
 
         task.refresh_from_db()
         self.assertEqual(task.status, AssistedTask.Status.COMPLETED)
@@ -251,7 +258,7 @@ class ReconcileRunAndFinishTests(AssistedExecutionTestCase):
     def test_needs_clarification_completes_without_a_proposal(self):
         task = self.make_task()
 
-        execution.run_and_finish(task.id, provider=ScriptedProvider([clarification_result()]))
+        execution.run_and_finish(task.id, provider=ScriptedProvider(reconcile_clarification_script()))
 
         task.refresh_from_db()
         self.assertEqual(task.status, AssistedTask.Status.COMPLETED)
@@ -261,7 +268,7 @@ class ReconcileRunAndFinishTests(AssistedExecutionTestCase):
     def test_token_usage_is_denormalized_on_the_completed_path(self):
         task = self.make_task()
 
-        execution.run_and_finish(task.id, provider=ScriptedProvider([no_change_result()]))
+        execution.run_and_finish(task.id, provider=ScriptedProvider(reconcile_no_change_script()))
 
         task.refresh_from_db()
         self.assertGreater(task.tokens_used, 0)
@@ -282,3 +289,58 @@ class ReconcileRunAndFinishTests(AssistedExecutionTestCase):
         self.assertIn("maximum number of open proposals", task.failure_reason)
         # Reconcile's Model is never deleted, unlike Create's bootstrap Model.
         self.assertTrue(Model.objects.filter(id=self.model.id).exists())
+
+
+class StagedRunTests(AssistedExecutionTestCase):
+    """The worker side of a multi-call staged run: heartbeat, the orphaned-
+    Proposal guard, and the durable per-task stage/finding summary."""
+
+    def make_task(self, **kwargs):
+        kwargs.setdefault("operation", AssistedTask.Operation.RECONCILE)
+        return super().make_task(**kwargs)
+
+    def test_stage_summary_calls_and_findings_are_denormalized(self):
+        from assisted.tests.support import approve
+
+        script = reconcile_ready_script(self.object_type.key)
+        script[-1] = approve("Widget colour was not given.")
+        task = self.make_task()
+
+        execution.run_and_finish(task.id, provider=ScriptedProvider(script))
+
+        task.refresh_from_db()
+        self.assertEqual(task.status, AssistedTask.Status.READY_FOR_REVIEW)
+        self.assertEqual(task.provider_calls, 2)
+        self.assertEqual(task.tokens_used, 2)
+        self.assertEqual(set(task.stage_summary), {"extraction", "verification"})
+        self.assertEqual(task.completeness, "complete")
+        self.assertIn({"severity": "minor", "message": "Widget colour was not given."}, task.findings)
+        self.assertEqual(task.current_stage, "")
+
+    def test_heartbeat_reports_the_running_stage_before_each_call(self):
+        task = self.make_task()
+        seen = []
+
+        class Watching(ScriptedProvider):
+            def generate_structured(self, **kwargs):
+                row = AssistedTask.objects.get(pk=task.pk)
+                seen.append((row.current_stage, row.updated_at))
+                return super().generate_structured(**kwargs)
+
+        execution.run_and_finish(task.id, provider=Watching(reconcile_ready_script(self.object_type.key)))
+
+        self.assertEqual([stage for stage, _ in seen], ["extraction", "verification"])
+        self.assertLess(seen[0][1], seen[-1][1])
+
+    def test_a_task_reclaimed_mid_run_leaves_no_orphaned_proposal(self):
+        task = self.make_task()
+
+        class ReclaimedDuringReview(ScriptedProvider):
+            def generate_structured(self, **kwargs):
+                if kwargs["user_payload"]["stage"] == "verification":
+                    AssistedTask.objects.filter(pk=task.pk).update(status=AssistedTask.Status.FAILED)
+                return super().generate_structured(**kwargs)
+
+        execution.run_and_finish(task.id, provider=ReclaimedDuringReview(reconcile_ready_script(self.object_type.key)))
+
+        self.assertFalse(Proposal.objects.filter(model=self.model).exists())

@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from publication.services.bundle import canonical_json
 
-from ai.models import AIExecution
+from ai.models import AIExecution, AIExecutionStep
 
 
 def _digest(payload) -> str:
@@ -33,11 +33,11 @@ class AIExecutionService:
         )
 
     @staticmethod
-    def record_context_digest(execution: AIExecution, context) -> None:
-        """Overwrites context_digest each cycle -- latest-wins, not a
-        history. Persists only the digest, never the packet."""
+    def record_context_digest(execution: AIExecution, payload: dict) -> None:
+        """Overwrites context_digest each call -- latest-wins, not a
+        history. Persists only the digest, never the payload."""
 
-        execution.context_digest = _digest(context.model_dump(mode="json"))
+        execution.context_digest = _digest(payload)
         execution.save(update_fields=["context_digest"])
 
     @staticmethod
@@ -63,9 +63,41 @@ class AIExecutionService:
         execution.save(update_fields=["refinement_cycles"])
 
     @staticmethod
-    def increment_context_expansion(execution: AIExecution) -> None:
-        execution.context_expansions += 1
-        execution.save(update_fields=["context_expansions"])
+    def record_step(
+        execution: AIExecution,
+        *,
+        call_index,
+        stage,
+        stage_attempt,
+        decision,
+        started_at,
+        issue_codes=None,
+        verdict="",
+        usage=None,
+        input_payload=None,
+        output_payload=None,
+        sequence=0,
+        provider_call=True,
+    ) -> AIExecutionStep:
+        """One workflow step's observability row (a provider call, or an
+        OnyxJar-only deterministic step): digests and codes only."""
+
+        return AIExecutionStep.objects.create(
+            execution=execution,
+            sequence=sequence,
+            provider_call=provider_call,
+            call_index=call_index,
+            stage=stage,
+            stage_attempt=stage_attempt,
+            decision=decision,
+            issue_codes=dict(issue_codes or {}),
+            verdict=verdict or "",
+            usage=dict(usage or {}),
+            input_digest=_digest(input_payload) if input_payload is not None else "",
+            output_digest=_digest(output_payload) if output_payload is not None else "",
+            started_at=started_at,
+            ended_at=timezone.now(),
+        )
 
     @staticmethod
     def finish(
@@ -76,16 +108,14 @@ class AIExecutionService:
         proposal=None,
         result_payload=None,
         error="",
+        provider_calls=None,
+        stage_summary=None,
     ) -> None:
         """
         result_digest semantics: populated when `result_payload` (the final
-        AIStructuredResult) is given, left blank otherwise -- never
-        fabricated. This covers every terminal path uniformly: READY_FOR_REVIEW,
-        NO_CHANGE_REQUIRED, NEEDS_USER_CLARIFICATION and UNRESOLVED always have
-        a structured result by the time they're reached; FAILED populates it
-        too if the failure happened after one was already parsed, and leaves
-        it blank for a provider/system failure before any structured result
-        ever existed.
+        last stage's structured output) is given, left blank otherwise --
+        never fabricated. A FAILED run before any structured output was
+        parsed leaves it blank.
         """
 
         execution.execution_status = execution_status
@@ -96,9 +126,15 @@ class AIExecutionService:
 
         if result_payload is not None:
             execution.result_digest = _digest(result_payload.model_dump(mode="json"))
+        if provider_calls is not None:
+            execution.provider_calls = provider_calls
+        if stage_summary is not None:
+            execution.stage_summary = dict(stage_summary)
 
         execution.save(
             update_fields=[
+                "provider_calls",
+                "stage_summary",
                 "execution_status",
                 "outcome",
                 "proposal",

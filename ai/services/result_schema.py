@@ -1,12 +1,16 @@
 """
-Structured AI output and the final operation result contract.
+The final operation result contract.
 
 Execution lifecycle (ExecutionStatus: did the AI run itself finish, fail, or
 is it still running) is kept strictly separate from operation outcome
 (OperationOutcome: what the run produced) -- a run can COMPLETE with outcome
-UNRESOLVED (every bounded refinement attempt exhausted without a valid
-result), which is different from the run itself FAILING (a provider/system
-error). See ai.services.orchestrator.
+UNRESOLVED (its bounded stage budgets were exhausted without a valid,
+verified result), which is different from the run itself FAILING (a
+provider/system error). See ai.services.orchestrator.
+
+The structured provider responses themselves are per-stage artifacts:
+ai.services.reconcile.responses (Extraction/Adjudication/Gap Probe/
+Verification) and ai.services.change_set.PlanResult (Create's Planning).
 """
 
 from __future__ import annotations
@@ -14,22 +18,12 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Literal, Optional
+from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from ai.services.artifacts import Finding
+from ai.services.feedback import AIIssue
 
-from ai.services.change_plan import ChangePlan, EntityRef, UnresolvedIssue
-
-__all__ = [
-    "ExecutionStatus",
-    "OperationOutcome",
-    "Interpretation",
-    "Finding",
-    "ContextRequest",
-    "UnresolvedIssue",
-    "AIStructuredResult",
-    "OperationResult",
-]
+__all__ = ["ExecutionStatus", "OperationOutcome", "OperationResult"]
 
 
 class ExecutionStatus(str, Enum):
@@ -46,43 +40,6 @@ class OperationOutcome(str, Enum):
     FAILED = "failed"
 
 
-class Interpretation(BaseModel):
-    restated_intent: str = ""
-    assumptions: List[str] = Field(default_factory=list)
-
-
-class Finding(BaseModel):
-    message: str
-    severity: Literal["info", "warning"] = "info"
-
-
-class ContextRequest(BaseModel):
-    """
-    A structured request from the AI for more context about a specific,
-    named reference -- resolved and bounded entirely by OnyxJar
-    (ai.services.context_expansion.resolve_context_requests), never raw
-    retrieval. `reference` is only actionable when kind="existing"; a "new"
-    reference can never be something the AI needs more canonical context
-    about, since it doesn't exist yet.
-    """
-
-    reference: EntityRef
-    reason: str = ""
-
-
-class AIStructuredResult(BaseModel):
-    """The literal schema a provider call must return (passed as response_schema)."""
-
-    schema_version: str = "1.0"
-    interpretation: Interpretation = Field(default_factory=Interpretation)
-    findings: List[Finding] = Field(default_factory=list)
-    context_requests: List[ContextRequest] = Field(default_factory=list)
-    change_plan: Optional[ChangePlan] = None
-    unresolved_issues: List[UnresolvedIssue] = Field(default_factory=list)
-    needs_clarification: bool = False
-    clarification_question: Optional[str] = None
-
-
 @dataclass
 class OperationResult:
     """What run_ai_operation returns to its caller."""
@@ -92,7 +49,20 @@ class OperationResult:
     execution_id: uuid.UUID
     proposal_id: Optional[uuid.UUID]
     explanation: str
+    # Total corrections across every stage (deterministic + review-driven).
     refinement_cycles: int
-    context_expansions: int
-    unresolved_issues: List[UnresolvedIssue] = field(default_factory=list)
+    # Legacy counter, always 0 for staged workflows (kept for AssistedTask's
+    # existing denormalized field).
+    context_expansions: int = 0
+    unresolved_issues: List[AIIssue] = field(default_factory=list)
+    # User-facing findings (omitted/unrepresentable evidence, reviewer notes,
+    # or -- on UNRESOLVED -- the material problems that remained).
     findings: List[Finding] = field(default_factory=list)
+    provider_calls: int = 0
+    stage_summary: dict = field(default_factory=dict)
+    # READY_FOR_REVIEW only: "complete", or "partial" when some intent targets
+    # were left out (blocked) and the Proposal holds the ones that could be
+    # reconciled independently (OperationPolicy.partial_outcome).
+    completeness: str = ""
+    # [{target, cluster_id, type_key, reason, missing_requirements, dependants}]
+    blocked_targets: List[dict] = field(default_factory=list)

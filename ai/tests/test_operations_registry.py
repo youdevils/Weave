@@ -8,7 +8,7 @@ from ai.services.operations import (
     list_operations,
     register_operation,
 )
-from ai.services.change_plan import ChangePlan
+from ai.services.operation_definitions import CREATE_POLICY, build_create_workflow
 
 
 def _definition(operation_id):
@@ -18,9 +18,8 @@ def _definition(operation_id):
         description="",
         evidence="optional",
         can_produce_proposal=True,
-        required_context_categories=frozenset(),
-        input_schema=ChangePlan,
-        output_schema=ChangePlan,
+        policy=CREATE_POLICY,
+        build_workflow=build_create_workflow,
     )
 
 

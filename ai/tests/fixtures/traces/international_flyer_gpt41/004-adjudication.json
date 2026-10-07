@@ -1,0 +1,59 @@
+{
+ "kind": "provider",
+ "stage": "adjudication",
+ "attempt": 1,
+ "decision": "correct",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "indirect_classification:A1",
+    "option_id": "refers_to_intermediate",
+    "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final",
+    "note": "The text states Eden Park hosts the opening match and the final, which refers to matches without identifying specific entities in the model\u2014they must be attached through a match."
+   },
+   {
+    "question_id": "indirect_classification:A6",
+    "option_id": "refers_to_intermediate",
+    "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+    "note": "The phrase refers to the hosting of quarter-final and semi-final matches, not to a direct relationship but to matches as intermediaries."
+   },
+   {
+    "question_id": "indirect_classification:a1",
+    "option_id": "direct_statement",
+    "excerpt": "Stage | Match | Venue\nPool A | New Zealand v Fiji | Eden Park",
+    "note": "This specifies a match (New Zealand v Fiji) and its venue (Eden Park), which is a direct relationship."
+   },
+   {
+    "question_id": "indirect_classification:A7",
+    "option_id": "direct_statement",
+    "excerpt": "Stage | Match | Venue\nPool A | Japan v Samoa | Sky Stadium",
+    "note": "This evidence directly connects the match (Japan v Samoa) with its venue (Sky Stadium)."
+   },
+   {
+    "question_id": "indirect_classification:A8",
+    "option_id": "direct_statement",
+    "excerpt": "Stage | Match | Venue\nPool B | Australia v Argentina | Forsyth Barr Stadium",
+    "note": "The text directly states the match (Australia v Argentina) is at Forsyth Barr Stadium."
+   },
+   {
+    "question_id": "indirect_classification:A9",
+    "option_id": "direct_statement",
+    "excerpt": "Stage | Match | Venue\nPool B | South Africa v Tonga | FMG Stadium Waikato",
+    "note": "States directly: the match (South Africa v Tonga) is at FMG Stadium Waikato."
+   },
+   {
+    "question_id": "indirect_classification:A10",
+    "option_id": "direct_statement",
+    "excerpt": "Stage | Match | Venue\nQuarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium",
+    "note": "Directly describes the quarter-final match and the venue (Orangetheory Stadium)."
+   },
+   {
+    "question_id": "indirect_classification:A11",
+    "option_id": "direct_statement",
+    "excerpt": "Stage | Match | Venue\nQuarter-final | Pool B winner v Pool A runner-up | Sky Stadium",
+    "note": "Directly specifies the match (Pool B winner v Pool A runner-up) occurs at Sky Stadium."
+   }
+  ]
+ }
+}

@@ -86,12 +86,11 @@ class EffectiveRelationship:
 @dataclass(frozen=True)
 class EffectiveAttributeDefinition:
     """
-    AI-facing addressability for an AttributeDefinition -- not needed by
-    anything else in model_graph (projection/details/reachability never
-    target an AttributeDefinition directly), added purely so
-    ai.services.ontology_context can expose a stable, parseable key-path
-    for one ("{ObjectType|RelationshipType}:{parent_key}:{key}" --
-    AttributeDefinition.key is only unique within its one parent).
+    Key-path addressability for an AttributeDefinition
+    ("{ObjectType|RelationshipType}:{parent_key}:{key}" --
+    AttributeDefinition.key is only unique within its one parent). Not
+    needed by projection/details/reachability; originally added for the
+    legacy AI context, which now uses ai.services.semantic.index instead.
     """
 
     id: str
@@ -228,9 +227,10 @@ class EffectiveDataset:
 
     # -- key-based lookups (AI-facing addressability) ---------------------
     #
-    # Every "existing"-kind EntityRef (ai.services.change_plan) resolves
-    # against one of these -- except the `relationship` domain, which has
-    # no key-based counterpart at all: Relationship has no key field and no
+    # Originally the resolution target of the legacy AI EntityRef contract
+    # (the ai app now resolves semantic references against
+    # ai.services.semantic.index instead). There is no key-based Relationship
+    # lookup here: Relationship has no key field and no
     # uniqueness constraint on (type, subject, object), so no synthetic
     # composite key could ever be guaranteed safe. dataset.relationship(id)
     # (above) remains the only way to address an existing Relationship.

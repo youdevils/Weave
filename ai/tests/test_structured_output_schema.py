@@ -1,142 +1,92 @@
 """
-Regression guard for the exact failure OpenAI's API raised against a real
-Assisted Create run:
+Regression guard for OpenAI strict structured outputs. The OpenAI python
+SDK's schema builder (openai.lib._pydantic.to_strict_json_schema, the same
+function client.responses.parse uses) does not raise client-side for a
+non-compliant schema -- the API rejects it server-side, e.g.:
 
-    Invalid schema for response_format 'AIStructuredResult': In
-    context=('properties', 'fields'), 'additionalProperties' is required to
-    be supplied and to be false.
+    Invalid schema for response_format '...': In context=('properties',
+    'fields'), 'additionalProperties' is required to be supplied and to be
+    false.
 
-That error is a server-side validation OpenAI performs against the JSON
-schema generated from `response_schema=AIStructuredResult` -- the OpenAI
-python SDK's own schema builder (openai.lib._pydantic.to_strict_json_schema,
-the same function client.responses.parse uses internally) does not raise
-client-side for a non-compliant schema, so the only reliable regression
-guard is to build that schema here and assert, recursively, that every
-object node is strict (additionalProperties: false) -- exactly the rule the
-API enforces.
+So every stage's response schema is built here and checked recursively:
+every object node strict, and no `oneOf` (strict mode supports `anyOf`
+only -- the ChangeSet's action union must stay a plain Union, never a
+Pydantic discriminated union).
 """
 
-import uuid
+from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase
-
 from openai.lib._pydantic import to_strict_json_schema
 
-from ai.services.change_plan import ChangeAction, ChangePlan, EntityRef, FieldEntry, FieldValue
+from ai.services.change_set import CreateObject, PlanResult
+from ai.services.reconcile.responses import AdjudicationResult, ExtractionResult, ProbeResult, VerificationResult
 from ai.services.openai_provider import OpenAIProvider
 from ai.services.provider import ProviderConfig
-from ai.services.result_schema import AIStructuredResult, Interpretation
+from ai.tests.support import plan
 
 
-def _assert_every_object_is_strict(testcase, node, path=()):
+def _violations(node, path=()):
+    found = []
     if isinstance(node, dict):
-        if node.get("type") == "object":
-            testcase.assertIs(
-                node.get("additionalProperties"),
-                False,
-                f"Non-strict object schema at {'.'.join(map(str, path)) or '<root>'}: {node}",
-            )
+        if node.get("type") == "object" and node.get("additionalProperties") is not False:
+            found.append(("non-strict object", path))
+        if "oneOf" in node:
+            found.append(("oneOf", path))
         for key, value in node.items():
-            _assert_every_object_is_strict(testcase, value, path + (key,))
+            found += _violations(value, path + (key,))
     elif isinstance(node, list):
         for index, value in enumerate(node):
-            _assert_every_object_is_strict(testcase, value, path + (index,))
+            found += _violations(value, path + (index,))
+    return found
 
 
 class StrictSchemaTests(SimpleTestCase):
 
-    def setUp(self):
-        self.schema = to_strict_json_schema(AIStructuredResult)
+    def test_every_stage_response_schema_is_strict(self):
+        for schema in (ExtractionResult, AdjudicationResult, ProbeResult, VerificationResult, PlanResult):
+            with self.subTest(schema=schema.__name__):
+                self.assertEqual(_violations(to_strict_json_schema(schema)), [])
 
-    def test_every_object_in_the_response_schema_is_strict(self):
-        _assert_every_object_is_strict(self, self.schema)
+    def test_change_set_actions_are_an_any_of_union_of_every_action_kind(self):
+        schema = to_strict_json_schema(PlanResult)
+        items = schema["$defs"]["ChangeSet"]["properties"]["actions"]["items"]
 
-    def test_change_action_fields_is_an_array_not_a_free_form_object(self):
-        fields_schema = self.schema["$defs"]["ChangeAction"]["properties"]["fields"]
-        self.assertEqual(fields_schema["type"], "array")
-        self.assertNotIn("additionalProperties", fields_schema)
+        self.assertEqual(len(items["anyOf"]), 12)
 
-    def test_field_entry_and_field_value_are_strict_objects(self):
-        for name in ("FieldEntry", "FieldValue", "AttributeDefinitionConfig"):
-            self.assertIs(self.schema["$defs"][name]["additionalProperties"], False)
+    def test_claim_stages_have_no_mutation_fields(self):
+        for response in (ExtractionResult, AdjudicationResult, ProbeResult, VerificationResult):
+            with self.subTest(schema=response.__name__):
+                schema = to_strict_json_schema(response)
+                self.assertNotIn("ChangeSet", schema.get("$defs", {}))
+                self.assertNotIn("actions", str(schema["properties"]))
 
 
 class SuccessfulParseSimulationTests(SimpleTestCase):
-    """
-    A real `responses.parse()` call returns `output_parsed` already validated
-    against `response_schema` by the OpenAI SDK -- i.e. a real AIStructuredResult
-    instance, built from the list[FieldEntry] shape the strict schema demands
-    (never the old dict-shorthand, which is a convenience this codebase's own
-    code/tests get, not something the provider ever sends or receives). This
-    builds exactly such a response and drives it through OpenAIProvider with
-    the real client call mocked, confirming the new schema round-trips end to
-    end rather than only in isolation.
-    """
 
-    def _structured_result(self):
-        return AIStructuredResult(
-            interpretation=Interpretation(restated_intent="Create a widget."),
-            change_plan=ChangePlan(
-                summary="Create a widget.",
-                actions=[
-                    ChangeAction(
-                        operation="create",
-                        target_type="Object",
-                        target_ref=EntityRef(kind="new", id="tmp:1"),
-                        parent_ref=EntityRef(kind="existing", id=str(uuid.uuid4())),
-                        fields=[
-                            FieldEntry(key="name", value=FieldValue(string_value="New widget")),
-                            FieldEntry(key="is_active", value=FieldValue(boolean_value=True)),
-                            FieldEntry(
-                                key="attributes.cost",
-                                value=FieldValue(number_value=42.5),
-                            ),
-                        ],
-                    )
-                ],
-            ),
-        )
+    def test_plan_result_round_trips_through_json_like_a_real_response(self):
+        structured = plan([
+            {"kind": "create_object", "action_id": "a1", "token": "t", "type": {"kind": "existing", "key": "widget"},
+             "name": "W", "attributes": [{"key": "cost", "number_value": 42.5}]},
+        ])
 
-    def test_provider_round_trips_a_list_shaped_structured_response(self):
-        from unittest.mock import MagicMock, patch
+        rebuilt = PlanResult.model_validate(structured.model_dump(mode="json"))
 
-        structured = self._structured_result()
+        self.assertEqual(rebuilt, structured)
+        self.assertIsInstance(rebuilt.change_set.actions[0], CreateObject)
+
+    def test_provider_returns_the_parsed_stage_result(self):
+        structured = plan([])
 
         with patch("ai.services.openai_provider.openai.OpenAI") as mock_openai_cls:
-            mock_client = mock_openai_cls.return_value
-            response = MagicMock()
-            response.output_parsed = structured
-            response.output_text = ""
-            response.model = "gpt-4.1"
-            response.usage = MagicMock(input_tokens=1, output_tokens=1, total_tokens=2)
-            mock_client.responses.parse.return_value = response
+            response = MagicMock(output_parsed=structured, output_text="", model="gpt-4.1",
+                                 usage=MagicMock(input_tokens=1, output_tokens=1, total_tokens=2))
+            mock_openai_cls.return_value.responses.parse.return_value = response
 
             result = OpenAIProvider().generate_structured(
-                system_prompt="sys",
-                user_payload={},
-                response_schema=AIStructuredResult,
+                system_prompt="sys", user_payload={}, response_schema=PlanResult,
                 config=ProviderConfig(model="gpt-4.1", timeout_seconds=5, max_retries=0),
             )
 
         self.assertIs(result.parsed, structured)
-        action = result.parsed.change_plan.actions[0]
-        self.assertEqual(
-            action.fields_dict(),
-            {"name": "New widget", "is_active": True, "attributes": {"cost": 42.5}},
-        )
-
-    def test_structured_result_round_trips_through_json_like_a_real_response_would(self):
-        """
-        model_dump(mode="json") + model_validate is exactly what parsing a
-        real JSON response body back into AIStructuredResult does -- proves
-        the list[FieldEntry] shape survives a JSON round-trip losslessly.
-        """
-        structured = self._structured_result()
-
-        rebuilt = AIStructuredResult.model_validate(structured.model_dump(mode="json"))
-
-        self.assertEqual(rebuilt, structured)
-        self.assertEqual(
-            rebuilt.change_plan.actions[0].fields_dict(),
-            structured.change_plan.actions[0].fields_dict(),
-        )
+        self.assertEqual(result.usage["total_tokens"], 2)

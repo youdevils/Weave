@@ -76,7 +76,7 @@ class FailureCleanupTests(AssistedTestCase):
     def test_unresolved(self):
         task = self.make_task()
 
-        with override_settings(AI_MAX_REFINEMENT_CYCLES=1):
+        with override_settings(AI_CREATE_PLANNING_MAX_CALLS=1):
             execution.run_and_finish(task.id, provider=ScriptedProvider([unresolved_result()] * 2))
 
         self.assert_cleaned_up(task, failure_reason_code=AssistedTask.FailureReasonCode.UNRESOLVED)

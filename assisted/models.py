@@ -124,6 +124,25 @@ class AssistedTask(models.Model):
     # not a "large AI payload", safe to duplicate for post-deletion history.
     refinement_cycles = models.PositiveIntegerField(default=0)
     context_expansions = models.PositiveIntegerField(default=0)
+    provider_calls = models.PositiveIntegerField(default=0)
+    # {stage_id: {"calls": n, "corrections": n}} -- counters only.
+    stage_summary = models.JSONField(default=dict, blank=True)
+
+    # The workflow stage currently running (extraction/adjudication/gap_probe/
+    # verification for Reconcile, planning for Create, or explain), updated by
+    # the worker's heartbeat; blank once terminal.
+    current_stage = models.CharField(max_length=30, blank=True)
+
+    # Short, bounded user-facing notes ([{"severity", "message"}], capped at
+    # settings.AI_MAX_TASK_FINDINGS): evidence that was not represented,
+    # reviewer notes on an approved result, or the material problems left on
+    # an unresolved one. Not raw AI payloads.
+    findings = models.JSONField(default=list, blank=True)
+
+    # READY_FOR_REVIEW only: "complete", or "partial" when some requested
+    # items could not be reconciled and the Proposal holds the ones that could
+    # (the left-out ones are material `findings`). Blank otherwise.
+    completeness = models.CharField(max_length=10, blank=True)
 
     # Denormalized copy of AIExecution.usage["total_tokens"] at finish time --
     # captured before a FAILED Create's bootstrap Model (and therefore its

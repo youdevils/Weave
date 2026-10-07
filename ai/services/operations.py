@@ -1,19 +1,18 @@
 """
 The AI operation contract and registry.
 
-This module builds the mechanism only. `create` is the first real operation
-registered against it (see ai.services.operation_definitions, wired up from
-AiConfig.ready()); `reconcile`/`change`/`assess` remain unregistered.
-Operations plug into the common orchestration layer
-(ai.services.orchestrator.run_ai_operation) by providing one of these,
-without implementing their own provider, context, Proposal or validation
-machinery.
+An operation plugs into the common orchestration layer
+(ai.services.orchestrator.run_ai_operation) by providing an
+OperationDefinition: a ChangeSet policy (what its ChangeSets may contain --
+ai.services.resolution.OperationPolicy) and a factory for its staged
+WorkflowDefinition (ai.services.workflow.engine). It never implements its own
+provider, context, resolution, Proposal or validation machinery. Real
+operations are registered in ai.services.operation_definitions, wired up from
+AiConfig.ready().
 """
 
 from dataclasses import dataclass
-from typing import Callable, FrozenSet, Literal, Optional, Type
-
-from pydantic import BaseModel
+from typing import Callable, Literal
 
 
 class UnknownOperation(KeyError):
@@ -31,25 +30,11 @@ class OperationDefinition:
     description: str
     evidence: Literal["required", "optional", "none"]
     can_produce_proposal: bool
-    required_context_categories: FrozenSet[str]
-    input_schema: Type[BaseModel]
-    output_schema: Type[BaseModel]
-    # Optional, operation-specific extension points consumed generically by
-    # ai.services.orchestrator.run_ai_operation -- never branched on
-    # operation_id there. All three default to a no-op for an operation that
-    # doesn't set them (Create today; Change/Assess can opt in later).
-    #
-    # plan_sufficiency_check: run against the AI's structured ChangePlan
-    # after it already passed validate_change_plan's deterministic reference
-    # checks; any issues it returns feed back into refinement exactly like
-    # every other issue source in the loop.
-    plan_sufficiency_check: Optional[Callable[[object], list]] = None
-    # prompt_fragment: appended to the shared system prompt
-    # (ai.services.orchestrator._system_prompt) after its universal text.
-    prompt_fragment: str = ""
-    # max_refinement_cycles: this operation's own bounded refinement budget.
-    # None means "use the global settings.AI_MAX_REFINEMENT_CYCLES default."
-    max_refinement_cycles: Optional[int] = None
+    # ai.services.resolution.OperationPolicy
+    policy: object
+    # () -> ai.services.workflow.engine.WorkflowDefinition. A factory, not an
+    # instance: budgets are read from settings at run time.
+    build_workflow: Callable[[], object]
 
 
 _REGISTRY: dict[str, OperationDefinition] = {}

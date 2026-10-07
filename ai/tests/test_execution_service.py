@@ -1,8 +1,11 @@
 from ai.models import AIExecution
-from ai.services.context_schema import ContextPacket
+from django.utils import timezone
+
+from ai.models import AIExecutionStep
+from ai.services.reconcile.responses import ExtractionResult
 from ai.services.execution import AIExecutionService
 from ai.services.provider import ProviderResult
-from ai.services.result_schema import AIStructuredResult, ExecutionStatus, Interpretation, OperationOutcome
+from ai.services.result_schema import ExecutionStatus, OperationOutcome
 from ai.tests.support import AIServiceTestCase
 
 
@@ -23,8 +26,8 @@ class AIExecutionServiceTests(AIServiceTestCase):
 
     def test_context_digest_overwritten_each_cycle_latest_wins(self):
         execution = self._execution()
-        packet_a = ContextPacket(intent="a", model_id="1", model_name="M", model_revision=1, byte_size=0)
-        packet_b = ContextPacket(intent="b", model_id="1", model_name="M", model_revision=1, byte_size=0)
+        packet_a = {"stage": "extraction", "intent": "a"}
+        packet_b = {"stage": "extraction", "intent": "b"}
 
         AIExecutionService.record_context_digest(execution, packet_a)
         digest_a = execution.context_digest
@@ -59,16 +62,46 @@ class AIExecutionServiceTests(AIServiceTestCase):
 
         self.assertEqual(execution.refinement_cycles, 2)
 
-    def test_increment_context_expansion(self):
+    def test_record_step_keeps_digests_and_codes_never_payloads(self):
         execution = self._execution()
 
-        AIExecutionService.increment_context_expansion(execution)
+        step = AIExecutionService.record_step(
+            execution,
+            call_index=1,
+            stage="extraction",
+            stage_attempt=1,
+            decision="correct",
+            started_at=timezone.now(),
+            issue_codes={"excerpt_not_found": 2},
+            usage={"total_tokens": 7},
+            input_payload={"intent": "secret intent text"},
+            output_payload={"x": 1},
+        )
 
-        self.assertEqual(execution.context_expansions, 1)
+        step.refresh_from_db()
+        self.assertEqual(step.issue_codes, {"excerpt_not_found": 2})
+        self.assertEqual(len(step.input_digest), 64)
+        self.assertEqual(len(step.output_digest), 64)
+        self.assertNotIn("secret", str(AIExecutionStep.objects.filter(pk=step.pk).values().first()))
+
+    def test_finish_records_provider_calls_and_stage_summary(self):
+        execution = self._execution()
+
+        AIExecutionService.finish(
+            execution,
+            execution_status=ExecutionStatus.COMPLETED,
+            outcome=OperationOutcome.NO_CHANGE_REQUIRED,
+            provider_calls=2,
+            stage_summary={"extraction": {"calls": 1, "corrections": 0}},
+        )
+
+        execution.refresh_from_db()
+        self.assertEqual(execution.provider_calls, 2)
+        self.assertEqual(execution.stage_summary["extraction"]["calls"], 1)
 
     def test_result_digest_populated_when_structured_result_exists(self):
         execution = self._execution()
-        result = AIStructuredResult(interpretation=Interpretation(restated_intent="x"))
+        result = ExtractionResult()
 
         AIExecutionService.finish(
             execution,

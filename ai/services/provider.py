@@ -6,7 +6,7 @@ Provider abstraction. The operation/orchestration layer never calls OpenAI
 
 `provider` is a plain constructor-injected dependency on
 ai.services.orchestrator.run_ai_operation, purely for testability -- no
-provider registry/plugin framework is introduced in Phase 1.
+provider registry/plugin framework.
 """
 
 from __future__ import annotations
@@ -68,8 +68,10 @@ class AIProvider(ABC):
         ...
 
     @abstractmethod
-    def explain(self, *, context: Any, issues: list, config: ProviderConfig) -> str:
+    def explain(self, *, context: Any, issues: list, config: ProviderConfig) -> ProviderResult:
         """A final, explanation-only call. Must never mutate model state or
         create a Proposal -- a plain text-producing call, not another
-        refinement attempt."""
+        refinement attempt. The explanation text is the result's `raw_text`;
+        its `usage` is accumulated like any other call's (it is real
+        provider cost)."""
         ...
