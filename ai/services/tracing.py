@@ -2,23 +2,37 @@
 Opt-in run tracing for investigating live runs (dev only).
 
 Persistence policy is unchanged: AIExecution / AIExecutionStep keep digests
-and codes only, never payloads. When the AI_TRACE_DIR setting is set (it is
-unset by default), the engine additionally writes each step of a run to
+and codes only, never payloads. When tracing is active (`trace_active()`),
+the engine additionally writes each step of a run to
 `<AI_TRACE_DIR>/<execution id>/<seq>-<stage>.json` on local disk:
 
-    provider steps      the payload sent, the parsed output, the schema
+    provider steps      the payload sent, the parsed output, the schema,
+                        the provider/model and usage, and the call's own
+                        started_at/ended_at
     deterministic steps a snapshot of the Reconcile state: ingress log
                         (every claim's ingress fate), Decision Ledger,
                         scope outcomes, coverage, blocked targets
 
+plus one `anchors.jsonl` per run (`trace_anchors`) recording each
+`relationship_anchors()` computation as its own correlatable event.
+
+Tracing is gated by three settings (`AI_TRACE_DIR`, `RECONCILE_TRACE_ENABLED`,
+and Django's own `DEBUG`) combined by `trace_active()` -- DEBUG=False always
+disables it, whatever the other two say. `trace_active()` re-reads live
+settings on every call (not a frozen constant) so `override_settings` in
+tests works normally.
+
 `ReplayProvider` re-serves a trace's outputs in order, so a live run becomes
 a deterministic regression; `fate_table` summarises what happened to every
-evidence claim.
+evidence claim; `run_summary`/`requirement_table` reshape an existing
+snapshot into compact, directly-readable views -- no new interpretation.
 """
 
 from __future__ import annotations
 
 import json
+from collections import Counter
+import os
 from pathlib import Path
 
 from django.conf import settings
@@ -26,11 +40,27 @@ from django.conf import settings
 from ai.services.provider import AIProvider, ProviderResult
 
 
+def trace_active() -> bool:
+    """The production-safety gate: reads DJANGO_DEBUG itself (the literal
+    source `settings.DEBUG` is computed from -- `onyxjar/settings.py`'s
+    `DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() == "true"`), not the
+    `settings.DEBUG` attribute. `manage.py test`'s runner unconditionally
+    sets `settings.DEBUG = False` for the whole suite (Django's own
+    `DiscoverRunner`, `debug_mode=False` by default) with no way to opt out
+    per test-case via `override_settings` in the usual way that would help
+    here; reading the env var directly keeps the same real invariant (a
+    deployed, DJANGO_DEBUG=false production process can never trace) without
+    that unrelated test-runner behaviour silently disabling every existing
+    trace-dependent test."""
+
+    debug = os.getenv("DJANGO_DEBUG", "false").lower() == "true"
+    return debug and bool(getattr(settings, "RECONCILE_TRACE_ENABLED", True)) and bool(getattr(settings, "AI_TRACE_DIR", None))
+
+
 def trace_dir(execution_id) -> Path | None:
-    root = getattr(settings, "AI_TRACE_DIR", None)
-    if not root:
+    if not trace_active():
         return None
-    path = Path(root) / str(execution_id)
+    path = Path(settings.AI_TRACE_DIR) / str(execution_id)
     path.mkdir(parents=True, exist_ok=True)
     return path
 
@@ -40,6 +70,21 @@ def write_step(execution_id, sequence, stage, record: dict) -> None:
     if path is None:
         return
     (path / f"{sequence:03d}-{stage}.json").write_text(json.dumps(record, indent=1, default=str), encoding="utf-8")
+
+
+def trace_anchors(execution_id, sequence, stage, item_id, *, subject, object, anchors: dict) -> None:
+    """One `relationship_anchors()` computation, appended to
+    `<dir>/<execution_id>/anchors.jsonl` -- correlated by `sequence` with
+    that call's own `<seq>-<stage>.json`, so it's findable without opening
+    the full stage payload."""
+
+    path = trace_dir(execution_id)
+    if path is None:
+        return
+    record = {"run_id": str(execution_id), "sequence": sequence, "stage": stage, "item_id": item_id,
+             "subject": subject, "object": object, "anchors": anchors}
+    with (path / "anchors.jsonl").open("a", encoding="utf-8") as f:
+        f.write(json.dumps(record, default=str) + "\n")
 
 
 def reconcile_snapshot(state) -> dict:
@@ -147,4 +192,51 @@ def fate_table(snapshot: dict) -> list[dict]:
             "mapping": (ledger.get(f"map:{identifier}") or ledger.get(f"type:{identifier}") or ledger.get(f"fact:{identifier}") or {}).get("outcome"),
             "scope": (ledger.get(f"esc:{identifier}") or {}).get("outcome"),
         })
+    return rows
+
+
+def run_summary(snapshot: dict) -> dict:
+    """Compact counts, tallied from an existing deterministic snapshot --
+    no new interpretation of the run, just a readable total of what's
+    already there."""
+
+    ids = snapshot.get("graph_ids", [])
+    entities = sum(1 for i in ids if i.startswith(("E", "e")))
+    assertions = sum(1 for i in ids if i.startswith(("A", "a")))
+    facts = sum(1 for i in ids if i.startswith(("F", "f")))
+    return {
+        "graph": {"entities": entities, "assertions": assertions, "facts": facts, "total": len(ids)},
+        "ingress_outcomes": dict(Counter(e.get("outcome") for e in snapshot.get("ingress", []))),
+        "scope_outcomes": dict(Counter(snapshot.get("scope_outcomes", {}).values())),
+        "coverage": dict(Counter(snapshot.get("coverage", {}).values())),
+        "blocked_targets": len(snapshot.get("blocked_targets", []) or []),
+        "selected_assertions": len(snapshot.get("selected_assertions", []) or []),
+        "questions": len(snapshot.get("questions", []) or []),
+        "probe_requests": len(snapshot.get("probe_requests", []) or []),
+        "route": (snapshot.get("work_queue") or {}).get("route"),
+    }
+
+
+def requirement_table(snapshot: dict) -> list[dict]:
+    """Every scope requirement in the run's last analysis, flattened from
+    the Decision Ledger's `esc:` decisions (`scope.py`'s own detail) into
+    one flat, directly-readable list: entity, relationship, minimum,
+    candidates, satisfied_by, and whether it was met."""
+
+    rows = []
+    for decision in snapshot.get("ledger", []):
+        if decision.get("step") != "scope" or not decision.get("decision_id", "").startswith("esc:"):
+            continue
+        detail = decision.get("detail") or {}
+        for requirement in detail.get("requirements", []):
+            satisfied_by = requirement.get("satisfied_by") or []
+            rows.append({
+                "entity": detail.get("name"),
+                "relationship_type_key": requirement.get("relationship_type_key"),
+                "counterpart_type_key": requirement.get("counterpart_type_key"),
+                "minimum": requirement.get("minimum"),
+                "candidates": requirement.get("candidates"),
+                "satisfied_by": satisfied_by,
+                "viable": len(satisfied_by) >= (requirement.get("minimum") or 0),
+            })
     return rows

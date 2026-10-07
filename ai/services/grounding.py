@@ -65,6 +65,40 @@ def _names(entity) -> list[str]:
     return [entity.name, *entity.aliases]
 
 
+def relationship_anchors(subject_names: list[str], object_names: list[str], bundle: EvidenceBundle) -> dict:
+    """Where a relationship between something named by `subject_names` and
+    something named by `object_names` could actually be cited -- a locator
+    for a rejected assertion's correction, never a claim and never proof a
+    relationship does or doesn't exist; grounding and the model's own
+    citation remain the sole authority.
+
+        direct       segment ids whose own text mentions both sides (a true
+                     co-occurrence)
+        structural   (segment_id, segment_id) pairs, one naming each side,
+                     that are ancestor/descendant-related (_related) -- e.g.
+                     a title heading and a row far beneath it, never a
+                     nearer heading that doesn't itself name the subject
+        subject_only/object_only  present only when neither of the above
+                     exists: each side is mentioned somewhere, but nothing
+                     connects them -- no eligible direct or structural
+                     anchor was found for this specific pair
+    """
+
+    segments = list(bundle.segments())
+    subject_hits = [s for s in segments if mentions(s.text, subject_names)]
+    object_hits = [s for s in segments if mentions(s.text, object_names)]
+    object_ids = {s.segment_id for s in object_hits}
+    subject_ids = {s.segment_id for s in subject_hits}
+    direct = [s.segment_id for s in subject_hits if s.segment_id in object_ids]
+    subject_only = [s for s in subject_hits if s.segment_id not in object_ids]
+    object_only = [s for s in object_hits if s.segment_id not in subject_ids]
+    structural = [(a.segment_id, b.segment_id) for a in subject_only for b in object_only if _related(a, b)]
+    if direct or structural:
+        return {"direct": direct, "structural": structural}
+    return {"direct": [], "structural": [], "subject_only": [s.segment_id for s in subject_only][:5],
+            "object_only": [s.segment_id for s in object_only][:5]}
+
+
 def _related(a: Unit, b: Unit) -> bool:
     if a.source_id != b.source_id or a.source_id == INTENT_SOURCE_ID:
         return False

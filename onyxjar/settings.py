@@ -281,10 +281,19 @@ AI_RECONCILE_VERIFICATION_MAX_CORRECTION_CALLS = 1
 # Hard backstop on logical workflow calls for any one run, whatever the
 # per-stage budgets add up to.
 AI_WORKFLOW_MAX_PROVIDER_CALLS = 14
-# Opt-in, dev-only run tracing (ai.services.tracing): when set, every step's
-# payload/output and Reconcile state snapshot is written as JSON under this
-# directory. Never stored in the database; unset by default.
+# Opt-in, dev-only run tracing (ai.services.tracing): when active, every
+# step's payload/output and Reconcile state snapshot is written as JSON
+# under this directory. Never stored in the database; unset by default.
 AI_TRACE_DIR = os.getenv("AI_TRACE_DIR") or None
+# A further, independently-overridable switch over AI_TRACE_DIR (e.g. to
+# force tracing off in CI without touching AI_TRACE_DIR). Defaults on:
+# setting AI_TRACE_DIR is already an explicit, dev-only opt-in, so this adds
+# a second manual step only when someone wants one.
+RECONCILE_TRACE_ENABLED = os.getenv("RECONCILE_TRACE_ENABLED", "true").lower() == "true"
+# The actual invariant -- DEBUG=False always wins, whatever the flags above
+# say -- is enforced dynamically by ai.services.tracing.trace_active() (so
+# `override_settings` in tests behaves normally); this just documents it.
+RECONCILE_TRACE_ACTIVE = DEBUG and RECONCILE_TRACE_ENABLED and bool(AI_TRACE_DIR)
 # Deterministic (non-provider) workflow steps any one run may take -- a
 # backstop against a routing loop, never reached by a well-formed run.
 AI_WORKFLOW_MAX_DETERMINISTIC_STEPS = 40

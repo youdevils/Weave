@@ -30,7 +30,7 @@ from ai.services.reconcile.ingress import log
 from ai.services.reconcile.near_miss import pack_claims, probe_payload
 from ai.services.reconcile.responses import ProbeResult
 from ai.services.stages import prompts
-from ai.services.stages.extraction import absorb, segment_payload
+from ai.services.stages.extraction import absorb, correction_anchors, segment_payload
 from ai.services.workflow.engine import Goto, Stage
 
 
@@ -175,11 +175,15 @@ class GapProbeCorrectionStage(Stage):
         for identifier, (item, issues) in rs.pending_items.items():
             if not issues:
                 continue
-            invalid.append({
+            entry = {
                 "id": identifier, "item": item.model_dump(mode="json"),
                 "issues": [i.model_dump(mode="json", exclude_none=True) for i in issues],
                 "cited_segments": segment_payload(run, sorted({p.segment_id for p in item.provenance if p.segment_id})),
-            })
+            }
+            anchors = correction_anchors(run, item, issues, stage=self.stage_id)
+            if anchors is not None:
+                entry["relationship_anchors"] = anchors
+            invalid.append(entry)
         missing = [rs.probe_payloads[rid] for rid in rs.reask_requirements if rid in rs.probe_payloads]
         segment_ids = sorted({sid for r in missing for sid in r["segment_ids"]})
         return {

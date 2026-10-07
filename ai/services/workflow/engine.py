@@ -53,7 +53,7 @@ from ai.services.execution import AIExecutionService
 from ai.services.feedback import AIIssue, bounded_issues
 from ai.services.provider import ProviderConfig, ProviderError, ProviderSchemaError
 from ai.services.result_schema import ExecutionStatus, OperationOutcome
-from ai.services.tracing import reconcile_snapshot, write_step
+from ai.services.tracing import reconcile_snapshot, trace_active, write_step
 
 logger = logging.getLogger("ai.workflow")
 
@@ -183,6 +183,11 @@ class WorkflowRun:
     deterministic_steps: int = 0
     step_sequence: int = 0
     corrections: int = 0
+    # The sequence number reserved for the call currently being built (set
+    # before build_input() runs, so a stage can correlate a trace event --
+    # e.g. ai.services.stages.extraction.correction_anchors -- with its own
+    # eventual <seq>-<stage>.json before the provider has even been called).
+    current_sequence: int = 0
 
     # -- budgets -------------------------------------------------------------
 
@@ -267,6 +272,7 @@ class WorkflowRun:
         if self.on_progress is not None:
             self.on_progress("explain")
         self.explanation_calls += 1
+        sequence = self.current_sequence = self.next_sequence()
         started = timezone.now()
         context = {"intent": self.intent.text, "interpretation": self.state.interpretation}
         try:
@@ -274,16 +280,22 @@ class WorkflowRun:
         except ProviderError:
             AIExecutionService.record_step(
                 self.execution, call_index=self.provider_calls, stage="explain", stage_attempt=1,
-                decision="provider_error", started_at=started, sequence=self.next_sequence(),
+                decision="provider_error", started_at=started, ended_at=timezone.now(), sequence=sequence,
             )
             return ""  # best-effort only; never escalate UNRESOLVED into FAILED
+        ended = timezone.now()
         AIExecutionService.accumulate_usage(self.execution, result)
-        sequence = self.next_sequence()
         AIExecutionService.record_step(
             self.execution, call_index=self.provider_calls, stage="explain", stage_attempt=1,
-            decision="explain", started_at=started, usage=result.usage, sequence=sequence,
+            decision="explain", started_at=started, ended_at=ended, usage=result.usage, sequence=sequence,
         )
-        write_step(self.execution.id, sequence, "explain", {"kind": "explain", "stage": "explain", "output": result.raw_text or ""})
+        write_step(self.execution.id, sequence, "explain", {
+            "kind": "explain", "run_id": str(self.execution.id), "sequence": sequence, "stage": "explain",
+            "output": result.raw_text or "", "provider": result.provider, "provider_model": getattr(result, "provider_model", None),
+            "usage": result.usage, "started_at": started, "ended_at": ended,
+        })
+        if trace_active():
+            logger.info("RECONCILE_TRACE run=%s seq=%s stage=explain", self.execution.id, sequence)
         return result.raw_text or ""
 
 
@@ -322,10 +334,12 @@ def run_workflow(run: WorkflowRun) -> Finish:
                 issue_codes=_issue_codes(decision.unresolved_issues) if isinstance(decision, Finish) else {},
             )
             write_step(run.execution.id, sequence, current, {
-                "kind": "deterministic", "stage": current, "decision": label,
-                "next": getattr(decision, "stage_id", None), "snapshot": reconcile_snapshot(run.state),
+                "kind": "deterministic", "run_id": str(run.execution.id), "sequence": sequence, "stage": current,
+                "decision": label, "next": getattr(decision, "stage_id", None), "snapshot": reconcile_snapshot(run.state),
             })
             logger.info("ai.workflow execution=%s stage=%s deterministic decision=%s", run.execution.id, current, label)
+            if trace_active():
+                logger.info("RECONCILE_TRACE run=%s seq=%s stage=%s", run.execution.id, sequence, current)
             if isinstance(decision, Finish):
                 return decision
             current = decision.stage_id
@@ -339,6 +353,10 @@ def run_workflow(run: WorkflowRun) -> Finish:
 
         correction_key = run.budget_key(current, True)
         attempt = run.stage_calls.get(current, 0) + (run.stage_calls.get(correction_key, 0) if correction_key != current else 0) + 1
+        # Reserved before build_input() runs, so a stage can correlate a
+        # trace event it writes mid-build (e.g. correction_anchors) with
+        # this same call's eventual <seq>-<stage>.json.
+        sequence = run.current_sequence = run.next_sequence()
         payload = stage.build_input(run)
         started = timezone.now()
         try:
@@ -352,9 +370,10 @@ def run_workflow(run: WorkflowRun) -> Finish:
         except ProviderError:
             AIExecutionService.record_step(
                 run.execution, call_index=run.provider_calls, stage=current, stage_attempt=attempt,
-                decision="provider_error", started_at=started, input_payload=payload, sequence=run.next_sequence(),
+                decision="provider_error", started_at=started, ended_at=timezone.now(), input_payload=payload, sequence=sequence,
             )
             raise
+        ended = timezone.now()
 
         output = result.parsed
         state.last_output = output
@@ -388,18 +407,23 @@ def run_workflow(run: WorkflowRun) -> Finish:
             stage_attempt=attempt,
             decision=label,
             started_at=started,
+            ended_at=ended,
             issue_codes=codes,
             verdict=getattr(output, "verdict", "") or "",
             usage=result.usage,
             input_payload=payload,
             output_payload=output.model_dump(mode="json"),
-            sequence=(sequence := run.next_sequence()),
+            sequence=sequence,
         )
         write_step(run.execution.id, sequence, current, {
-            "kind": "provider", "stage": current, "attempt": attempt, "decision": label,
-            "schema": stage.response_schema.__name__, "payload": payload, "output": output.model_dump(mode="json"),
+            "kind": "provider", "run_id": str(run.execution.id), "sequence": sequence, "stage": current, "attempt": attempt,
+            "decision": label, "schema": stage.response_schema.__name__, "payload": payload, "output": output.model_dump(mode="json"),
             "issues": [i.model_dump(mode="json") for i in (decision.issues if isinstance(decision, Correct) else [])],
+            "provider": result.provider, "provider_model": getattr(result, "provider_model", None), "usage": result.usage,
+            "started_at": started, "ended_at": ended,
         })
+        if trace_active():
+            logger.info("RECONCILE_TRACE run=%s seq=%s stage=%s", run.execution.id, sequence, current)
         logger.info(
             "ai.workflow execution=%s stage=%s attempt=%s decision=%s issues=%s tokens=%s",
             run.execution.id, current, attempt, label, codes, (result.usage or {}).get("total_tokens"),

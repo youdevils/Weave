@@ -384,6 +384,13 @@ def no_more_claims(payload):
     return {"claims": {}, "verdicts": []}
 
 
+def no_more_corrections(payload):
+    """A continuation for a correction stage whose captured round wasn't the
+    last: offers nothing further, withdrawing whatever is still pending."""
+
+    return {"intent_frame": {}, "evidence": {}, "dismissed_segments": []}
+
+
 class LiveFlyerRegressionTests(InternationalFlyerFixture):
     """The captured live GPT-4.1 run (every venue/stage/match blocked, then
     approved): its provider outputs replayed by stage through the corrected
@@ -408,7 +415,8 @@ class LiveFlyerRegressionTests(InternationalFlyerFixture):
                 text = text.replace(live, rules[key])
             (Path(directory.name) / step.name).write_text(text, encoding="utf-8")
         provider = ReplayProvider(directory.name, inject={"adjudication": [single_option_oracle] * 3,
-                                                          "gap_probe_correction": [no_more_claims] * 2})
+                                                          "gap_probe_correction": [no_more_claims] * 2,
+                                                          "extraction_correction": [no_more_corrections] * 2})
         return provider, self.run_reconcile(provider)
 
     def changes(self, result):
@@ -418,8 +426,8 @@ class LiveFlyerRegressionTests(InternationalFlyerFixture):
         provider, result = self.replay()
 
         self.assertEqual(provider.requested, [
-            "extraction", "extraction_correction", "adjudication", "adjudication", "gap_probe", "gap_probe_correction",
-            "adjudication", "gap_probe", "adjudication", "verification",
+            "extraction", "extraction_correction", "extraction_correction", "adjudication", "adjudication", "gap_probe",
+            "gap_probe_correction", "adjudication", "gap_probe", "adjudication", "verification",
         ])
         # The request itself drives the search: the elided target excerpts are
         # repaired, so the venues/stages targets are kept -- and the rows nothing

@@ -75,6 +75,24 @@ A small input is typically 2 provider calls (one extraction batch + verification
   Verification) and excluded by the analysis and TracePolicy.
   `support: structural` only changes which citations satisfy L2 -- never how
   a claim maps.
+- **Correction gets a real anchor, never just the rejection.** An assertion
+  rejected `unanchored_claim` can name an entity that *was* accepted (an
+  entity's own grounding needs only its own name mentioned) while the
+  relationship about it is not -- so a relational row can look "found" in
+  the response and still be `uncovered` (coverage needs an assertion/fact,
+  never an entity alone, for a row). Re-showing the model the segment it
+  already (wrongly) cited does not fix this reliably. So the correction
+  payload (`ExtractionCorrectionStage`/`GapProbeCorrectionStage`) adds
+  `relationship_anchors` (`grounding.relationship_anchors`, via
+  `extraction.correction_anchors`): `direct` (one segment stating both
+  sides), `structural` (an ancestor/descendant pair, one naming each side --
+  never a nearer heading that doesn't itself name the subject, rendered with
+  its full containment via `segment_payload`/`with_ancestors`, never
+  flattened to bare ids), or, when neither exists, `subject_only`/
+  `object_only` -- a hint that no eligible anchor was found for *this* pair,
+  not proof no relationship exists. It is strictly a locator: the model
+  still proposes the claim and its own citation; grounding remains the sole
+  authority on acceptance.
 - **Coverage** (`reconcile/coverage.py`). Every segment that names a target
   or anchor (or, for rows/list items, a target type -- in its own text or its
   table's header row) is `claimed` (cited by a

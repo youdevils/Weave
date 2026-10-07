@@ -71,6 +71,7 @@ class AIExecutionService:
         stage_attempt,
         decision,
         started_at,
+        ended_at=None,
         issue_codes=None,
         verdict="",
         usage=None,
@@ -80,7 +81,9 @@ class AIExecutionService:
         provider_call=True,
     ) -> AIExecutionStep:
         """One workflow step's observability row (a provider call, or an
-        OnyxJar-only deterministic step): digests and codes only."""
+        OnyxJar-only deterministic step): digests and codes only. `ended_at`
+        is the caller's own genuine end-of-call timestamp when it has one
+        (a provider call's own end); otherwise this is recorded now."""
 
         return AIExecutionStep.objects.create(
             execution=execution,
@@ -96,7 +99,7 @@ class AIExecutionService:
             input_digest=_digest(input_payload) if input_payload is not None else "",
             output_digest=_digest(output_payload) if output_payload is not None else "",
             started_at=started_at,
-            ended_at=timezone.now(),
+            ended_at=ended_at if ended_at is not None else timezone.now(),
         )
 
     @staticmethod

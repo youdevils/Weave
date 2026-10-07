@@ -28,7 +28,7 @@ from django.conf import settings
 
 from ai.services.artifacts import Finding
 from ai.services.evidence_graph import EvidenceGraph, item_id, validate_evidence_graph
-from ai.services.grounding import grounding_issues
+from ai.services.grounding import grounding_issues, relationship_anchors
 from ai.services.intent_frame import IntentFrame, repair_elisions, validate_intent_frame
 from ai.services.reconcile.coverage import DISMISSED, UNCOVERED, compute_coverage
 from ai.services.reconcile.ingress import ingest, log
@@ -39,6 +39,7 @@ from ai.services.semantic.catalogue import build_catalogue
 from ai.services.semantic.index import SemanticModelIndex
 from ai.services.sources import with_ancestors
 from ai.services.stages import prompts
+from ai.services.tracing import trace_active, trace_anchors
 from ai.services.workflow.engine import Finish, Goto, Stage
 
 _INCLUDE_RELATED = "include_related"
@@ -188,6 +189,44 @@ def segment_payload(run, segment_ids) -> list[dict]:
     """The segments and the heading/table segments they sit under, all citable."""
 
     return [s.context() for s in with_ancestors(run.bundle, segment_ids)]
+
+
+def _known_name(rs, eid) -> tuple[str, list[str]] | None:
+    """-> (name, aliases) of a known entity, from the graph or a still-pending claim."""
+
+    entity = rs.graph.entity(eid)
+    if entity is None:
+        pending = rs.pending_items.get(eid)
+        entity = pending[0] if pending else None
+    return (entity.name, entity.aliases) if entity is not None else None
+
+
+def correction_anchors(run, item, issues, *, stage: str) -> dict | None:
+    """For an assertion rejected as `unanchored_claim`: where its claimed
+    subject and object could actually be related (ai.services.grounding.
+    relationship_anchors) -- a locator for the correction, never a claim.
+    None when the item isn't an unanchored assertion, or either endpoint's
+    name isn't known. `stage` is the caller's own stage id, used only to
+    correlate the opt-in trace event below with that call's trace file --
+    it never affects the returned payload."""
+
+    if not hasattr(item, "aid") or not any(i.code == "unanchored_claim" for i in issues):
+        return None
+    rs = run.state.reconcile
+    subject, obj = _known_name(rs, item.subject_eid), _known_name(rs, item.object_eid)
+    if subject is None or obj is None:
+        return None
+    subject_names, object_names = [subject[0], *subject[1]], [obj[0], *obj[1]]
+    anchors = relationship_anchors(subject_names, object_names, run.bundle)
+    if trace_active():
+        trace_anchors(run.execution.id, run.current_sequence, stage, item_id(item),
+                      subject=subject[0], object=obj[0], anchors=anchors)
+    payload = {"direct": segment_payload(run, anchors["direct"]),
+              "structural": [segment_payload(run, list(pair)) for pair in anchors["structural"]]}
+    if "subject_only" in anchors:
+        payload["subject_segments"] = segment_payload(run, anchors["subject_only"])
+        payload["object_segments"] = segment_payload(run, anchors["object_only"])
+    return payload
 
 
 def finish_extraction(run):
@@ -346,6 +385,9 @@ class ExtractionCorrectionStage(Stage):
                     "issues": [i.model_dump(mode="json", exclude_none=True) for i in issues],
                     "cited_segments": segment_payload(run, sorted({p.segment_id for p in item.provenance if p.segment_id})),
                 }
+                anchors = correction_anchors(run, item, issues, stage=self.stage_id)
+                if anchors is not None:
+                    entry["relationship_anchors"] = anchors
                 size = len(str(entry))
             elif kind == "frame" and identifier in rs.pending_frame:
                 element = _frame_elements(rs.frame).get(identifier)

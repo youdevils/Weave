@@ -88,6 +88,10 @@ EXTRACTION_CORRECTION = (
     "- `invalid_frame_items`: intent-frame elements to correct (same ids) in `intent_frame`.\n"
     "- `uncovered_segments`: relevant segments no claim accounts for yet. Extract what each one says (new "
     "ids), or dismiss it in `dismissed_segments` with a specific reason.\n"
+    "- `relationship_anchors`, when given on an invalid item, shows where your claimed subject and object "
+    "could actually be related: `direct` (one segment stating both -- cite it), `structural` (an "
+    "ancestor/descendant pair -- cite both, with support='structural'), or, if neither is present, where "
+    "each is mentioned alone, meaning no segment connects them: withdraw the claim rather than guess.\n"
     "Everything else is already accepted and frozen: refer to `known_entities` by eid; do not repeat them."
 )
 
@@ -134,8 +138,12 @@ GAP_PROBE = (
 
 GAP_PROBE_CORRECTION = (
     "CORRECTION PASS. `invalid_claims` could not be verified (see each one's issues and cited segments): return "
-    "a corrected version with the SAME id in `claims`, or omit it to withdraw it. `missing_verdicts` still need "
-    "a verdict. Everything else is already accepted."
+    "a corrected version with the SAME id in `claims`, or omit it to withdraw it. `relationship_anchors`, when "
+    "given on an invalid claim, shows where your claimed subject and object could actually be related: `direct` "
+    "(one segment stating both -- cite it), `structural` (an ancestor/descendant pair -- cite both, with "
+    "support='structural'), or, if neither is present, where each is mentioned alone, meaning no segment "
+    "connects them: withdraw the claim rather than guess. `missing_verdicts` still need a verdict. Everything "
+    "else is already accepted."
 )
 
 
