@@ -24,6 +24,7 @@ from ai.services.reconcile.state import ReconcileState
 from ai.services.semantic.catalogue import build_catalogue
 from ai.services.semantic.index import SemanticModelIndex
 from ai.services.stages import prompts
+from ai.services.stages.reconcile_steps import grant_workload_allowance, note_shortfall
 from ai.services.workflow.engine import Correct, DeterministicStage, Goto, Stage
 
 
@@ -55,6 +56,7 @@ class ReadingPlanStage(DeterministicStage):
         rs.reading_elements = {e.element_id: e for e in rd.skeleton(document, run.bundle, state.index)}
         rs.reading_batches = rd.plan_reading_batches(list(rs.reading_elements.values()), settings.AI_READING_BATCH_MAX_CHARS)
         rs.reading_batch_index = 0
+        grant_workload_allowance(run)
         if not rs.reading_batches:
             _settle(run)
             return Goto("extraction")
@@ -108,13 +110,20 @@ class ReadingStage(Stage):
         rs.readings = [r for r in rs.readings if r.element_id not in {n.element_id for n in answered.readings}] + answered.readings
         if answered.issues and not final:
             return Correct(answered.issues)
+        if not correcting and run.remaining_calls() <= 0:
+            # Invalid answers settled without their re-ask: the calls were spent.
+            settled = [r.element_id for r in answered.readings if r.history or r.status == "rejected"]
+            note_shortfall(rs, "reading_uncorrected", [*rs.budget_shortfall.get("reading_uncorrected", []), *settled])
 
         rs.reading_batch_index += 1
         if rs.reading_batch_index < len(rs.reading_batches) and run.allows(self.stage_id):
             run.open_scope("reading_correction")
             return Goto(self.stage_id)
+        unread = []
         for batch in rs.reading_batches[rs.reading_batch_index:]:
             # Batches the budget never reached: unread structure, never prose.
             rs.readings += [rd._unanswered(elements[e], run.bundle.document()) for e in batch if e in elements]
+            unread += [e for e in batch if e in elements]
+        note_shortfall(rs, "reading_unread", unread)
         _settle(run)
         return Goto("extraction")

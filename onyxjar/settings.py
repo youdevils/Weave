@@ -310,6 +310,19 @@ AI_READING_MAX_OPTIONS = 20
 # Hard backstop on logical workflow calls for any one run, whatever the
 # per-stage budgets add up to.
 AI_WORKFLOW_MAX_PROVIDER_CALLS = 14
+# Readings-mode Reconcile scales that backstop with the workload it plans
+# (ai.services.stages.reconcile_steps.workload_allowance): Reading and
+# Extraction calls are not checked against a reserve for the later stages,
+# so a larger document gets the calls its extra batches may cost --
+#     allowance = 2 * max(0, R - 2) + max(0, E - 1)
+# (R / E = planned Reading / Extraction batches, each capped by its stage
+# limit; a Reading batch may cost its call plus one correction). 14 is
+# calibrated on the international flyer (R=2, E=1), which keeps >= 7 calls
+# after the worst-case unchecked pre-analysis work (2R + E + 2); the
+# allowance keeps that reserve for every larger workload. 7 covers every
+# workload the batch limits above permit (R, E <= 4). A workload needing more
+# is granted this cap and reported (ReconcileState.budget_shortfall).
+AI_WORKFLOW_MAX_EXTRA_PROVIDER_CALLS = 7
 # Opt-in, dev-only run tracing (ai.services.tracing): when active, every
 # step's payload/output and Reconcile state snapshot is written as JSON
 # under this directory. Never stored in the database; unset by default.

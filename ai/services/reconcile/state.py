@@ -72,6 +72,14 @@ class ReconcileState:
     locked_segments: set | None = None
     # What prose extraction may see (readings.prose_eligible); None in claims mode.
     prose_scope: set | None = None
+    # The provider-call budget as scaled for the planned workload
+    # (reconcile_steps.grant_workload_allowance): {base, reading_batches,
+    # extraction_batches, required, granted, total}.
+    call_budget: dict = field(default_factory=dict)
+    # Planned work the call budget cut (reconcile_steps.note_shortfall):
+    # kind -> sorted ids; plus `reserve_uncovered` (calls the extra-call cap
+    # could not grant). Any entry makes the result partial (Verification).
+    budget_shortfall: dict = field(default_factory=dict)
 
     # -- Extraction batches and their item/segment-level correction ----------
     batches: list = field(default_factory=list)  # [[segment id, ...], ...]

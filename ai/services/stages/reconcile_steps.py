@@ -150,6 +150,103 @@ def affords_recovery(run) -> bool:
     return run.remaining_calls() >= 1 + verification_pass_cost(run)
 
 
+# -- the call budget, scaled with the planned workload (readings mode) -------------------
+#
+# Reading and Extraction calls are made against the total budget only, never
+# against a reserve for what follows (their corrections are bounded per batch
+# / wave instead). So a document with more batches gets the calls those
+# batches may cost. Calibration: the international flyer (R=2 Reading
+# batches, E=1 Extraction batch) has at most 2R + E + 2 = 7 unchecked calls
+# before analysis and keeps RESERVE = 7 of its 14 -- one Adjudication round
+# and a full Verification pass with room to spare. The allowance keeps that
+# reserve for every workload the batch limits permit. What it covers is the
+# UNCHECKED work: a later Extraction correction wave is opened only when
+# affords_recovery holds, and may spend into the reserve; work deferred that
+# way is reported (note_shortfall), never implied done.
+
+REFERENCE_READING_BATCHES, REFERENCE_EXTRACTION_BATCHES = 2, 1
+
+
+def worst_case_pre_analysis(reading_batches: int, extraction_batches: int) -> int:
+    """Calls Reading and Extraction may make with no reserve check: every
+    Reading batch and its one correction, every Extraction batch, and the
+    first correction wave."""
+
+    return 2 * reading_batches + extraction_batches + settings.AI_RECONCILE_EXTRACTION_MAX_CORRECTION_CALLS
+
+
+def workload_allowance(reading_batches: int, extraction_batches: int) -> int:
+    """Extra calls a workload needs to keep the reference reserve:
+    2 * max(0, R - 2) + max(0, E - 1), with R / E capped by their stage limits."""
+
+    r = min(reading_batches, settings.AI_RECONCILE_READING_MAX_BATCHES)
+    e = min(extraction_batches, settings.AI_RECONCILE_EXTRACTION_MAX_BATCHES)
+    return max(0, worst_case_pre_analysis(r, e) - worst_case_pre_analysis(REFERENCE_READING_BATCHES, REFERENCE_EXTRACTION_BATCHES))
+
+
+def grant_workload_allowance(run) -> None:
+    """Raise the run's budget to what its planned workload needs -- called
+    after Reading planning (Extraction not planned yet: one batch assumed)
+    and again after Extraction planning. Only the difference from what is
+    already granted is added (WorkflowRun.grant_calls); a workload beyond the
+    extra-call cap is granted the cap and the uncovered reserve recorded."""
+
+    rs = run.state.reconcile
+    if rs is None or rs.evidence_mode != "readings":
+        return
+    reading_batches = len(rs.reading_batches)
+    extraction_batches = max(len(rs.batches), REFERENCE_EXTRACTION_BATCHES)
+    required = workload_allowance(reading_batches, extraction_batches)
+    run.grant_calls(required)
+    uncovered = required - run.extra_calls
+    if uncovered > 0:
+        rs.budget_shortfall["reserve_uncovered"] = uncovered
+        logger.warning("ai.workflow execution=%s budget reserve not covered: %s call(s) beyond the extra-call cap",
+                       getattr(run.execution, "id", None), uncovered)
+    rs.call_budget = {"base": run.definition.total_budget, "reading_batches": reading_batches,
+                      "extraction_batches": extraction_batches, "required": required, "granted": run.extra_calls,
+                      "total": run.total_budget}
+
+
+def note_shortfall(rs, kind: str, ids) -> None:
+    """Record planned work the call budget cut (readings mode). `ids` replace
+    the kind's earlier entry: the last routing decides what stayed undone."""
+
+    if rs is None or rs.evidence_mode != "readings":
+        return
+    ids = sorted(set(ids))
+    if ids:
+        rs.budget_shortfall[kind] = ids
+    else:
+        rs.budget_shortfall.pop(kind, None)
+
+
+SHORTFALL_TEXT = {
+    "reading_unread": "table/section element(s) not read",
+    "reading_uncorrected": "Reading(s) not re-asked after an invalid answer",
+    "extraction_unextracted": "prose segment(s) not extracted",
+    "extraction_uncorrected": "extraction defect(s) not re-asked",
+    "adjudication_deferred": "decision(s) not adjudicated",
+    "adjudication_uncorrected": "Adjudication answer(s) not re-asked",
+    "probe_deferred": "evidence gap(s) not probed",
+    "probe_uncorrected": "probe answer(s) not re-asked",
+}
+
+
+def shortfall_finding(rs, run) -> Finding | None:
+    """One warning naming what the call budget cut, or None."""
+
+    cut = [(kind, ids) for kind, ids in rs.budget_shortfall.items() if kind in SHORTFALL_TEXT and ids]
+    if not cut:
+        return None
+    parts = [f"{len(ids)} {SHORTFALL_TEXT[kind]}" for kind, ids in cut]
+    uncovered = rs.budget_shortfall.get("reserve_uncovered")
+    extra = f" This document's workload needed {uncovered} call(s) more than the budget can grant." if uncovered else ""
+    return Finding(severity="warning", message=(
+        f"Incomplete: the run's call budget ({run.total_budget} calls) was spent before all planned work was done -- "
+        f"{'; '.join(parts)}. What is proposed is supported, but the evidence was not fully processed.{extra}"))
+
+
 def may_run_round(run, stage: str, work_ids) -> bool:
     """Whether the class may take one more round for this work (see the
     module docstring). Work never routed to the class starts a fresh idle
@@ -318,6 +415,10 @@ class AnalysisStage(DeterministicStage):
         for requirement in queue.deferred_evidence:
             # Never probed: the evidence was not fully reviewed for it.
             rs.missing_evidence.setdefault(requirement.requirement_id, "partial")
+        # Deferred for want of calls (not by a class's idle rule): reported.
+        spent = not affords_recovery(run)
+        note_shortfall(rs, "adjudication_deferred", _question_ids(queue) if spent and queue.deferred_decisions else [])
+        note_shortfall(rs, "probe_deferred", _requirement_ids(queue) if spent and queue.deferred_evidence else [])
         return Goto(next_stage)
 
 

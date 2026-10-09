@@ -35,7 +35,7 @@ from ai.services.reconcile import questions as q
 from ai.services.reconcile.responses import AdjudicationResult
 from ai.services.sources import with_ancestors
 from ai.services.stages import prompts
-from ai.services.stages.reconcile_steps import affords_recovery
+from ai.services.stages.reconcile_steps import affords_recovery, note_shortfall
 from ai.services.workflow.engine import Correct, Goto, Stage
 
 
@@ -175,6 +175,9 @@ class AdjudicationStage(Stage):
         if retry and run.allows(self.stage_id, correction=True) and affords_recovery(run):
             rs.reask_questions = [questions[i.item_id] for i in retry if i.item_id in questions]
             return Correct(retry)
+        if retry and not affords_recovery(run):
+            note_shortfall(rs, "adjudication_uncorrected", [*rs.budget_shortfall.get("adjudication_uncorrected", []),
+                                                            *(found.item_id for found in retry)])
         for found in retry:
             rs.pins.setdefault(found.item_id, q.Pin(option_id=q.UNDECIDABLE, basis="rejected_answer", reason=found.message))
         rs.reask_questions = []

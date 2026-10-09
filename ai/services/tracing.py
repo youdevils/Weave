@@ -188,6 +188,8 @@ def reconcile_snapshot(state) -> dict:
     }
     if getattr(rs, "evidence_mode", "claims") == "readings":
         snapshot["readings"] = [r.model_dump(mode="json") for r in getattr(rs, "readings", []) or []]
+        snapshot["call_budget"] = dict(getattr(rs, "call_budget", {}) or {})
+        snapshot["budget_shortfall"] = dict(getattr(rs, "budget_shortfall", {}) or {})
     if analysis is not None:
         if getattr(analysis, "readings", None):
             snapshot["anomalies"] = [vars(a) for a in analysis.anomalies]

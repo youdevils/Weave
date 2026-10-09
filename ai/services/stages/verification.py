@@ -67,6 +67,7 @@ from ai.services.result_schema import OperationOutcome
 from ai.services.stages import prompts
 from ai.services.stages.adjudication import answer_issue
 from ai.services.stages.commit import commit, commit_decision
+from ai.services.stages.reconcile_steps import shortfall_finding
 from ai.services.workflow.engine import Correct, Finish, Goto, Stage
 
 _EXTRA_OPTIONS = {
@@ -241,11 +242,17 @@ class VerificationStage(Stage):
         if not material:
             state.review_notes = notes
             state.unresolved_findings = [f for f in state.unresolved_findings if f.severity == "material"]  # blocked targets stay reported
-            completeness = "partial" if state.blocked_targets else "complete"
+            # Planned work the call budget cut (readings mode): never a complete result.
+            shortfall = shortfall_finding(rs, run)
+            if shortfall is not None:
+                state.review_notes = [*state.review_notes, shortfall]
+            completeness = "partial" if state.blocked_targets or shortfall is not None else "complete"
             if not state.change_set or not state.change_set.actions:
                 if state.blocked_targets:
                     return Finish(OperationOutcome.UNRESOLVED, explanation="None of the requested items could be reconciled from the evidence.",
                                   blocked_targets=state.blocked_targets)
+                if shortfall is not None:
+                    return Finish(OperationOutcome.UNRESOLVED, explanation=shortfall.message, blocked_targets=state.blocked_targets)
                 return Finish(OperationOutcome.NO_CHANGE_REQUIRED, explanation=output.summary or state.interpretation or "No changes were needed.")
 
             def retry_after_commit_failure(issues):

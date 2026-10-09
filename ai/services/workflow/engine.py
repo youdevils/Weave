@@ -34,9 +34,13 @@ class of work so a stage may be revisited without one class starving another:
     scoped_budgets[key]   -- makes `key`'s budget count per SCOPE instead of
                              per run (see below)
     total_budget          -- hard backstop on all workflow-stage calls
+    max_extra_calls       -- how far a run may raise total_budget for the
+                             workload it has planned (WorkflowRun.grant_calls;
+                             0 = fixed, the default)
     explanation_budget    -- the terminal explain() call, OUTSIDE total_budget
-so the absolute per-run ceiling is total_budget + explanation_budget, and
-every edge of every stage graph consumes from a finite budget.
+so the absolute per-run ceiling is total_budget + max_extra_calls +
+explanation_budget, and every edge of every stage graph consumes from a
+finite budget.
 
 Scoped budgets give each unit of new work its own correction opportunity, so
 earlier work can never consume a later round's chance to be corrected:
@@ -175,6 +179,8 @@ class WorkflowDefinition:
     # budget key -> the stage whose rounds open its scopes, or None when the
     # stage opens them itself (WorkflowRun.open_scope). See the module docstring.
     scoped_budgets: dict[str, Optional[str]] = field(default_factory=dict)
+    # The most WorkflowRun.grant_calls may add to total_budget.
+    max_extra_calls: int = 0
 
 
 class BudgetExhausted(Exception):
@@ -203,6 +209,8 @@ class WorkflowRun:
     scope_calls: dict[str, int] = field(default_factory=dict)
     stage_corrections: dict[str, int] = field(default_factory=dict)
     workflow_calls: int = 0
+    # Calls granted on top of definition.total_budget (grant_calls).
+    extra_calls: int = 0
     explanation_calls: int = 0
     deterministic_steps: int = 0
     step_sequence: int = 0
@@ -233,7 +241,25 @@ class WorkflowRun:
         key = self.budget_key(stage_id, correction)
         budget = self.definition.stage_budgets.get(key, 0)
         used = (self.scope_calls if key in self.definition.scoped_budgets else self.stage_calls).get(key, 0)
-        return (budget is None or used < budget) and self.workflow_calls < self.definition.total_budget
+        return (budget is None or used < budget) and self.workflow_calls < self.total_budget
+
+    @property
+    def total_budget(self) -> int:
+        return self.definition.total_budget + self.extra_calls
+
+    def grant_calls(self, target: int) -> int:
+        """Raise the run's extra calls to `target` (capped at the definition's
+        max_extra_calls) -> the calls added now. Idempotent and monotonic:
+        only the difference from what is already granted is ever added, and
+        a lower target never takes calls back."""
+
+        wanted = max(0, min(target, self.definition.max_extra_calls))
+        added = max(0, wanted - self.extra_calls)
+        if added:
+            self.extra_calls += added
+            logger.info("ai.workflow execution=%s budget granted=%s total=%s", getattr(self.execution, "id", None), added,
+                        self.total_budget)
+        return added
 
     def open_scope(self, key: str) -> None:
         """A fresh scope for a stage-opened scoped budget key (scoped_budgets[key] is None)."""
@@ -241,7 +267,7 @@ class WorkflowRun:
         self.scope_calls[key] = 0
 
     def remaining_calls(self) -> int:
-        return self.definition.total_budget - self.workflow_calls
+        return self.total_budget - self.workflow_calls
 
     @property
     def provider_calls(self) -> int:

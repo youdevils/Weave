@@ -52,7 +52,7 @@ from ai.services.semantic.catalogue import build_catalogue
 from ai.services.semantic.index import SemanticModelIndex
 from ai.services.sources import with_ancestors
 from ai.services.stages import prompts
-from ai.services.stages.reconcile_steps import affords_recovery
+from ai.services.stages.reconcile_steps import affords_recovery, grant_workload_allowance, note_shortfall
 from ai.services.tracing import trace_active, trace_anchors
 from ai.services.workflow.engine import Finish, Goto, Stage
 
@@ -343,6 +343,8 @@ def finish_extraction(run):
     rs.correction_queue = queue
     if queue and run.allows("extraction_correction"):
         return Goto("extraction_correction")
+    if queue and run.remaining_calls() <= 0:
+        note_shortfall(rs, "extraction_uncorrected", [identifier for _, identifier in queue])
     return settle(run)
 
 
@@ -417,6 +419,7 @@ class ExtractionStage(Stage):
         state.catalogue = build_catalogue(state.index)
         if not rs.batches:
             rs.batches = plan_batches(run.bundle, settings.AI_EXTRACTION_BATCH_MAX_CHARS, only=rs.prose_scope) or [[]]
+            grant_workload_allowance(run)
         batch = rs.batches[rs.batch_index]
         payload = {
             "stage": self.stage_id,
@@ -452,6 +455,7 @@ class ExtractionStage(Stage):
                 return Goto(self.stage_id)
             for batch in rs.batches[rs.batch_index:]:
                 rs.unextracted |= set(batch)
+            note_shortfall(rs, "extraction_unextracted", rs.unextracted)
         return finish_extraction(run)
 
 
@@ -564,10 +568,16 @@ class ExtractionCorrectionStage(Stage):
 
         if rs.correction_queue and run.allows(self.stage_id):
             return Goto(self.stage_id)
+        # Left undone for want of calls -- not by a wave's own bound: reported.
+        cut = [i for _, i in rs.correction_queue] if rs.correction_queue and run.remaining_calls() <= 0 else []
         if rs.next_wave and affords_recovery(run):
             # Whatever is left of this wave keeps its fate (dropped / uncovered).
             rs.correction_queue, rs.next_wave = rs.next_wave, []
             run.open_scope(self.stage_id)
             if run.allows(self.stage_id):
+                note_shortfall(rs, "extraction_uncorrected", [*rs.budget_shortfall.get("extraction_uncorrected", []), *cut])
                 return Goto(self.stage_id)
+            cut += [i for _, i in rs.correction_queue]
+        cut += [i for _, i in rs.next_wave]  # a wave the run could not afford
+        note_shortfall(rs, "extraction_uncorrected", [*rs.budget_shortfall.get("extraction_uncorrected", []), *cut])
         return settle(run)

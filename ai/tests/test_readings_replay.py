@@ -24,7 +24,7 @@ from django.test import override_settings
 
 from ai.services.result_schema import OperationOutcome
 from ai.services.tracing import load
-from ai.tests.reference import assert_reference, blocked_state, load_spec, norm, outcome_from_proposal
+from ai.tests.reference import assert_reference, blocked_state, evaluate, load_spec, norm, outcome_from_proposal
 from ai.tests.test_trace_equivalence import FlyerReplayCase
 
 RUN = "readings_ffda0076"
@@ -173,3 +173,50 @@ class FirstReadingsRunPathTests(FirstReadingsRunCase):
         corrections = {stage: summary["corrections"] for stage, summary in result.stage_summary.items() if summary["corrections"]}
         self.assertEqual(corrections, {"reading": 2})
         self.assertEqual(result.stage_summary.get("reading_correction"), {"calls": 2, "corrections": 0})
+
+
+@override_settings(PROPOSAL_MAX_LIVE_PER_MODEL=10_000)
+class FirstReadingsRunBudgetTests(FirstReadingsRunCase):
+    """The captured run under forced budgets (Option 1 of the 13/14 review):
+    its own workload (2 Reading batches, 1 Extraction batch) keeps the default
+    14; a smaller budget defers late work -- the model data never changes,
+    nothing forbidden is ever compiled, and the cut is always reported."""
+
+    FORBIDDEN = ("forbidden:",)
+
+    def test_its_workload_keeps_the_default_budget(self):
+        _, result, snapshot = self.replay_run()
+
+        self.assertEqual(snapshot["call_budget"], {"base": 14, "reading_batches": 2, "extraction_batches": 1, "required": 0,
+                                                   "granted": 0, "total": 14})
+        self.assertEqual(snapshot["budget_shortfall"], {})
+        self.assertFalse([f for f in result.findings if f.message.startswith("Incomplete: the run's call budget")])
+
+    def test_a_smaller_budget_defers_late_work_and_reports_it(self):
+        expected = {13: "adjudication_deferred", 12: "probe_uncorrected", 11: "probe_deferred", 10: "probe_deferred",
+                    9: "probe_deferred"}
+        for budget, kind in expected.items():
+            with self.subTest(budget=budget), override_settings(AI_WORKFLOW_MAX_PROVIDER_CALLS=budget):
+                _, result, snapshot = self.replay_run()
+                outcome = outcome_from_proposal(result.proposal_id, result.blocked_targets)
+
+                self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
+                self.assertEqual(result.completeness, "partial")
+                self.assertEqual((outcome.objects, outcome.relationships), (OBJECTS, RELATIONSHIPS))
+                failed = [c.id for c in evaluate(outcome, load_spec("international_flyer")) if not c.passed]
+                self.assertFalse([c for c in failed if c.startswith(self.FORBIDDEN)], failed)
+                self.assertIn(kind, snapshot["budget_shortfall"])
+                cut = [f.message for f in result.findings if f.message.startswith(f"Incomplete: the run's call budget ({budget} calls)")]
+                self.assertEqual(len(cut), 1)
+
+    @override_settings(AI_RECONCILE_READING_MAX_BATCHES=1)
+    def test_structure_the_budget_never_read_is_reported(self):
+        _, result, snapshot = self.replay_run()
+
+        self.assertEqual(snapshot["budget_shortfall"]["reading_unread"], sorted(["S1#t4", "S1#1", "S1#5", "S1#14", "S1#15"]))
+        self.assertNotEqual((result.outcome, result.completeness), (OperationOutcome.READY_FOR_REVIEW, "complete"))
+        if result.proposal_id:
+            outcome = outcome_from_proposal(result.proposal_id, result.blocked_targets)
+            failed = [c.id for c in evaluate(outcome, load_spec("international_flyer")) if not c.passed]
+            self.assertFalse([c for c in failed if c.startswith(self.FORBIDDEN)], failed)
+        self.assertTrue([f for f in result.findings if "table/section element(s) not read" in f.message])

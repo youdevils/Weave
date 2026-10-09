@@ -104,6 +104,9 @@ def build_reconcile_workflow() -> WorkflowDefinition:
             **({"reading_correction": None} if readings else {}),  # per Reading batch (ai.services.stages.reading)
         },
         total_budget=settings.AI_WORKFLOW_MAX_PROVIDER_CALLS,
+        # Readings mode only: scaled with the planned Reading / Extraction
+        # workload (reconcile_steps.grant_workload_allowance).
+        max_extra_calls=settings.AI_WORKFLOW_MAX_EXTRA_PROVIDER_CALLS if readings else 0,
         explanation_budget=settings.AI_TERMINAL_EXPLANATION_MAX_CALLS,
     )
 

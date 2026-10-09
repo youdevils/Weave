@@ -48,7 +48,7 @@ from ai.services.reconcile.near_miss import pack_claims, probe_payload
 from ai.services.reconcile.responses import ProbeResult
 from ai.services.stages import prompts
 from ai.services.stages.extraction import absorb, cited_payload, correction_anchors, no_anchor, segment_payload
-from ai.services.stages.reconcile_steps import affords_recovery
+from ai.services.stages.reconcile_steps import affords_recovery, note_shortfall
 from ai.services.workflow.engine import Goto, Stage
 
 
@@ -242,6 +242,8 @@ def _next(run):
     if (missing or invalid) and run.allows("gap_probe_correction") and affords_recovery(run):
         rs.reask_requirements = missing
         return Goto("gap_probe_correction")
+    if (missing or invalid) and not affords_recovery(run):
+        note_shortfall(rs, "probe_uncorrected", [*rs.budget_shortfall.get("probe_uncorrected", []), *missing, *invalid])
     return settle_probe(run)
 
 
