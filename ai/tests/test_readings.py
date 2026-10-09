@@ -8,6 +8,9 @@ The flyer's ideal Reading is scripted (a Responders provider answers each
 stage from what it was sent); everything after it is OnyxJar.
 """
 
+import json
+from pathlib import Path
+
 from django.test import override_settings
 
 from ai.services.evidence_bundle import EvidenceBundle
@@ -253,3 +256,77 @@ class ReadingsWorkflowTests(ReadingFixture):
         self.assertEqual(provider.requested[:3], ["reading", "reading", "reading"])
         self.assertEqual([e["element_id"] for e in provider.payloads_for("reading")[1]["elements"]], ["S1#t3"])
         assert_reference(self, outcome_from_proposal(result.proposal_id, result.blocked_targets), load_spec("international_flyer"))
+
+
+# -- the basis contract on the first UI run's own answers ------------------------------
+
+CAPTURED = Path(__file__).parent / "fixtures" / "traces" / "international_flyer_readings_ffda0076"
+
+
+class CapturedBasisTests(ReadingFixture):
+    """The attempt-1 Readings of run ffda0076: every slot of headerless t1
+    cited its cells but left the 'Teams' heading to the element's own basis;
+    the `none` relations of t2-t4 cited headers and no cell; and t1 related
+    the Pool column to the team columns by has_team_2 (tournament -> team
+    only). Captured outputs, validated as the stage validates them."""
+
+    def captured(self, name) -> ReadingResult:
+        return ReadingResult.model_validate(json.loads((CAPTURED / name).read_text(encoding="utf-8"))["output"])
+
+    def validate(self, name, element_id):
+        elements = {e.element_id: e for e in rd.skeleton(self.document, self.bundle_, self.index)}
+        answer = next(r for r in self.captured(name).readings if r.element_id == element_id)
+        return rd._validate_element(elements[element_id], answer, self.document, self.bundle_, self.index)
+
+    def feedback(self, name):
+        elements = {e.element_id: e for e in rd.skeleton(self.document, self.bundle_, self.index)}
+        result = self.captured(name)
+        asked = {r.element_id: elements[r.element_id] for r in result.readings}
+        return {i.item_id: i.message for i in rd.apply_result(result, asked, self.document, self.bundle_, self.index, final=False).issues}
+
+    def test_headerless_t1_takes_its_heading_from_the_element_basis(self):
+        reading, problems = self.validate("002-reading.json", "S1#t1")
+        slots = {s.slot_id: s for s in reading.slots}
+
+        self.assertFalse([p for p in problems if "structural basis" in p], problems)
+        self.assertEqual({s.state for s in reading.slots if s.kind == "role"}, {"decided"})
+        self.assertEqual(slots["rd/S1#t1/relation/c2>c3"].state, "decided")
+
+    def test_the_element_basis_never_stands_in_for_a_slot_s_cells(self):
+        answer = next(r for r in self.captured("002-reading.json").readings if r.element_id == "S1#t1")
+        heading_only = answer.model_copy(update={"slots": [s.model_copy(update={"basis": [DemCitation(dem_id="S1#5", excerpt="Teams")]})
+                                                           for s in answer.slots]})
+        elements = {e.element_id: e for e in rd.skeleton(self.document, self.bundle_, self.index)}
+
+        reading, problems = rd._validate_element(elements["S1#t1"], heading_only, self.document, self.bundle_, self.index)
+
+        self.assertEqual({s.state for s in reading.slots}, {"rejected"})
+        self.assertTrue(any("structural basis" in p for p in problems))
+
+    def test_a_header_only_none_stays_invalid(self):
+        for name, element_id, slot_id in (("002-reading.json", "S1#t2", "rd/S1#t2/relation/c1>c2"),
+                                          ("002-reading.json", "S1#t3", "rd/S1#t3/relation/c1>c3"),
+                                          ("004-reading.json", "S1#t4", "rd/S1#t4/relation/c1>c3")):
+            with self.subTest(slot=slot_id):
+                reading, problems = self.validate(name, element_id)
+                self.assertEqual((reading.slot(slot_id).choice, reading.slot(slot_id).state), ("none", "rejected"))
+                self.assertIn(slot_id, next(p for p in problems if "structural basis" in p))
+
+    def test_illegal_choices_lead_the_feedback_and_survive_its_cap(self):
+        feedback = self.feedback("002-reading.json")
+
+        self.assertEqual(sorted(feedback), ["S1#t1", "S1#t2", "S1#t3"])
+        # All four illegal has_team_2 relations reach the model on the first re-ask.
+        for n in range(2, 6):
+            self.assertIn(f"rd/S1#t1/relation/c1>c{n}: 'has_team_2:as_stated' is not legal between stage and team", feedback["S1#t1"])
+        # Basis gaps are one line naming every slot, after what the slots decide.
+        t2 = feedback["S1#t2"]
+        self.assertEqual(t2.count("structural basis"), 1)
+        for slot_id in ("rd/S1#t2/relation/c1>c2", "rd/S1#t2/relation/c1>c3", "rd/S1#t2/relation/c2>c3"):
+            self.assertIn(slot_id, t2)
+
+    def test_a_headerless_table_names_its_context_ids(self):
+        payloads = {e.element_id: e.payload for e in rd.skeleton(self.document, self.bundle_, self.index)}
+
+        self.assertEqual(payloads["S1#t1"]["basis_context"], ["S1#1", "S1#5"])
+        self.assertNotIn("basis_context", payloads["S1#t3"])  # a header's context is its column_ids

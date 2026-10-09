@@ -588,6 +588,9 @@ class IdTranslatingReplay(ReplayProvider):
 # same work, so a call that no longer happens does not shift later captured
 # outputs onto the wrong request (captured steps record their `request`):
 #
+#     reading                 the first unused captured call that read one of
+#                             the elements asked, restricted to those elements
+#                             (a correction no longer needed is skipped over)
 #     adjudication            each question answered from the captured answer
 #                             to that question id; questions no captured run
 #                             answered get the single-option stand-in
@@ -612,9 +615,16 @@ def _ids(work) -> set:
     return {(kind, identifier) for kind, ids in work.items() for identifier in ids}
 
 
+def no_captured_reading(payload):
+    # No stand-in can interpret structure: a Reading the captured run never
+    # made means the replay no longer describes that run.
+    raise AssertionError(f"No captured Reading for elements {[e['element_id'] for e in payload['elements']]}.")
+
+
 class EquivalenceReplay(IdTranslatingReplay):
-    KEYED = ("adjudication", "gap_probe", "extraction_correction", "gap_probe_correction")
-    STAND_IN = {"gap_probe": nothing_found, "extraction_correction": no_more_corrections, "gap_probe_correction": no_more_claims}
+    KEYED = ("reading", "adjudication", "gap_probe", "extraction_correction", "gap_probe_correction")
+    STAND_IN = {"reading": no_captured_reading, "gap_probe": nothing_found, "extraction_correction": no_more_corrections,
+                "gap_probe_correction": no_more_claims}
 
     def __init__(self, path):
         super().__init__(path, by_stage=True)
@@ -659,6 +669,10 @@ class EquivalenceReplay(IdTranslatingReplay):
     @staticmethod
     def restrict(stage, step, work) -> dict:
         output = json.loads(json.dumps(step["output"]))
+        if stage == "reading":
+            asked = set(work["elements"])
+            output["readings"] = [r for r in output["readings"] if r["element_id"] in asked]
+            return output
         recorded_items = set((step.get("request") or {}).get("items", []))
         not_asked = recorded_items - set(work.get("items", []))
         graph = output.get("evidence") if stage == "extraction_correction" else output.get("claims")

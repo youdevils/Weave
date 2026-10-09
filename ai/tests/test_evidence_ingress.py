@@ -279,6 +279,53 @@ class StructuralContextTests(IngressTestCase):
         self.assertIsNotNone(self.rs.graph.assertion("A9"))
 
 
+class ExpandedEntityReferenceTests(IngressTestCase):
+    """Readings mode: a probe is shown the entities the Readings expanded
+    (`x/...`, via pack_claims) as already extracted. A claim referring to one
+    is a claim about something extracted -- never dropped as dangling (run
+    ffda0076 lost three valid has_stage claims that way)."""
+
+    def setUp(self):
+        super().setUp()
+        heading = entity("x/S1#1", "ACME LOGISTICS 2027", "Company", excerpt="ACME LOGISTICS 2027")
+        heading.provenance[0].segment_id, heading.origin = self.seg("ACME"), "reading"
+        self.rs.analysis = SimpleNamespace(graph=EvidenceGraph(entities=[heading]))
+
+    def claim(self, subject):
+        return assertion("A9", subject, "lists the warehouse", "E1", support="structural",
+                         spans=[("ACME LOGISTICS 2027", "S1", self.seg("ACME")), ("North Depot", "S1", self.seg("- North Depot"))])
+
+    def test_a_probe_claim_about_an_expanded_entity_is_accepted(self):
+        self.absorb(self.depot(), self.claim("x/S1#1"), origin="probe")
+
+        self.assertEqual(self.rs.graph.assertion("A9").subject_eid, "x/S1#1")
+        self.assertEqual(self.fates("A9"), ["accepted"])
+        self.assertIsNone(self.rs.graph.entity("x/S1#1"))  # an endpoint only: expansion stays recomputed
+        self.assertFalse([n for n in self.rs.notes if "refers to something that was not extracted" in n.message])
+
+    def test_an_id_nothing_expanded_still_dangles(self):
+        self.absorb(self.depot(), self.claim("x/S1#99"), origin="probe")
+
+        self.assertIsNone(self.rs.graph.assertion("A9"))
+        self.assertIn("dropped_dependant", self.fates("A9"))
+
+    def test_an_expanded_endpoint_keeps_the_grounding_rule(self):
+        ungrounded = assertion("A9", "x/S1#1", "lists the warehouse", "E1", support="structural",
+                               spans=[("North Depot", "S1", self.seg("- North Depot"))])
+
+        self.absorb(self.depot(), ungrounded, origin="probe")
+
+        self.assertIsNone(self.rs.graph.assertion("A9"))
+        self.assertEqual(self.rs.pending_items["A9"][1][0].code, "unanchored_claim")
+
+    def test_a_response_cannot_define_an_expanded_id(self):
+        impostor = entity("x/S1#1", "North Depot", "warehouse", excerpt="North Depot")
+
+        mapping = self.absorb(impostor, origin="probe")
+
+        self.assertNotEqual(mapping["x/S1#1"], "x/S1#1")
+
+
 class RowProbeTests(IngressTestCase):
 
     def analysis(self):

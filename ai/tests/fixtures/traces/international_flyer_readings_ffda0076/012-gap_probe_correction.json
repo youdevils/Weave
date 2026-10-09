@@ -1,0 +1,60 @@
+{
+ "kind": "provider",
+ "run_id": "ffda0076-aaec-4703-8994-72fb9bdfdc50",
+ "sequence": 12,
+ "stage": "gap_probe_correction",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [],
+   "assertions": [],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E1:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8"
+    ],
+    "claim_ids": [
+     "x/S1#1/S1#t1.r1.c1"
+    ],
+    "candidate_eids": [],
+    "note": "Assertion x/S1#1/S1#t1.r1.c1 (has stage: PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027 -> Pool Stage) already extracted satisfies the requirement and is supported by the structure: S1#1 as heading, S1#7 as the item."
+   },
+   {
+    "requirement_id": "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10"
+    ],
+    "claim_ids": [
+     "x/S1#1/S1#t3.r3.c1"
+    ],
+    "candidate_eids": [],
+    "note": "Assertion x/S1#1/S1#t3.r3.c1 (has stage: PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027 -> Semi-finals) already extracted satisfies the requirement and is supported by the structure: S1#1 as heading, S1#9 as the item."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [],
+  "requirements": [
+   "req:E1:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object"
+  ]
+ }
+}

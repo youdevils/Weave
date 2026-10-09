@@ -1,0 +1,191 @@
+{
+ "kind": "provider",
+ "run_id": "ffda0076-aaec-4703-8994-72fb9bdfdc50",
+ "sequence": 5,
+ "stage": "reading",
+ "attempt": 4,
+ "decision": "advance",
+ "schema": "ReadingResult",
+ "output": {
+  "schema_version": "2024-06-01",
+  "readings": [
+   {
+    "element_id": "S1#t4",
+    "status": "read",
+    "not_a_table_reason": null,
+    "basis": [
+     {
+      "dem_id": "S1#t4.c1",
+      "excerpt": "Stage"
+     },
+     {
+      "dem_id": "S1#t4.c2",
+      "excerpt": "Match"
+     },
+     {
+      "dem_id": "S1#t4.c3",
+      "excerpt": "Venue"
+     },
+     {
+      "dem_id": "S1#t4.r1.c1",
+      "excerpt": "Quarter-final"
+     },
+     {
+      "dem_id": "S1#t4.r1.c2",
+      "excerpt": "Pool A winner v Pool B runner-up"
+     },
+     {
+      "dem_id": "S1#t4.r1.c3",
+      "excerpt": "Orangetheory Stadium"
+     }
+    ],
+    "slots": [
+     {
+      "slot_id": "rd/S1#t4/role/c1",
+      "choice": "stage",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t4.c1",
+        "excerpt": "Stage"
+       },
+       {
+        "dem_id": "S1#t4.r1.c1",
+        "excerpt": "Quarter-final"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t4/role/c2",
+      "choice": "match",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t4.c2",
+        "excerpt": "Match"
+       },
+       {
+        "dem_id": "S1#t4.r1.c2",
+        "excerpt": "Pool A winner v Pool B runner-up"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t4/split/c2",
+      "choice": "team",
+      "generic_reason": "",
+      "part_relation": "has_team:as_stated",
+      "basis": [
+       {
+        "dem_id": "S1#t4.c2",
+        "excerpt": "Match"
+       },
+       {
+        "dem_id": "S1#t4.r1.c2",
+        "excerpt": "Pool A winner v Pool B runner-up"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t4/role/c3",
+      "choice": "venue",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t4.c3",
+        "excerpt": "Venue"
+       },
+       {
+        "dem_id": "S1#t4.r1.c3",
+        "excerpt": "Orangetheory Stadium"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t4/relation/c1>c2",
+      "choice": "has_match:as_stated",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t4.c1",
+        "excerpt": "Stage"
+       },
+       {
+        "dem_id": "S1#t4.c2",
+        "excerpt": "Match"
+       },
+       {
+        "dem_id": "S1#t4.r1.c1",
+        "excerpt": "Quarter-final"
+       },
+       {
+        "dem_id": "S1#t4.r1.c2",
+        "excerpt": "Pool A winner v Pool B runner-up"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t4/relation/c1>c3",
+      "choice": "none",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t4.c1",
+        "excerpt": "Stage"
+       },
+       {
+        "dem_id": "S1#t4.c3",
+        "excerpt": "Venue"
+       },
+       {
+        "dem_id": "S1#t4.r1.c1",
+        "excerpt": "Quarter-final"
+       },
+       {
+        "dem_id": "S1#t4.r1.c3",
+        "excerpt": "Orangetheory Stadium"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t4/relation/c2>c3",
+      "choice": "played_at:as_stated",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t4.c2",
+        "excerpt": "Match"
+       },
+       {
+        "dem_id": "S1#t4.c3",
+        "excerpt": "Venue"
+       },
+       {
+        "dem_id": "S1#t4.r1.c2",
+        "excerpt": "Pool A winner v Pool B runner-up"
+       },
+       {
+        "dem_id": "S1#t4.r1.c3",
+        "excerpt": "Orangetheory Stadium"
+       }
+      ]
+     }
+    ],
+    "section_relations": [],
+    "exceptions": []
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "elements": [
+   "S1#t4"
+  ]
+ }
+}

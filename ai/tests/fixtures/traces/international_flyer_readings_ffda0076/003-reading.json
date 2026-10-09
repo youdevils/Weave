@@ -1,0 +1,707 @@
+{
+ "kind": "provider",
+ "run_id": "ffda0076-aaec-4703-8994-72fb9bdfdc50",
+ "sequence": 3,
+ "stage": "reading",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "ReadingResult",
+ "output": {
+  "schema_version": "2024-06-01",
+  "readings": [
+   {
+    "element_id": "S1#t1",
+    "status": "read",
+    "not_a_table_reason": null,
+    "basis": [
+     {
+      "dem_id": "S1#5",
+      "excerpt": "Teams"
+     },
+     {
+      "dem_id": "S1#t1.r1.c1",
+      "excerpt": "Pool A"
+     },
+     {
+      "dem_id": "S1#t1.r1.c2",
+      "excerpt": "New Zealand"
+     },
+     {
+      "dem_id": "S1#t1.r1.c3",
+      "excerpt": "Fiji"
+     },
+     {
+      "dem_id": "S1#t1.r1.c4",
+      "excerpt": "Japan"
+     },
+     {
+      "dem_id": "S1#t1.r1.c5",
+      "excerpt": "Samoa"
+     },
+     {
+      "dem_id": "S1#t1.r2.c1",
+      "excerpt": "Pool B"
+     },
+     {
+      "dem_id": "S1#t1.r2.c2",
+      "excerpt": "Australia"
+     },
+     {
+      "dem_id": "S1#t1.r2.c3",
+      "excerpt": "Argentina"
+     },
+     {
+      "dem_id": "S1#t1.r2.c4",
+      "excerpt": "South Africa"
+     },
+     {
+      "dem_id": "S1#t1.r2.c5",
+      "excerpt": "Tonga"
+     }
+    ],
+    "slots": [
+     {
+      "slot_id": "rd/S1#t1/role/c1",
+      "choice": "stage",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c1",
+        "excerpt": "Pool A"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/role/c2",
+      "choice": "team",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c2",
+        "excerpt": "New Zealand"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/role/c3",
+      "choice": "team",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c3",
+        "excerpt": "Fiji"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/role/c4",
+      "choice": "team",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c4",
+        "excerpt": "Japan"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/role/c5",
+      "choice": "team",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c5",
+        "excerpt": "Samoa"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/relation/c1>c2",
+      "choice": "has_team_2:as_stated",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c1",
+        "excerpt": "Pool A"
+       },
+       {
+        "dem_id": "S1#t1.r1.c2",
+        "excerpt": "New Zealand"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/relation/c1>c3",
+      "choice": "has_team_2:as_stated",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c1",
+        "excerpt": "Pool A"
+       },
+       {
+        "dem_id": "S1#t1.r1.c3",
+        "excerpt": "Fiji"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/relation/c1>c4",
+      "choice": "has_team_2:as_stated",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c1",
+        "excerpt": "Pool A"
+       },
+       {
+        "dem_id": "S1#t1.r1.c4",
+        "excerpt": "Japan"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/relation/c1>c5",
+      "choice": "has_team_2:as_stated",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c1",
+        "excerpt": "Pool A"
+       },
+       {
+        "dem_id": "S1#t1.r1.c5",
+        "excerpt": "Samoa"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/relation/c2>c3",
+      "choice": "none",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c2",
+        "excerpt": "New Zealand"
+       },
+       {
+        "dem_id": "S1#t1.r1.c3",
+        "excerpt": "Fiji"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/relation/c2>c4",
+      "choice": "none",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c2",
+        "excerpt": "New Zealand"
+       },
+       {
+        "dem_id": "S1#t1.r1.c4",
+        "excerpt": "Japan"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/relation/c2>c5",
+      "choice": "none",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c2",
+        "excerpt": "New Zealand"
+       },
+       {
+        "dem_id": "S1#t1.r1.c5",
+        "excerpt": "Samoa"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/relation/c3>c4",
+      "choice": "none",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c3",
+        "excerpt": "Fiji"
+       },
+       {
+        "dem_id": "S1#t1.r1.c4",
+        "excerpt": "Japan"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/relation/c3>c5",
+      "choice": "none",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c3",
+        "excerpt": "Fiji"
+       },
+       {
+        "dem_id": "S1#t1.r1.c5",
+        "excerpt": "Samoa"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t1/relation/c4>c5",
+      "choice": "none",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#5",
+        "excerpt": "Teams"
+       },
+       {
+        "dem_id": "S1#t1.r1.c4",
+        "excerpt": "Japan"
+       },
+       {
+        "dem_id": "S1#t1.r1.c5",
+        "excerpt": "Samoa"
+       }
+      ]
+     }
+    ],
+    "section_relations": [],
+    "exceptions": []
+   },
+   {
+    "element_id": "S1#t2",
+    "status": "read",
+    "not_a_table_reason": null,
+    "basis": [
+     {
+      "dem_id": "S1#14",
+      "excerpt": "Venues"
+     },
+     {
+      "dem_id": "S1#t2.c1",
+      "excerpt": "Venue"
+     },
+     {
+      "dem_id": "S1#t2.c2",
+      "excerpt": "Location"
+     },
+     {
+      "dem_id": "S1#t2.c3",
+      "excerpt": "Primary use"
+     },
+     {
+      "dem_id": "S1#t2.r1.c1",
+      "excerpt": "Eden Park"
+     },
+     {
+      "dem_id": "S1#t2.r1.c2",
+      "excerpt": "Auckland, New Zealand"
+     },
+     {
+      "dem_id": "S1#t2.r1.c3",
+      "excerpt": "Opening match and final"
+     }
+    ],
+    "slots": [
+     {
+      "slot_id": "rd/S1#t2/role/c1",
+      "choice": "venue",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t2.c1",
+        "excerpt": "Venue"
+       },
+       {
+        "dem_id": "S1#t2.r1.c1",
+        "excerpt": "Eden Park"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t2/role/c2",
+      "choice": "value",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t2.c2",
+        "excerpt": "Location"
+       },
+       {
+        "dem_id": "S1#t2.r1.c2",
+        "excerpt": "Auckland, New Zealand"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t2/split/c2",
+      "choice": "none",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t2.c2",
+        "excerpt": "Location"
+       },
+       {
+        "dem_id": "S1#t2.r1.c2",
+        "excerpt": "Auckland, New Zealand"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t2/role/c3",
+      "choice": "value",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t2.c3",
+        "excerpt": "Primary use"
+       },
+       {
+        "dem_id": "S1#t2.r1.c3",
+        "excerpt": "Opening match and final"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t2/relation/c1>c2",
+      "choice": "none",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t2.c1",
+        "excerpt": "Venue"
+       },
+       {
+        "dem_id": "S1#t2.c2",
+        "excerpt": "Location"
+       },
+       {
+        "dem_id": "S1#t2.r1.c1",
+        "excerpt": "Eden Park"
+       },
+       {
+        "dem_id": "S1#t2.r1.c2",
+        "excerpt": "Auckland, New Zealand"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t2/relation/c1>c3",
+      "choice": "none",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t2.c1",
+        "excerpt": "Venue"
+       },
+       {
+        "dem_id": "S1#t2.c3",
+        "excerpt": "Primary use"
+       },
+       {
+        "dem_id": "S1#t2.r1.c1",
+        "excerpt": "Eden Park"
+       },
+       {
+        "dem_id": "S1#t2.r1.c3",
+        "excerpt": "Opening match and final"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t2/relation/c2>c3",
+      "choice": "none",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t2.c2",
+        "excerpt": "Location"
+       },
+       {
+        "dem_id": "S1#t2.c3",
+        "excerpt": "Primary use"
+       },
+       {
+        "dem_id": "S1#t2.r1.c2",
+        "excerpt": "Auckland, New Zealand"
+       },
+       {
+        "dem_id": "S1#t2.r1.c3",
+        "excerpt": "Opening match and final"
+       }
+      ]
+     }
+    ],
+    "section_relations": [],
+    "exceptions": []
+   },
+   {
+    "element_id": "S1#t3",
+    "status": "read",
+    "not_a_table_reason": null,
+    "basis": [
+     {
+      "dem_id": "S1#15",
+      "excerpt": "Example fixtures"
+     },
+     {
+      "dem_id": "S1#t3.c1",
+      "excerpt": "Stage"
+     },
+     {
+      "dem_id": "S1#t3.c2",
+      "excerpt": "Match"
+     },
+     {
+      "dem_id": "S1#t3.c3",
+      "excerpt": "Venue"
+     },
+     {
+      "dem_id": "S1#t3.r1.c1",
+      "excerpt": "Pool A"
+     },
+     {
+      "dem_id": "S1#t3.r1.c2",
+      "excerpt": "New Zealand v Fiji"
+     },
+     {
+      "dem_id": "S1#t3.r1.c3",
+      "excerpt": "Eden Park"
+     }
+    ],
+    "slots": [
+     {
+      "slot_id": "rd/S1#t3/role/c1",
+      "choice": "stage",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t3.c1",
+        "excerpt": "Stage"
+       },
+       {
+        "dem_id": "S1#t3.r1.c1",
+        "excerpt": "Pool A"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t3/role/c2",
+      "choice": "match",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t3.c2",
+        "excerpt": "Match"
+       },
+       {
+        "dem_id": "S1#t3.r1.c2",
+        "excerpt": "New Zealand v Fiji"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t3/split/c2",
+      "choice": "team",
+      "generic_reason": "",
+      "part_relation": "has_team:as_stated",
+      "basis": [
+       {
+        "dem_id": "S1#t3.c2",
+        "excerpt": "Match"
+       },
+       {
+        "dem_id": "S1#t3.r1.c2",
+        "excerpt": "New Zealand v Fiji"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t3/role/c3",
+      "choice": "venue",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t3.c3",
+        "excerpt": "Venue"
+       },
+       {
+        "dem_id": "S1#t3.r1.c3",
+        "excerpt": "Eden Park"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t3/relation/c1>c2",
+      "choice": "has_match:as_stated",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t3.c1",
+        "excerpt": "Stage"
+       },
+       {
+        "dem_id": "S1#t3.c2",
+        "excerpt": "Match"
+       },
+       {
+        "dem_id": "S1#t3.r1.c1",
+        "excerpt": "Pool A"
+       },
+       {
+        "dem_id": "S1#t3.r1.c2",
+        "excerpt": "New Zealand v Fiji"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t3/relation/c1>c3",
+      "choice": "none",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t3.c1",
+        "excerpt": "Stage"
+       },
+       {
+        "dem_id": "S1#t3.c3",
+        "excerpt": "Venue"
+       },
+       {
+        "dem_id": "S1#t3.r1.c1",
+        "excerpt": "Pool A"
+       },
+       {
+        "dem_id": "S1#t3.r1.c3",
+        "excerpt": "Eden Park"
+       }
+      ]
+     },
+     {
+      "slot_id": "rd/S1#t3/relation/c2>c3",
+      "choice": "played_at:as_stated",
+      "generic_reason": "",
+      "part_relation": "",
+      "basis": [
+       {
+        "dem_id": "S1#t3.c2",
+        "excerpt": "Match"
+       },
+       {
+        "dem_id": "S1#t3.c3",
+        "excerpt": "Venue"
+       },
+       {
+        "dem_id": "S1#t3.r1.c2",
+        "excerpt": "New Zealand v Fiji"
+       },
+       {
+        "dem_id": "S1#t3.r1.c3",
+        "excerpt": "Eden Park"
+       }
+      ]
+     }
+    ],
+    "section_relations": [],
+    "exceptions": []
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "elements": [
+   "S1#t1",
+   "S1#t2",
+   "S1#t3"
+  ]
+ }
+}

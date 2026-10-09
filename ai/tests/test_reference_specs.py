@@ -188,9 +188,10 @@ class CaptureFixtureTests(SimpleTestCase):
         # Every keyed step of a fixture replayed by work (the equivalence
         # runs) has a request, in the shape request_of produces. (Older
         # fixtures replayed strictly in captured order carry none.)
+        from ai.tests.test_readings_replay import RUN as READINGS_RUN
         from ai.tests.test_trace_equivalence import RUNS
 
-        for path in sorted(p for run in RUNS for p in (FIXTURES / "traces" / f"international_flyer_{run}").glob("*.json")):
+        for path in sorted(p for run in (*RUNS, READINGS_RUN) for p in (FIXTURES / "traces" / f"international_flyer_{run}").glob("*.json")):
             step = json.loads(path.read_text(encoding="utf-8"))
             if step["stage"] in KEYED_STAGES:
                 with self.subTest(step=f"{path.parent.name}/{path.name}"):

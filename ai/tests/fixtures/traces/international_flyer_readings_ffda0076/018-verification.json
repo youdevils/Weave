@@ -1,0 +1,36 @@
+{
+ "kind": "provider",
+ "run_id": "ffda0076-aaec-4703-8994-72fb9bdfdc50",
+ "sequence": 18,
+ "stage": "verification",
+ "attempt": 1,
+ "decision": "finish",
+ "schema": "VerificationResult",
+ "output": {
+  "schema_version": "1.1",
+  "verdict": "approved_with_findings",
+  "objections": [
+   {
+    "objection_id": "1",
+    "target_kind": "segment",
+    "target_id": "S1#8",
+    "kind": "missed_evidence",
+    "severity": "minor",
+    "message": "The text in S1#8 is specifically mentioned in the disputes as 'unread_target_prose'. The decision process appears to overlook this segment, which provides explicit relationships involving the quarter-final matches ('Pool A winner plays Pool B runner-up and vice versa'). At minimum, the blocks for quarter-finals and relationships among these winner/runner-up teams should be revisited. While the rest of the extraction and reading decisions are sound, this missed segment leaves a gap in coverage, as it directly relates to the matches and their structure.",
+    "option_id": null,
+    "evidence": {
+     "entities": [],
+     "assertions": [],
+     "facts": []
+    },
+    "frame_amendment": null,
+    "readings": [
+     "- Quarter-finals:\nThe top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa."
+    ],
+    "excerpt": "- Quarter-finals:\nThe top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa."
+   }
+  ],
+  "summary": "Most changes are well-founded, and the reading decisions about stages, venues, teams, and match relationships are supported by appropriate evidence from tables and headings. However, there is a minor missed evidence issue: prose segment S1#8 ('Quarter-finals: ...') is highlighted as 'unread_target_prose' and directly addresses the tournament structure for quarter-finals. Thus, while blocks and changes are generally justified, a minor objection arises for not citing this segment as explicit evidence for some relationships, especially regarding the quarter-final fixtures. This does not materially undermine the soundness of the result, but a more complete approach would include S1#8 as explicit evidence for certain relationships."
+ },
+ "provider_model": "gpt-4.1-2025-04-14"
+}

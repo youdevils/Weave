@@ -97,6 +97,17 @@ def _frame_elements(frame: IntentFrame) -> dict:
     return elements
 
 
+def _expanded_entities(rs) -> list:
+    """The Reading-expanded entities of the latest analysis that aren't
+    claims of `rs.graph` (none in claims mode, or before any analysis)."""
+
+    analysis = getattr(rs, "analysis", None)
+    if analysis is None or getattr(analysis, "graph", None) is None:
+        return []
+    claimed = rs.graph.ids()
+    return [e for e in analysis.graph.entities if e.origin == "reading" and e.eid not in claimed]
+
+
 def _dependants_pending(graph_ids, items) -> set:
     """Ids in `items` that refer to an id that isn't (yet) in the graph."""
 
@@ -131,7 +142,15 @@ def absorb(run, patch: EvidenceGraph, *, origin: str, replace_ids=frozenset()) -
 
     rs = run.state.reconcile
     patch, mapping, ingress_issues = ingest(patch, rs=rs, bundle=run.bundle, origin=origin, replace_ids=replace_ids)
-    known_ids = rs.graph.ids()
+    # Readings mode: the entities the current Readings expand to are shown to
+    # the AI as already extracted (`pack_claims`), so a claim may refer to
+    # them -- as endpoints only: ingress never lets a response define an
+    # `x/` id, and an expansion entity is never appended to `rs.graph` (it is
+    # recomputed by every analysis; a claim whose endpoint stops existing is
+    # unanchored there).
+    expanded = _expanded_entities(rs)
+    known_ids = rs.graph.ids() | {e.eid for e in expanded}
+    known_graph = rs.graph.appended(EvidenceGraph(entities=expanded)) if expanded else rs.graph
 
     # Deterministic repair: a claim about something never extracted (in the
     # graph, pending, or this patch) cannot mean anything -- dropped, never
@@ -160,7 +179,7 @@ def absorb(run, patch: EvidenceGraph, *, origin: str, replace_ids=frozenset()) -
         rs.note_refs[message] = identifier
     issues = list(ingress_issues)
     issues += validate_evidence_graph(patch, bundle=run.bundle, intent_text=run.intent.text, known_ids=frozenset(known_ids))
-    issues += grounding_issues(patch, bundle=run.bundle, known=rs.graph)
+    issues += grounding_issues(patch, bundle=run.bundle, known=known_graph)
     by_item: dict[str, list] = {}
     for found in issues:
         by_item.setdefault(found.item_id or "", []).append(found)
@@ -192,8 +211,9 @@ def absorb(run, patch: EvidenceGraph, *, origin: str, replace_ids=frozenset()) -
             if item_issues:
                 continue
             refs = [item.subject_eid, item.object_eid] if hasattr(item, "aid") else ([item.subject_id] if hasattr(item, "fid") else [])
-            if all(ref in rs.graph.ids() for ref in refs):
-                again = grounding_issues(EvidenceGraph(**{"assertions" if hasattr(item, "aid") else "facts": [item]}), bundle=run.bundle, known=rs.graph)
+            if all(ref in rs.graph.ids() or ref in known_ids for ref in refs):
+                known = rs.graph.appended(EvidenceGraph(entities=expanded)) if expanded else rs.graph
+                again = grounding_issues(EvidenceGraph(**{"assertions" if hasattr(item, "aid") else "facts": [item]}), bundle=run.bundle, known=known)
                 if not again:
                     del rs.pending_items[identifier]
                     rs.graph = rs.graph.appended(EvidenceGraph(**{"assertions" if hasattr(item, "aid") else "facts": [item]}))

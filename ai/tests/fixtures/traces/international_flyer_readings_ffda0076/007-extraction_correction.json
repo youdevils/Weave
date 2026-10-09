@@ -1,0 +1,78 @@
+{
+ "kind": "provider",
+ "run_id": "ffda0076-aaec-4703-8994-72fb9bdfdc50",
+ "sequence": 7,
+ "stage": "extraction_correction",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.1",
+  "intent_frame": {
+   "restated_intent": "The requester wants to add all venues and stages explicitly listed in the flyer, and to create any explicitly supported relationships involving those venues and stages as stated in the flyer.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venues",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues ... listed in the flyer"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stages",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "add the ... stages listed in the flyer"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well"
+  },
+  "evidence": {
+   "entities": [],
+   "assertions": [],
+   "facts": []
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#4",
+    "reason": "Describes the general structure and flow of the tournament (pool stage into knockout finals, final played in Auckland), but does not name a specific entity or directly relate named stages and venues. All referenced entities are already explicitly named elsewhere."
+   },
+   {
+    "segment_id": "S1#9",
+    "reason": "States the winners of the quarter-finals progress to the semi-finals, but does not name any specific quarter-final matches or new entities; the relationship is generic and refers to already-named stages."
+   },
+   {
+    "segment_id": "S1#10",
+    "reason": "States the two semi-final winners play for the championship at Eden Park, Auckland, which refers to an already-named final stage and venue; does not introduce a new entity or a directly stated relationship not already captured."
+   },
+   {
+    "segment_id": "S1#12",
+    "reason": "Describes how pool standings and qualification for quarter-finals are determined, but does not name specific matches, teams, or stages or directly state a new relationship involving a stage or venue."
+   },
+   {
+    "segment_id": "S1#23",
+    "reason": "States the champion is the winner of the final; does not refer to a specific venue or provide a new stage or relationship involving them."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": []
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [],
+  "frame": [],
+  "segments": [
+   "S1#4",
+   "S1#9",
+   "S1#10",
+   "S1#12",
+   "S1#23"
+  ]
+ }
+}

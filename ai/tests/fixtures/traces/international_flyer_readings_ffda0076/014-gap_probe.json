@@ -1,0 +1,86 @@
+{
+ "kind": "provider",
+ "run_id": "ffda0076-aaec-4703-8994-72fb9bdfdc50",
+ "sequence": 14,
+ "stage": "gap_probe",
+ "attempt": 3,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [],
+   "assertions": [],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E1:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8"
+    ],
+    "claim_ids": [
+     "gap1"
+    ],
+    "candidate_eids": [],
+    "note": "Structural evidence: 'Pool Stage' is named as a stage in the competition format, which is under the 'PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027' heading. The relationship 'has stage' between the tournament and 'Pool Stage' is supported by this structure."
+   },
+   {
+    "requirement_id": "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10"
+    ],
+    "claim_ids": [
+     "gap2"
+    ],
+    "candidate_eids": [],
+    "note": "Structural evidence: 'Semi-finals' is named as a stage in the competition format, which is under the 'PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027' heading. The relationship 'has stage' between the tournament and 'Semi-finals' is supported by this structure."
+   },
+   {
+    "requirement_id": "req:E4:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#16",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [
+     "gap3"
+    ],
+    "candidate_eids": [],
+    "note": "Structural evidence: 'Final' is named as a stage in the competition format, under the tournament heading. The relationship 'has stage' between the tournament and 'Final' is supported by this structure."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "requirements": [
+   "req:E1:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E4:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object"
+  ]
+ }
+}

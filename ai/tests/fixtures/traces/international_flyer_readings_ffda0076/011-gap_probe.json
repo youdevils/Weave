@@ -1,0 +1,209 @@
+{
+ "kind": "provider",
+ "run_id": "ffda0076-aaec-4703-8994-72fb9bdfdc50",
+ "sequence": 11,
+ "stage": "gap_probe",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [
+    {
+     "eid": "x/S1#t4.r1.c1",
+     "name": "Quarter-finals",
+     "aliases": [],
+     "type_label": "Stage",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Quarter-finals:\nThe top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa.",
+       "segment_id": "S1#8",
+       "locator": null
+      }
+     ],
+     "origin": "extraction",
+     "basis_refs": []
+    }
+   ],
+   "assertions": [],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E1:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8"
+    ],
+    "claim_ids": [
+     "x/S1#1/S1#t1.r1.c1"
+    ],
+    "candidate_eids": [],
+    "note": "Segment S1#7 structurally relates 'Pool Stage' to 'PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027' via 'has stage'. Already extracted assertion A1 covers this."
+   },
+   {
+    "requirement_id": "req:E1:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match is named as being part of 'Pool Stage' in these segments."
+   },
+   {
+    "requirement_id": "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10"
+    ],
+    "claim_ids": [
+     "x/S1#1/S1#t3.r3.c1"
+    ],
+    "candidate_eids": [],
+    "note": "Segment S1#9 structurally relates 'Semi-finals' to 'PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027' via 'has stage'. Already extracted assertion covers this."
+   },
+   {
+    "requirement_id": "req:E3:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No specific match entities are named as being part of 'Semi-finals'."
+   },
+   {
+    "requirement_id": "req:E4:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#16",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [
+     "A1"
+    ],
+    "candidate_eids": [],
+    "note": "The assertion relating 'Final' to 'PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027' (via 'is played at' at Eden Park, Auckland) is already extracted as A1."
+   },
+   {
+    "requirement_id": "req:E4:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#16",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match entities part of 'Final' are named in these segments."
+   },
+   {
+    "requirement_id": "req:x/S1#t4.r1.c2/p1:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No assertion naming 'Pool A winner' as a team of any Tournament is stated in these segments."
+   },
+   {
+    "requirement_id": "req:x/S1#t4.r1.c2/p2:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No assertion naming 'Pool B runner-up' as a team of any Tournament is stated in these segments."
+   },
+   {
+    "requirement_id": "target:T2",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8"
+    ],
+    "claim_ids": [
+     "x/S1#t4.r1.c1"
+    ],
+    "candidate_eids": [
+     "x/S1#t4.r1.c1"
+    ],
+    "note": "Segment S1#8 names 'Quarter-finals' as a stage, which was not previously extracted in claims. Entity for 'Quarter-finals' extracted."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "requirements": [
+   "req:E1:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E1:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E3:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E4:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E4:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:x/S1#t4.r1.c2/p1:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+   "req:x/S1#t4.r1.c2/p2:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+   "target:T2"
+  ]
+ }
+}

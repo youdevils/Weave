@@ -1,0 +1,241 @@
+{
+ "kind": "provider",
+ "run_id": "ffda0076-aaec-4703-8994-72fb9bdfdc50",
+ "sequence": 6,
+ "stage": "extraction",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.0",
+  "intent_frame": {
+   "restated_intent": "The user wants to add all venues and stages listed in the flyer to their model and create any associated relationships reflected in the flyer.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venues",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stages",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "add the ... stages"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [
+    {
+     "eid": "E1",
+     "name": "Pool Stage",
+     "aliases": [],
+     "type_label": "stage",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Pool Stage:\nTwo pools of four teams. Each team plays three matches against the other teams in its pool.",
+       "segment_id": "S1#7",
+       "locator": null
+      }
+     ],
+     "origin": "extraction",
+     "basis_refs": []
+    },
+    {
+     "eid": "E2",
+     "name": "Quarter-finals",
+     "aliases": [],
+     "type_label": "stage",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Quarter-finals:\nThe top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa.",
+       "segment_id": "S1#8",
+       "locator": null
+      }
+     ],
+     "origin": "extraction",
+     "basis_refs": []
+    },
+    {
+     "eid": "E3",
+     "name": "Semi-finals",
+     "aliases": [],
+     "type_label": "stage",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Semi-finals:\nQuarter-final winners progress to two semi-finals.",
+       "segment_id": "S1#9",
+       "locator": null
+      }
+     ],
+     "origin": "extraction",
+     "basis_refs": []
+    },
+    {
+     "eid": "E4",
+     "name": "Final",
+     "aliases": [],
+     "type_label": "stage",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Final:\nThe two semi-final winners play for the championship at Eden Park, Auckland.",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction",
+     "basis_refs": []
+    },
+    {
+     "eid": "E5",
+     "name": "Eden Park, Auckland",
+     "aliases": [
+      "Eden Park"
+     ],
+     "type_label": "venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Final:\nThe two semi-final winners play for the championship at Eden Park, Auckland.",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction",
+     "basis_refs": []
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A1",
+     "subject_eid": "E4",
+     "predicate": "is played at",
+     "object_eid": "E5",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Final:\nThe two semi-final winners play for the championship at Eden Park, Auckland.",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction",
+     "basis_refs": []
+    }
+   ],
+   "facts": []
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#1",
+    "reason": "Heading naming the flyer, does not state any venue or stage."
+   },
+   {
+    "segment_id": "S1#2",
+    "reason": "Overview statement; does not itself name a specific venue or stage."
+   },
+   {
+    "segment_id": "S1#3",
+    "reason": "Section heading only; not a domain claim."
+   },
+   {
+    "segment_id": "S1#4",
+    "reason": "Describes the tournament in general, but does not name a specific stage or venue."
+   },
+   {
+    "segment_id": "S1#6",
+    "reason": "Section heading only; not a domain claim."
+   },
+   {
+    "segment_id": "S1#11",
+    "reason": "Heading only; not a statement about stages or venues."
+   },
+   {
+    "segment_id": "S1#12",
+    "reason": "Describes how pool standings are determined, but does not state a stage or venue."
+   },
+   {
+    "segment_id": "S1#13",
+    "reason": "Describes rules for knockout matches; does not name a specific venue or stage."
+   },
+   {
+    "segment_id": "S1#16",
+    "reason": "Heading ('Tournament facts'); no stage or venue stated."
+   },
+   {
+    "segment_id": "S1#17",
+    "reason": "Lists number of teams, not a venue or stage."
+   },
+   {
+    "segment_id": "S1#18",
+    "reason": "Lists number of pool matches; does not name a venue or stage."
+   },
+   {
+    "segment_id": "S1#19",
+    "reason": "Gives pool size, but does not state a stage or venue."
+   },
+   {
+    "segment_id": "S1#20",
+    "reason": "Lists number of quarter-finalists, not a stage name or venue."
+   },
+   {
+    "segment_id": "S1#21",
+    "reason": "Lists number of semi-finalists, not a stage name or venue."
+   },
+   {
+    "segment_id": "S1#22",
+    "reason": "Lists number of finalists, not a stage name or venue."
+   },
+   {
+    "segment_id": "S1#23",
+    "reason": "States generic outcome for champion; does not name venue or stage."
+   },
+   {
+    "segment_id": "S1#24",
+    "reason": "Meta note about the document; not a domain claim about venues or stages."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": []
+ },
+ "provider_model": "gpt-4.1-2025-04-14"
+}

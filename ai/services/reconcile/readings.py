@@ -284,6 +284,8 @@ def skeleton(document, bundle, index) -> list[Element]:
         payload = {
             "element_id": table.table_id, "kind": "table",
             "within": [{"segment_id": h, "text": bundle.segment(h).text} for h in table.ancestor_ids],
+            # No header: the headings it sits under are its context (a header's is its column_ids).
+            **({"basis_context": list(table.ancestor_ids)} if not table.has_header else {}),
             "columns": [{"column_id": c.column_id, "label": c.label,
                          **({"recurring_separator": table.signature.separator(c.column_id)} if table.signature.separator(c.column_id) else {})}
                         for c in table.columns],
@@ -362,11 +364,16 @@ def _basis_issues(where, basis, document, bundle) -> list[str]:
     return problems
 
 
-def basis_sufficient(slot: Slot, basis, document, bundle) -> bool:
+def basis_sufficient(slot: Slot, basis, document, bundle, element_context=()) -> bool:
     """The plan's basis rule (section 3.2): header (or, headerless, section /
     ancestor context) plus representative cells -- or, with no data rows,
     the header / section context alone. Nothing is fabricated: a structure
-    with neither gives no sufficient basis for a role."""
+    with neither gives no sufficient basis for a role.
+
+    The context is a property of the table, not of one slot: a verified
+    citation of it in the Reading's element-level basis (`element_context`)
+    counts for each of the table's slots. The cells never do -- each slot
+    cites its own."""
 
     cited = {b.dem_id for b in basis}
     if slot.kind in ("heading_entity",):
@@ -382,7 +389,7 @@ def basis_sufficient(slot: Slot, basis, document, bundle) -> bool:
     if slot.kind == "section_relation" and slot.heading_id:
         context.add(slot.heading_id)
     cells = {c.cell_id for r in table.rows for c in r.cells}
-    has_context = bool(cited & context)
+    has_context = bool((cited | set(element_context)) & context)
     if not table.rows:
         return has_context and table.has_header
     return has_context and bool(cited & cells)
@@ -451,6 +458,11 @@ def _validate_element(element, answer, document, bundle, index):
     given = {a.slot_id: a for a in answer.slots}
     roles: dict[str, object] = {}  # column id -> ObjectType for decided entity roles
     slots = []
+    # Feedback order: what the slots decide first, then citation slips, then
+    # one line naming every slot short of a structural basis -- so a capped
+    # feedback never hides a substantive problem behind repeated basis ones.
+    citation_problems, uncited, assessable = [], [], set()
+    element_context = [b.dem_id for b in answer.basis if not _basis_issues("", [b], document, bundle)]
     for template in element.slots:
         slot = template.model_copy(deep=True)
         found = given.get(slot.slot_id)
@@ -477,10 +489,11 @@ def _validate_element(element, answer, document, bundle, index):
         if slot.choice == UNDECIDABLE:
             slot.state = "undecidable"
         else:
-            own += _basis_issues(slot.slot_id, slot.basis, document, bundle)
-            if not basis_sufficient(slot, slot.basis, document, bundle):
-                own.append(f"{slot.slot_id}: cite its structural basis -- the header (or, with no header, the section heading) "
-                           "and at least one cell of the column(s) it interprets.")
+            cites = _basis_issues(slot.slot_id, slot.basis, document, bundle)
+            sufficient = basis_sufficient(slot, slot.basis, document, bundle, element_context)
+            citation_problems += cites
+            if not sufficient:
+                uncited.append(slot.slot_id)
             if slot.kind in ("role", "heading_entity") and slot.choice not in (VALUE, NONE):
                 type_item = resolve_type(index, slot.choice)
                 if type_item is None or (slot.kind == "heading_entity" and slot.choice == VALUE):
@@ -497,13 +510,18 @@ def _validate_element(element, answer, document, bundle, index):
                     own.append(f"{slot.slot_id}: give part_relation as '<relationship key>:as_stated|converse' (the cell's entity is the subject).")
             if slot.kind == "relation" and slot.choice != NONE and resolve_relation(index, slot.choice) is None:
                 own.append(f"{slot.slot_id}: '{slot.choice}' is not '<relationship key>:as_stated|converse', none or undecidable.")
-            slot.state = "rejected" if own else "decided"
+            slot.state = "rejected" if own or cites or not sufficient else "decided"
+            if not own:
+                assessable.add(slot.slot_id)
             problems += own
         slots.append(slot)
 
-    # Legality of relationships against the roles decided in the same Reading.
+    # Legality of relationships against the roles decided in the same Reading
+    # -- for every choice that is otherwise well-formed, whatever its basis:
+    # one re-ask carries both, so a correction never fixes the citation only
+    # to have the choice rejected when no re-ask is left.
     for slot in slots:
-        if slot.state != "decided":
+        if slot.slot_id not in assessable:
             continue
         if slot.kind == "relation" and slot.choice != NONE:
             subject_type, object_type = roles.get(slot.columns[0]), roles.get(slot.columns[1])
@@ -549,6 +567,11 @@ def _validate_element(element, answer, document, bundle, index):
             reading.slots.append(slot)
             reading.references = sorted({*reading.references, reading_id(column.table_id)})
 
+    problems += citation_problems
+    if uncited:
+        problems.append(f"{', '.join(uncited)}: cite each one's structural basis -- the header (or, with no header, the section "
+                        "heading; one cited in the element's own basis counts for all its slots) and at least one cell of the "
+                        "column(s) it interprets, in the slot's own basis -- for 'none' and 'value' too.")
     reading.status = "validated"
     reading.owns = _owns(reading, document)
     return reading, problems

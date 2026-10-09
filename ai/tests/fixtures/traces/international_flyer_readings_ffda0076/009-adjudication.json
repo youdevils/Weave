@@ -1,0 +1,216 @@
+{
+ "kind": "provider",
+ "run_id": "ffda0076-aaec-4703-8994-72fb9bdfdc50",
+ "sequence": 9,
+ "stage": "adjudication",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "reading_slot:rd/S1#1/section_relation/S1#t1.c1",
+    "option_id": "has_stage:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#1",
+      "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+     },
+     {
+      "segment_id": "S1#t1",
+      "excerpt": ""
+     },
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     },
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     }
+    ],
+    "excerpt": "The table under the tournament heading lists stages (pools) as the first column, situating them as constituent stages of the tournament.",
+    "note": ""
+   },
+   {
+    "question_id": "reading_slot:rd/S1#1/section_relation/S1#t3.c1",
+    "option_id": "has_stage:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#1",
+      "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+     },
+     {
+      "segment_id": "S1#t3",
+      "excerpt": "Stage | Match | Venue"
+     },
+     {
+      "segment_id": "S1#t3.r1",
+      "excerpt": "Pool A | New Zealand v Fiji | Eden Park"
+     },
+     {
+      "segment_id": "S1#t3.r2",
+      "excerpt": "Pool A | Japan v Samoa | Sky Stadium"
+     },
+     {
+      "segment_id": "S1#t3.r3",
+      "excerpt": "Pool B | Australia v Argentina | Forsyth Barr Stadium"
+     }
+    ],
+    "excerpt": "The 'Stage' column in the Example fixtures table indicates that matches are organized by tournament stages, showing a relationship between the tournament and stages.",
+    "note": ""
+   },
+   {
+    "question_id": "reading_slot:rd/S1#1/section_relation/S1#t1.c2",
+    "option_id": "has_team_2:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#1",
+      "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+     },
+     {
+      "segment_id": "S1#t1",
+      "excerpt": ""
+     },
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "Teams listed in table under the tournament heading; these are the participating teams for the tournament.",
+    "note": ""
+   },
+   {
+    "question_id": "reading_slot:rd/S1#1/section_relation/S1#t1.c3",
+    "option_id": "has_team_2:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#1",
+      "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+     },
+     {
+      "segment_id": "S1#t1",
+      "excerpt": ""
+     },
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "Teams listed in table under the tournament heading; these are participating teams in the tournament.",
+    "note": ""
+   },
+   {
+    "question_id": "reading_slot:rd/S1#1/section_relation/S1#t1.c4",
+    "option_id": "has_team_2:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#1",
+      "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+     },
+     {
+      "segment_id": "S1#t1",
+      "excerpt": ""
+     },
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "This column continues listing teams in the context of the tournament's team list.",
+    "note": ""
+   },
+   {
+    "question_id": "reading_slot:rd/S1#1/section_relation/S1#t1.c5",
+    "option_id": "has_team_2:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#1",
+      "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+     },
+     {
+      "segment_id": "S1#t1",
+      "excerpt": ""
+     },
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     }
+    ],
+    "excerpt": "Teams from the table under the tournament heading; these represent the tournament's participant teams.",
+    "note": ""
+   },
+   {
+    "question_id": "reading_slot:rd/S1#1/section_relation/S1#t4.c1",
+    "option_id": "has_stage:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#1",
+      "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+     },
+     {
+      "segment_id": "S1#t4",
+      "excerpt": "Stage | Match | Venue"
+     },
+     {
+      "segment_id": "S1#t4.r1",
+      "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium"
+     },
+     {
+      "segment_id": "S1#t4.r2",
+      "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium"
+     }
+    ],
+    "excerpt": "Quarter-final listed as stage in the tournament's example fixtures table, constituting a stage of this tournament.",
+    "note": ""
+   },
+   {
+    "question_id": "coreference:E2:x/S1#t4.r1.c1",
+    "option_id": "same",
+    "citations": [
+     {
+      "segment_id": "S1#8",
+      "excerpt": "- Quarter-finals:\nThe top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa."
+     },
+     {
+      "segment_id": "S1#t4.r1",
+      "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium"
+     }
+    ],
+    "excerpt": "'Quarter-finals' as a competition stage encompasses the individual 'Quarter-final' matches, and the description directly matches the specifics of the fixtures.",
+    "note": ""
+   },
+   {
+    "question_id": "coreference:E2:x/S1#t4.r2.c1",
+    "option_id": "same",
+    "citations": [
+     {
+      "segment_id": "S1#8",
+      "excerpt": "- Quarter-finals:\nThe top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa."
+     },
+     {
+      "segment_id": "S1#t4.r2",
+      "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium"
+     }
+    ],
+    "excerpt": "'Quarter-finals' refers to the stage, and 'Quarter-final' is a match within that stage as defined in the text.",
+    "note": ""
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "reading_slot:rd/S1#1/section_relation/S1#t1.c1",
+   "reading_slot:rd/S1#1/section_relation/S1#t3.c1",
+   "reading_slot:rd/S1#1/section_relation/S1#t1.c2",
+   "reading_slot:rd/S1#1/section_relation/S1#t1.c3",
+   "reading_slot:rd/S1#1/section_relation/S1#t1.c4",
+   "reading_slot:rd/S1#1/section_relation/S1#t1.c5",
+   "reading_slot:rd/S1#1/section_relation/S1#t4.c1",
+   "coreference:E2:x/S1#t4.r1.c1",
+   "coreference:E2:x/S1#t4.r2.c1"
+  ]
+ }
+}

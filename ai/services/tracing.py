@@ -217,14 +217,16 @@ def load(path) -> list[dict]:
 # for the stages replayed by the work they ask for -- that work (`request`),
 # distilled from the payload, which is then dropped.
 
-KEYED_STAGES = ("adjudication", "gap_probe", "extraction_correction", "gap_probe_correction")
+KEYED_STAGES = ("reading", "adjudication", "gap_probe", "extraction_correction", "gap_probe_correction")
 FIXTURE_FIELDS = ("kind", "run_id", "sequence", "stage", "attempt", "decision", "schema", "output", "provider_model")
 
 
 def request_of(stage: str, payload: dict) -> dict:
-    """The ids of the work a request asks for: questions, requirements,
-    invalid items / frame elements, uncovered segments."""
+    """The ids of the work a request asks for: Reading elements, questions,
+    requirements, invalid items / frame elements, uncovered segments."""
 
+    if stage == "reading":
+        return {"elements": [e["element_id"] for e in payload["elements"]]}
     if stage == "adjudication":
         return {"questions": [q["question_id"] for q in payload["questions"]]}
     if stage == "gap_probe":
