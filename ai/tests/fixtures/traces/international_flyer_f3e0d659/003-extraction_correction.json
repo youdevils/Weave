@@ -1,0 +1,204 @@
+{
+ "kind": "provider",
+ "run_id": "f3e0d659-f1e3-4723-a9a8-47c158a0d768",
+ "sequence": 3,
+ "stage": "extraction_correction",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.0",
+  "intent_frame": {
+   "restated_intent": "The user wants to add the venues and stages listed in the flyer to the model, and to create associated relationships based on the information available.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venues",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues and stages listed in the flyer"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stages",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "add the venues and stages listed in the flyer"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [
+    {
+     "eid": "E12",
+     "name": "Pool A",
+     "aliases": [],
+     "type_label": "stage",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E13",
+     "name": "Pool B",
+     "aliases": [],
+     "type_label": "stage",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A4",
+     "subject_eid": "E1",
+     "predicate": "includes Final",
+     "object_eid": "E5",
+     "relationship_type_hint": "has_stage",
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "The tournament is designed to progress from an opening\npool stage into knockout finals, with the final played in Auckland.",
+       "segment_id": "S1#4",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Final:\nThe two semi-final winners play for the championship at Eden Park, Auckland.",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A7",
+     "subject_eid": "E8",
+     "predicate": "hosts Pool B match between Australia and Argentina",
+     "object_eid": "E13",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia v Argentina | Forsyth Barr Stadium",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A8",
+     "subject_eid": "E9",
+     "predicate": "hosts Pool B match between South Africa and Tonga",
+     "object_eid": "E13",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | South Africa v Tonga | FMG Stadium Waikato",
+       "segment_id": "S1#t3.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#t2.r5",
+    "reason": "This row states only that McLean Park is a venue for pool matches; no specific relationship is stated between McLean Park and 'Pool Stage' or a particular match or fixture."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": [
+   {
+    "message": "Corrected A4 to quote a longer verbatim excerpt. Adjusted A7 and A8 to state relationships actually supported by table rows listing both the venue and a specific Pool B match.",
+    "severity": "info"
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [
+   "A4",
+   "A7",
+   "A8",
+   "A9"
+  ],
+  "frame": [],
+  "segments": [
+   "S1#4",
+   "S1#t1.r1",
+   "S1#t1.r2",
+   "S1#8",
+   "S1#9",
+   "S1#10",
+   "S1#12",
+   "S1#t2.r3",
+   "S1#t2.r4",
+   "S1#t2.r5",
+   "S1#t2.r6",
+   "S1#t3.r1",
+   "S1#t3.r2",
+   "S1#t3.r3",
+   "S1#t3.r4"
+  ]
+ }
+}

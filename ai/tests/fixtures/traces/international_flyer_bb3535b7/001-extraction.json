@@ -1,0 +1,400 @@
+{
+ "kind": "provider",
+ "stage": "extraction",
+ "attempt": 1,
+ "decision": "advance",
+ "output": {
+  "schema_version": "1.0",
+  "intent_frame": {
+   "restated_intent": "The user wants to add the venues and stages mentioned in the flyer to their model, along with any directly stated relationships between them and other elements.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venues",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stages",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "add the venues and stages"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [
+    {
+     "eid": "E1",
+     "name": "Pool A",
+     "aliases": [],
+     "type_label": "Pool",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E2",
+     "name": "Pool B",
+     "aliases": [],
+     "type_label": "Pool",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E3",
+     "name": "Quarter-finals",
+     "aliases": [
+      "Quarter-final"
+     ],
+     "type_label": "Quarter-finals",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-finals:",
+       "segment_id": "S1#8",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E4",
+     "name": "Semi-finals",
+     "aliases": [],
+     "type_label": "Semi-finals",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Semi-finals:",
+       "segment_id": "S1#9",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E5",
+     "name": "Final",
+     "aliases": [],
+     "type_label": "Final",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Final:",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E6",
+     "name": "Eden Park",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Eden Park",
+       "segment_id": "S1#t2.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E7",
+     "name": "Sky Stadium",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Sky Stadium",
+       "segment_id": "S1#t2.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E8",
+     "name": "Forsyth Barr Stadium",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Forsyth Barr Stadium",
+       "segment_id": "S1#t2.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E9",
+     "name": "FMG Stadium Waikato",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "FMG Stadium Waikato",
+       "segment_id": "S1#t2.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E10",
+     "name": "McLean Park",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "McLean Park",
+       "segment_id": "S1#t2.r5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E11",
+     "name": "Orangetheory Stadium",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A1",
+     "subject_eid": "E6",
+     "predicate": "is the venue for the opening match and final",
+     "object_eid": "E5",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final",
+       "segment_id": "S1#t2.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A2",
+     "subject_eid": "E7",
+     "predicate": "hosts pool and quarter-final matches",
+     "object_eid": "E3",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches",
+       "segment_id": "S1#t2.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A3",
+     "subject_eid": "E8",
+     "predicate": "hosts pool matches",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Forsyth Barr Stadium | Dunedin, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A4",
+     "subject_eid": "E9",
+     "predicate": "hosts pool matches",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "FMG Stadium Waikato | Hamilton, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A5",
+     "subject_eid": "E10",
+     "predicate": "hosts pool matches",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "McLean Park | Napier, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A6",
+     "subject_eid": "E11",
+     "predicate": "hosts quarter-final and semi-final matches",
+     "object_eid": "E4",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "dismissed_segments": [],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": []
+ }
+}

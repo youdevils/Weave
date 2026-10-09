@@ -1,0 +1,231 @@
+{
+ "kind": "provider",
+ "run_id": "7f0fcac7-37b0-4677-a00b-1509af4506c6",
+ "sequence": 18,
+ "stage": "verification",
+ "attempt": 1,
+ "decision": "finish",
+ "schema": "VerificationResult",
+ "output": {
+  "schema_version": "1.2",
+  "verdict": "approved_with_findings",
+  "objections": [
+   {
+    "objection_id": "OBJ-1",
+    "target_kind": "segment",
+    "target_id": "S1#t3.r1",
+    "kind": "missed_evidence",
+    "severity": "minor",
+    "message": "The segment 'Pool A | New Zealand v Fiji | Eden Park' states that Eden Park is a venue for a Pool A match (New Zealand v Fiji). This specific relationship (the match is played at Eden Park and is part of Pool A) is not mapped to entities or relationships. It should be extracted as a match in Pool A played at Eden Park.",
+    "option_id": null,
+    "evidence": {
+     "entities": [],
+     "assertions": [
+      {
+       "aid": "S1#t3.r1-1",
+       "subject_eid": "New Zealand v Fiji",
+       "predicate": "is a match in",
+       "object_eid": "Pool A",
+       "relationship_type_hint": "has_match",
+       "hint_orientation": "as_stated",
+       "support": "explicit",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | New Zealand v Fiji | Eden Park",
+         "segment_id": "S1#t3.r1",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "aid": "S1#t3.r1-2",
+       "subject_eid": "New Zealand v Fiji",
+       "predicate": "played_at",
+       "object_eid": "Eden Park",
+       "relationship_type_hint": "played_at",
+       "hint_orientation": "as_stated",
+       "support": "explicit",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | New Zealand v Fiji | Eden Park",
+         "segment_id": "S1#t3.r1",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      }
+     ],
+     "facts": []
+    },
+    "frame_amendment": null,
+    "readings": [
+     "The row in the table lists Pool A, then New Zealand v Fiji, then Eden Park, which by context is best interpreted as the match occuring in Pool A and being at Eden Park."
+    ],
+    "excerpt": "Pool A | New Zealand v Fiji | Eden Park"
+   },
+   {
+    "objection_id": "OBJ-2",
+    "target_kind": "segment",
+    "target_id": "S1#t3.r2",
+    "kind": "missed_evidence",
+    "severity": "minor",
+    "message": "Segment S1#t3.r2 ('Pool A | Japan v Samoa | Sky Stadium') states that Japan v Samoa is a Pool A match at Sky Stadium. This relationship (match is in Pool A and played at Sky Stadium) is not extracted.",
+    "option_id": null,
+    "evidence": {
+     "entities": [],
+     "assertions": [
+      {
+       "aid": "S1#t3.r2-1",
+       "subject_eid": "Japan v Samoa",
+       "predicate": "is a match in",
+       "object_eid": "Pool A",
+       "relationship_type_hint": "has_match",
+       "hint_orientation": "as_stated",
+       "support": "explicit",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | Japan v Samoa | Sky Stadium",
+         "segment_id": "S1#t3.r2",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "aid": "S1#t3.r2-2",
+       "subject_eid": "Japan v Samoa",
+       "predicate": "played_at",
+       "object_eid": "Sky Stadium",
+       "relationship_type_hint": "played_at",
+       "hint_orientation": "as_stated",
+       "support": "explicit",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | Japan v Samoa | Sky Stadium",
+         "segment_id": "S1#t3.r2",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      }
+     ],
+     "facts": []
+    },
+    "frame_amendment": null,
+    "readings": [
+     "The structure lists the match as part of Pool A and played at Sky Stadium."
+    ],
+    "excerpt": "Pool A | Japan v Samoa | Sky Stadium"
+   },
+   {
+    "objection_id": "OBJ-3",
+    "target_kind": "segment",
+    "target_id": "S1#t3.r3",
+    "kind": "missed_evidence",
+    "severity": "minor",
+    "message": "Segment S1#t3.r3 ('Pool B | Australia v Argentina | Forsyth Barr Stadium') states that Australia v Argentina is a Pool B match at Forsyth Barr Stadium. This relationship is not extracted.",
+    "option_id": null,
+    "evidence": {
+     "entities": [],
+     "assertions": [
+      {
+       "aid": "S1#t3.r3-1",
+       "subject_eid": "Australia v Argentina",
+       "predicate": "is a match in",
+       "object_eid": "Pool B",
+       "relationship_type_hint": "has_match",
+       "hint_orientation": "as_stated",
+       "support": "explicit",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B | Australia v Argentina | Forsyth Barr Stadium",
+         "segment_id": "S1#t3.r3",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "aid": "S1#t3.r3-2",
+       "subject_eid": "Australia v Argentina",
+       "predicate": "played_at",
+       "object_eid": "Forsyth Barr Stadium",
+       "relationship_type_hint": "played_at",
+       "hint_orientation": "as_stated",
+       "support": "explicit",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B | Australia v Argentina | Forsyth Barr Stadium",
+         "segment_id": "S1#t3.r3",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      }
+     ],
+     "facts": []
+    },
+    "frame_amendment": null,
+    "readings": [],
+    "excerpt": "Pool B | Australia v Argentina | Forsyth Barr Stadium"
+   }
+  ],
+  "summary": "The extraction and mapping of venues and stages is correct and comprehensive for the global list of venues and stages, and most venue-stage/match relationships. However, there are three minor omissions regarding specific matches and their venue and stage: the 'Example fixtures' table (S1#t3 rows) lists explicit match-venue-stage relationships not fully extracted. These should be captured, though their omission does not block the main structure or contradict the result."
+ },
+ "provider_model": "gpt-4.1-2025-04-14"
+}

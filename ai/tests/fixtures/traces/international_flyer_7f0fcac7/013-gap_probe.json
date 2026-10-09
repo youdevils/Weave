@@ -1,0 +1,408 @@
+{
+ "kind": "provider",
+ "run_id": "7f0fcac7-37b0-4677-a00b-1509af4506c6",
+ "sequence": 13,
+ "stage": "gap_probe",
+ "attempt": 3,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [],
+   "assertions": [
+    {
+     "aid": "A100",
+     "subject_eid": "E13",
+     "predicate": "is a quarter-final match played at Orangetheory Stadium",
+     "object_eid": "E4",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Stage | Match | Venue",
+       "segment_id": "S1#t4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A101",
+     "subject_eid": "E14",
+     "predicate": "is a quarter-final match played at Sky Stadium",
+     "object_eid": "E4",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Stage | Match | Venue",
+       "segment_id": "S1#t4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E13:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1"
+    ],
+    "claim_ids": [
+     "A100"
+    ],
+    "candidate_eids": [],
+    "note": "Segment S1#t4.r1 relates 'Pool A winner v Pool B runner-up' to 'Quarter-finals' as a match in that stage."
+   },
+   {
+    "requirement_id": "req:E14:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [
+     "A101"
+    ],
+    "candidate_eids": [],
+    "note": "Segment S1#t4.r2 relates 'Pool B winner v Pool A runner-up' to 'Quarter-finals' as a match in that stage."
+   },
+   {
+    "requirement_id": "req:E2:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "None of these segments explicitly relate 'Pool A' to any Tournament entity."
+   },
+   {
+    "requirement_id": "req:E2:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match is structurally or explicitly related to 'Pool A' in these segments, only pool composition is presented."
+   },
+   {
+    "requirement_id": "req:E26:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "While 'South Africa v Tonga' is listed as a match, the segments do not explicitly state the teams related (though names are evident). For strict extraction, no claim is presented."
+   },
+   {
+    "requirement_id": "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r2",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3",
+     "S1#t3.r4",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No explicit link between 'Pool B' and a Tournament entity in these segments."
+   },
+   {
+    "requirement_id": "req:E4:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No explicit relationship between 'Quarter-finals' and a Tournament in these segments."
+   },
+   {
+    "requirement_id": "req:E4:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [
+     "A100",
+     "A101"
+    ],
+    "candidate_eids": [],
+    "note": "'Quarter-final' rows in S1#t4 associate two matches with the Quarter-finals stage."
+   },
+   {
+    "requirement_id": "req:E5:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r6"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No segment directly links 'Semi-finals' to a Tournament."
+   },
+   {
+    "requirement_id": "req:E6:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2",
+     "S1#16",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No segment directly links 'Final' to a Tournament."
+   },
+   {
+    "requirement_id": "req:E7:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "While 'Eden Park' is identified as a venue for 'New Zealand v Fiji' and as the site for the final, no explicit match entity is linked in these segments for direct relationship extraction."
+   },
+   {
+    "requirement_id": "req:E9:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r3",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "Forsyth Barr Stadium is listed as a venue for 'Australia v Argentina', but there is no extracted match entity directly linked."
+   },
+   {
+    "requirement_id": "target:T1",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#10",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E7",
+     "E9"
+    ],
+    "note": "Eden Park and Forsyth Barr Stadium are clearly named as venues in these segments."
+   },
+   {
+    "requirement_id": "target:T2",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t3.r3",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E2",
+     "E3",
+     "E4",
+     "E5"
+    ],
+    "note": "Segments structurally and textually mention Pool A, Pool B, Quarter-finals, and Semi-finals as stages."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "requirements": [
+   "req:E13:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E14:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E2:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E2:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E26:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E4:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E4:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E5:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E6:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E7:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E9:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "target:T1",
+   "target:T2"
+  ]
+ }
+}

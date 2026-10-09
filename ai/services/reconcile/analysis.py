@@ -8,7 +8,10 @@ The deterministic Reconcile pipeline, run end to end from the current claims
            -> intent target status (every target is requested work)
 
 Every explicit intent target ends in a reported status (`target_status`):
-evidenced (its items go through ESC like any other), folded (a request for
+evidenced (its items go through ESC like any other), blocked (evidenced, but
+every evidenced item of it is blocked -- reported as such so a reviewer never
+reads "evidenced" as "done"; each item is already its own blocked target),
+folded (a request for
 relationships in general == include_related), retire, or a target-level
 block -- unframed (its framing claim could not be grounded in the intent),
 unmapped (no catalogue kind), undecided (which kind is unresolved),
@@ -31,11 +34,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from ai.services.artifacts import Finding
+from ai.services.document import queries
 from ai.services.evidence_bundle import EvidenceBundle
 from ai.services.evidence_graph import EvidenceGraph, cited_segments, resolve_graph_segments
 from ai.services.grounding import ANCHORED, STRUCTURAL, ground_graph, units
 from ai.services.reconcile import questions as q
-from ai.services.reconcile.coverage import CLAIMED, DISMISSED, UNCOVERED, compute_coverage, labelled_by
+from ai.services.reconcile import intent_links as il
+from ai.services.reconcile import readings as rd
+from ai.services.reconcile import triage as tg
+from ai.services.reconcile.coverage import CLAIMED, DISMISSED, UNCOVERED, compute_coverage
 from ai.services.reconcile.identity import resolve_identities
 from ai.services.reconcile.ledger import ADJUDICATION, COVERAGE, EXTRACTION, FRAMING, GROUNDING, Ledger
 from ai.services.reconcile.mapping import _label_matches, map_assertions, map_entity_types, map_facts, typed_value
@@ -62,6 +69,8 @@ _REASON_TEXT = {
 
 # Target statuses that are blocks: requested work that was not done.
 TARGET_BLOCKS = ("unframed", "unmapped", "undecided", "not_evidenced")
+# ESC outcomes of an item that is not compiled because of a block.
+_ITEM_BLOCKS = ("blocked", "blocked_dependent", "clarification")
 _SEARCHED = ("text_block", "list_item", "table_row")
 
 
@@ -78,6 +87,8 @@ class TargetGap:
     verb: str
     reason: str  # none_evidenced | uncovered
     segment_ids: list = field(default_factory=list)
+    # Names of target entities those segments name that nothing extracted from them is about.
+    unaccounted: list = field(default_factory=list)
 
 
 def target_gap_id(target_id) -> str:
@@ -117,6 +128,9 @@ class Analysis:
     probe_requests: list = field(default_factory=list)
     clarification: str = ""
     findings: list = field(default_factory=list)
+    # finding message -> the ledger decision it restates (shown to
+    # Verification as that decision instead of as the finding).
+    finding_refs: dict = field(default_factory=dict)
     # aid -> open | undecidable | rejected_answer: why an undecided
     # assertion's mapping is undecided (honest blocking).
     decision_status: dict = field(default_factory=dict)
@@ -125,6 +139,21 @@ class Analysis:
     probe_outcomes: dict = field(default_factory=dict)
     # Every intent target's status (see module docstring), in frame order.
     target_status: list = field(default_factory=list)
+    # Readings mode: the effective Readings (pins applied), and the rows /
+    # slots their expansion left out (ai.services.reconcile.readings).
+    readings: list = field(default_factory=list)
+    anomalies: list = field(default_factory=list)
+    # Reading question subject -> the segments it is about.
+    reading_segments: dict = field(default_factory=dict)
+    # Readings mode: the bundle's DEM, and the bundle itself.
+    document: object = None
+    bundle: object = None
+    # Readings mode: every table column / heading -> read | ignored | unread.
+    structured_coverage: dict = field(default_factory=dict)
+    # Readings mode: requirement id -> triage.Triage (its leads and route).
+    triage: dict = field(default_factory=dict)
+    # requirement id -> its one negative state (triage.STATES), every mode.
+    requirement_states: dict = field(default_factory=dict)
 
     def cluster_name(self, cid) -> str:
         cluster = self.clusters.clusters.get(cid)
@@ -154,14 +183,19 @@ class Analysis:
     def cascade(self, cid, index) -> dict | None:
         """Why a blocked item can't be added, down to the cause: the chain from
         it through non-viable counterparts to the first item whose own
-        requirement the evidence does not meet (or None when its own is)."""
+        requirement its *decided* claims do not meet (or None when its own
+        are). Decided, not merely evidenced: a requirement held back by an
+        undecided mapping, an unresolved ambiguity or a constraint conflict is
+        the cause itself -- never walked past to some unrelated node further
+        down (a tournament blocked only by an open "has team" decision is not
+        blocked because a semi-final names no match)."""
 
         scope = self.scope
         frontier, seen = [(cid, [cid])], {cid}
         while frontier:
             node, path = frontier.pop(0)
             for requirement in scope.requirements.get(node, []):
-                if self.evidenced(requirement) < requirement.minimum:
+                if requirement.distinct(requirement.candidates) + requirement.canonical < requirement.minimum:
                     return {
                         "chain": [self.cluster_name(c) for c in path],
                         "cause": {
@@ -170,6 +204,10 @@ class Analysis:
                             "counterpart_type_key": index.object_types[requirement.counterpart_type_id].key,
                             "minimum": requirement.minimum,
                             "evidenced": self.evidenced(requirement),
+                            "unresolved_ambiguity": bool(requirement.ambiguous),
+                            "constraint_conflict": len(requirement.conflicted),
+                            "pending_decision": self.pending_detail(requirement),
+                            "state": self.requirement_states.get(requirement.requirement_id, ""),
                         },
                     }
             for requirement in scope.requirements.get(node, []):
@@ -220,7 +258,9 @@ class Analysis:
                     "unresolved_ambiguity": bool(requirement.ambiguous),
                     "constraint_conflict": len(requirement.conflicted),
                     "pending_decision": self.pending_detail(requirement),
+                    "state": self.requirement_states.get(requirement.requirement_id, ""),
                 })
+            own_states = [m["state"] for m in missing]
             for dependant in dependants:
                 for requirement in self.scope.requirements.get(dependant, []):
                     if requirement.distinct(requirement.candidates) + requirement.canonical < requirement.minimum:
@@ -236,12 +276,15 @@ class Analysis:
                             "unresolved_ambiguity": bool(requirement.ambiguous),
                             "constraint_conflict": len(requirement.conflicted),
                             "pending_decision": self.pending_detail(requirement),
+                            "state": self.requirement_states.get(requirement.requirement_id, ""),
                         })
             result.append({
                 "target": self.cluster_name(root),
                 "cluster_id": root,
                 "type_key": index.object_types[self.types[root].type_id].key,
                 "reason": self.scope.outcomes.get(root, "blocked"),
+                # The item's own negative state (ai.services.reconcile.triage).
+                "state": tg.aggregate(own_states),
                 "missing_requirements": missing,
                 "dependants": [self.cluster_name(d) for d in dependants],
                 "cascade": self.cascade(root, index),
@@ -250,12 +293,17 @@ class Analysis:
 
 
 def _register_claims(ledger: Ledger, state: ReconcileState, graph: EvidenceGraph) -> None:
+    # Reading-derived items are NOT claims: they are structural consequences
+    # of Reading slot claims, registered by readings.register (I2).
     for item in graph.entities:
-        ledger.claim(item.eid, step=EXTRACTION, basis=item.origin, subject_ids=[item.eid], excerpts=[p.excerpt for p in item.provenance])
+        if item.origin not in ("reading", "intent"):
+            ledger.claim(item.eid, step=EXTRACTION, basis=item.origin, subject_ids=[item.eid], excerpts=[p.excerpt for p in item.provenance])
     for item in graph.assertions:
-        ledger.claim(item.aid, step=EXTRACTION, basis=item.origin, subject_ids=[item.aid], excerpts=[p.excerpt for p in item.provenance])
+        if item.origin not in ("reading", "intent"):
+            ledger.claim(item.aid, step=EXTRACTION, basis=item.origin, subject_ids=[item.aid], excerpts=[p.excerpt for p in item.provenance])
     for item in graph.facts:
-        ledger.claim(item.fid, step=EXTRACTION, basis=item.origin, subject_ids=[item.fid], excerpts=[p.excerpt for p in item.provenance])
+        if item.origin not in ("reading", "intent"):
+            ledger.claim(item.fid, step=EXTRACTION, basis=item.origin, subject_ids=[item.fid], excerpts=[p.excerpt for p in item.provenance])
     for target in state.frame.targets:
         repaired = state.frame_repairs.get(target.target_id)
         ledger.claim(f"frame:{target.target_id}", step=FRAMING, basis="framing", subject_ids=[target.target_id], excerpts=[target.excerpt],
@@ -309,6 +357,25 @@ def run_analysis(state: ReconcileState, *, index: SemanticModelIndex, bundle: Ev
     pins = q.claim_pins(state.pins)
     ledger = Ledger()
     _register_claims(ledger, state, graph)
+    # Readings mode: every Reading as its latest claims make it, expanded over
+    # every conforming row -- recomputed here every time, so a corrected slot
+    # re-expands every row it governs and superseded claims cease to exist.
+    readings = rd.effective(state.readings, pins) if state.readings else []
+    expansion = rd.expand(bundle.document(), readings, bundle, index) if readings else rd.Expansion()
+    if readings:
+        graph = graph.appended(expansion.graph.without(state.retracted))
+        rd.register(ledger, readings, expansion)
+    if state.evidence_mode == "readings":
+        # What the request itself says links its targets to a named entity
+        # (ai.services.reconcile.intent_links): structural consequences of a
+        # claimed intent_link answer, never of OnyxJar's own judgement.
+        links, link_inputs = il.claims(state.frame, graph, index, _kind_of(index), pins=pins, intent_text=state.intent_text or "")
+        if not links.is_empty():
+            graph = graph.appended(links)
+            for item in links.items():
+                identifier = getattr(item, "eid", None) or getattr(item, "aid", None)
+                ledger.structural(identifier, step=ADJUDICATION, basis="intent", subject_ids=[identifier],
+                                  inputs=link_inputs.get(identifier, []), outcome="expanded")
 
     # L2 grounding (defence in depth: Extraction, Gap Probe and Verification
     # already refuse unanchored claims) -- anything unanchored takes no part.
@@ -322,12 +389,13 @@ def run_analysis(state: ReconcileState, *, index: SemanticModelIndex, bundle: Ev
     if unanchored:
         graph = graph.without(unanchored)
 
-    clusters = build_clusters(graph, pins=pins, ledger=ledger, kind_of=_kind_of(index))
+    clusters = build_clusters(graph, pins=pins, ledger=ledger, kind_of=_kind_of(index), plural_variants=state.evidence_mode == "readings")
     label_sets = label_observation_sets(graph, clusters, pins=pins, ledger=ledger)
-    types = map_entity_types(clusters, index=index, pins=pins, ledger=ledger)
+    types = map_entity_types(clusters, index=index, pins=pins, ledger=ledger, reading_types=expansion.overlay.types)
     assertions = map_assertions(
         graph, clusters, types, index=index, pins=pins, ledger=ledger,
         evidence_texts=lambda a: [u.text for u in units(a.provenance, bundle)],
+        reading_relations=expansion.overlay.relations,
     )
     identities = resolve_identities(clusters, types, index=index, pins=pins, ledger=ledger)
     facts, attribute_sets = map_facts(graph, clusters, types, assertions, index=index, pins=pins, ledger=ledger)
@@ -343,14 +411,36 @@ def run_analysis(state: ReconcileState, *, index: SemanticModelIndex, bundle: Ev
         ledger=ledger, graph=graph, clusters=clusters, types=types, assertions=assertions, facts=facts,
         attribute_sets=attribute_sets, targets=targets, anchors=anchors, scope=scope, removals=found_removals,
         identities=identities, label_sets=label_sets, grounding=grounding,
+        readings=readings, anomalies=expansion.anomalies,
     )
+    analysis.bundle = bundle
+    if readings:
+        document = analysis.document = bundle.document()
+        for reading in readings:
+            for subject in [*(s.slot_id for s in reading.slots), *(e.exception_id for e in reading.exceptions)]:
+                analysis.reading_segments[subject] = rd.subject_segments(subject, readings, document)
     analysis.decision_status = _decision_status(assertions, state.pins)
     _coverage(analysis, state, bundle=bundle, index=index)
+    if state.evidence_mode == "readings":
+        _structured_coverage(analysis, bundle)
     _plan_values(analysis, index=index, pins=pins)
+    if state.evidence_mode == "readings":
+        analysis.triage = tg.triage(analysis, state, bundle=bundle, index=index)
     _questions(analysis, state, index=index)
+    if analysis.document is not None:
+        # Every Reading question carries its evidence: the heading, table and
+        # rows its subjects are about -- also for a slot no Reading holds yet.
+        for question in analysis.questions:
+            for subject in question.subject_ids:
+                if subject not in analysis.reading_segments and (rd.is_reading_subject(subject) or subject in analysis.document.classes):
+                    analysis.reading_segments[subject] = rd.subject_segments(subject, analysis.readings, analysis.document)
     _probe_verdicts(analysis, state, index=index)
     target_gaps = _target_work(analysis, state, bundle=bundle, index=index)
     _probe_requests(analysis, state, target_gaps)
+    analysis.requirement_states = {
+        r.requirement_id: tg.requirement_state(r, analysis, state, analysis.triage.get(r.requirement_id) if analysis.triage else None)
+        for r in tg.unmet(analysis)
+    }
     _findings(analysis, index=index)
     ambiguous_anchors = [a for a in anchors.values() if a.outcome == "ambiguous"]
     if ambiguous_anchors:
@@ -366,11 +456,13 @@ def _coverage(analysis: Analysis, state: ReconcileState, *, bundle: EvidenceBund
     """Coverage decisions -- never claims. Claimed rests on the claims that
     cite the segment; dismissed and uncovered are `coverage` decisions."""
 
-    coverage = compute_coverage(bundle, analysis.graph, state.frame, index, state.dismissals)
+    coverage = compute_coverage(bundle, analysis.graph, state.frame, index, state.dismissals, scope=state.prose_scope)
     analysis.coverage = coverage
     ledger = analysis.ledger
     for segment_id, entry in coverage.items():
         detail = {"mentions": entry.named, "text": (bundle.segment(segment_id).text if bundle.segment(segment_id) else "")[:300]}
+        if entry.unaccounted:
+            detail["unaccounted"] = entry.unaccounted
         if entry.status == CLAIMED:
             ledger.structural(f"cover:{segment_id}", step=COVERAGE, basis="deterministic", subject_ids=[segment_id],
                               inputs=entry.cited_by, outcome=CLAIMED, detail=detail)
@@ -383,15 +475,37 @@ def _coverage(analysis: Analysis, state: ReconcileState, *, bundle: EvidenceBund
                     message=f"Evidence mentioning {', '.join(repr(n) for n in entry.named)} was set aside as not relevant "
                             f"({entry.reason or 'no reason given'}): \"{detail['text'][:160]}\"",
                 ))
+                analysis.finding_refs[analysis.findings[-1].message] = f"cover:{segment_id}"
         else:
             flags = ["not_extracted"] if segment_id in state.unextracted else []
             ledger.coverage(f"cover:{segment_id}", step=COVERAGE, basis="deterministic", subject_ids=[segment_id], outcome=UNCOVERED,
                             detail=detail, flags=flags)
             if entry.named:
+                missing = entry.unaccounted or entry.named
                 analysis.findings.append(Finding(
                     severity="warning",
-                    message=f"Evidence mentioning {', '.join(repr(n) for n in entry.named)} was not accounted for: \"{detail['text'][:160]}\"",
+                    message=f"Evidence mentioning {', '.join(repr(n) for n in missing)} was not accounted for: \"{detail['text'][:160]}\"",
                 ))
+
+
+def _structured_coverage(analysis: Analysis, bundle: EvidenceBundle) -> None:
+    """Readings mode: what the Readings left unread -- coverage decisions
+    (never claims). An `ignored` element is a Reading's semantic decision
+    (`none`), recorded as such and resting on that slot's claim."""
+
+    analysis.structured_coverage = rd.structured_coverage(bundle.document(), analysis.readings)
+    for dem_id, entry in analysis.structured_coverage.items():
+        detail = {"kind": entry["kind"], "reading_id": entry["reading_id"]}
+        slot_decision = rd.slot_decision_id(entry["slot_id"]) if entry["slot_id"] else None
+        if entry["status"] == rd.UNREAD:
+            analysis.ledger.coverage(f"cover:{dem_id}", step=COVERAGE, basis="deterministic", subject_ids=[dem_id], outcome=rd.UNREAD,
+                                     detail=detail)
+        else:
+            analysis.ledger.coverage(f"cover:{dem_id}", step=COVERAGE, basis="reading", subject_ids=[dem_id], outcome=entry["status"],
+                                     inputs=[slot_decision] if slot_decision and analysis.ledger.get(slot_decision) else [], detail=detail)
+    unread_columns = sorted(d for d, e in analysis.structured_coverage.items() if e["status"] == rd.UNREAD and e["kind"] == "column")
+    if unread_columns:
+        analysis.findings.append(Finding(severity="warning", message=f"Table columns not interpreted: {', '.join(unread_columns)}."))
 
 
 # -- attribute values -----------------------------------------------------------
@@ -485,6 +599,19 @@ def _questions(analysis: Analysis, state: ReconcileState, *, index: SemanticMode
         if question.question_id not in state.pins:
             questions.append(question)
 
+    # What a Reading left open: an undecidable slot, an undecidable row
+    # exception -- and a `none` slot a requirement's structural lead challenges.
+    document = analysis.document
+    for question in rd.questions(analysis.readings, state.pins, state.asked, index=index, document=document):
+        ask(question)
+    if analysis.triage:
+        for question in tg.challenge_questions(analysis, state, analysis.triage, index=index, document=document,
+                                               bundle=analysis.bundle):
+            ask(question)
+    if state.evidence_mode == "readings":
+        for question in il.questions(state.frame, graph, index, _kind_of(index), pins=state.pins, asked=state.asked):
+            ask(question)
+
     for target in analysis.targets.values():
         if target.outcome == "ambiguous":
             frame_target = next(t for t in state.frame.targets if t.target_id == target.target_id)
@@ -551,24 +678,13 @@ def _questions(analysis: Analysis, state: ReconcileState, *, index: SemanticMode
             excerpts=[e for a in aids[:3] for e in _excerpts(graph.assertion(a).provenance)],
         ))
 
-    for aid, mapping in analysis.assertions.items():
-        assertion = graph.assertion(aid)
-        if not ({mapping.subject_cid, mapping.object_cid} & in_scope):
-            continue
-        subject, obj = analysis.cluster_name(mapping.subject_cid), analysis.cluster_name(mapping.object_cid)
-        if mapping.outcome == "indirect" and mapping.reason == "indirect_unclassified" and "unresolved_ambiguity" not in mapping.flags:
-            via = ", ".join(sorted({p["via_type"] for p in mapping.paths}))
-            ask(Question(
-                question_id=q.key("indirect_classification", aid), kind="indirect_classification", subject_ids=[aid],
-                prompt=(
-                    f"The evidence says '{subject}' {assertion.predicate} '{obj}'. The model can only connect these through a {via}. "
-                    f"Does the source's wording refer to a {via} (without identifying it), or does it state a direct relationship?"
-                ),
-                options=[QuestionOption(option_id="refers_to_intermediate", label=f"It refers to an unidentified {via}"),
-                         QuestionOption(option_id="direct_statement", label="It states a direct relationship"),
-                         QuestionOption(option_id=q.UNDECIDABLE, label="Cannot be decided from the evidence")],
-                excerpts=_excerpts(assertion.provenance),
-            ))
+    # An `indirect` mapping is never asked about (indirect_classification):
+    # whether its wording refers to an unidentified intermediate or states a
+    # direct relationship changes only the reason it is not compiled -- an
+    # indirect mapping never fills a requirement (scope), is never pending
+    # (blocked causes) and is never compiled, whatever the answer. Asked only
+    # when material, it is never material; a reviewer's answer is still
+    # honoured (ai.services.reconcile.mapping).
 
     for cid, identity in analysis.identities.items():
         if identity.outcome != "ambiguous" or not (cid in in_scope or analysis.types[cid].type_id in target_types):
@@ -728,14 +844,27 @@ def _probe_verdicts(analysis: Analysis, state: ReconcileState, *, index: Semanti
 
 def _probe_requests(analysis: Analysis, state: ReconcileState, target_gaps=()) -> None:
     """Evidence gaps only: target gaps and unsatisfied requirements never
-    probed, or probed once with an unsupported "found" (re-probed once,
-    never more)."""
+    probed, or probed once with an unsupported "found" or a contested
+    not_stated (re-probed once, never more)."""
 
     analysis.probe_requests = [
         r for r in [*analysis.scope.unsatisfied, *target_gaps]
         if r.requirement_id not in state.probed
-        or (analysis.probe_outcomes.get(r.requirement_id) == "found_unsupported" and r.requirement_id not in state.reprobed)
+        or (analysis.probe_outcomes.get(r.requirement_id) in _REPROBED and r.requirement_id not in state.reprobed)
     ]
+    if state.evidence_mode == "readings":
+        # Gap triage (ai.services.reconcile.triage): a probe reads prose only,
+        # and only for a requirement whose leads are prose -- never over a
+        # structural lead (that is a Reading question), never with no lead
+        # (not_stated, no AI call). Target gaps keep their own prose packs.
+        analysis.probe_requests = [
+            r for r in analysis.probe_requests
+            if r.requirement_id.startswith("target:") or (analysis.triage.get(r.requirement_id) and analysis.triage[r.requirement_id].route == tg.PROBE)
+        ]
+
+
+# Probe outcomes that earn the one re-probe.
+_REPROBED = ("found_unsupported", "not_stated_contested")
 
 
 # -- intent targets ------------------------------------------------------------------
@@ -787,18 +916,8 @@ def _fills_target(analysis: Analysis, target, claim_ids, index: SemanticModelInd
     return False
 
 
-def _labelled_segments(bundle: EvidenceBundle, labels) -> list[str]:
-    """Where evidence of a kind would be: structured segments labelled by it
-    (in their text or table header), any segment naming it, and everything
-    under a heading naming it. Nothing labelled: the whole document (the
-    pack bounds it, and its coverage then says how much was read)."""
-
-    headings = {s.segment_id for s in bundle.segments() if s.kind == "heading" and mentions(s.text, labels)}
-    found = [
-        s.segment_id for s in bundle.segments()
-        if s.kind in _SEARCHED and (labelled_by(s, labels) or mentions(s.text, labels) or headings & set(s.ancestor_ids))
-    ]
-    return found or [s.segment_id for s in bundle.segments() if s.kind in _SEARCHED]
+# Where evidence of a kind would be is a layout fact (ai.services.document).
+_labelled_segments = queries.labelled_segments
 
 
 def _target_work(analysis: Analysis, state: ReconcileState, *, bundle: EvidenceBundle, index: SemanticModelIndex) -> list:
@@ -831,6 +950,11 @@ def _target_work(analysis: Analysis, state: ReconcileState, *, bundle: EvidenceB
             evidenced, selected = _target_items(analysis, target, index)
             status.update(evidenced=len(evidenced), selected=len(selected))
             status["status"] = "evidenced" if evidenced else "not_evidenced"
+            if evidenced and not selected and target.kind == "object_type":
+                outcomes = analysis.scope.outcomes
+                if all(outcomes.get(cid) in _ITEM_BLOCKS for cid in evidenced):
+                    status["status"] = "blocked"
+                    status["blocked_items"] = [analysis.cluster_name(cid) for cid in evidenced]
             if not evidenced:
                 status["coverage"] = state.missing_evidence.get(gap_id) or (
                     "partial" if analysis.probe_outcomes.get(gap_id) != "not_stated" else "complete")
@@ -842,12 +966,16 @@ def _target_work(analysis: Analysis, state: ReconcileState, *, bundle: EvidenceB
             reason = "none_evidenced" if not evidenced else ("uncovered" if uncovered else "")
             segments = []
             if reason == "none_evidenced":
-                segments = [sid for sid in _labelled_segments(bundle, [l for l in labels if l]) if sid not in reviewed]
+                segments = [sid for sid in _labelled_segments(bundle, [l for l in labels if l])
+                            if sid not in reviewed and (state.prose_scope is None or sid in state.prose_scope)]
             elif reason == "uncovered":
                 segments = uncovered
             if segments:
+                unaccounted = list(dict.fromkeys(
+                    n for sid in segments if sid in analysis.coverage for n in analysis.coverage[sid].unaccounted
+                )) if reason == "uncovered" else []
                 gaps.append(TargetGap(gap_id, frame_target.target_id, target.kind, target.type_id, frame_target.type_label,
-                                      frame_target.verb, reason, segments))
+                                      frame_target.verb, reason, segments, unaccounted))
         statuses.append(status)
         analysis.ledger.coverage(
             f"intent:{frame_target.target_id}", step=FRAMING, basis="deterministic", subject_ids=[frame_target.target_id],
@@ -884,6 +1012,9 @@ def _findings(analysis: Analysis, *, index: SemanticModelIndex) -> None:
             findings.append(Finding(severity="info", message=f"Not changed: the evidence says {statement}, which the model has no relationship for."))
         elif mapping.outcome == "ambiguous":
             findings.append(Finding(severity="warning", message=f"Not changed: the evidence says {statement}, but which model relationship it means is unresolved."))
+        else:
+            continue
+        analysis.finding_refs[findings[-1].message] = mapping.decision_id
 
     for fid, mapping in analysis.facts.items():
         if mapping.owner not in scope.needed and mapping.owner not in scope.selected_assertions:
@@ -901,6 +1032,7 @@ def _findings(analysis: Analysis, *, index: SemanticModelIndex) -> None:
     for cid, outcome in scope.outcomes.items():
         if outcome == "omitted":
             findings.append(Finding(severity="info", message=f"Not changed: '{analysis.cluster_name(cid)}' is not needed by, or cannot be added for, the requested outcome."))
+            analysis.finding_refs[findings[-1].message] = scope.decisions[cid]
 
     for cid, requirement, aids, allowed in scope.constraint_conflicts:
         relationship = index.relationship_types[requirement.relationship_type_id].name
@@ -925,6 +1057,7 @@ def _findings(analysis: Analysis, *, index: SemanticModelIndex) -> None:
     for cid, identity in analysis.identities.items():
         if identity.outcome in ("ambiguous", "unresolved_ambiguity") and cid in in_scope:
             findings.append(Finding(severity="warning", message=f"Not changed: whether '{analysis.cluster_name(cid)}' is an existing entity could not be resolved."))
+            analysis.finding_refs[findings[-1].message] = identity.decision_id
 
     for anchor in analysis.anchors.values():
         if anchor.outcome == "unresolved":

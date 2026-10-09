@@ -1,0 +1,16 @@
+{
+ "kind": "provider",
+ "run_id": "1d854489-db38-4e0f-91f0-948b01eac676",
+ "sequence": 17,
+ "stage": "verification",
+ "attempt": 1,
+ "decision": "finish",
+ "schema": "VerificationResult",
+ "output": {
+  "schema_version": "1.1",
+  "verdict": "approved",
+  "objections": [],
+  "summary": "The result correctly evidences and models the venues and stages listed in the flyer. All relationships and entities added or deferred are correctly mapped to the supporting evidence, with no unsupported changes. All relevant evidence segments are claimed or appropriately dismissed, and there are no unaddressed or misread claims. Dropped or blocked targets correspond only to requirements that are not stated in the evidence. No correction is required."
+ },
+ "provider_model": "gpt-4.1-2025-04-14"
+}

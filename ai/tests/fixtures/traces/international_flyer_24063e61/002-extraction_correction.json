@@ -1,0 +1,514 @@
+{
+ "kind": "provider",
+ "run_id": "24063e61-e45c-44e2-8dd0-c2fdf31172f7",
+ "sequence": 2,
+ "stage": "extraction_correction",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.0",
+  "intent_frame": {
+   "restated_intent": "Add the venues and stages listed in the flyer, and establish any relationships between them supported by the flyer evidence.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venues",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues and stages listed in the flyer"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stages",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "add the venues and stages listed in the flyer"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [
+    {
+     "eid": "E12",
+     "name": "New Zealand",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E13",
+     "name": "Fiji",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E14",
+     "name": "Japan",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E15",
+     "name": "Samoa",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E16",
+     "name": "Australia",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E17",
+     "name": "Argentina",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E18",
+     "name": "South Africa",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E19",
+     "name": "Tonga",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A7",
+     "subject_eid": "E12",
+     "predicate": "is part of",
+     "object_eid": "E1",
+     "relationship_type_hint": "has_team_2",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A8",
+     "subject_eid": "E13",
+     "predicate": "is part of",
+     "object_eid": "E1",
+     "relationship_type_hint": "has_team_2",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A9",
+     "subject_eid": "E14",
+     "predicate": "is part of",
+     "object_eid": "E1",
+     "relationship_type_hint": "has_team_2",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A10",
+     "subject_eid": "E15",
+     "predicate": "is part of",
+     "object_eid": "E1",
+     "relationship_type_hint": "has_team_2",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A11",
+     "subject_eid": "E16",
+     "predicate": "is part of",
+     "object_eid": "E2",
+     "relationship_type_hint": "has_team_2",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A12",
+     "subject_eid": "E17",
+     "predicate": "is part of",
+     "object_eid": "E2",
+     "relationship_type_hint": "has_team_2",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A13",
+     "subject_eid": "E18",
+     "predicate": "is part of",
+     "object_eid": "E2",
+     "relationship_type_hint": "has_team_2",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A14",
+     "subject_eid": "E19",
+     "predicate": "is part of",
+     "object_eid": "E2",
+     "relationship_type_hint": "has_team_2",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A15",
+     "subject_eid": "E5",
+     "predicate": "is played at",
+     "object_eid": "E6",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "The two semi-final winners play for the championship at Eden Park, Auckland.",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#4",
+    "reason": "Describes the tournament, stages, and locations generally, but does not enumerate venues or explicitly state full stage names for extraction."
+   },
+   {
+    "segment_id": "S1#8",
+    "reason": "Describes quarter-final format but does not explicitly enumerate venues or list stage entities beyond what is already extracted."
+   },
+   {
+    "segment_id": "S1#9",
+    "reason": "Describes semi-final format but does not enumerate venues or otherwise name additional stage entities beyond what is already extracted."
+   },
+   {
+    "segment_id": "S1#12",
+    "reason": "Describes pool scoring and qualification, but does not enumerate venues or additional stage names for extraction."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": []
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [
+   "A1",
+   "A2",
+   "A3",
+   "A4",
+   "A5",
+   "A6"
+  ],
+  "frame": [],
+  "segments": [
+   "S1#4",
+   "S1#t1.r1",
+   "S1#t1.r2",
+   "S1#8",
+   "S1#9",
+   "S1#10",
+   "S1#12",
+   "S1#t2.r1",
+   "S1#t2.r2",
+   "S1#t2.r3"
+  ]
+ }
+}

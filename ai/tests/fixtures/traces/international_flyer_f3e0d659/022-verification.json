@@ -1,0 +1,16 @@
+{
+ "kind": "provider",
+ "run_id": "f3e0d659-f1e3-4723-a9a8-47c158a0d768",
+ "sequence": 22,
+ "stage": "verification",
+ "attempt": 1,
+ "decision": "finish",
+ "schema": "VerificationResult",
+ "output": {
+  "schema_version": "1.1",
+  "verdict": "approved_with_findings",
+  "objections": [],
+  "summary": "The result accurately reflects the limits of the evidence and intent: all venues and stages listed in the flyer are identified, but the model blocks actually adding them due to lack of directly specified match or relationship detail. The mapping of venue-to-match-to-stage is handled conservatively and correctly according to adjudicated mapping choices and open budget. The warnings for uncovered segments and unresolved tournament/team mappings are correctly flagged as minor limitations: source evidence (mostly tables and listings) refers to entities and relationships at a class-level (e.g. 'Pool matches', 'Pool A'), but does not enumerate the individual match events or allow confirmation of direct relationships beyond what was attempted.\n\nNo material evidence supporting further actions is missed: all evidence rows and segments about venues and stages have been considered, with only general or intermediate relationships possible. The warnings about open mapping of team–tournament relationships and similar uncovered but not actionable evidence are appropriately left as minor findings, not requiring action. The blocked outcomes (intent_targets and entities) are justified as a result of the lack of fully decidable evidence or model expressiveness. Approved with minor findings noted."
+ },
+ "provider_model": "gpt-4.1-2025-04-14"
+}

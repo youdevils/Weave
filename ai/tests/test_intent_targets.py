@@ -42,7 +42,7 @@ from ai.tests.support import (
 )
 from ai.tests.rugby import INTENT
 from ai.tests.test_evidence_lifecycle import InternationalFlyerFixture
-from ai.tests.test_reconcile_convergence import single_option_oracle
+from ai.tests.test_reconcile_convergence import no_more_corrections, single_option_oracle
 from ai.tests.test_reconcile_workflow import ReconcileWorkflowTestCase
 
 LIVE_TRACE = Path(__file__).parent / "fixtures" / "traces" / "international_flyer_live2"
@@ -253,8 +253,10 @@ class LiveNoOpRegressionTests(InternationalFlyerFixture):
     corrected routing now asks for."""
 
     def test_the_request_survives_and_drives_the_search(self):
+        # Rows a claim cites without accounting for the target entity they name
+        # are re-asked too, so the segment re-asks need a second (empty) call.
         provider = ReplayProvider(LIVE_TRACE, inject={"adjudication": [single_option_oracle] * 3, "gap_probe": [no_claims] * 2,
-                                                      "gap_probe_correction": [no_claims]})
+                                                      "gap_probe_correction": [no_claims], "extraction_correction": [no_more_corrections]})
 
         result = self.run_reconcile(provider)
 
@@ -268,8 +270,9 @@ class LiveNoOpRegressionTests(InternationalFlyerFixture):
         self.assertTrue(fixture_rows <= set(probed["target:T1"]["segment_ids"]))
         self.assertTrue(any(rid.startswith("req:") for rid in probed))  # the stages' own requirements too
         verification = provider.payloads[provider.requested.index("verification")]
+        # Evidenced, but every venue and stage is blocked: reported as such.
         self.assertEqual({t["target_id"]: t["status"] for t in verification["intent_targets"]},
-                         {"T1": "evidenced", "T2": "evidenced", "T3": "folded"})
+                         {"T1": "blocked", "T2": "blocked", "T3": "folded"})
         # Nothing could be added, and that is reported -- never a successful no-op.
         self.assertNotEqual(result.outcome, OperationOutcome.NO_CHANGE_REQUIRED)
         self.assertEqual(result.outcome, OperationOutcome.UNRESOLVED)

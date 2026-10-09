@@ -1,0 +1,72 @@
+{
+ "kind": "provider",
+ "run_id": "10390789-977a-4768-8b61-210cd77b08f7",
+ "sequence": 5,
+ "stage": "extraction_correction",
+ "attempt": 4,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.0",
+  "intent_frame": {
+   "restated_intent": "The user wants to add the venues and stages listed in the flyer to their model, and create any relationships that are associated as stated in the flyer.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venues",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stages",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "add the venues and stages"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [],
+   "assertions": [],
+   "facts": []
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#t2.r3",
+    "reason": "The segment 'Forsyth Barr Stadium | Dunedin, New Zealand | Pool matches' only states that the venue's primary use is for 'Pool matches', but does not name or connect it to a specific stage (such as 'Pool A') or provide a structural relationship with a named stage."
+   },
+   {
+    "segment_id": "S1#t2.r4",
+    "reason": "The segment 'FMG Stadium Waikato | Hamilton, New Zealand | Pool matches' only states that the venue's primary use is for 'Pool matches', but does not name or connect it to a specific stage (such as 'Pool A') or provide a structural relationship with a named stage."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": [
+   {
+    "message": "Claim a5 about relating Forsyth Barr Stadium to Pool A was withdrawn because no segment explicitly states this relationship.",
+    "severity": "info"
+   },
+   {
+    "message": "Claim a6 about relating FMG Stadium Waikato to Pool A was withdrawn because no segment explicitly states this relationship.",
+    "severity": "info"
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [
+   "a5",
+   "a6"
+  ],
+  "frame": [],
+  "segments": []
+ }
+}

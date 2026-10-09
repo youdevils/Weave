@@ -1,0 +1,518 @@
+{
+ "kind": "provider",
+ "run_id": "7f0fcac7-37b0-4677-a00b-1509af4506c6",
+ "sequence": 3,
+ "stage": "extraction_correction",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.0",
+  "intent_frame": {
+   "restated_intent": "The user wants to add the venues and stages mentioned in the flyer to their model and create any associated relationships based on the provided information.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venues",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues and stages listed in the flyer"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stages",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "add the venues and stages listed in the flyer"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [
+    {
+     "eid": "E13",
+     "name": "Pool A winner v Pool B runner-up",
+     "aliases": [],
+     "type_label": "match",
+     "type_hint": "match",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E14",
+     "name": "Pool B winner v Pool A runner-up",
+     "aliases": [],
+     "type_label": "match",
+     "type_hint": "match",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A1",
+     "subject_eid": "E2",
+     "predicate": "includes teams New Zealand, Fiji, Japan, Samoa",
+     "object_eid": "E2",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A2",
+     "subject_eid": "E3",
+     "predicate": "includes teams Australia, Argentina, South Africa, Tonga",
+     "object_eid": "E3",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A3",
+     "subject_eid": "E4",
+     "predicate": "has matches between the top two teams from each pool: Pool A winner plays Pool B runner-up and vice versa",
+     "object_eid": "E4",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Quarter-finals:\nThe top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa.",
+       "segment_id": "S1#8",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A4",
+     "subject_eid": "E5",
+     "predicate": "has two semi-finals between Quarter-final winners",
+     "object_eid": "E5",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Semi-finals:\nQuarter-final winners progress to two semi-finals.",
+       "segment_id": "S1#9",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A5",
+     "subject_eid": "E6",
+     "predicate": "is played between the two semi-final winners for the championship at Eden Park, Auckland",
+     "object_eid": "E6",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Final:\nThe two semi-final winners play for the championship at Eden Park, Auckland.",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A6",
+     "subject_eid": "E7",
+     "predicate": "hosted New Zealand v Fiji (Pool A)",
+     "object_eid": "E7",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand v Fiji | Eden Park",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A7",
+     "subject_eid": "E8",
+     "predicate": "hosted Japan v Samoa (Pool A)",
+     "object_eid": "E8",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | Japan v Samoa | Sky Stadium",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A8",
+     "subject_eid": "E9",
+     "predicate": "hosted Australia v Argentina (Pool B)",
+     "object_eid": "E9",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia v Argentina | Forsyth Barr Stadium",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A9",
+     "subject_eid": "E10",
+     "predicate": "hosted South Africa v Tonga (Pool B)",
+     "object_eid": "E10",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | South Africa v Tonga | FMG Stadium Waikato",
+       "segment_id": "S1#t3.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A10",
+     "subject_eid": "E13",
+     "predicate": "is a quarter-final match played at Orangetheory Stadium",
+     "object_eid": "E12",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A11",
+     "subject_eid": "E14",
+     "predicate": "is a quarter-final match played at Sky Stadium",
+     "object_eid": "E8",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": [
+    {
+     "fid": "F1",
+     "subject_id": "E9",
+     "label": "Primary use",
+     "value": "Pool matches",
+     "unit": null,
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "supersedes": null,
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Forsyth Barr Stadium | Dunedin, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "fid": "F2",
+     "subject_id": "E10",
+     "label": "Primary use",
+     "value": "Pool matches",
+     "unit": null,
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "supersedes": null,
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "FMG Stadium Waikato | Hamilton, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "fid": "F3",
+     "subject_id": "E11",
+     "label": "Primary use",
+     "value": "Pool matches",
+     "unit": null,
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "supersedes": null,
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "McLean Park | Napier, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "fid": "F4",
+     "subject_id": "E12",
+     "label": "Primary use",
+     "value": "Quarter-final and semi-final matches",
+     "unit": null,
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "supersedes": null,
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ]
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#4",
+    "reason": "Describes the tournament structure and format generally but does not state any additional facts about stages or venues not already accounted for."
+   },
+   {
+    "segment_id": "S1#7",
+    "reason": "Explains the pool stage format; does not state additional venues or specific stage relationships beyond what is already extracted."
+   },
+   {
+    "segment_id": "S1#12",
+    "reason": "Describes the points system and how rankings affect quarter-final qualification; does not introduce new facts about venues or stages."
+   },
+   {
+    "segment_id": "S1#23",
+    "reason": "States that the winner of the final is the champion, but does not specify any new venue or stage information."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": [
+   {
+    "message": "Entities and assertions were extracted for Pool A winner v Pool B runner-up, Pool B winner v Pool A runner-up, and matches involving venues and stages, as requested.",
+    "severity": "info"
+   },
+   {
+    "message": "Some segments discuss formats or results logic without introducing new claimable entities or relationships relevant to venues and stages.",
+    "severity": "info"
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [],
+  "frame": [],
+  "segments": [
+   "S1#4",
+   "S1#t1.r1",
+   "S1#t1.r2",
+   "S1#7",
+   "S1#8",
+   "S1#9",
+   "S1#10",
+   "S1#12",
+   "S1#t2.r3",
+   "S1#t2.r4",
+   "S1#t2.r5",
+   "S1#t2.r6",
+   "S1#t3.r1",
+   "S1#t3.r2",
+   "S1#t3.r3",
+   "S1#t3.r4",
+   "S1#t4.r1",
+   "S1#t4.r2",
+   "S1#23"
+  ]
+ }
+}

@@ -17,6 +17,10 @@ compatible attribute -- and then accepts a mapping only on an explicit basis:
                  most, never a lexical match)
     adjudicated  an Adjudication answer (or Gap Probe remap / Verification
                  objection) pinned one of the options
+    reading      a Reading-derived claim (ai.services.reconcile.readings): its
+                 Reading slot already selected the catalogue identity, so it
+                 is taken as decided -- never re-interpreted lexically, by
+                 hint or by a question; only its legality is checked
 
 Anything else with options is `ambiguous` (a question); with none, it is
 `indirect` (a rule path exists through another type) or `unmapped`. OnyxJar
@@ -34,8 +38,11 @@ how it maps (the path), and why it isn't directly compilable:
     no_direct_representation   the source states a direct relationship the
                                ontology can only express through a path the
                                source never asserts (adjudicated)
-    indirect_unclassified      no claim distinguishes the two (asked only
-                               when material)
+    indirect_unclassified      no claim distinguishes the two. Never asked:
+                               no answer changes scope, viability or what
+                               compiles (an indirect mapping fills no
+                               requirement either way); a reviewer's
+                               `indirect_classification` answer is honoured
 """
 
 from __future__ import annotations
@@ -156,9 +163,13 @@ def _similar_types(index: SemanticModelIndex, labels) -> list:
     return found
 
 
-def map_entity_types(clusters: ClusterResult, *, index: SemanticModelIndex, pins: dict, ledger: Ledger) -> dict[str, TypeMapping]:
+def map_entity_types(clusters: ClusterResult, *, index: SemanticModelIndex, pins: dict, ledger: Ledger, reading_types=None) -> dict[str, TypeMapping]:
+    """`reading_types` (eid -> (type id, [read: decisions])): the catalogue
+    types Reading slots selected for Reading-derived entities."""
+
     result = {}
     limit = settings.AI_MAPPING_MAX_OPTIONS
+    reading_types = reading_types or {}
     for cid, cluster in clusters.clusters.items():
         pin_key = q.key("entity_type", cid)
         inputs = [*cluster.member_eids, *q.pin_inputs(pin_key, pins)]
@@ -166,8 +177,15 @@ def map_entity_types(clusters: ClusterResult, *, index: SemanticModelIndex, pins
         pin = pins.get(pin_key)
         valid_hints = sorted({h for h in cluster.type_hints if index.object_type_by_key(h)})
         lexical = {t.key for label in cluster.type_labels for t in _label_matches(index, label)}
+        read = [reading_types[e] for e in cluster.member_eids if e in reading_types]
+        read_types = sorted({type_id for type_id, _ in read})
+        inputs += [d for _, decisions in read for d in decisions if d not in inputs]
 
-        if pin is not None:
+        if pin is None and len(read_types) == 1:
+            mapping = TypeMapping(cid, "mapped", read_types[0], "reading")
+        elif pin is None and len(read_types) > 1:
+            mapping = TypeMapping(cid, "ambiguous", options=sorted(index.object_types[t].key for t in read_types)[:limit])
+        elif pin is not None:
             item = index.object_type_by_key(pin.option_id)
             if item is not None:
                 mapping = TypeMapping(cid, "mapped", item.id, "adjudicated")
@@ -305,17 +323,61 @@ def predicate_pattern_key(assertion, subject_type_key, object_type_key) -> str:
     return q.key("predicate_mapping", "_".join(tokens(assertion.predicate)) or "-", subject_type_key, object_type_key)
 
 
-def map_assertions(graph: EvidenceGraph, clusters: ClusterResult, types: dict, *, index: SemanticModelIndex, pins: dict, ledger: Ledger, evidence_texts=None) -> dict[str, AssertionMapping]:
+def _reading_mapping(assertion, subject_cid, object_cid, subject_type, object_type, read, *, clusters, index, ledger) -> AssertionMapping:
+    """A Reading-derived assertion: its Reading slot already chose the
+    relationship and orientation. Only legality is OnyxJar's to check."""
+
+    relationship_type_id, orientation, decisions = read
+    inputs = [assertion.aid, subject_type.decision_id, object_type.decision_id, *decisions]
+    mapping = AssertionMapping(assertion.aid, subject_cid, object_cid, "unmapped")
+    layer = None
+    generic = "generic" in (clusters.clusters[subject_cid].specificity, clusters.clusters[object_cid].specificity)
+    if subject_type.outcome != "mapped" or object_type.outcome != "mapped":
+        mapping.outcome = "pending" if {subject_type.outcome, object_type.outcome} & {"ambiguous"} else "unmapped"
+        mapping.reason = None if mapping.outcome == "pending" else "endpoint_unmapped"
+    elif (relationship_type_id, orientation) not in direct_options(index, subject_type.type_id, object_type.type_id):
+        mapping.reason, mapping.basis = "reading_illegal", "reading"
+    else:
+        mapping.relationship_type_id, mapping.orientation, mapping.basis = relationship_type_id, orientation, "reading"
+        layer = {"option": option_id(index, relationship_type_id, orientation)}
+        if generic:
+            mapping.outcome, mapping.reason = "indirect", "intermediate_unidentified"
+            layer["note"] = "an endpoint is referred to only non-specifically"
+        else:
+            mapping.outcome = "mapped"
+            if subject_type.type_id == object_type.type_id:
+                mapping.flags.append("orientation_unverifiable")
+    mapping.decision_id = f"map:{assertion.aid}"
+    ledger.structural(
+        mapping.decision_id, step=MAPPING, basis=mapping.basis or "deterministic", subject_ids=[assertion.aid], inputs=inputs,
+        outcome=mapping.outcome, reason=mapping.reason,
+        source={"aid": assertion.aid, "predicate": assertion.predicate, "subject": clusters.clusters[subject_cid].name,
+                "object": clusters.clusters[object_cid].name, "excerpts": [p.excerpt for p in assertion.provenance]},
+        mapping=layer, flags=list(mapping.flags),
+    )
+    return mapping
+
+
+def map_assertions(graph: EvidenceGraph, clusters: ClusterResult, types: dict, *, index: SemanticModelIndex, pins: dict, ledger: Ledger, evidence_texts=None,
+                   reading_relations=None) -> dict[str, AssertionMapping]:
     """`evidence_texts(assertion)` -> the texts its provenance cites (for the
-    lexical-evidence check); None skips that check."""
+    lexical-evidence check); None skips that check. `reading_relations`
+    (aid -> (relationship type id, orientation, [read: decisions])): what
+    Reading slots selected for Reading-derived assertions -- they bypass the
+    pin / hint / lexical / question path entirely."""
 
     result = {}
+    reading_relations = reading_relations or {}
     for assertion in graph.assertions:
         subject_cid = clusters.by_eid.get(assertion.subject_eid)
         object_cid = clusters.by_eid.get(assertion.object_eid)
         if subject_cid is None or object_cid is None:
             continue
         subject_type, object_type = types[subject_cid], types[object_cid]
+        if assertion.aid in reading_relations:
+            result[assertion.aid] = _reading_mapping(assertion, subject_cid, object_cid, subject_type, object_type,
+                                                     reading_relations[assertion.aid], clusters=clusters, index=index, ledger=ledger)
+            continue
         pin_key = q.key("assertion_mapping", assertion.aid)
         indirect_key = q.key("indirect_classification", assertion.aid)
         pattern_key = None

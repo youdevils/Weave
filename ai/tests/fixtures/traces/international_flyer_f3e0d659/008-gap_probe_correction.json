@@ -1,0 +1,185 @@
+{
+ "kind": "provider",
+ "run_id": "f3e0d659-f1e3-4723-a9a8-47c158a0d768",
+ "sequence": 8,
+ "stage": "gap_probe_correction",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [
+    {
+     "eid": "E10",
+     "name": "McLean Park",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "McLean Park | Napier, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r5",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E25",
+     "name": "Pool matches",
+     "aliases": [],
+     "type_label": "Stage",
+     "type_hint": null,
+     "specificity": "generic",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "McLean Park | Napier, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r5",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E11",
+     "name": "Orangetheory Stadium",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E26",
+     "name": "Quarter-final and semi-final matches",
+     "aliases": [],
+     "type_label": "Stage",
+     "type_hint": null,
+     "specificity": "generic",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A19",
+     "subject_eid": "E10",
+     "predicate": "hosts",
+     "object_eid": "E25",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Pool matches"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "McLean Park | Napier, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r5",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A20",
+     "subject_eid": "E11",
+     "predicate": "hosts",
+     "object_eid": "E26",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Quarter-final and semi-final matches"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    }
+   ],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "A19",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#t2.r5"
+    ],
+    "claim_ids": [
+     "A19"
+    ],
+    "candidate_eids": [],
+    "note": "Relates McLean Park to the Pool matches stage, as per source."
+   },
+   {
+    "requirement_id": "A20",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#t2.r6"
+    ],
+    "claim_ids": [
+     "A20"
+    ],
+    "candidate_eids": [],
+    "note": "Relates Orangetheory Stadium to the Quarter-final and semi-final matches stage, as per source."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [
+   "A11",
+   "A12",
+   "A13",
+   "A14",
+   "A15",
+   "A16",
+   "A17",
+   "A18",
+   "A19",
+   "A20"
+  ],
+  "requirements": []
+ }
+}

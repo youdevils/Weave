@@ -1,0 +1,171 @@
+{
+ "kind": "provider",
+ "run_id": "286357bd-f919-414c-8536-849298c594a7",
+ "sequence": 2,
+ "stage": "extraction_correction",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.0",
+  "intent_frame": {
+   "restated_intent": "Add the venues and stages listed in the flyer and create any associated relationships based on the available information.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venues",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues and stages listed in the flyer"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stages",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "add the venues and stages listed in the flyer"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [],
+   "assertions": [
+    {
+     "aid": "A7",
+     "subject_eid": "E6",
+     "predicate": "hosts the Final",
+     "object_eid": "E5",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "The tournament is designed to progress from an opening\npool stage into knockout finals, with the final played in Auckland.",
+       "segment_id": "S1#4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A8",
+     "subject_eid": "E6",
+     "predicate": "hosts the championship final",
+     "object_eid": "E5",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "The two semi-final winners play for the championship at Eden Park, Auckland.",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#t2.r1",
+    "reason": "States 'Eden Park' is used for the 'Opening match and final'. These are already extracted as relations involving 'Final'; nothing further to extract."
+   },
+   {
+    "segment_id": "S1#t2.r2",
+    "reason": "States 'Sky Stadium' is used for 'Pool and quarter-final matches', but does not explicitly name pools or quarter-finals as separate entities for these uses."
+   },
+   {
+    "segment_id": "S1#t2.r3",
+    "reason": "States 'Forsyth Barr Stadium' is used for 'Pool matches', but does not explicitly name pools or matches as distinct entities."
+   },
+   {
+    "segment_id": "S1#t2.r4",
+    "reason": "States 'FMG Stadium Waikato' is used for 'Pool matches', but does not explicitly name separate pool entities or matches."
+   },
+   {
+    "segment_id": "S1#t2.r5",
+    "reason": "States 'McLean Park' is used for 'Pool matches', but does not explicitly name pools or matches as entities to connect structurally."
+   },
+   {
+    "segment_id": "S1#t2.r6",
+    "reason": "States 'Orangetheory Stadium' is used for 'Quarter-final and semi-final matches', but does not explicitly name quarter-finals or semi-finals as entities participating in those matches."
+   },
+   {
+    "segment_id": "S1#t1.r1",
+    "reason": "Row names 'Pool A' as a stage (already extracted); lists teams, but the segment does not state a relationship between the teams and a venue or new stage."
+   },
+   {
+    "segment_id": "S1#t1.r2",
+    "reason": "Row names 'Pool B' as a stage (already extracted); lists teams, but the segment does not state a relationship between the teams and a venue or new stage."
+   },
+   {
+    "segment_id": "S1#8",
+    "reason": "Describes how teams qualify for quarter-finals; qualifies 'Pool A' and 'Pool B' for 'Quarter-finals' (all already extracted); does not state a new relationship involving the requested venues or stages."
+   },
+   {
+    "segment_id": "S1#9",
+    "reason": "Describes progression: 'Quarter-final winners progress to two semi-finals.' 'Quarter-finals' and 'Semi-finals' are already extracted as stages; no explicit relationship stated in this segment."
+   },
+   {
+    "segment_id": "S1#12",
+    "reason": "Describes method of pool standings and progression but does not explicitly state a relationship among named entities; no direct claim about venue or stage."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": [
+   {
+    "message": "No new explicit relationships between stages and venues could be extracted from the venue table rows, as they do not name both entities in a way that supports a structural claim.",
+    "severity": "info"
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [
+   "A1",
+   "A2",
+   "A3",
+   "A4",
+   "A5",
+   "A6"
+  ],
+  "frame": [],
+  "segments": [
+   "S1#4",
+   "S1#t1.r1",
+   "S1#t1.r2",
+   "S1#8",
+   "S1#9",
+   "S1#10",
+   "S1#12",
+   "S1#t2.r1",
+   "S1#t2.r2"
+  ]
+ }
+}

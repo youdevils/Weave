@@ -1,0 +1,53 @@
+{
+ "kind": "provider",
+ "run_id": "10390789-977a-4768-8b61-210cd77b08f7",
+ "sequence": 19,
+ "stage": "adjudication",
+ "attempt": 4,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "predicate_mapping:has_team:team:match",
+    "option_id": "has_team:converse",
+    "citations": [
+     {
+      "segment_id": "S1#t3",
+      "excerpt": "Stage | Match | Venue"
+     },
+     {
+      "segment_id": "S1#t3.r1",
+      "excerpt": "Pool A | New Zealand v Fiji | Eden Park"
+     }
+    ],
+    "excerpt": "",
+    "note": "The match 'New Zealand v Fiji' listed in the fixture associates both teams as participants in the match, therefore the correct model relationship is that a match has a team (the converse of 'team has match')."
+   },
+   {
+    "question_id": "predicate_mapping:stage_of:match:stage",
+    "option_id": "has_match:converse",
+    "citations": [
+     {
+      "segment_id": "S1#t3",
+      "excerpt": "Stage | Match | Venue"
+     },
+     {
+      "segment_id": "S1#t3.r1",
+      "excerpt": "Pool A | New Zealand v Fiji | Eden Park"
+     }
+    ],
+    "excerpt": "",
+    "note": "The row indicates that the match 'New Zealand v Fiji' occurs in the stage 'Pool A', so the correct model relationship is that a stage has a match (the converse of 'match is stage of stage')."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "predicate_mapping:has_team:team:match",
+   "predicate_mapping:stage_of:match:stage"
+  ]
+ }
+}

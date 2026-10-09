@@ -13,6 +13,9 @@ before it reaches the mutation resolver -- the backstop for I2.
       removal_confirmation answer
     - no value comes from a set classified as a conflict
     - nothing blocked or blocked-dependent is compiled
+    - (readings mode) nothing rests on a Reading slot that is not decided
+      (undecidable / none / not_a_table), and every Reading-derived item
+      carries basis_refs naming every Reading its ledgered inputs come from
 
 For compiled actions these hold by construction; a violation is an OnyxJar
 defect, reported as an issue and never sent to a provider.
@@ -23,6 +26,34 @@ from __future__ import annotations
 from ai.services.feedback import AIIssue, issue
 from ai.services.reconcile.analysis import Analysis
 from ai.services.reconcile.compiler import ChangeTrace
+
+
+_UNDECIDED_READ = ("undecidable", "none", "not_a_table", "value")
+
+
+def _reading_violations(ledger, decision_ids, graph) -> list[str]:
+    """Reading slots a traced chain rests on that are not decided, and
+    Reading-derived items whose basis_refs do not account for their inputs."""
+
+    problems, seen, frontier = [], set(), list(decision_ids)
+    while frontier:
+        decision_id = frontier.pop()
+        if decision_id in seen:
+            continue
+        seen.add(decision_id)
+        decision = ledger.get(decision_id)
+        if decision is None:
+            continue
+        if decision.step == "reading" and decision.kind == "claim" and decision.outcome in _UNDECIDED_READ:
+            problems.append(f"'{decision_id}' is not a decided Reading slot ({decision.outcome}).")
+        if decision.step == "reading" and decision.kind == "structural":
+            item = graph.item(decision_id) if graph is not None else None
+            refs = {r.split("@")[0] for r in (getattr(item, "basis_refs", None) or [])}
+            readings = {(ledger.get(i).detail or {}).get("reading_id") for i in decision.inputs if ledger.get(i) is not None}
+            if not refs or not decision.inputs or (readings - {None}) - refs:
+                problems.append(f"'{decision_id}' does not name every Reading it rests on in basis_refs.")
+        frontier += list(decision.inputs)
+    return problems
 
 
 def check_trace(change_set, trace: ChangeTrace, analysis: Analysis) -> list[AIIssue]:
@@ -40,6 +71,8 @@ def check_trace(change_set, trace: ChangeTrace, analysis: Analysis) -> list[AIIs
         for decision_id in entry.decision_ids:
             if ledger.get(decision_id) is None or not ledger.rests_on_claim(decision_id):
                 issues.append(issue("trace_violation", f"Traced decision '{decision_id}' rests on no claim.", action_id=action.action_id))
+        for problem in _reading_violations(ledger, [*entry.decision_ids, *entry.evidence_ids], analysis.graph):
+            issues.append(issue("trace_violation", problem, action_id=action.action_id))
         outcomes = {decision_id: ledger.get(decision_id).outcome for decision_id in entry.decision_ids if ledger.get(decision_id)}
         for evidence_id in entry.evidence_ids:
             grounded = ledger.get(f"ground:{evidence_id}")

@@ -1,0 +1,938 @@
+{
+ "kind": "provider",
+ "run_id": "3f801647-15b1-44cc-91da-838be08122dd",
+ "sequence": 7,
+ "stage": "gap_probe",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [
+    {
+     "eid": "E11",
+     "name": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+     "aliases": [],
+     "type_label": "tournament",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E12",
+     "name": "Pool A",
+     "aliases": [],
+     "type_label": "stage",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E13",
+     "name": "Pool B",
+     "aliases": [],
+     "type_label": "stage",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E14",
+     "name": "New Zealand v Fiji",
+     "aliases": [],
+     "type_label": "match",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "New Zealand v Fiji",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E15",
+     "name": "Japan v Samoa",
+     "aliases": [],
+     "type_label": "match",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Japan v Samoa",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E16",
+     "name": "Australia v Argentina",
+     "aliases": [],
+     "type_label": "match",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Australia v Argentina",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E17",
+     "name": "South Africa v Tonga",
+     "aliases": [],
+     "type_label": "match",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "South Africa v Tonga",
+       "segment_id": "S1#t3.r4",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E18",
+     "name": "Quarter-final | Pool A winner v Pool B runner-up",
+     "aliases": [],
+     "type_label": "match",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool A winner v Pool B runner-up",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E19",
+     "name": "Quarter-final | Pool B winner v Pool A runner-up",
+     "aliases": [],
+     "type_label": "match",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool B winner v Pool A runner-up",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A1001",
+     "subject_eid": "E11",
+     "predicate": "has stage",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "The tournament is designed to progress from an opening\npool stage into knockout finals",
+       "segment_id": "S1#4",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A1002",
+     "subject_eid": "E11",
+     "predicate": "has stage",
+     "object_eid": "E2",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "designed to progress from an opening\npool stage into knockout finals",
+       "segment_id": "S1#4",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A1003",
+     "subject_eid": "E11",
+     "predicate": "has stage",
+     "object_eid": "E3",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "knockout finals",
+       "segment_id": "S1#4",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A1004",
+     "subject_eid": "E11",
+     "predicate": "has stage",
+     "object_eid": "E4",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "final played in Auckland",
+       "segment_id": "S1#4",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A1005",
+     "subject_eid": "E1",
+     "predicate": "has match",
+     "object_eid": "E14",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "New Zealand v Fiji",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A1006",
+     "subject_eid": "E1",
+     "predicate": "has match",
+     "object_eid": "E15",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Japan v Samoa",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A1007",
+     "subject_eid": "E12",
+     "predicate": "has match",
+     "object_eid": "E14",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "New Zealand v Fiji",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A1008",
+     "subject_eid": "E12",
+     "predicate": "has match",
+     "object_eid": "E15",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Japan v Samoa",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A1009",
+     "subject_eid": "E13",
+     "predicate": "has match",
+     "object_eid": "E16",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Australia v Argentina",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A1010",
+     "subject_eid": "E13",
+     "predicate": "has match",
+     "object_eid": "E17",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t3.r4",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "South Africa v Tonga",
+       "segment_id": "S1#t3.r4",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A1011",
+     "subject_eid": "E2",
+     "predicate": "has match",
+     "object_eid": "E18",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A winner v Pool B runner-up",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A1012",
+     "subject_eid": "E2",
+     "predicate": "has match",
+     "object_eid": "E19",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B winner v Pool A runner-up",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    }
+   ],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E1:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8"
+    ],
+    "claim_ids": [
+     "A1001"
+    ],
+    "candidate_eids": [],
+    "note": "The tournament PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027 is stated to have a pool stage."
+   },
+   {
+    "requirement_id": "req:E1:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8"
+    ],
+    "claim_ids": [
+     "A1005",
+     "A1006"
+    ],
+    "candidate_eids": [],
+    "note": "Matches 'New Zealand v Fiji' and 'Japan v Samoa' are stated as part of the pool stage based on fixture tables."
+   },
+   {
+    "requirement_id": "req:E10:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "Orangetheory Stadium is listed as a venue for quarter-final and semi-final matches, but the segments do not name specific matches played there."
+   },
+   {
+    "requirement_id": "req:E2:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [
+     "A1002"
+    ],
+    "candidate_eids": [],
+    "note": "Quarter-finals are stated as a stage in the tournament."
+   },
+   {
+    "requirement_id": "req:E2:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [
+     "A1011",
+     "A1012"
+    ],
+    "candidate_eids": [],
+    "note": "Quarter-final matches listed in fixture tables are part of the Quarter-finals stage."
+   },
+   {
+    "requirement_id": "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r6"
+    ],
+    "claim_ids": [
+     "A1003"
+    ],
+    "candidate_eids": [],
+    "note": "Semi-finals are stated as a stage in the tournament."
+   },
+   {
+    "requirement_id": "req:E3:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r6"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No matches are named as part of the Semi-finals in the segments."
+   },
+   {
+    "requirement_id": "req:E4:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2",
+     "S1#16",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [
+     "A1004"
+    ],
+    "candidate_eids": [],
+    "note": "Final is stated as a stage in the tournament."
+   },
+   {
+    "requirement_id": "req:E4:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2",
+     "S1#16",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No matches are named as the Final in the segments."
+   },
+   {
+    "requirement_id": "req:E5:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [
+     "A2"
+    ],
+    "candidate_eids": [],
+    "note": "Match 'New Zealand v Fiji' is stated to be played at Eden Park."
+   },
+   {
+    "requirement_id": "req:E6:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r2",
+     "S1#t4",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "Match 'Japan v Samoa' is played at Sky Stadium, so relationship is established."
+   },
+   {
+    "requirement_id": "req:E7:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r3",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "Match 'Australia v Argentina' is played at Forsyth Barr Stadium, so relationship is established."
+   },
+   {
+    "requirement_id": "req:E8:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r4",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "Match 'South Africa v Tonga' is played at FMG Stadium Waikato, so relationship is established."
+   },
+   {
+    "requirement_id": "req:E9:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r5"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No specific matches are named as played at McLean Park."
+   },
+   {
+    "requirement_id": "target:T1",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r3",
+     "S1#t2.r4",
+     "S1#t2.r5",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t3.r3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [
+     "E5",
+     "E6",
+     "E7",
+     "E8",
+     "E9"
+    ],
+    "candidate_eids": [],
+    "note": "All venues in the table have been extracted."
+   },
+   {
+    "requirement_id": "target:T2",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t3.r3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [
+     "E1",
+     "E2",
+     "E3",
+     "E4",
+     "E12",
+     "E13"
+    ],
+    "candidate_eids": [],
+    "note": "Pool A and Pool B (as stages) are extracted from match tables in addition to already extracted main stages."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "requirements": [
+   "req:E1:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E1:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E10:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E2:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E2:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E3:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E4:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E4:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E5:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E6:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E7:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E8:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E9:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "target:T1",
+   "target:T2"
+  ]
+ }
+}

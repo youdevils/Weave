@@ -38,6 +38,7 @@ from ai.services.evidence_graph import EvidenceGraph
 from ai.services.reconcile import questions as q
 from ai.services.reconcile.ledger import NORMALISE, Ledger
 from ai.services.semantic.index import normalize_name
+from ai.services.sources import tokens
 
 
 def singular(label) -> str:
@@ -136,9 +137,16 @@ def _facts_disagree(a, b) -> bool:
     return any(len(values | b[label]) > 1 for label, values in a.items() if label in b)
 
 
-def build_clusters(graph: EvidenceGraph, *, pins: dict, ledger: Ledger, kind_of=None) -> ClusterResult:
+def _plural_insensitive_names(entity) -> set[str]:
+    return {" ".join(tokens(n)) for n in (entity.name, *entity.aliases) if (n or "").strip()}
+
+
+def build_clusters(graph: EvidenceGraph, *, pins: dict, ledger: Ledger, kind_of=None, plural_variants=False) -> ClusterResult:
     """`kind_of(entity)` -> the catalogue type id the entity's own hint/label
-    lexically names, or None (used only to recognise homonyms)."""
+    lexically names, or None (used only to recognise homonyms).
+    `plural_variants` (readings mode): two mentions whose names differ only by
+    plural ('Quarter-finals' / 'Quarter-final') raise a coreference QUESTION --
+    never a merge (non-identical names are never merged lexically, I2)."""
 
     entities = list(graph.entities)
     parent = {e.eid: e.eid for e in entities}
@@ -162,6 +170,14 @@ def build_clusters(graph: EvidenceGraph, *, pins: dict, ledger: Ledger, kind_of=
     possible = []
     for a, b in combinations(entities, 2):
         if not (_names(a) & _names(b)):
+            pair_key = q.key("coreference", a.eid, b.eid)
+            if plural_variants and _plural_insensitive_names(a) & _plural_insensitive_names(b) and _type_compatible(a, b):
+                pin = pins.get(pair_key)
+                if pin is not None and pin.option_id == "same":
+                    union(a.eid, b.eid)
+                    merges[(a.eid, b.eid)] = "adjudicated"
+                elif pin is None:
+                    possible.append((a.eid, b.eid))
             continue
         pair_key = q.key("coreference", a.eid, b.eid)
         lexical = a.specificity == b.specificity and _type_compatible(a, b) and not _facts_disagree(facts[a.eid], facts[b.eid])
@@ -190,15 +206,19 @@ def build_clusters(graph: EvidenceGraph, *, pins: dict, ledger: Ledger, kind_of=
     clusters, by_eid = {}, {}
     for cid, members in grouped.items():
         polarities = {m.polarity for m in members}
+        # The canonical name: a table cell's own text when a Reading read one
+        # (the prose 'Eden Park, Auckland' is then an alias of 'Eden Park');
+        # otherwise the earliest mention's. The cluster id stays the earliest.
+        canonical = next((m.name for m in members if m.origin == "reading"), members[0].name)
         aliases = []
         for member in members:
             for value in (member.name, *member.aliases):
-                if value not in aliases and value != members[0].name:
+                if value not in aliases and value != canonical:
                     aliases.append(value)
         cluster = Cluster(
             cluster_id=cid,
             member_eids=[m.eid for m in members],
-            name=members[0].name,
+            name=canonical,
             aliases=aliases,
             type_labels=sorted({m.type_label for m in members}),
             type_hints=sorted({m.type_hint for m in members if m.type_hint}),

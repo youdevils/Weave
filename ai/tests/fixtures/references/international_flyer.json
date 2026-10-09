@@ -1,0 +1,469 @@
+{
+  "document": "international_rugby_flyer.pdf",
+  "description": "International rugby flyer under the live International Rugby Tournament ontology (match->team exactly 2, team in exactly one match and one tournament, venue needs a match, stage needs a match and exactly one tournament). Intent: add the venues and stages, with their relationships. Pool A / Pool B are the stages of the pool fixtures.",
+  "required_objects": [
+    {
+      "id": "tournament",
+      "type": "tournament",
+      "names": [
+        "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+        "Pacific International Rugby Championship 2027",
+        "Pacific International Rugby Championship"
+      ]
+    },
+    {
+      "id": "stage:pool_a",
+      "type": "stage",
+      "names": [
+        "Pool A"
+      ]
+    },
+    {
+      "id": "stage:pool_b",
+      "type": "stage",
+      "names": [
+        "Pool B"
+      ]
+    },
+    {
+      "id": "match:nz_fiji",
+      "type": "match",
+      "names": [
+        "New Zealand v Fiji"
+      ]
+    },
+    {
+      "id": "match:japan_samoa",
+      "type": "match",
+      "names": [
+        "Japan v Samoa"
+      ]
+    },
+    {
+      "id": "match:australia_argentina",
+      "type": "match",
+      "names": [
+        "Australia v Argentina"
+      ]
+    },
+    {
+      "id": "match:south_africa_tonga",
+      "type": "match",
+      "names": [
+        "South Africa v Tonga"
+      ]
+    },
+    {
+      "id": "team:new_zealand",
+      "type": "team",
+      "names": [
+        "New Zealand"
+      ]
+    },
+    {
+      "id": "team:fiji",
+      "type": "team",
+      "names": [
+        "Fiji"
+      ]
+    },
+    {
+      "id": "team:japan",
+      "type": "team",
+      "names": [
+        "Japan"
+      ]
+    },
+    {
+      "id": "team:samoa",
+      "type": "team",
+      "names": [
+        "Samoa"
+      ]
+    },
+    {
+      "id": "team:australia",
+      "type": "team",
+      "names": [
+        "Australia"
+      ]
+    },
+    {
+      "id": "team:argentina",
+      "type": "team",
+      "names": [
+        "Argentina"
+      ]
+    },
+    {
+      "id": "team:south_africa",
+      "type": "team",
+      "names": [
+        "South Africa"
+      ]
+    },
+    {
+      "id": "team:tonga",
+      "type": "team",
+      "names": [
+        "Tonga"
+      ]
+    },
+    {
+      "id": "venue:eden_park",
+      "type": "venue",
+      "names": [
+        "Eden Park"
+      ]
+    },
+    {
+      "id": "venue:sky_stadium",
+      "type": "venue",
+      "names": [
+        "Sky Stadium"
+      ]
+    },
+    {
+      "id": "venue:forsyth_barr",
+      "type": "venue",
+      "names": [
+        "Forsyth Barr Stadium"
+      ]
+    },
+    {
+      "id": "venue:fmg_waikato",
+      "type": "venue",
+      "names": [
+        "FMG Stadium Waikato"
+      ]
+    }
+  ],
+  "required_relationships": [
+    {
+      "id": "has_stage:pool_a",
+      "type": "has_stage",
+      "subject": [
+        "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+        "Pacific International Rugby Championship 2027",
+        "Pacific International Rugby Championship"
+      ],
+      "object": [
+        "Pool A"
+      ]
+    },
+    {
+      "id": "has_stage:pool_b",
+      "type": "has_stage",
+      "subject": [
+        "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+        "Pacific International Rugby Championship 2027",
+        "Pacific International Rugby Championship"
+      ],
+      "object": [
+        "Pool B"
+      ]
+    },
+    {
+      "id": "has_match:pool_a:nz_fiji",
+      "type": "has_match",
+      "subject": [
+        "Pool A"
+      ],
+      "object": [
+        "New Zealand v Fiji"
+      ]
+    },
+    {
+      "id": "has_match:pool_a:japan_samoa",
+      "type": "has_match",
+      "subject": [
+        "Pool A"
+      ],
+      "object": [
+        "Japan v Samoa"
+      ]
+    },
+    {
+      "id": "has_match:pool_b:australia_argentina",
+      "type": "has_match",
+      "subject": [
+        "Pool B"
+      ],
+      "object": [
+        "Australia v Argentina"
+      ]
+    },
+    {
+      "id": "has_match:pool_b:south_africa_tonga",
+      "type": "has_match",
+      "subject": [
+        "Pool B"
+      ],
+      "object": [
+        "South Africa v Tonga"
+      ]
+    },
+    {
+      "id": "played_at:nz_fiji",
+      "type": "played_at",
+      "subject": [
+        "New Zealand v Fiji"
+      ],
+      "object": [
+        "Eden Park"
+      ]
+    },
+    {
+      "id": "played_at:japan_samoa",
+      "type": "played_at",
+      "subject": [
+        "Japan v Samoa"
+      ],
+      "object": [
+        "Sky Stadium"
+      ]
+    },
+    {
+      "id": "played_at:australia_argentina",
+      "type": "played_at",
+      "subject": [
+        "Australia v Argentina"
+      ],
+      "object": [
+        "Forsyth Barr Stadium"
+      ]
+    },
+    {
+      "id": "played_at:south_africa_tonga",
+      "type": "played_at",
+      "subject": [
+        "South Africa v Tonga"
+      ],
+      "object": [
+        "FMG Stadium Waikato"
+      ]
+    },
+    {
+      "id": "has_team:nz_fiji:new_zealand",
+      "type": "has_team",
+      "subject": [
+        "New Zealand v Fiji"
+      ],
+      "object": [
+        "New Zealand"
+      ]
+    },
+    {
+      "id": "has_team:nz_fiji:fiji",
+      "type": "has_team",
+      "subject": [
+        "New Zealand v Fiji"
+      ],
+      "object": [
+        "Fiji"
+      ]
+    },
+    {
+      "id": "has_team:japan_samoa:japan",
+      "type": "has_team",
+      "subject": [
+        "Japan v Samoa"
+      ],
+      "object": [
+        "Japan"
+      ]
+    },
+    {
+      "id": "has_team:japan_samoa:samoa",
+      "type": "has_team",
+      "subject": [
+        "Japan v Samoa"
+      ],
+      "object": [
+        "Samoa"
+      ]
+    },
+    {
+      "id": "has_team:australia_argentina:australia",
+      "type": "has_team",
+      "subject": [
+        "Australia v Argentina"
+      ],
+      "object": [
+        "Australia"
+      ]
+    },
+    {
+      "id": "has_team:australia_argentina:argentina",
+      "type": "has_team",
+      "subject": [
+        "Australia v Argentina"
+      ],
+      "object": [
+        "Argentina"
+      ]
+    },
+    {
+      "id": "has_team:south_africa_tonga:south_africa",
+      "type": "has_team",
+      "subject": [
+        "South Africa v Tonga"
+      ],
+      "object": [
+        "South Africa"
+      ]
+    },
+    {
+      "id": "has_team:south_africa_tonga:tonga",
+      "type": "has_team",
+      "subject": [
+        "South Africa v Tonga"
+      ],
+      "object": [
+        "Tonga"
+      ]
+    },
+    {
+      "id": "has_team_2:new_zealand",
+      "type": "has_team_2",
+      "subject": [
+        "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+        "Pacific International Rugby Championship 2027",
+        "Pacific International Rugby Championship"
+      ],
+      "object": [
+        "New Zealand"
+      ]
+    },
+    {
+      "id": "has_team_2:tonga",
+      "type": "has_team_2",
+      "subject": [
+        "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+        "Pacific International Rugby Championship 2027",
+        "Pacific International Rugby Championship"
+      ],
+      "object": [
+        "Tonga"
+      ]
+    }
+  ],
+  "required_blocked": [
+    {
+      "id": "blocked:quarter_finals",
+      "names": [
+        "Quarter-finals",
+        "Quarter-final",
+        "Quarter-Finals"
+      ],
+      "states": [
+        "insufficient_evidence",
+        "undecidable"
+      ],
+      "select": {
+        "relationship_type_key": "has_match",
+        "evidenced_at_least": 1
+      }
+    },
+    {
+      "id": "blocked:orangetheory",
+      "names": [
+        "Orangetheory Stadium"
+      ],
+      "states": [
+        "insufficient_evidence",
+        "undecidable"
+      ]
+    },
+    {
+      "id": "blocked:mclean_park",
+      "names": [
+        "McLean Park"
+      ],
+      "states": [
+        "not_stated"
+      ]
+    },
+    {
+      "id": "blocked:semi_finals",
+      "names": [
+        "Semi-finals",
+        "Semi-final",
+        "Semi-Finals"
+      ],
+      "states": [
+        "not_stated",
+        "undecidable"
+      ]
+    },
+    {
+      "id": "blocked:final",
+      "names": [
+        "Final"
+      ],
+      "states": [
+        "not_stated",
+        "undecidable"
+      ]
+    }
+  ],
+  "forbidden_objects": [
+    {
+      "id": "forbidden:placeholder_teams",
+      "type": "team",
+      "names": [],
+      "name_contains": [
+        "winner",
+        "runner-up",
+        "runner up"
+      ]
+    },
+    {
+      "id": "forbidden:placeholder_matches",
+      "type": "match",
+      "names": [],
+      "name_contains": [
+        "winner",
+        "runner-up",
+        "runner up"
+      ]
+    },
+    {
+      "id": "forbidden:mclean_park",
+      "type": null,
+      "names": [
+        "McLean Park"
+      ]
+    },
+    {
+      "id": "forbidden:orangetheory",
+      "type": null,
+      "names": [
+        "Orangetheory Stadium"
+      ]
+    },
+    {
+      "id": "forbidden:section_headings",
+      "type": null,
+      "names": [
+        "Teams",
+        "Venues",
+        "Example fixtures",
+        "Competition format",
+        "Tournament facts",
+        "Tournament overview",
+        "Progression and results"
+      ]
+    }
+  ],
+  "forbidden_relationships": [
+    {
+      "id": "forbidden:played_at_mclean_park",
+      "type": "played_at",
+      "subject": null,
+      "object": [
+        "McLean Park"
+      ]
+    }
+  ]
+}

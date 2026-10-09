@@ -1,0 +1,44 @@
+{
+  "document": "international_rugby_report.txt",
+  "description": "Prose-heavy canonical document: the same tournament as the international flyer, stated entirely in sentences (no tables). Same live International Rugby Tournament ontology and intent (add the venues and stages, with their relationships). Exercises the prose path of every architecture.",
+  "required_objects": [
+    {"id": "tournament", "type": "tournament", "names": ["Pacific International Rugby Championship 2027", "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027", "Pacific International Rugby Championship"]},
+    {"id": "stage:pool_a", "type": "stage", "names": ["Pool A"]},
+    {"id": "stage:pool_b", "type": "stage", "names": ["Pool B"]},
+    {"id": "match:nz_fiji", "type": "match", "names": ["New Zealand v Fiji"]},
+    {"id": "match:japan_samoa", "type": "match", "names": ["Japan v Samoa"]},
+    {"id": "match:australia_argentina", "type": "match", "names": ["Australia v Argentina"]},
+    {"id": "match:south_africa_tonga", "type": "match", "names": ["South Africa v Tonga"]},
+    {"id": "team:new_zealand", "type": "team", "names": ["New Zealand"]},
+    {"id": "team:tonga", "type": "team", "names": ["Tonga"]},
+    {"id": "venue:eden_park", "type": "venue", "names": ["Eden Park"]},
+    {"id": "venue:sky_stadium", "type": "venue", "names": ["Sky Stadium"]},
+    {"id": "venue:forsyth_barr", "type": "venue", "names": ["Forsyth Barr Stadium"]},
+    {"id": "venue:fmg_waikato", "type": "venue", "names": ["FMG Stadium Waikato"]}
+  ],
+  "required_relationships": [
+    {"id": "has_match:pool_a:nz_fiji", "type": "has_match", "subject": ["Pool A"], "object": ["New Zealand v Fiji"]},
+    {"id": "has_match:pool_b:south_africa_tonga", "type": "has_match", "subject": ["Pool B"], "object": ["South Africa v Tonga"]},
+    {"id": "played_at:nz_fiji", "type": "played_at", "subject": ["New Zealand v Fiji"], "object": ["Eden Park"]},
+    {"id": "played_at:japan_samoa", "type": "played_at", "subject": ["Japan v Samoa"], "object": ["Sky Stadium"]},
+    {"id": "played_at:australia_argentina", "type": "played_at", "subject": ["Australia v Argentina"], "object": ["Forsyth Barr Stadium"]},
+    {"id": "played_at:south_africa_tonga", "type": "played_at", "subject": ["South Africa v Tonga"], "object": ["FMG Stadium Waikato"]},
+    {"id": "has_team:nz_fiji:fiji", "type": "has_team", "subject": ["New Zealand v Fiji"], "object": ["Fiji"]},
+    {"id": "has_team_2:samoa", "type": "has_team_2", "subject": ["Pacific International Rugby Championship 2027", "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027", "Pacific International Rugby Championship"], "object": ["Samoa"]}
+  ],
+  "required_blocked": [
+    {"id": "blocked:mclean_park", "names": ["McLean Park"], "states": ["not_stated"]},
+    {"id": "blocked:orangetheory", "names": ["Orangetheory Stadium"], "states": ["insufficient_evidence", "undecidable"]},
+    {"id": "blocked:quarter_finals", "names": ["quarter-finals", "Quarter-finals", "Quarter-final"], "states": ["insufficient_evidence", "undecidable"]}
+  ],
+  "forbidden_objects": [
+    {"id": "forbidden:placeholder_teams", "type": "team", "names": [], "name_contains": ["winner", "runner-up", "runner up"]},
+    {"id": "forbidden:placeholder_matches", "type": "match", "names": [], "name_contains": ["winner", "runner-up", "runner up"]},
+    {"id": "forbidden:mclean_park", "type": null, "names": ["McLean Park"]},
+    {"id": "forbidden:orangetheory", "type": null, "names": ["Orangetheory Stadium"]},
+    {"id": "forbidden:unannounced_stages", "type": "stage", "names": ["Semi-final", "Semi-finals", "Final", "Finals"]}
+  ],
+  "forbidden_relationships": [
+    {"id": "forbidden:played_at_mclean_park", "type": "played_at", "subject": null, "object": ["McLean Park"]}
+  ]
+}

@@ -1,0 +1,103 @@
+{
+ "kind": "provider",
+ "run_id": "24063e61-e45c-44e2-8dd0-c2fdf31172f7",
+ "sequence": 9,
+ "stage": "gap_probe",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [],
+   "assertions": [],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E20:802ae184-5eb8-4bd8-94c0-8d8622312641:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#2",
+     "S1#3",
+     "S1#4",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#t1.r2",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r3",
+     "S1#t2.r4",
+     "S1#t2.r5",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t3.r3",
+     "S1#t3.r4",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2",
+     "S1#16",
+     "S1#17",
+     "S1#18",
+     "S1#19",
+     "S1#20",
+     "S1#21",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No segment explicitly relates the tournament entity ('PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027') to any team entity by a 'has team' relationship in the evidence. Although teams are listed and pools are given, the segments do not state a direct relationship of the form 'tournament has team'."
+   },
+   {
+    "requirement_id": "req:E3:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "While matches occurring in the quarter-finals stage are described (e.g., 'Pool A winner v Pool B runner-up'), no match entity is named in the evidence that could be related to the 'Quarter-finals' stage entity by a 'has match' relationship. Structural information describes a match generically, not as a specifically named entity."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "requirements": [
+   "req:E20:802ae184-5eb8-4bd8-94c0-8d8622312641:subject",
+   "req:E3:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject"
+  ]
+ }
+}

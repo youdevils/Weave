@@ -1,0 +1,188 @@
+{
+ "kind": "provider",
+ "run_id": "7f0fcac7-37b0-4677-a00b-1509af4506c6",
+ "sequence": 6,
+ "stage": "adjudication",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "predicate_mapping:is_a_quarter_final_match_played_at_orangetheory_stadium:match:venue",
+    "option_id": "played_at:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#t4.r1",
+      "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium"
+     }
+    ],
+    "excerpt": "The match 'Pool A winner v Pool B runner-up' is listed as being played at 'Orangetheory Stadium', establishing the played_at relationship.",
+    "note": ""
+   },
+   {
+    "question_id": "predicate_mapping:is_a_quarter_final_match_played_at_sky_stadium:match:venue",
+    "option_id": "played_at:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#t4.r2",
+      "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium"
+     }
+    ],
+    "excerpt": "The match 'Pool B winner v Pool A runner-up' is listed as being played at 'Sky Stadium', establishing the played_at relationship.",
+    "note": ""
+   },
+   {
+    "question_id": "indirect_classification:A1",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r1",
+      "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final"
+     }
+    ],
+    "excerpt": "The wording states Eden Park hosts the 'opening match and final' but does not specify the match itself; it refers to an unidentified match.",
+    "note": ""
+   },
+   {
+    "question_id": "indirect_classification:A2",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r2",
+      "excerpt": "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches"
+     }
+    ],
+    "excerpt": "Sky Stadium is listed as hosting pool and quarter-final matches, referring to matches but not specific ones.",
+    "note": ""
+   },
+   {
+    "question_id": "indirect_classification:A6",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r6",
+      "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches"
+     }
+    ],
+    "excerpt": "Orangetheory Stadium is listed as hosting quarter-final and semi-final matches, referring to unidentified matches.",
+    "note": ""
+   },
+   {
+    "question_id": "indirect_classification:a7",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "The relationship between 'Pool A' and 'New Zealand' is via matches or the tournament, not direct; the wording refers to unidentified matches/tournament.",
+    "note": ""
+   },
+   {
+    "question_id": "indirect_classification:a8",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "Pool A having team Fiji is only evidenced as an assignment for the pool, requiring connection through a match or tournament.",
+    "note": ""
+   },
+   {
+    "question_id": "indirect_classification:a9",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "Pool A having team Japan is via participation in matches/tournament, not directly stated.",
+    "note": ""
+   },
+   {
+    "question_id": "indirect_classification:a10",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "Pool A having team Samoa is assigned through tournament structure, not as a direct relationship.",
+    "note": ""
+   },
+   {
+    "question_id": "indirect_classification:a11",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     }
+    ],
+    "excerpt": "Pool B having team Australia occurs via tournament/match assignment, not as a direct connection.",
+    "note": ""
+   },
+   {
+    "question_id": "indirect_classification:a12",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     }
+    ],
+    "excerpt": "Pool B having team Argentina is via connection through participation (tournament or matches), not directly.",
+    "note": ""
+   },
+   {
+    "question_id": "indirect_classification:A7",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     }
+    ],
+    "excerpt": "Pool B's relationship with South Africa is by virtue of matches or tournament assignment, not a direct link.",
+    "note": ""
+   },
+   {
+    "question_id": "indirect_classification:A8",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     }
+    ],
+    "excerpt": "Pool B having team Tonga is only by implication via tournament/match, not directly.",
+    "note": ""
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "predicate_mapping:is_a_quarter_final_match_played_at_orangetheory_stadium:match:venue",
+   "predicate_mapping:is_a_quarter_final_match_played_at_sky_stadium:match:venue",
+   "indirect_classification:A1",
+   "indirect_classification:A2",
+   "indirect_classification:A6",
+   "indirect_classification:a7",
+   "indirect_classification:a8",
+   "indirect_classification:a9",
+   "indirect_classification:a10",
+   "indirect_classification:a11",
+   "indirect_classification:a12",
+   "indirect_classification:A7",
+   "indirect_classification:A8"
+  ]
+ }
+}

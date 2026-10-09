@@ -11,11 +11,18 @@ provider registry/plugin framework.
 
 from __future__ import annotations
 
+import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Optional, Type
 
 from pydantic import BaseModel
+
+
+def canonical_payload(payload) -> str:
+    """Exactly the text a payload is sent as (also what traces measure)."""
+
+    return json.dumps(payload, sort_keys=True, default=str)
 
 
 class ProviderError(Exception):

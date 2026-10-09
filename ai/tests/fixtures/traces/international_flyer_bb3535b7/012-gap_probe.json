@@ -1,0 +1,544 @@
+{
+ "kind": "provider",
+ "stage": "gap_probe",
+ "attempt": 3,
+ "decision": "advance",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [
+    {
+     "eid": "E19",
+     "name": "New Zealand",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E20",
+     "name": "Fiji",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E21",
+     "name": "Japan",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E22",
+     "name": "Samoa",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E23",
+     "name": "Australia",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E24",
+     "name": "Argentina",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E25",
+     "name": "South Africa",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E26",
+     "name": "Tonga",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A23",
+     "subject_eid": "E12",
+     "predicate": "has team",
+     "object_eid": "E19",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A24",
+     "subject_eid": "E12",
+     "predicate": "has team",
+     "object_eid": "E20",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A25",
+     "subject_eid": "E12",
+     "predicate": "has team",
+     "object_eid": "E21",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A26",
+     "subject_eid": "E12",
+     "predicate": "has team",
+     "object_eid": "E22",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A27",
+     "subject_eid": "E12",
+     "predicate": "has team",
+     "object_eid": "E23",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A28",
+     "subject_eid": "E12",
+     "predicate": "has team",
+     "object_eid": "E24",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A29",
+     "subject_eid": "E12",
+     "predicate": "has team",
+     "object_eid": "E25",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A30",
+     "subject_eid": "E12",
+     "predicate": "has team",
+     "object_eid": "E26",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A31",
+     "subject_eid": "E13",
+     "predicate": "played at",
+     "object_eid": "E11",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E11:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1"
+    ],
+    "claim_ids": [
+     "A31"
+    ],
+    "candidate_eids": [],
+    "note": "The segments identify 'Pool A winner v Pool B runner-up' (E13) as a quarter-final match played at Orangetheory Stadium."
+   },
+   {
+    "requirement_id": "req:E12:802ae184-5eb8-4bd8-94c0-8d8622312641:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#2",
+     "S1#3",
+     "S1#4",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#t1.r2",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r3",
+     "S1#t2.r4",
+     "S1#t2.r5",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t3.r3",
+     "S1#t3.r4",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2",
+     "S1#16",
+     "S1#17",
+     "S1#18",
+     "S1#19",
+     "S1#20",
+     "S1#21",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [
+     "A23",
+     "A24",
+     "A25",
+     "A26",
+     "A27",
+     "A28",
+     "A29",
+     "A30"
+    ],
+    "candidate_eids": [],
+    "note": "Teams New Zealand, Fiji, Japan, Samoa, Australia, Argentina, South Africa, and Tonga are present in Pools A and B as participants in the tournament."
+   },
+   {
+    "requirement_id": "req:E15:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [
+     "A32",
+     "A33"
+    ],
+    "candidate_eids": [],
+    "note": "The match 'New Zealand v Fiji' states both New Zealand and Fiji as the teams involved."
+   },
+   {
+    "requirement_id": "req:E16:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r2"
+    ],
+    "claim_ids": [
+     "A34",
+     "A35"
+    ],
+    "candidate_eids": [],
+    "note": "The match 'Japan v Samoa' states both Japan and Samoa as the teams involved."
+   },
+   {
+    "requirement_id": "req:E17:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [
+     "A36",
+     "A37"
+    ],
+    "candidate_eids": [],
+    "note": "The match 'Australia v Argentina' states both Australia and Argentina as the teams involved."
+   },
+   {
+    "requirement_id": "req:E18:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [
+     "A38",
+     "A39"
+    ],
+    "candidate_eids": [],
+    "note": "The match 'South Africa v Tonga' states both South Africa and Tonga as the teams involved."
+   }
+  ]
+ }
+}

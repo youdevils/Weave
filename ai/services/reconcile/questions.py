@@ -99,6 +99,8 @@ def standard_options(options, *, allow_none=True) -> list[QuestionOption]:
 # Question kinds in the order they must be settled: an entity's type decides
 # which relationship/attribute options exist at all, so type-level questions
 # are asked in a round of their own when present.
-PHASE_1 = ("target_type", "coreference", "entity_type")
+# Reading questions (a slot, a group of rows) decide which entities and
+# relationships exist at all, so they are type-level too.
+PHASE_1 = ("target_type", "coreference", "entity_type", "reading_slot", "row_exception", "intent_link")
 PHASE_2 = ("assertion_mapping", "indirect_classification", "identity", "fact_attribute", "conflict_classification",
            "value_selection", "value_change", "removal_confirmation", "current_satisfier")

@@ -361,14 +361,78 @@ class InternationalFlyerFixture(AIServiceTestCase):
                                 assets=self.assets, provider=provider)
 
 
+class TargetMentionCoverageTests(InternationalFlyerFixture):
+    """Run 1d854489: a fixture row claimed only as "Pool A is the stage of
+    match New Zealand v Fiji -> New Zealand" counted as covered, so nothing
+    ever asked what it says about Eden Park, and every venue was blocked."""
+
+    def coverage(self, *items):
+        from ai.services.evidence_graph import resolve_graph_segments
+
+        index = SemanticModelIndex.load(self.model)
+        return compute_coverage(self.bundle, resolve_graph_segments(graph(*items), self.bundle), self.frame(), index, {})
+
+    def row_entities(self):
+        return [entity("E1", "Pool A", "pool", hint="stage", excerpt="Pool A"),
+                entity("E2", "New Zealand", "team", hint="team", excerpt="New Zealand"),
+                entity("E14", "Eden Park", "venue", hint="venue", excerpt="Eden Park")]
+
+    def test_a_row_cited_about_something_else_leaves_its_named_target_unaccounted(self):
+        row = self.seg("Pool A | New Zealand v Fiji")
+        about_the_team = assertion("a7", "E1", "is the stage of match New Zealand v Fiji", "E2", excerpt="New Zealand v Fiji")
+
+        entry = self.coverage(*self.row_entities(), about_the_team)[row]
+
+        self.assertEqual(entry.status, UNCOVERED)
+        self.assertEqual(entry.unaccounted, ["Eden Park"])
+        self.assertEqual(len(entry.type_ids), 1)  # the venue type only: its target's gap
+
+    def test_the_row_is_claimed_once_its_named_targets_are_endpoints(self):
+        row = self.seg("Pool A | New Zealand v Fiji")
+        items = [*self.row_entities(), entity("E30", "New Zealand v Fiji", "match", hint="match", excerpt="New Zealand v Fiji"),
+                 assertion("A30", "E1", "includes", "E30", excerpt="New Zealand v Fiji"),
+                 assertion("A31", "E30", "played at", "E14", excerpt="New Zealand v Fiji")]
+
+        entry = self.coverage(*items)[row]
+
+        self.assertEqual((entry.status, entry.unaccounted), (CLAIMED, []))
+
+    def test_an_alias_mention_is_reported_as_the_source_names_it_once(self):
+        # Run f3e0d659: 'Pool Stage' carried the alias 'Pool A', and 'Pool A'
+        # was also extracted on its own -- the row names 'Pool A', once.
+        row = self.seg("Pool A | New Zealand v Fiji")
+        items = [entity("E20", "Pool Stage", "stage", hint="stage", excerpt="Pool Stage", aliases=["Pool A", "Pool B"]),
+                 entity("E12", "Pool A", "pool", hint="stage", excerpt="Pool A"),
+                 *self.row_entities()[1:],
+                 entity("E3", "Fiji", "team", hint="team", excerpt="Fiji"),
+                 assertion("a7", "E2", "plays", "E3", excerpt="New Zealand v Fiji")]
+
+        self.assertEqual(self.coverage(*items)[row].unaccounted, ["Pool A", "Eden Park"])
+
+    def test_a_name_inside_a_longer_extracted_name_is_not_a_mention_of_it(self):
+        segment = self.seg("- Quarter-finals")
+        items = [entity("E11", "Quarter-finals", "stage", hint="stage", excerpt="Quarter-finals"),
+                 entity("E13", "Final", "stage", hint="stage", excerpt="- Final")]
+
+        entry = self.coverage(*items)[segment]
+
+        self.assertEqual((entry.status, entry.unaccounted), (CLAIMED, []))
+
+
 class InternationalFlyerTests(InternationalFlyerFixture):
 
     def test_the_coverage_gate_recovers_the_fixture_table_and_the_result_is_honestly_partial(self):
-        provider = ScriptedProvider([self.first_pass(), self.fixture_rows, self.not_stated, approve()])
+        provider = ScriptedProvider([self.first_pass(), self.fixture_rows, self.not_stated, self.not_stated, approve()])
 
         result = self.run_reconcile(provider)
 
-        self.assertEqual(provider.stages, ["extraction", "extraction_correction", "gap_probe", "verification"])
+        self.assertEqual(provider.stages, ["extraction", "extraction_correction", "gap_probe", "gap_probe", "verification"])
+        # The second round is the one re-probe of absences their own pack's
+        # layout contests: each has a row under the 'Stage | Match | Venue'
+        # header naming it.
+        contested = {r["entity"]["name"] for r in provider.payloads_for("gap_probe")[1]["requirements"]
+                     if "said not_stated" in r.get("previous_answer", "")}
+        self.assertEqual(contested, {"Orangetheory Stadium", "Quarter-finals"})
         # The live failure: no matches in the first pass. The fixture rows name
         # venues, so they were re-asked -- exactly those segments.
         reasked = [s["segment"]["segment_id"] for s in provider.payloads_for("extraction_correction")[0]["uncovered_segments"]]
@@ -394,8 +458,11 @@ class InternationalFlyerTests(InternationalFlyerFixture):
     def test_a_zero_result_is_reviewed_and_a_missed_evidence_objection_recovers_it(self):
         def missed(payload):
             # The reviewer points at the fixture rows the extraction ignored.
-            # The extraction dismissed it; the reviewer sees every dismissal.
-            row = next(s for s in payload["dismissed_segments"] + payload["uncovered_segments"]
+            # The extraction dismissed it; the reviewer sees every dismissal
+            # (its text in `evidence_segments` when shown there).
+            texts = {s["segment_id"]: s["text"] for s in payload["evidence_segments"]}
+            row = next(s for s in ({**s, "text": s.get("text", texts.get(s["segment_id"], ""))}
+                                   for s in payload["dismissed_segments"] + payload["uncovered_segments"])
                        if s["text"].startswith("Pool B | South Africa v Tonga"))
             evidence = self.fixture_rows({"uncovered_segments": [{"segment": {"segment_id": row["segment_id"], "text": row["text"]}}]}).evidence
             evidence.entities = [e.model_copy(update={"eid": e.eid.replace("PB", "X0")}) if e.eid == "PB" else e for e in evidence.entities]
@@ -411,6 +478,7 @@ class InternationalFlyerTests(InternationalFlyerFixture):
             first,
             lambda payload: extraction(frame(), dismissed=[(s["segment"]["segment_id"], "not needed") for s in payload["uncovered_segments"]]),
             self.not_stated,
+            self.not_stated,
             missed,
             approve(),
         ])
@@ -418,8 +486,11 @@ class InternationalFlyerTests(InternationalFlyerFixture):
         result = self.run_reconcile(provider)
 
         # Zero result -> Verification (not a terminal UNRESOLVED) -> routed back
-        # -> recomputed -> compiled -> reviewed again.
-        self.assertEqual(provider.stages, ["extraction", "extraction_correction", "gap_probe", "verification", "verification"])
+        # -> recomputed -> compiled -> reviewed again. The second probe round is
+        # the one re-probe of the contested absence (FMG's fixture row sits
+        # under a 'Stage | Match | Venue' header); its second not_stated stands.
+        self.assertEqual(provider.stages, ["extraction", "extraction_correction", "gap_probe", "gap_probe", "verification", "verification"])
+        self.assertEqual([r["entity"]["name"] for r in provider.payloads_for("gap_probe")[1]["requirements"]], ["FMG Stadium Waikato"])
         self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
         created = {c.after["name"] for c in ProposalChange.objects.filter(proposal_id=result.proposal_id, target_type="Object")}
         self.assertIn("FMG Stadium Waikato", created)

@@ -1,0 +1,212 @@
+[
+ [
+  "S1#1",
+  "heading",
+  "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+ ],
+ [
+  "S1#2",
+  "text_block",
+  "Eight national teams. Four stages. One champion."
+ ],
+ [
+  "S1#3",
+  "heading",
+  "Tournament overview"
+ ],
+ [
+  "S1#4",
+  "text_block",
+  "The Pacific International Rugby Championship is a fictional annual men's rugby union tournament bringing\ntogether eight national teams for a six-week competition. The tournament is designed to progress from an opening\npool stage into knockout finals, with the final played in Auckland."
+ ],
+ [
+  "S1#5",
+  "heading",
+  "Teams"
+ ],
+ [
+  "S1#t1",
+  "table",
+  ""
+ ],
+ [
+  "S1#t1.r1",
+  "table_row",
+  "Pool A | New Zealand | Fiji | Japan | Samoa"
+ ],
+ [
+  "S1#t1.r2",
+  "table_row",
+  "Pool B | Australia | Argentina | South Africa | Tonga"
+ ],
+ [
+  "S1#6",
+  "heading",
+  "Competition format"
+ ],
+ [
+  "S1#7",
+  "list_item",
+  "- Pool Stage:\nTwo pools of four teams. Each team plays three matches against the other teams in its pool."
+ ],
+ [
+  "S1#8",
+  "list_item",
+  "- Quarter-finals:\nThe top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa."
+ ],
+ [
+  "S1#9",
+  "list_item",
+  "- Semi-finals:\nQuarter-final winners progress to two semi-finals."
+ ],
+ [
+  "S1#10",
+  "list_item",
+  "- Final:\nThe two semi-final winners play for the championship at Eden Park, Auckland."
+ ],
+ [
+  "S1#11",
+  "heading",
+  "Progression and results"
+ ],
+ [
+  "S1#12",
+  "text_block",
+  "Pool standings are determined by match results. A win awards four competition points, a draw two points, and a\nloss zero points. Bonus points may be awarded for scoring four or more tries or losing by seven points or fewer.\nPool ranking determines quarter-final qualification and seeding."
+ ],
+ [
+  "S1#13",
+  "text_block",
+  "In knockout matches, the winning team advances to the next stage. If a knockout match is drawn after normal time,\nextra time is played; if still level, the winner is decided by a place-kicking contest."
+ ],
+ [
+  "S1#14",
+  "heading",
+  "Venues"
+ ],
+ [
+  "S1#t2",
+  "table",
+  "Venue | Location | Primary use"
+ ],
+ [
+  "S1#t2.r1",
+  "table_row",
+  "Eden Park | Auckland, New Zealand | Opening match and final"
+ ],
+ [
+  "S1#t2.r2",
+  "table_row",
+  "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches"
+ ],
+ [
+  "S1#t2.r3",
+  "table_row",
+  "Forsyth Barr Stadium | Dunedin, New Zealand | Pool matches"
+ ],
+ [
+  "S1#t2.r4",
+  "table_row",
+  "FMG Stadium Waikato | Hamilton, New Zealand | Pool matches"
+ ],
+ [
+  "S1#t2.r5",
+  "table_row",
+  "McLean Park | Napier, New Zealand | Pool matches"
+ ],
+ [
+  "S1#t2.r6",
+  "table_row",
+  "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches"
+ ],
+ [
+  "S1#15",
+  "heading",
+  "Example fixtures"
+ ],
+ [
+  "S1#t3",
+  "table",
+  "Stage | Match | Venue"
+ ],
+ [
+  "S1#t3.r1",
+  "table_row",
+  "Pool A | New Zealand v Fiji | Eden Park"
+ ],
+ [
+  "S1#t3.r2",
+  "table_row",
+  "Pool A | Japan v Samoa | Sky Stadium"
+ ],
+ [
+  "S1#t3.r3",
+  "table_row",
+  "Pool B | Australia v Argentina | Forsyth Barr Stadium"
+ ],
+ [
+  "S1#t3.r4",
+  "table_row",
+  "Pool B | South Africa v Tonga | FMG Stadium Waikato"
+ ],
+ [
+  "S1#t4",
+  "table",
+  "Stage | Match | Venue"
+ ],
+ [
+  "S1#t4.r1",
+  "table_row",
+  "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium"
+ ],
+ [
+  "S1#t4.r2",
+  "table_row",
+  "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium"
+ ],
+ [
+  "S1#16",
+  "heading",
+  "Tournament facts"
+ ],
+ [
+  "S1#17",
+  "list_item",
+  "- Teams:\n8"
+ ],
+ [
+  "S1#18",
+  "list_item",
+  "- Pool matches:\n24"
+ ],
+ [
+  "S1#19",
+  "list_item",
+  "- Pool size:\n4 teams per pool"
+ ],
+ [
+  "S1#20",
+  "list_item",
+  "- Quarter-finalists:\n4"
+ ],
+ [
+  "S1#21",
+  "list_item",
+  "- Semi-finalists:\n4"
+ ],
+ [
+  "S1#22",
+  "list_item",
+  "- Finalists:\n2"
+ ],
+ [
+  "S1#23",
+  "list_item",
+  "- Champion:\nWinner of the final"
+ ],
+ [
+  "S1#24",
+  "text_block",
+  "This document is fictional and intended as test evidence for a modelling workflow. It contains both structural information and\noperational details that may or may not be relevant to a model."
+ ]
+]

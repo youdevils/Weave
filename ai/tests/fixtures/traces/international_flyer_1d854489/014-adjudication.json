@@ -1,0 +1,53 @@
+{
+ "kind": "provider",
+ "run_id": "1d854489-db38-4e0f-91f0-948b01eac676",
+ "sequence": 14,
+ "stage": "adjudication",
+ "attempt": 3,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.1",
+  "answers": [
+   {
+    "question_id": "predicate_mapping:has_match:stage:match",
+    "option_id": "has_match:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#t4.r1",
+      "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium"
+     },
+     {
+      "segment_id": "S1#t4.r2",
+      "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium"
+     }
+    ],
+    "excerpt": "",
+    "note": "The table structure associates the 'Quarter-final' stage with specific matches."
+   },
+   {
+    "question_id": "predicate_mapping:played_at:match:venue",
+    "option_id": "played_at:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#t4.r1",
+      "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium"
+     },
+     {
+      "segment_id": "S1#t4.r2",
+      "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium"
+     }
+    ],
+    "excerpt": "",
+    "note": "Each row explicitly associates a match with a venue, using the 'played at' relationship."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "predicate_mapping:has_match:stage:match",
+   "predicate_mapping:played_at:match:venue"
+  ]
+ }
+}

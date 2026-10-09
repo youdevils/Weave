@@ -1,0 +1,391 @@
+{
+ "kind": "provider",
+ "run_id": "1d854489-db38-4e0f-91f0-948b01eac676",
+ "sequence": 12,
+ "stage": "gap_probe",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [],
+   "assertions": [
+    {
+     "aid": "A_QF1",
+     "subject_eid": "E11",
+     "predicate": "has match",
+     "object_eid": "E22",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium",
+       "segment_id": "S1#t4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A_QF2",
+     "subject_eid": "E11",
+     "predicate": "has match",
+     "object_eid": "E23",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium",
+       "segment_id": "S1#t4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A_QFV1",
+     "subject_eid": "E22",
+     "predicate": "played at",
+     "object_eid": "E19",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A_QFV2",
+     "subject_eid": "E23",
+     "predicate": "played at",
+     "object_eid": "E15",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E11:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [
+     "A_QF1",
+     "A_QF2"
+    ],
+    "candidate_eids": [],
+    "note": "Quarter-final stage table rows explicitly link E11 to matches 'Pool A winner v Pool B runner-up' (E22) and 'Pool B winner v Pool A runner-up' (E23)."
+   },
+   {
+    "requirement_id": "req:E14:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "Only states primary use 'opening match and final' and the example Pool A match New Zealand v Fiji (already extracted), but no additional matches linking Eden Park and a match in these segments."
+   },
+   {
+    "requirement_id": "req:E15:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r2",
+     "S1#t4",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [
+     "A_QFV2"
+    ],
+    "candidate_eids": [],
+    "note": "Quarter-final match 'Pool B winner v Pool A runner-up' (E23) is played at Sky Stadium (E15) per table row."
+   },
+   {
+    "requirement_id": "req:E16:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r3",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "Forsyth Barr Stadium linked only to 'Australia v Argentina' (already extracted); no new matches play there."
+   },
+   {
+    "requirement_id": "req:E17:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r4",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "FMG Stadium Waikato linked only to 'South Africa v Tonga' (already extracted); no new matches play there."
+   },
+   {
+    "requirement_id": "req:E18:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r5"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "McLean Park is listed with primary use 'Pool matches' but no specific matches are given in these segments."
+   },
+   {
+    "requirement_id": "req:E19:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1"
+    ],
+    "claim_ids": [
+     "A_QFV1"
+    ],
+    "candidate_eids": [],
+    "note": "Quarter-final match 'Pool A winner v Pool B runner-up' (E22) is played at Orangetheory Stadium (E19) per table row."
+   },
+   {
+    "requirement_id": "req:E20:802ae184-5eb8-4bd8-94c0-8d8622312641:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#2",
+     "S1#3",
+     "S1#4",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#t1.r2",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r3",
+     "S1#t2.r4",
+     "S1#t2.r5",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t3.r3",
+     "S1#t3.r4",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2",
+     "S1#16",
+     "S1#17",
+     "S1#18",
+     "S1#19",
+     "S1#20",
+     "S1#21",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No segment directly states '[Pacific International Rugby Championship] has team [team]'. Team lists are in pool context only."
+   },
+   {
+    "requirement_id": "req:E22:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "Match 'Pool A winner v Pool B runner-up' is mentioned but teams are not identified in these segments."
+   },
+   {
+    "requirement_id": "req:E22:f4d78957-4874-4704-acca-4a915850da7b:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1"
+    ],
+    "claim_ids": [
+     "A_QFV1"
+    ],
+    "candidate_eids": [],
+    "note": "Quarter-final 'Pool A winner v Pool B runner-up' played at Orangetheory Stadium."
+   },
+   {
+    "requirement_id": "req:E23:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "Match 'Pool B winner v Pool A runner-up' is mentioned but teams are not identified in these segments."
+   },
+   {
+    "requirement_id": "req:E23:f4d78957-4874-4704-acca-4a915850da7b:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [
+     "A_QFV2"
+    ],
+    "candidate_eids": [],
+    "note": "Quarter-final 'Pool B winner v Pool A runner-up' played at Sky Stadium."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "requirements": [
+   "req:E11:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E14:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E15:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E16:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E17:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E18:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E19:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E20:802ae184-5eb8-4bd8-94c0-8d8622312641:subject",
+   "req:E22:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E22:f4d78957-4874-4704-acca-4a915850da7b:subject",
+   "req:E23:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E23:f4d78957-4874-4704-acca-4a915850da7b:subject"
+  ]
+ }
+}

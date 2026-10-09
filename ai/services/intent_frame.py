@@ -124,7 +124,7 @@ def validate_intent_frame(frame: IntentFrame, intent_text: str) -> list[AIIssue]
             issues.append(issue(
                 "excerpt_not_found",
                 f"Intent frame element '{identifier}': excerpt must be a verbatim span of the intent, never elided with '...'. "
-                "Several targets may quote the same span (e.g. both 'venues' and 'stages' may quote \"add the venues and stages\").",
+                "Several targets may quote the same span (e.g. targets 'Xs' and 'Ys' may both quote \"add the Xs and Ys\").",
                 item_id=identifier,
             ))
             continue

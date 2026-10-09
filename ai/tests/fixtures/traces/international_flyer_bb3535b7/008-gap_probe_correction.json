@@ -1,0 +1,191 @@
+{
+ "kind": "provider",
+ "stage": "gap_probe_correction",
+ "attempt": 1,
+ "decision": "advance",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [
+    {
+     "eid": "E12",
+     "name": "Pacific International Rugby Championship",
+     "aliases": [
+      "Pacific International Rugby Championship 2027"
+     ],
+     "type_label": "Tournament",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A10",
+     "subject_eid": "E12",
+     "predicate": "has stage",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A11",
+     "subject_eid": "E12",
+     "predicate": "has stage",
+     "object_eid": "E2",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A12",
+     "subject_eid": "E12",
+     "predicate": "has stage",
+     "object_eid": "E3",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "- Quarter-finals:\nThe top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa.",
+       "segment_id": "S1#8",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A13",
+     "subject_eid": "E12",
+     "predicate": "has stage",
+     "object_eid": "E4",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "- Semi-finals:\nQuarter-final winners progress to two semi-finals.",
+       "segment_id": "S1#9",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A14",
+     "subject_eid": "E12",
+     "predicate": "has stage",
+     "object_eid": "E5",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "The Pacific International Rugby Championship is a fictional annual men's rugby union tournament bringing\ntogether eight national teams for a six-week competition. The tournament is designed to progress from an opening\npool stage into knockout finals, with the final played in Auckland.",
+       "segment_id": "S1#4",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    }
+   ],
+   "facts": []
+  },
+  "verdicts": []
+ }
+}

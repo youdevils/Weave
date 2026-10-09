@@ -10,6 +10,19 @@ changes joined to the evidence and decisions each rests on (ChangeTrace +
 ProjectedDelta); and the blocked targets. Never the raw ChangeSet, the full
 catalogue or the canonical model.
 
+Each fact is shown once (`verification_ledger`, `_restated`): a record the
+payload already carries elsewhere is left out of the ledger or the notes --
+and only when that other record is actually present in the same payload:
+
+    ingest:X  accepted        claim decision X
+    ingest:X  rejected/dropped/invalid   X's entry in `rejected_claims`
+    ground:X  anchored        claim decision X (accepted claims are grounded)
+    ground:X  structural      claim decision X, flagged structural_support
+    a segment's text          its entry in `evidence_segments`
+    a note restating a claim's fate / a decision   that fate / that decision
+
+Neither ingest: nor ground: decisions are targets `route()` can act on.
+
 Output: typed objections. A material objection is routed by the step that
 produced the decision it targets -- never by its advisory `kind` -- back to
 the earliest point that can correct it, as a claim (basis "verifier"):
@@ -42,13 +55,13 @@ from django.conf import settings
 from ai.services.artifacts import Finding
 from ai.services.evidence_graph import item_id, validate_evidence_graph
 from ai.services.reconcile.ingress import ingest, log
-from ai.services.grounding import grounding_issues
+from ai.services.grounding import ANCHORED, STRUCTURAL, grounding_issues
 from ai.services.reconcile.coverage import DISMISSED, UNCOVERED
 from ai.services.sources import mentions, with_ancestors
 from ai.services.feedback import AIIssue, issue
 from ai.services.intent_frame import amend, repair_elisions, validate_intent_frame
 from ai.services.reconcile import questions as q
-from ai.services.reconcile.ledger import ADJUDICATION, EXTRACTION, IDENTITY, MAPPING, NORMALISE, SCOPE
+from ai.services.reconcile.ledger import ADJUDICATION, EXTRACTION, IDENTITY, MAPPING, NORMALISE, READING, SCOPE
 from ai.services.reconcile.responses import VerificationResult
 from ai.services.result_schema import OperationOutcome
 from ai.services.stages import prompts
@@ -60,6 +73,44 @@ _EXTRA_OPTIONS = {
     q.NONE, q.UNDECIDABLE, q.NEW, "refers_to_intermediate", "direct_statement", "same", "distinct", "contradictory",
     "update", "keep", "confirm", "reject",
 }
+
+
+_REJECTED = ("rejected", "dropped", "dropped_dependant", "invalid")
+
+
+def verification_ledger(ledger: list[dict], *, rejected_ids, shown_segment_ids) -> list[dict]:
+    """The Decision Ledger as Verification sees it (module docstring): the
+    analysis ledger minus what the payload already shows elsewhere. Every
+    other decision is passed through unchanged."""
+
+    claims = {d["decision_id"] for d in ledger if d["kind"] == "claim"}
+    structural, shown = set(), []
+    for decision in ledger:
+        key = decision["decision_id"]
+        family, _, subject = key.partition(":")
+        if family == "ingest" and ((decision["outcome"] == "accepted" and subject in claims)
+                                   or (decision["outcome"] in _REJECTED and subject in rejected_ids)):
+            continue
+        if family == "ground" and decision["outcome"] in (ANCHORED, STRUCTURAL) and subject in claims:
+            if decision["outcome"] == STRUCTURAL:
+                structural.add(subject)
+            continue
+        if family == "cover" and subject in shown_segment_ids and "text" in (decision.get("detail") or {}):
+            decision = {**decision, "detail": {k: v for k, v in decision["detail"].items() if k != "text"}}
+        shown.append(decision)
+    return [{**d, "flags": [*d.get("flags", []), "structural_support"]} if d["kind"] == "claim" and d["decision_id"] in structural else d
+            for d in shown]
+
+
+def _restated(finding, rs, analysis, *, rejected_ids, ledger_ids) -> bool:
+    """Whether a note only restates a record the payload carries: a claim's
+    fate in `rejected_claims`, or a decision in the ledger shown."""
+
+    claim = rs.note_refs.get(finding.message)
+    if claim is not None:
+        return claim in rejected_ids
+    decision = analysis.finding_refs.get(finding.message)
+    return decision is not None and decision in ledger_ids
 
 
 def _latest_ingress(rs) -> list[dict]:
@@ -97,11 +148,18 @@ class VerificationStage(Stage):
     response_schema = VerificationResult
 
     def system_prompt(self, run) -> str:
+        if getattr(run.state.reconcile, "evidence_mode", "claims") == "readings":
+            return prompts.preamble(run.operation) + prompts.REVIEW
         return prompts.preamble(run.operation) + prompts.VERIFICATION
 
     def build_input(self, run) -> dict:
         state = run.state
         rs = state.reconcile
+        if rs.evidence_mode == "readings":
+            # The bounded causal dossier (ai.services.stages.review), never the ledger.
+            from ai.services.stages.review import review_dossier
+
+            return review_dossier(run)
         analysis = rs.analysis
         change_set, trace = rs.compiled if rs.compiled else (state.change_set, None)
         names = [analysis.cluster_name(c) for c in analysis.scope.tentative | analysis.scope.anchor_clusters]
@@ -120,6 +178,16 @@ class VerificationStage(Stage):
             })
         feedback = state.feedback.get(self.stage_id, [])
         previous = state.previous_output.get(self.stage_id) if feedback else None
+        rejected = [e for e in _latest_ingress(rs) if e["outcome"] in _REJECTED]
+        rejected_ids = {e["id"] for e in rejected}
+        shown_ids = {s["segment_id"] for s in segments}
+        ledger = verification_ledger(analysis.ledger.payload(), rejected_ids=rejected_ids, shown_segment_ids=shown_ids)
+        ledger_ids = {d["decision_id"] for d in ledger}
+
+        def segment_text(segment_id) -> dict:
+            # Shown in `evidence_segments` already: referenced by id only.
+            return {} if segment_id in shown_ids else {"text": run.bundle.segment(segment_id).text}
+
         return {
             "stage": self.stage_id,
             "intent": run.intent.text,
@@ -129,13 +197,14 @@ class VerificationStage(Stage):
             "segments_not_shown": omitted,
             "dismissed_segments": [
                 {"segment_id": c.segment_id, "reason": c.reason, "mentions": c.named, "flagged": c.flagged,
-                 "text": run.bundle.segment(c.segment_id).text}
+                 **segment_text(c.segment_id)}
                 for c in sorted(dismissed, key=lambda c: not c.flagged)
             ],
             "uncovered_segments": [
-                {"segment_id": c.segment_id, "mentions": c.named, "text": run.bundle.segment(c.segment_id).text} for c in uncovered
+                {"segment_id": c.segment_id, "mentions": c.named, **({"unaccounted": c.unaccounted} if c.unaccounted else {}),
+                 **segment_text(c.segment_id)} for c in uncovered
             ],
-            "decision_ledger": analysis.ledger.payload(),
+            "decision_ledger": ledger,
             "changes": changes,
             "projected_delta": state.delta.model_dump(mode="json") if state.delta is not None else None,
             # Each with what the evidence states vs what can be added, and the
@@ -143,7 +212,8 @@ class VerificationStage(Stage):
             "blocked_targets": state.blocked_targets,
             # Every explicit intent target and what became of it: requested
             # work that is unframed / unmapped / undecided / not_evidenced was
-            # NOT done (never a no-op).
+            # NOT done (never a no-op); blocked = evidenced, but every item of
+            # it was blocked.
             "intent_targets": analysis.target_status,
             # Decisions left unadjudicated because the budget was spent (not
             # because the evidence is silent), with the claims they hold back.
@@ -155,8 +225,9 @@ class VerificationStage(Stage):
                 for question in analysis.questions
             ],
             # Claims that never entered the graph, and why.
-            "rejected_claims": [e for e in _latest_ingress(rs) if e["outcome"] in ("rejected", "dropped", "dropped_dependant", "invalid")],
-            "notes": [f.model_dump(mode="json") for f in state.plan_findings],
+            "rejected_claims": rejected,
+            "notes": [f.model_dump(mode="json") for f in state.plan_findings
+                      if not _restated(f, rs, analysis, rejected_ids=rejected_ids, ledger_ids=ledger_ids)],
             "feedback": [item.model_dump(mode="json", exclude_none=True) for item in feedback],
             "previous_output": previous.model_dump(mode="json") if previous is not None else None,
         }
@@ -279,6 +350,13 @@ class VerificationStage(Stage):
             return issue("unroutable_objection", f"'{target}' is not a decision id in the ledger.", item_id=objection.objection_id)
         if decision.kind == "claim" and decision.step == EXTRACTION:
             rs.retracted.add(target)
+            return None
+        if decision.step == READING and decision.kind == "claim" and decision.question_key:
+            # A Reading slot: one answer re-reads every row the slot governs.
+            found = self._answer_issue(run, objection, {o["option_id"] for o in decision.options} | _EXTRA_OPTIONS)
+            if found is not None:
+                return found
+            rs.pins[decision.question_key] = q.Pin(option_id=objection.option_id, basis="verifier", excerpt=objection.excerpt or "", note=objection.message)
             return None
         if decision.step == ADJUDICATION and target.startswith("adj:"):
             key = target[4:]

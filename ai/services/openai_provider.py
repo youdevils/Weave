@@ -24,6 +24,7 @@ from ai.services.provider import (
     ProviderResult,
     ProviderSchemaError,
     ProviderTimeoutError,
+    canonical_payload,
 )
 
 logger = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ class OpenAIProvider(AIProvider):
                 response = client.responses.parse(
                     model=config.model,
                     instructions=system_prompt,
-                    input=_canonical_payload(user_payload),
+                    input=canonical_payload(user_payload),
                     text_format=response_schema,
                     timeout=config.timeout_seconds,
                 )
@@ -93,7 +94,7 @@ class OpenAIProvider(AIProvider):
                     "changes, why this AI operation could not produce a reviewable "
                     "result. Do not request more context."
                 ),
-                input=_canonical_payload(
+                input=canonical_payload(
                     {
                         "context": context.model_dump(mode="json") if hasattr(context, "model_dump") else context,
                         "issues": [
@@ -118,17 +119,17 @@ class OpenAIProvider(AIProvider):
         )
 
 
-def _canonical_payload(payload: dict) -> str:
-    import json
-
-    return json.dumps(payload, sort_keys=True, default=str)
-
-
 def _usage_dict(usage) -> dict:
     if usage is None:
         return {}
-    return {
+    result = {
         "input_tokens": usage.input_tokens,
         "output_tokens": usage.output_tokens,
         "total_tokens": usage.total_tokens,
     }
+    # The part of the input served from OpenAI's prompt cache, when the SDK
+    # reports it (a real count only -- never a stand-in object).
+    cached = getattr(getattr(usage, "input_tokens_details", None), "cached_tokens", None)
+    if isinstance(cached, int) and not isinstance(cached, bool):
+        result["cached_tokens"] = cached
+    return result

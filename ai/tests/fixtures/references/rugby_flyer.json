@@ -1,0 +1,156 @@
+{
+  "document": "rugby_flyer.txt",
+  "description": "The original small rugby flyer (ai.tests.rugby.RugbyFixture): a pre-existing, valid 2027 Championship anchor; Tournament -has_stage-> Stage -has_match-> Match -has_team-> Team (min 2), Match -played_at-> Venue. Intent: add the venues and stages to the 2027 Championship, with their relationships.",
+  "required_objects": [
+    {
+      "id": "stage:pool_stage",
+      "type": "stage",
+      "names": [
+        "Pool Stage"
+      ]
+    },
+    {
+      "id": "match:match_1",
+      "type": "match",
+      "names": [
+        "Match 1",
+        "New Zealand v Fiji",
+        "Match 1: New Zealand v Fiji"
+      ]
+    },
+    {
+      "id": "team:new_zealand",
+      "type": "team",
+      "names": [
+        "New Zealand"
+      ]
+    },
+    {
+      "id": "team:fiji",
+      "type": "team",
+      "names": [
+        "Fiji"
+      ]
+    },
+    {
+      "id": "venue:eden_park",
+      "type": "venue",
+      "names": [
+        "Eden Park"
+      ]
+    },
+    {
+      "id": "venue:forsyth_barr",
+      "type": "venue",
+      "names": [
+        "Forsyth Barr Stadium"
+      ]
+    }
+  ],
+  "required_relationships": [
+    {
+      "id": "has_stage:championship:pool_stage",
+      "type": "has_stage",
+      "subject": [
+        "2027 Championship"
+      ],
+      "object": [
+        "Pool Stage"
+      ]
+    },
+    {
+      "id": "has_match:pool_stage:match_1",
+      "type": "has_match",
+      "subject": [
+        "Pool Stage"
+      ],
+      "object": [
+        "Match 1",
+        "New Zealand v Fiji",
+        "Match 1: New Zealand v Fiji"
+      ]
+    },
+    {
+      "id": "has_team:match_1:new_zealand",
+      "type": "has_team",
+      "subject": [
+        "Match 1",
+        "New Zealand v Fiji",
+        "Match 1: New Zealand v Fiji"
+      ],
+      "object": [
+        "New Zealand"
+      ]
+    },
+    {
+      "id": "has_team:match_1:fiji",
+      "type": "has_team",
+      "subject": [
+        "Match 1",
+        "New Zealand v Fiji",
+        "Match 1: New Zealand v Fiji"
+      ],
+      "object": [
+        "Fiji"
+      ]
+    },
+    {
+      "id": "played_at:match_1:eden_park",
+      "type": "played_at",
+      "subject": [
+        "Match 1",
+        "New Zealand v Fiji",
+        "Match 1: New Zealand v Fiji"
+      ],
+      "object": [
+        "Eden Park"
+      ]
+    }
+  ],
+  "required_blocked": [],
+  "forbidden_objects": [
+    {
+      "id": "forbidden:generic_pool_matches",
+      "type": "match",
+      "names": [
+        "Pool matches",
+        "Pool match"
+      ]
+    },
+    {
+      "id": "forbidden:duplicate_championship",
+      "type": "tournament",
+      "names": [
+        "2027 Championship",
+        "2027 CHAMPIONSHIP"
+      ]
+    },
+    {
+      "id": "forbidden:section_headings",
+      "type": null,
+      "names": [
+        "Venues",
+        "2027 CHAMPIONSHIP - OFFICIAL FLYER"
+      ]
+    }
+  ],
+  "forbidden_relationships": [
+    {
+      "id": "forbidden:sponsor_touched",
+      "type": "sponsors",
+      "subject": null,
+      "object": null
+    },
+    {
+      "id": "forbidden:forsyth_barr_generic_match",
+      "type": "played_at",
+      "subject": [
+        "Pool matches",
+        "Pool match"
+      ],
+      "object": [
+        "Forsyth Barr Stadium"
+      ]
+    }
+  ]
+}

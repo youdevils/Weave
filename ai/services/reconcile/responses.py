@@ -41,6 +41,73 @@ class Citation(BaseModel):
     excerpt: str
 
 
+# -- Reading (ai.services.reconcile.readings) -------------------------------------------
+#
+# Catalogue references (type keys, "<relationship key>:<orientation>") are
+# plain strings, never enums of the options shown: the shortlist is advisory,
+# and a key outside it is validated against the full catalogue.
+
+
+class DemCitation(BaseModel):
+    """A structural basis: a DEM id (cell, column, table/row/heading segment)
+    and verbatim text of it."""
+
+    dem_id: str
+    excerpt: str
+
+
+class ReadingSlotAnswer(BaseModel):
+    slot_id: str
+    # role: a type key (the cells NAME entities of it) | "generic:<type key>"
+    # (the cells refer to unidentified instances of it -- needs
+    # generic_reason) | "value" | "none" | "undecidable"; split: the parts'
+    # type key | "none" | "undecidable"; relation: "<key>:as_stated" |
+    # "<key>:converse" | "none" | "undecidable"; heading_entity: a type key |
+    # "none" | "undecidable". There is no free specificity field: a named
+    # column is specific unless a generic choice is made and justified.
+    choice: str
+    # role with a "generic:<type key>" choice only: why the cells name no
+    # identifiable entity (ignored on every other slot).
+    generic_reason: str = ""
+    # split only: how the cell's entity (subject) relates to each part.
+    part_relation: str = ""
+    basis: list[DemCitation] = Field(default_factory=list)
+
+
+class ReadingSectionRelation(BaseModel):
+    column_id: str
+    # "<key>:as_stated" (the heading's entity is the subject) | "<key>:converse" | "undecidable".
+    choice: str
+    basis: list[DemCitation] = Field(default_factory=list)
+
+
+class ReadingException(BaseModel):
+    row_ids: list[str] = Field(default_factory=list)
+    slot_id: str
+    kind: Literal["placeholder", "generic", "role_conflict", "ontology_contradiction", "other"]
+    # True: these rows certainly do not read this way; False: undecidable.
+    decided: bool = True
+    reason: str = ""
+
+
+class ElementReading(BaseModel):
+    element_id: str
+    status: Literal["read", "not_a_table"] = "read"
+    not_a_table_reason: Optional[Literal["layout_grid", "form", "decorative_alignment", "unusable_recovery"]] = None
+    basis: list[DemCitation] = Field(default_factory=list)
+    slots: list[ReadingSlotAnswer] = Field(default_factory=list)
+    section_relations: list[ReadingSectionRelation] = Field(default_factory=list)
+    exceptions: list[ReadingException] = Field(default_factory=list)
+
+
+class ReadingResult(BaseModel):
+    """The schema-level reading of a batch of tables / sections: claims about
+    what their structure means, never claims about individual rows."""
+
+    schema_version: str = "1.0"
+    readings: list[ElementReading] = Field(default_factory=list)
+
+
 class AdjudicationAnswer(BaseModel):
     question_id: str
     option_id: str

@@ -29,6 +29,14 @@ it"), in catalogue names and descriptions, never relationship keys and never
 as a rule to be satisfied: the probe returns source-semantic claims, and
 OnyxJar maps them like any other (I2; ai/README.md).
 
+A requirement also records, OnyxJar-side, its *labelled* evidence: pack
+segments whose layout itself associates the entity with the counterpart's
+kind -- a table row with a cell that IS the entity under a header with a
+column naming the kind (a non-empty cell in it), or an item in a section
+headed by the kind under a heading naming the entity. Never words merely
+appearing together. A `not_stated` over labelled evidence is contested once
+(ai.services.stages.gap_probe).
+
 A *target gap* (an intent target the evidence has not yet yielded items
 for) is posed at the level of the requested kind ("what do these segments
 say about venues?") over its own segments: those labelled by the kind (in
@@ -41,6 +49,7 @@ from __future__ import annotations
 
 from django.conf import settings
 
+from ai.services.document import queries
 from ai.services.evidence_bundle import EvidenceBundle
 from ai.services.evidence_graph import cited_segments
 from ai.services.reconcile.analysis import Analysis, TargetGap
@@ -56,7 +65,8 @@ def question(requirement, analysis: Analysis, index: SemanticModelIndex) -> str:
     name = analysis.cluster_name(requirement.cluster_id)
     return (
         f"What do this requirement's segments say about '{name}'? OnyxJar is looking for any {counterpart} related to it "
-        f"('{relationship}'). Report only what the segments state; if they don't identify one, that is not_stated."
+        f"('{relationship}'). Report only what the segments state. If they name one, the verdict is found: emit the "
+        f"assertion relating '{name}' to it and name that assertion in claim_ids. If they don't, that is not_stated."
     )
 
 
@@ -67,12 +77,17 @@ def target_question(gap: TargetGap, index: SemanticModelIndex) -> str:
         looking = f"any '{kind}' relationship between the things they name"
     else:
         looking = f"any {kind} they name, and what they say about each"
-    lead = (
-        "These segments mention what the request is about, but nothing has been extracted from them yet. What do they say?"
-        if gap.reason == "uncovered" else
-        f"The request asks to {gap.verb} '{gap.type_label}', and nothing of that kind has been extracted yet. What do these segments say?"
-    )
-    return f"{lead} OnyxJar is looking for {looking}. Report only what the segments state; if they name none, that is not_stated."
+    if gap.reason == "uncovered" and gap.unaccounted:
+        names = ", ".join(repr(n) for n in gap.unaccounted)
+        them = "it" if len(gap.unaccounted) == 1 else "them"
+        lead = (f"These segments name {names}, but no claim extracted from them involves {them}. What do they state about "
+                f"{them}, and about any other entity they name in relation to {them}?")
+    elif gap.reason == "uncovered":
+        lead = "These segments mention what the request is about, but nothing has been extracted from them yet. What do they say?"
+    else:
+        lead = f"The request asks to {gap.verb} '{gap.type_label}', and nothing of that kind has been extracted yet. What do these segments say?"
+    return (f"{lead} OnyxJar is looking for {looking}. Report only what the segments state: for found, emit the claims "
+            "and name them in claim_ids; if they name none, that is not_stated.")
 
 
 def _target_requirement(gap: TargetGap, own, index: SemanticModelIndex, bundle: EvidenceBundle) -> dict:
@@ -91,24 +106,27 @@ def _target_requirement(gap: TargetGap, own, index: SemanticModelIndex, bundle: 
     }
 
 
-def _section_members(bundle: EvidenceBundle, names, counterpart_labels) -> list:
-    """Segments under a heading that names the entity; those in a section
-    whose own heading names the counterpart's kind first."""
-
-    anchors = {s.segment_id for s in bundle.segments() if s.kind == "heading" and mentions(s.text, names)}
-    if not anchors:
-        return []
-    members = [s for s in bundle.segments() if s.kind in _SEARCHED and anchors & set(s.ancestor_ids)]
-    return sorted(members, key=lambda s: (not mentions(" ".join(s.heading_path), counterpart_labels), s.source_id, s.position))
+# Section membership and labelled (layout) evidence are structural facts: the
+# DEM's queries (ai.services.document.queries).
+_section_members = queries.section_members
+labelled_evidence = queries.labelled_evidence
+_header_evidence = queries.header_evidence
+_section_evidence = queries.section_evidence
 
 
-def probe_payload(requests, analysis: Analysis, *, index: SemanticModelIndex, bundle: EvidenceBundle) -> tuple[list[dict], list[dict], dict]:
-    """-> (requirements, pack segments, {requirement id: "complete" | "partial"})."""
+def probe_payload(requests, analysis: Analysis, *, index: SemanticModelIndex, bundle: EvidenceBundle, scope=None) -> tuple[list[dict], list[dict], dict]:
+    """-> (requirements, pack segments, {requirement id: "complete" | "partial"}).
+    `scope` (readings mode): the prose-eligible segments -- a probe never
+    reads structured content a Reading interprets (its headings and tables
+    still come along as context)."""
+
+    def eligible(segment_ids):
+        return [sid for sid in segment_ids if scope is None or sid in scope]
 
     mention_sets, context_sets = {}, {}
     for requirement in requests:
         if isinstance(requirement, TargetGap):
-            mention_sets[requirement.requirement_id] = [sid for sid in requirement.segment_ids if bundle.segment(sid) is not None]
+            mention_sets[requirement.requirement_id] = eligible([sid for sid in requirement.segment_ids if bundle.segment(sid) is not None])
             context_sets[requirement.requirement_id] = []
             continue
         cluster = analysis.clusters.clusters[requirement.cluster_id]
@@ -121,8 +139,8 @@ def probe_payload(requests, analysis: Analysis, *, index: SemanticModelIndex, bu
         for segment in hits:
             if segment.kind in ("text_block", "list_item"):
                 context += [n for n in bundle.neighbours(segment) if n.kind in _SEARCHED]
-        mention_sets[requirement.requirement_id] = [s.segment_id for s in hits]
-        context_sets[requirement.requirement_id] = [s.segment_id for s in context]
+        mention_sets[requirement.requirement_id] = eligible([s.segment_id for s in hits])
+        context_sets[requirement.requirement_id] = eligible([s.segment_id for s in context])
 
     budget = settings.AI_GAP_PROBE_PACK_MAX_CHARS
     chosen: list[str] = []
@@ -161,6 +179,9 @@ def probe_payload(requests, analysis: Analysis, *, index: SemanticModelIndex, bu
             requirements.append(_target_requirement(requirement, own, index, bundle))
             continue
         cluster = analysis.clusters.clusters[requirement.cluster_id]
+        counterpart = index.object_types[requirement.counterpart_type_id]
+        labelled = labelled_evidence(bundle, [bundle.segment(s) for s in own], [cluster.name, *cluster.aliases],
+                                     [counterpart.name, counterpart.key.replace("_", " ")])
         requirements.append({
             "requirement_id": requirement.requirement_id,
             "entity": {"eid": cluster.member_eids[0], "name": cluster.name, "aliases": cluster.aliases,
@@ -176,6 +197,8 @@ def probe_payload(requests, analysis: Analysis, *, index: SemanticModelIndex, bu
             "segment_ids": [s.segment_id for s in with_ancestors(bundle, own)],
             # OnyxJar-side, never sent: what a "found" verdict must involve.
             "_entity_ids": list(cluster.member_eids),
+            # OnyxJar-side, never sent: what a `not_stated` would contradict.
+            "_labelled": labelled,
         })
 
     segments = [s.context() for s in with_ancestors(bundle, chosen)]

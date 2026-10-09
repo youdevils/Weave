@@ -16,6 +16,14 @@ the engine additionally writes each step of a run to
 plus one `anchors.jsonl` per run (`trace_anchors`) recording each
 `relationship_anchors()` computation as its own correlatable event.
 
+Size: a provider step also records what the call cost to send
+(`call_sizes`: the payload as sent, per top-level section, and the system
+prompt and response schema). A deterministic step's Decision Ledger is
+written in full only for the run's first ledger and at every `compile`;
+the steps between carry a `ledger_delta` against the previous step
+(`compact_snapshot`). `load()` expands the deltas, so every reader sees the
+full snapshot.
+
 Tracing is gated by three settings (`AI_TRACE_DIR`, `RECONCILE_TRACE_ENABLED`,
 and Django's own `DEBUG`) combined by `trace_active()` -- DEBUG=False always
 disables it, whatever the other two say. `trace_active()` re-reads live
@@ -37,7 +45,7 @@ from pathlib import Path
 
 from django.conf import settings
 
-from ai.services.provider import AIProvider, ProviderResult
+from ai.services.provider import AIProvider, ProviderResult, canonical_payload
 
 
 def trace_active() -> bool:
@@ -87,6 +95,75 @@ def trace_anchors(execution_id, sequence, stage, item_id, *, subject, object, an
         f.write(json.dumps(record, default=str) + "\n")
 
 
+def call_sizes(system_prompt: str, payload: dict, response_schema) -> dict:
+    """What one provider call sends, in characters: the payload exactly as
+    serialised for the provider, each top-level section of it, the system
+    prompt, and the response schema."""
+
+    return {
+        "payload_chars": len(canonical_payload(payload)),
+        "payload_sections": {key: len(canonical_payload(value)) for key, value in payload.items()},
+        "system_prompt_chars": len(system_prompt),
+        "schema_chars": len(canonical_payload(response_schema.model_json_schema())),
+    }
+
+
+def compact_snapshot(snapshot: dict, previous: dict | None, *, sequence: int, full: bool = False) -> tuple[dict, dict | None]:
+    """-> (the snapshot as written, the ledger the next step diffs against).
+
+    The ledger is written whole when there is nothing to diff against or
+    `full` is set; otherwise as `ledger_delta` = {base_sequence, added,
+    changed, removed} plus `order` when the decisions' order is not the
+    base's order with removals dropped and additions appended."""
+
+    ledger = snapshot.get("ledger")
+    if ledger is None:
+        return snapshot, previous
+    current = {d["decision_id"]: d for d in ledger}
+    base = {"sequence": sequence, "decisions": current}
+    if previous is None or full:
+        return snapshot, base
+    before = previous["decisions"]
+    delta = {
+        "base_sequence": previous["sequence"],
+        "added": [d for key, d in current.items() if key not in before],
+        "changed": [d for key, d in current.items() if key in before and before[key] != d],
+        "removed": [key for key in before if key not in current],
+    }
+    natural = [key for key in before if key in current] + [d["decision_id"] for d in delta["added"]]
+    if natural != list(current):
+        delta["order"] = list(current)
+    written = {key: value for key, value in snapshot.items() if key != "ledger"}
+    written["ledger_delta"] = delta
+    return written, base
+
+
+def expand_snapshots(steps: list[dict]) -> list[dict]:
+    """Restores each delta-compacted snapshot's full `ledger`, in sequence
+    order (the inverse of `compact_snapshot`)."""
+
+    previous, expanded = None, []
+    for step in steps:
+        snapshot = step.get("snapshot")
+        if isinstance(snapshot, dict) and "ledger" in snapshot:
+            previous = {"sequence": step["sequence"], "decisions": {d["decision_id"]: d for d in snapshot["ledger"]}}
+        elif isinstance(snapshot, dict) and "ledger_delta" in snapshot:
+            delta = snapshot["ledger_delta"]
+            if previous is None or previous["sequence"] != delta["base_sequence"]:
+                raise ValueError(f"Trace step {step.get('sequence')}: ledger delta has no base step {delta['base_sequence']}.")
+            removed = set(delta["removed"])
+            decisions = {key: d for key, d in previous["decisions"].items() if key not in removed}
+            decisions.update({d["decision_id"]: d for d in delta["changed"]})
+            decisions.update({d["decision_id"]: d for d in delta["added"]})
+            ordered = {key: decisions[key] for key in (delta.get("order") or list(decisions))}
+            restored = {key: value for key, value in snapshot.items() if key != "ledger_delta"}
+            restored["ledger"] = list(ordered.values())
+            step = {**step, "snapshot": restored}
+            previous = {"sequence": step["sequence"], "decisions": ordered}
+        expanded.append(step)
+    return expanded
+
+
 def reconcile_snapshot(state) -> dict:
     rs = getattr(state, "reconcile", None)
     if rs is None:
@@ -97,6 +174,7 @@ def reconcile_snapshot(state) -> dict:
         "ingress": list(rs.ingress_log),
         "pending": {k: [i.message for i in v[1]] for k, v in rs.pending_items.items()},
         "probe_outcomes": dict(rs.probe_outcomes),
+        "probe_contested": dict(getattr(rs, "probe_contested", {}) or {}),
         "dismissals": dict(rs.dismissals),
         "pins": {k: {"option_id": p.option_id, "basis": p.basis, **({"reason": p.reason} if getattr(p, "reason", "") else {})}
                  for k, p in rs.pins.items()},
@@ -105,8 +183,14 @@ def reconcile_snapshot(state) -> dict:
         "work_queue": rs.work_queue.payload() if getattr(rs, "work_queue", None) is not None else None,
         "unframed": dict(getattr(rs, "unframed", {}) or {}),
         "frame_repairs": dict(getattr(rs, "frame_repairs", {}) or {}),
+        "idle_rounds": dict(getattr(rs, "idle_rounds", {}) or {}),
+        "verdict_issues": {k: [i.message for i in v[1]] for k, v in (getattr(rs, "verdict_issues", {}) or {}).items()},
     }
+    if getattr(rs, "evidence_mode", "claims") == "readings":
+        snapshot["readings"] = [r.model_dump(mode="json") for r in getattr(rs, "readings", []) or []]
     if analysis is not None:
+        if getattr(analysis, "readings", None):
+            snapshot["anomalies"] = [vars(a) for a in analysis.anomalies]
         snapshot.update({
             "ledger": analysis.ledger.payload(),
             "scope_outcomes": {analysis.cluster_name(c): o for c, o in analysis.scope.outcomes.items()},
@@ -121,7 +205,64 @@ def reconcile_snapshot(state) -> dict:
 
 
 def load(path) -> list[dict]:
-    return [json.loads(p.read_text(encoding="utf-8")) for p in sorted(Path(path).glob("*.json"))]
+    """A run's steps in sequence order, every snapshot with its full ledger."""
+
+    return expand_snapshots([json.loads(p.read_text(encoding="utf-8")) for p in sorted(Path(path).glob("*.json"))])
+
+
+# -- regression fixtures -------------------------------------------------------------
+#
+# A raw trace (every payload, snapshot and timing) is a dev artefact; a replay
+# FIXTURE keeps, per provider step, only what replay needs: the output, and --
+# for the stages replayed by the work they ask for -- that work (`request`),
+# distilled from the payload, which is then dropped.
+
+KEYED_STAGES = ("adjudication", "gap_probe", "extraction_correction", "gap_probe_correction")
+FIXTURE_FIELDS = ("kind", "run_id", "sequence", "stage", "attempt", "decision", "schema", "output", "provider_model")
+
+
+def request_of(stage: str, payload: dict) -> dict:
+    """The ids of the work a request asks for: questions, requirements,
+    invalid items / frame elements, uncovered segments."""
+
+    if stage == "adjudication":
+        return {"questions": [q["question_id"] for q in payload["questions"]]}
+    if stage == "gap_probe":
+        return {"requirements": [r["requirement_id"] for r in payload["requirements"]]}
+    if stage == "gap_probe_correction":
+        return {"items": [i["id"] for i in payload["invalid_claims"]],
+                "requirements": [r["requirement_id"] for r in payload["missing_verdicts"]]
+                + [v["requirement"]["requirement_id"] for v in payload["invalid_verdicts"]]}
+    return {"items": [i["id"] for i in payload["invalid_items"]], "frame": [i["id"] for i in payload["invalid_frame_items"]],
+            "segments": [s["segment"]["segment_id"] for s in payload["uncovered_segments"]]}
+
+
+def fixture_step(step: dict) -> dict | None:
+    """A raw provider step as a replay fixture step (None for anything else)."""
+
+    if step.get("kind") != "provider":
+        return None
+    fixture = {key: step[key] for key in FIXTURE_FIELDS if key in step}
+    if step.get("stage") in KEYED_STAGES and isinstance(step.get("payload"), dict):
+        fixture["request"] = request_of(step["stage"], step["payload"])
+    return fixture
+
+
+def capture_fixture(trace_dir, out_dir) -> list[Path]:
+    """Every provider step of the raw trace in `trace_dir`, written to
+    `out_dir` under its own file name. Returns the files written."""
+
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    written = []
+    for path in sorted(Path(trace_dir).glob("*.json")):
+        fixture = fixture_step(json.loads(path.read_text(encoding="utf-8")))
+        if fixture is None:
+            continue
+        target = out / path.name
+        target.write_text(json.dumps(fixture, indent=1), encoding="utf-8")
+        written.append(target)
+    return written
 
 
 class ReplayProvider(AIProvider):

@@ -1,0 +1,143 @@
+{
+ "kind": "provider",
+ "run_id": "3f801647-15b1-44cc-91da-838be08122dd",
+ "sequence": 15,
+ "stage": "gap_probe",
+ "attempt": 5,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [
+    {
+     "eid": "E20",
+     "name": "Eden Park",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Eden Park",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A3001",
+     "subject_eid": "E14",
+     "predicate": "played at",
+     "object_eid": "E20",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "New Zealand v Fiji",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Eden Park",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E12:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No segment in the reviewed set explicitly or structurally relates 'Pool A' to a tournament by the named relationship; segment S1#1 names the tournament but does not explicitly link it as containing 'Pool A'."
+   },
+   {
+    "requirement_id": "req:E13:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r2",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3",
+     "S1#t3.r4",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No segment in the reviewed set explicitly or structurally relates 'Pool B' to a tournament by the named relationship; segment S1#1 names the tournament but does not explicitly link it as containing 'Pool B'."
+   },
+   {
+    "requirement_id": "req:E14:f4d78957-4874-4704-acca-4a915850da7b:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [
+     "A3001",
+     "E20"
+    ],
+    "candidate_eids": [],
+    "note": "Table row S1#t3.r1 states the match 'New Zealand v Fiji' is played at Eden Park; 'Eden Park' is named as a venue."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "requirements": [
+   "req:E12:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E13:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E14:f4d78957-4874-4704-acca-4a915850da7b:subject"
+  ]
+ }
+}

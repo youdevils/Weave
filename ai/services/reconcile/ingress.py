@@ -21,8 +21,10 @@ namespace:
     - a definition whose id is a correction's replacement keeps that id;
     - a definition repeating a known claim (same id, same content) is a
       reference to it, not a new claim (collapsed);
-    - otherwise it gets its local id if globally unused, else a fresh flat id
-      (`e17`, `a42`, `f9`) -- never a nested prefix;
+    - otherwise it gets its local id if it was never used in this run (not
+      in the graph, pending, the fate log -- withdrawn and dropped claims
+      included -- or re-asked), else a fresh flat id (`e17`, `a42`, `f9`) --
+      never a nested prefix;
     - references inside the response follow its own definitions first (a
       definition shadows a known id of the same name), then known ids;
     - identical duplicate definitions in one response collapse into one (their
@@ -123,6 +125,19 @@ def ingest(patch: EvidenceGraph, *, rs, bundle: EvidenceBundle, origin: str, rep
         made, found = normalise_provenance(item, bundle)
         repairs[item_id(item)] = made
         issues += found
+    # Readings mode: structured content reaches claims only through a Reading
+    # (invariant 12) -- no AI claim may cite a table row a Reading interprets.
+    locked = getattr(rs, "locked_segments", None)
+    if locked:
+        for item in patch.items():
+            cited = sorted({p.segment_id for p in item.provenance if p.segment_id in locked})
+            if cited:
+                issues.append(issue(
+                    "structured_segment",
+                    f"'{item_id(item)}' cites {', '.join(cited)}: table content is interpreted by OnyxJar's Reading of the "
+                    "table, not by individual claims. Cite prose that states it, or withdraw the claim.",
+                    item_id=item_id(item),
+                ))
 
     # 2. Group definitions by local id.
     groups: dict[str, list] = {}
@@ -131,7 +146,10 @@ def ingest(patch: EvidenceGraph, *, rs, bundle: EvidenceBundle, origin: str, rep
 
     # Entities first (assertion/fact signatures depend on entity mapping).
     mapping: dict[str, str] = {}
-    used = set(known) | replace_ids
+    # Every id with a history is taken -- including withdrawn and dropped
+    # claims: an id names one claim for the whole run, so a new claim never
+    # inherits an earlier one's fate (e.g. having been re-asked already).
+    used = set(known) | replace_ids | {entry["id"] for entry in rs.ingress_log} | set(rs.reasked)
 
     def resolve_ref(local):
         return mapping.get(local, local)

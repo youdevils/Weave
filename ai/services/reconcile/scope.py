@@ -429,6 +429,14 @@ class _Closure:
                         changed = True
                         break
         result.viable = viable
+        # The fixpoint stops at a cluster's first unmet requirement, so the
+        # satisfiers of its later requirements (and of anything discarded
+        # earlier) can be stale: settle every requirement against the final
+        # viable set, so blocked items report exactly which requirements
+        # they miss -- not one that is met (a blocked stage's tournament).
+        for cid in tentative:
+            for requirement in result.requirements.get(cid, []):
+                requirement.satisfiers = [aid for aid in requirement.candidates if self.counterpart(aid, cid) in viable]
 
         anchors = result.anchor_clusters
         needed, queue = set(), [c for c in (result.target_clusters | anchors) if c in viable]
@@ -463,6 +471,13 @@ class _Closure:
                         and (r.subject_id if requirement.side == "subject" else r.object_id) == obj_id
                     )
                 in_scope = [aid for aid in requirement.candidates if self.counterpart(aid, cid) in result.needed or self.existing(self.counterpart(aid, cid))]
+                # A statement already excluded by a conflict on its OTHER end
+                # still states a counterpart on this end: leaving it out
+                # would let one conflict hide another (a third team on a
+                # two-team match, excluded only because that team is also in
+                # another match), so the result would depend on which
+                # cluster happened to be checked first.
+                in_scope += [aid for aid in requirement.conflicted if aid not in in_scope and self.compilable(self.counterpart(aid, cid))]
                 allowed = requirement.maximum - existing - requirement.canonical
                 if requirement.distinct(in_scope) <= allowed:
                     continue
@@ -500,13 +515,17 @@ class _Closure:
         reach_from_viable = set(result.needed)
 
         def reach(start):
+            # Only through non-viable clusters: a viable one (a tournament
+            # that is added anyway) does not carry one item's block on to
+            # an unrelated item behind it.
             seen, queue = set(), [start]
             while queue:
                 cid = queue.pop()
                 if cid in seen:
                     continue
                 seen.add(cid)
-                queue.extend(result.edges.get(cid, ()))
+                if cid == start or cid not in result.viable:
+                    queue.extend(result.edges.get(cid, ()))
             return seen
 
         for cid in result.tentative:

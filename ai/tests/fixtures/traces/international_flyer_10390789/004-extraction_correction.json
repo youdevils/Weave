@@ -1,0 +1,59 @@
+{
+ "kind": "provider",
+ "run_id": "10390789-977a-4768-8b61-210cd77b08f7",
+ "sequence": 4,
+ "stage": "extraction_correction",
+ "attempt": 3,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.1",
+  "intent_frame": {
+   "restated_intent": "The user wants to add the venues and stages listed in the flyer to their model, and create any relationships that should be associated as well based on the information available.",
+   "targets": [],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [],
+   "assertions": [],
+   "facts": []
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#4",
+    "reason": "Does not state an explicit relationship between Pool A/Pool B/Final and any other entity or a higher-level category that is itself a named entity. The text is descriptive of tournament structure but does not make a statement of a relationship tying these stages to other entities by name."
+   },
+   {
+    "segment_id": "S1#t2.r2",
+    "reason": "States that 'Sky Stadium' is used for 'Pool and quarter-final matches' but does not specifically name 'Pool A' or tie it to this venue in this row; 'Pool and quarter-final matches' is not a named entity and this segment does not connect Sky Stadium to a specific pool stage entity from those already extracted."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": [
+   {
+    "message": "Withdrawn claims that tried to relate Pool A, Pool B, and Final to themselves or unspecified entities, as the source does not explicitly name such relationships or connect these entities directly by name.",
+    "severity": "info"
+   },
+   {
+    "message": "No new explicit relationships connecting Sky Stadium to Pool A are supported by the stated evidence; general descriptions such as 'Pool and quarter-final matches' are not sufficient for entity-to-entity relationship extraction.",
+    "severity": "info"
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [
+   "A17",
+   "A18",
+   "A19",
+   "a4"
+  ],
+  "frame": [],
+  "segments": []
+ }
+}

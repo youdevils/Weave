@@ -1,0 +1,241 @@
+{
+ "kind": "provider",
+ "run_id": "3f801647-15b1-44cc-91da-838be08122dd",
+ "sequence": 8,
+ "stage": "gap_probe_correction",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [
+    {
+     "eid": "E1001",
+     "name": "Japan v Samoa",
+     "aliases": [],
+     "type_label": "Match",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Japan v Samoa",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E1002",
+     "name": "Australia v Argentina",
+     "aliases": [],
+     "type_label": "Match",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Australia v Argentina",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E1003",
+     "name": "South Africa v Tonga",
+     "aliases": [],
+     "type_label": "Match",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "South Africa v Tonga",
+       "segment_id": "S1#t3.r4",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A2001",
+     "subject_eid": "E1001",
+     "predicate": "played at",
+     "object_eid": "E6",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Japan v Samoa",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Sky Stadium",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A2002",
+     "subject_eid": "E1002",
+     "predicate": "played at",
+     "object_eid": "E7",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Australia v Argentina",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Forsyth Barr Stadium",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A2003",
+     "subject_eid": "E1003",
+     "predicate": "played at",
+     "object_eid": "E8",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "South Africa v Tonga",
+       "segment_id": "S1#t3.r4",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "FMG Stadium Waikato",
+       "segment_id": "S1#t3.r4",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    }
+   ],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E6:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r2",
+     "S1#t4",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [
+     "A2001"
+    ],
+    "candidate_eids": [],
+    "note": "Match 'Japan v Samoa' is played at Sky Stadium; evidenced by segment S1#t3.r2."
+   },
+   {
+    "requirement_id": "req:E7:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r3",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [
+     "A2002"
+    ],
+    "candidate_eids": [],
+    "note": "Match 'Australia v Argentina' is played at Forsyth Barr Stadium; evidenced by segment S1#t3.r3."
+   },
+   {
+    "requirement_id": "req:E8:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r4",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [
+     "A2003"
+    ],
+    "candidate_eids": [],
+    "note": "Match 'South Africa v Tonga' is played at FMG Stadium Waikato; evidenced by segment S1#t3.r4."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [
+   "A1002",
+   "A1003",
+   "A1005",
+   "A1006"
+  ],
+  "requirements": [
+   "req:E6:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E7:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E8:f4d78957-4874-4704-acca-4a915850da7b:object"
+  ]
+ }
+}

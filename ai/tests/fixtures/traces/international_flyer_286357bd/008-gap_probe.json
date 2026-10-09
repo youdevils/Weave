@@ -1,0 +1,456 @@
+{
+ "kind": "provider",
+ "run_id": "286357bd-f919-414c-8536-849298c594a7",
+ "sequence": 8,
+ "stage": "gap_probe",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [],
+   "assertions": [],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E1:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Tournament entity is named in any segment as related to 'Pool A'."
+   },
+   {
+    "requirement_id": "req:E1:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Match entity is explicitly related to 'Pool A' using the relationship 'has match' in the segments. Table rows do coordinate Pool A with matches, but do not state the relationship."
+   },
+   {
+    "requirement_id": "req:E10:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r5"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "Segments name McLean Park as a venue for pool matches, but do not state any match entity that is played at McLean Park."
+   },
+   {
+    "requirement_id": "req:E13:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Team entities are named as related to 'Japan v Samoa' in the segments."
+   },
+   {
+    "requirement_id": "req:E13:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Stage entity is stated as related to 'Japan v Samoa' with a 'has match' relationship in the segments."
+   },
+   {
+    "requirement_id": "req:E14:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Team entities are named as related to 'Australia v Argentina' in the segments."
+   },
+   {
+    "requirement_id": "req:E14:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Stage entity is stated as related to 'Australia v Argentina' with a 'has match' relationship in the segments."
+   },
+   {
+    "requirement_id": "req:E15:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Team entities are named as related to 'South Africa v Tonga' in the segments."
+   },
+   {
+    "requirement_id": "req:E15:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Stage entity is stated as related to 'South Africa v Tonga' with a 'has match' relationship in the segments."
+   },
+   {
+    "requirement_id": "req:E16:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Team entities are named as related to 'Pool A winner v Pool B runner-up' in the segments."
+   },
+   {
+    "requirement_id": "req:E16:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Stage entity is stated as related to 'Pool A winner v Pool B runner-up' with a 'has match' relationship in the segments."
+   },
+   {
+    "requirement_id": "req:E17:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Team entities are named as related to 'Pool B winner v Pool A runner-up' in the segments."
+   },
+   {
+    "requirement_id": "req:E17:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Stage entity is stated as related to 'Pool B winner v Pool A runner-up' with a 'has match' relationship in the segments."
+   },
+   {
+    "requirement_id": "req:E2:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r2",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3",
+     "S1#t3.r4",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Tournament entity is named in any segment as related to 'Pool B'."
+   },
+   {
+    "requirement_id": "req:E2:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r2",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3",
+     "S1#t3.r4",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Match entity is explicitly related to 'Pool B' using the relationship 'has match' in the segments. Table rows do coordinate Pool B with matches, but do not state the relationship."
+   },
+   {
+    "requirement_id": "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Tournament entity is named in any segment as related to 'Quarter-finals'."
+   },
+   {
+    "requirement_id": "req:E3:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Match entity is explicitly related to 'Quarter-finals' using the relationship 'has match' in the segments."
+   },
+   {
+    "requirement_id": "req:E4:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r6"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Tournament entity is named in any segment as related to 'Semi-finals'."
+   },
+   {
+    "requirement_id": "req:E4:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r6"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Match entity is explicitly related to 'Semi-finals' using the relationship 'has match' in the segments."
+   },
+   {
+    "requirement_id": "req:E5:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2",
+     "S1#16",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Tournament entity is named in any segment as related to 'Final'."
+   },
+   {
+    "requirement_id": "req:E5:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2",
+     "S1#16",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No Match entity is explicitly related to 'Final' using the relationship 'has match' in the segments."
+   },
+   {
+    "requirement_id": "req:E6:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "Segments name Eden Park as a venue for the opening match and final, and list the match 'New Zealand v Fiji' (already extracted), but do not name another match as related to Eden Park in these segments."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "requirements": [
+   "req:E1:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E1:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E10:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E13:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E13:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E14:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E14:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E15:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E15:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E16:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E16:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E17:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E17:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E2:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E2:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E3:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E4:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E4:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E5:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E5:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E6:f4d78957-4874-4704-acca-4a915850da7b:object"
+  ]
+ }
+}

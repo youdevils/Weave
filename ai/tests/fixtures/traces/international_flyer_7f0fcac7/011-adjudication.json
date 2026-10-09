@@ -1,0 +1,62 @@
+{
+ "kind": "provider",
+ "run_id": "7f0fcac7-37b0-4677-a00b-1509af4506c6",
+ "sequence": 11,
+ "stage": "adjudication",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "predicate_mapping:is_a_match_played_at_fmg_stadium_waikato:match:venue",
+    "option_id": "played_at:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r4",
+      "excerpt": "Pool B | South Africa v Tonga | FMG Stadium Waikato"
+     }
+    ],
+    "excerpt": "",
+    "note": ""
+   },
+   {
+    "question_id": "predicate_mapping:is_a_pool_b_match_played_at_fmg_stadium_waikato:match:venue",
+    "option_id": "played_at:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r4",
+      "excerpt": "Pool B | South Africa v Tonga | FMG Stadium Waikato"
+     }
+    ],
+    "excerpt": "",
+    "note": ""
+   },
+   {
+    "question_id": "predicate_mapping:is_a_pool_b_match:match:stage",
+    "option_id": "has_match:converse",
+    "citations": [
+     {
+      "segment_id": "S1#t3",
+      "excerpt": "Stage | Match | Venue"
+     },
+     {
+      "segment_id": "S1#t3.r4",
+      "excerpt": "Pool B | South Africa v Tonga | FMG Stadium Waikato"
+     }
+    ],
+    "excerpt": "",
+    "note": ""
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "predicate_mapping:is_a_match_played_at_fmg_stadium_waikato:match:venue",
+   "predicate_mapping:is_a_pool_b_match_played_at_fmg_stadium_waikato:match:venue",
+   "predicate_mapping:is_a_pool_b_match:match:stage"
+  ]
+ }
+}

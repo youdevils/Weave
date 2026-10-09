@@ -1,0 +1,817 @@
+{
+ "kind": "provider",
+ "run_id": "24063e61-e45c-44e2-8dd0-c2fdf31172f7",
+ "sequence": 5,
+ "stage": "gap_probe",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [
+    {
+     "eid": "E20",
+     "name": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+     "aliases": [],
+     "type_label": "Tournament",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A20",
+     "subject_eid": "E20",
+     "predicate": "has stage",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A21",
+     "subject_eid": "E20",
+     "predicate": "has stage",
+     "object_eid": "E2",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A22",
+     "subject_eid": "E20",
+     "predicate": "has stage",
+     "object_eid": "E3",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-finals: The top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa.",
+       "segment_id": "S1#8",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A23",
+     "subject_eid": "E20",
+     "predicate": "has stage",
+     "object_eid": "E4",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Semi-finals:\nQuarter-final winners progress to two semi-finals.",
+       "segment_id": "S1#9",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A24",
+     "subject_eid": "E20",
+     "predicate": "has stage",
+     "object_eid": "E5",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Final:\nThe two semi-final winners play for the championship at Eden Park, Auckland.",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A25",
+     "subject_eid": "E3",
+     "predicate": "has match",
+     "object_eid": "eQF1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A26",
+     "subject_eid": "E3",
+     "predicate": "has match",
+     "object_eid": "eQF2",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": [
+    {
+     "fid": "F1",
+     "subject_id": "E6",
+     "label": "Primary use",
+     "value": "Opening match and final",
+     "unit": null,
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "supersedes": null,
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final",
+       "segment_id": "S1#t2.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "fid": "F2",
+     "subject_id": "E7",
+     "label": "Primary use",
+     "value": "Pool and quarter-final matches",
+     "unit": null,
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "supersedes": null,
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches",
+       "segment_id": "S1#t2.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "fid": "F3",
+     "subject_id": "E8",
+     "label": "Primary use",
+     "value": "Pool matches",
+     "unit": null,
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "supersedes": null,
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Forsyth Barr Stadium | Dunedin, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "fid": "F4",
+     "subject_id": "E9",
+     "label": "Primary use",
+     "value": "Pool matches",
+     "unit": null,
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "supersedes": null,
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "FMG Stadium Waikato | Hamilton, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "fid": "F5",
+     "subject_id": "E10",
+     "label": "Primary use",
+     "value": "Pool matches",
+     "unit": null,
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "supersedes": null,
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "McLean Park | Napier, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "fid": "F6",
+     "subject_id": "E11",
+     "label": "Primary use",
+     "value": "Quarter-final and semi-final matches",
+     "unit": null,
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "supersedes": null,
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ]
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E1:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [
+     "A20"
+    ],
+    "candidate_eids": [],
+    "note": "Structural context of table under tournament heading names Pool A as stage of the tournament."
+   },
+   {
+    "requirement_id": "req:E1:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match entities for Pool A are explicitly named in these segments."
+   },
+   {
+    "requirement_id": "req:E10:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r5"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match entities connected to McLean Park are explicitly named."
+   },
+   {
+    "requirement_id": "req:E11:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match entities connected to Orangetheory Stadium are explicitly named."
+   },
+   {
+    "requirement_id": "req:E2:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r2",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3",
+     "S1#t3.r4",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [
+     "A21"
+    ],
+    "candidate_eids": [],
+    "note": "Structural context of table under tournament heading names Pool B as stage of the tournament."
+   },
+   {
+    "requirement_id": "req:E2:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r2",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3",
+     "S1#t3.r4",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match entities for Pool B are explicitly named in these segments."
+   },
+   {
+    "requirement_id": "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [
+     "A22"
+    ],
+    "candidate_eids": [],
+    "note": "Quarter-finals named as stage of the tournament by structural context."
+   },
+   {
+    "requirement_id": "req:E3:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [
+     "A25",
+     "A26"
+    ],
+    "candidate_eids": [],
+    "note": "Quarter-final matches are named structurally in table; match entities inferred from match descriptions."
+   },
+   {
+    "requirement_id": "req:E4:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r6"
+    ],
+    "claim_ids": [
+     "A23"
+    ],
+    "candidate_eids": [],
+    "note": "Semi-finals named as stage of the tournament by structural context."
+   },
+   {
+    "requirement_id": "req:E4:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r6"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match named for the Semi-finals in these segments."
+   },
+   {
+    "requirement_id": "req:E5:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2",
+     "S1#16",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [
+     "A24"
+    ],
+    "candidate_eids": [],
+    "note": "Final is named as stage of the tournament by structural context."
+   },
+   {
+    "requirement_id": "req:E5:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2",
+     "S1#16",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match entity for Final is explicitly named."
+   },
+   {
+    "requirement_id": "req:E6:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#9",
+     "S1#10",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match entity explicitly connected to Eden Park is named in these segments."
+   },
+   {
+    "requirement_id": "req:E7:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r2",
+     "S1#t4",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match entity explicitly connected to Sky Stadium is named."
+   },
+   {
+    "requirement_id": "req:E8:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r3",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match entity explicitly connected to Forsyth Barr Stadium is named."
+   },
+   {
+    "requirement_id": "req:E9:f4d78957-4874-4704-acca-4a915850da7b:object",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r4",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "No match entity explicitly connected to FMG Stadium Waikato is named."
+   },
+   {
+    "requirement_id": "target:T1",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r3",
+     "S1#t2.r4",
+     "S1#t2.r5"
+    ],
+    "claim_ids": [
+     "E6",
+     "E7",
+     "E8",
+     "E9",
+     "E10"
+    ],
+    "candidate_eids": [],
+    "note": "Venues named explicitly in the 'Venues' table."
+   },
+   {
+    "requirement_id": "target:T2",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2"
+    ],
+    "claim_ids": [
+     "E1"
+    ],
+    "candidate_eids": [],
+    "note": "Stage 'Pool A' is named in table and heading, no other new Stage entity found in these segments."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "requirements": [
+   "req:E1:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E1:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E10:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E11:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E2:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E2:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E3:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E3:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E4:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E4:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E5:7e0f2bba-d669-4a8e-a731-28fedcbfd8ba:object",
+   "req:E5:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E6:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E7:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E8:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "req:E9:f4d78957-4874-4704-acca-4a915850da7b:object",
+   "target:T1",
+   "target:T2"
+  ]
+ }
+}

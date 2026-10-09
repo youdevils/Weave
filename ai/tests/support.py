@@ -1,6 +1,6 @@
 """Shared fixtures for ai app tests."""
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from account.models import CustomUser
 from model.models.attribute_definition import AttributeDefinition
@@ -238,6 +238,9 @@ def new(token):
     return {"kind": "new", "token": token}
 
 
+# The legacy claims-mode suite tests the claims architecture explicitly, whatever
+# the default; readings-mode tests opt in with their own override.
+@override_settings(AI_RECONCILE_EVIDENCE_MODE="claims")
 class AIServiceTestCase(TestCase):
 
     @classmethod

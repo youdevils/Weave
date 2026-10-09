@@ -1,0 +1,37 @@
+[
+ [
+  "S1#1",
+  "heading",
+  "2027 CHAMPIONSHIP - OFFICIAL FLYER"
+ ],
+ [
+  "S1#2",
+  "text_block",
+  "Pool Stage\nMatch 1: New Zealand v Fiji, played at Eden Park"
+ ],
+ [
+  "S1#3",
+  "heading",
+  "Venues"
+ ],
+ [
+  "S1#t1",
+  "table",
+  "Venue | City | Use"
+ ],
+ [
+  "S1#t1.r1",
+  "table_row",
+  "Eden Park | Auckland | Opening match and final"
+ ],
+ [
+  "S1#t1.r2",
+  "table_row",
+  "Forsyth Barr Stadium | Dunedin | Pool matches"
+ ],
+ [
+  "S1#4",
+  "text_block",
+  "Eden Park capacity: 50000"
+ ]
+]

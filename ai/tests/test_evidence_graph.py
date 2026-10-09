@@ -53,6 +53,22 @@ class EvidenceInvariantTests(SimpleTestCase):
             with self.subTest(module=name):
                 self.assertFalse([m for m in imported if m.startswith(("ai.services.semantic", "ai.services.reconcile", "model."))])
 
+    def test_a_missing_endpoint_is_a_correctable_issue(self):
+        evidence = graph(
+            entity("E1", "Eden Park", "venue", excerpt="Eden Park"),
+            assertion("A1", "E1", "hosts the matches of New Zealand, Fiji", "", excerpt="Eden Park"),
+        )
+
+        self.assertEqual([(i.code, i.item_id) for i in self.validate(evidence)], [("missing_endpoint", "A1")])
+
+    def test_a_claim_relating_an_entity_to_itself_is_a_correctable_issue(self):
+        evidence = graph(
+            entity("E1", "Eden Park", "venue", excerpt="Eden Park"),
+            assertion("A1", "E1", "hosts match 1", "E1", excerpt="Eden Park"),
+        )
+
+        self.assertEqual([(i.code, i.item_id) for i in self.validate(evidence)], [("self_reference", "A1")])
+
     def test_structure_and_provenance_are_still_checked(self):
         evidence = graph(
             entity("E1", "Eden Park", "venue", excerpt="Eden Park"),

@@ -14,8 +14,13 @@ never rewritten. That is enforced structurally: `validate_evidence_graph`
 takes no SemanticModelIndex or catalogue, and this module may not import
 ai.services.semantic (ai.tests.test_evidence_graph).
 
-Items carry `origin` (extraction | probe | verifier), which OnyxJar sets --
-never trusted from a provider response.
+Items carry `origin` (extraction | probe | verifier | reading), which OnyxJar
+sets -- never trusted from a provider response. `reading` items are not
+extracted by an AI at all: they are the deterministic expansion of a Reading
+(an AI's schema-level interpretation of a table or section) over the rows it
+conforms to (ai.services.reconcile.readings). Each carries `basis_refs`: EVERY
+Reading ("<reading id>@<revision>") needed to reproduce it, so a change to any
+of them invalidates it. AI-origin items never carry basis_refs.
 """
 
 from __future__ import annotations
@@ -30,7 +35,7 @@ from ai.services.evidence_bundle import EvidenceBundle
 from ai.services.feedback import AIIssue, issue
 from ai.services.provenance import check_provenance, excerpt_in_any_source, resolve_segments
 
-Origin = Literal["extraction", "probe", "verifier"]
+Origin = Literal["extraction", "probe", "verifier", "reading", "intent"]
 
 
 class Qualifiers(BaseModel):
@@ -57,6 +62,7 @@ class EvidenceEntity(BaseModel):
     polarity: Literal["present", "removed"] = "present"
     provenance: list[Provenance] = Field(default_factory=list)
     origin: Origin = "extraction"
+    basis_refs: list[str] = Field(default_factory=list)
 
 
 class EvidenceAssertion(BaseModel):
@@ -80,6 +86,7 @@ class EvidenceAssertion(BaseModel):
     modality: Literal["stated", "reported", "estimated", "planned"] = "stated"
     provenance: list[Provenance] = Field(default_factory=list)
     origin: Origin = "extraction"
+    basis_refs: list[str] = Field(default_factory=list)
 
 
 class Supersedes(BaseModel):
@@ -101,6 +108,7 @@ class EvidenceFact(BaseModel):
     supersedes: Optional[Supersedes] = None
     provenance: list[Provenance] = Field(default_factory=list)
     origin: Origin = "extraction"
+    basis_refs: list[str] = Field(default_factory=list)
 
 
 class EvidenceGraph(BaseModel):
@@ -135,6 +143,8 @@ class EvidenceGraph(BaseModel):
         copy = self.model_copy(deep=True)
         for item in copy.items():
             item.origin = origin
+            if origin not in ("reading", "intent"):
+                item.basis_refs = []
         return copy
 
     def appended(self, other: "EvidenceGraph") -> "EvidenceGraph":
@@ -217,15 +227,36 @@ def validate_evidence_graph(graph: EvidenceGraph, *, bundle: EvidenceBundle, int
     for assertion in graph.assertions:
         where = f"Assertion '{assertion.aid}'"
         for label, endpoint in (("subject", assertion.subject_eid), ("object", assertion.object_eid)):
-            if endpoint not in entity_ids:
+            if not (endpoint or "").strip():
+                # Typically a list squeezed into one predicate ("includes the
+                # teams A, B and C"): correctable, never a silent drop.
+                issues.append(issue(
+                    "missing_endpoint",
+                    f"{where} has no {label}. An assertion relates exactly two entities: state one assertion per "
+                    "counterpart (each member of a list is its own assertion), extracting any entity that is missing.",
+                    item_id=assertion.aid,
+                ))
+            elif endpoint not in entity_ids:
                 issues.append(issue("dangling_reference", f"{where}: {label} '{endpoint}' is not an entity.", item_id=assertion.aid))
+        if (assertion.subject_eid or "").strip() and assertion.subject_eid == assertion.object_eid:
+            # Typically the entity the predicate names was never extracted --
+            # it lives only in the predicate's wording.
+            issues.append(issue(
+                "self_reference",
+                f"{where} relates '{assertion.subject_eid}' to itself. If the source names a separate entity the predicate "
+                "refers to, extract that entity under the name the source uses and relate to it; if the source does not "
+                "name one, withdraw the claim. An entity must never live only in predicate text.",
+                item_id=assertion.aid,
+            ))
         if not assertion.predicate.strip():
             issues.append(issue("malformed_item", f"{where} needs a predicate.", item_id=assertion.aid))
         check(assertion, where)
 
     for fact in graph.facts:
         where = f"Fact '{fact.fid}'"
-        if fact.subject_id not in referable:
+        if not (fact.subject_id or "").strip():
+            issues.append(issue("missing_endpoint", f"{where} has no subject: name the entity or assertion it describes.", item_id=fact.fid))
+        elif fact.subject_id not in referable:
             issues.append(issue("dangling_reference", f"{where}: subject '{fact.subject_id}' is not an entity or assertion.", item_id=fact.fid))
         if not fact.label.strip():
             issues.append(issue("malformed_item", f"{where} needs a label.", item_id=fact.fid))

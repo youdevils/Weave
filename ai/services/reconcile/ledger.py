@@ -33,9 +33,9 @@ from typing import Literal
 Kind = Literal["claim", "structural", "coverage"]
 
 # Steps -> where a Verification objection on a decision of that step re-enters.
-EXTRACTION, FRAMING, NORMALISE, MAPPING, IDENTITY, SCOPE, ADJUDICATION, PROBE, VERIFIER, COMPILE, GROUNDING, COVERAGE = (
+EXTRACTION, FRAMING, NORMALISE, MAPPING, IDENTITY, SCOPE, ADJUDICATION, PROBE, VERIFIER, COMPILE, GROUNDING, COVERAGE, READING = (
     "extraction", "framing", "normalise", "mapping", "identity", "scope", "adjudication", "probe", "verifier", "compile",
-    "grounding", "coverage",
+    "grounding", "coverage", "reading",
 )
 
 

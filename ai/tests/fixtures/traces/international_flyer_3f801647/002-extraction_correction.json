@@ -1,0 +1,273 @@
+{
+ "kind": "provider",
+ "run_id": "3f801647-15b1-44cc-91da-838be08122dd",
+ "sequence": 2,
+ "stage": "extraction_correction",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.0",
+  "intent_frame": {
+   "restated_intent": "The user wants to add the venues and stages named in the flyer to their model, and to create any relationships associated between them that the evidence supports.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venues",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues ... listed in the flyer"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stages",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "add the ... stages listed in the flyer"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [],
+   "assertions": [
+    {
+     "aid": "A1",
+     "subject_eid": "E1",
+     "predicate": "is the opening pool stage",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "The tournament is designed to progress from an opening\npool stage into knockout finals, with the final played in Auckland.",
+       "segment_id": "S1#4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A2",
+     "subject_eid": "E4",
+     "predicate": "the final is played in Auckland",
+     "object_eid": "E5",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "with the final played in Auckland.",
+       "segment_id": "S1#4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A3",
+     "subject_eid": "E2",
+     "predicate": "quarter-final winners progress to",
+     "object_eid": "E3",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final winners progress to two semi-finals.",
+       "segment_id": "S1#9",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A4",
+     "subject_eid": "E3",
+     "predicate": "semi-final winners play for the championship at Eden Park, Auckland",
+     "object_eid": "E4",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "The two semi-final winners play for the championship at Eden Park, Auckland.",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A5",
+     "subject_eid": "E2",
+     "predicate": "is listed as hosting quarter-final matches",
+     "object_eid": "E6",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches",
+       "segment_id": "S1#t2.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A6",
+     "subject_eid": "E2",
+     "predicate": "is listed as hosting quarter-final matches",
+     "object_eid": "E10",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A7",
+     "subject_eid": "E3",
+     "predicate": "is listed as hosting semi-final matches",
+     "object_eid": "E10",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#12",
+    "reason": "This segment describes how pool standings are determined and how pool ranking qualifies teams for quarter-finals, but does not state a concrete relationship or property about any specific stage or venue."
+   },
+   {
+    "segment_id": "S1#23",
+    "reason": "This segment states a generic condition: the winner of the final is champion, but does not state a relationship between a specific stage and venue or a property relevant to the frame."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": []
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [],
+  "frame": [],
+  "segments": [
+   "S1#4",
+   "S1#9",
+   "S1#10",
+   "S1#12",
+   "S1#t2.r1",
+   "S1#t2.r2",
+   "S1#t2.r3",
+   "S1#t2.r4",
+   "S1#t2.r5",
+   "S1#t2.r6",
+   "S1#t3.r1",
+   "S1#t3.r2",
+   "S1#t3.r3",
+   "S1#t3.r4",
+   "S1#t4.r1",
+   "S1#t4.r2",
+   "S1#23"
+  ]
+ }
+}

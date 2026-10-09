@@ -1,0 +1,131 @@
+{
+ "kind": "provider",
+ "run_id": "1d854489-db38-4e0f-91f0-948b01eac676",
+ "sequence": 6,
+ "stage": "adjudication",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "predicate_mapping:is_designed_to_progress_from_an_opening_pool_stage_into_knockout_final:tournament:stage",
+    "option_id": "has_stage:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#4",
+      "excerpt": "The tournament is designed to progress from an opening\npool stage into knockout finals, with the final played in Auckland."
+     }
+    ],
+    "excerpt": "",
+    "note": "This statement explicitly describes that the tournament contains at least 'pool stage' and 'knockout finals' as constituent stages."
+   },
+   {
+    "question_id": "indirect_classification:A1",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "",
+    "note": "The listing implies group membership within an overarching event (a pool in a tournament), not direct team-to-team, team-to-stage, or similar relationships."
+   },
+   {
+    "question_id": "indirect_classification:A2",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     }
+    ],
+    "excerpt": "",
+    "note": "The language provides a grouping, implying connection via a tournament or competition structure."
+   },
+   {
+    "question_id": "indirect_classification:A3",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r1",
+      "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final"
+     }
+    ],
+    "excerpt": "",
+    "note": "The phrase 'opening match and final' points to matches (events) rather than a direct relationship between the venue and a stage or outcome; the matches themselves must connect the venue."
+   },
+   {
+    "question_id": "indirect_classification:A4",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r2",
+      "excerpt": "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches"
+     }
+    ],
+    "excerpt": "",
+    "note": "Assignment of Sky Stadium to 'pool and quarter-final matches' refers to unspecified matches, not to a direct relationship to those stages themselves."
+   },
+   {
+    "question_id": "indirect_classification:A8",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r6",
+      "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches"
+     }
+    ],
+    "excerpt": "",
+    "note": "Orangetheory Stadium is linked to matches (which define the events), not the broader competition stages directly."
+   },
+   {
+    "question_id": "indirect_classification:a7",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r1",
+      "excerpt": "Pool A | New Zealand v Fiji | Eden Park"
+     },
+     {
+      "segment_id": "S1#t3",
+      "excerpt": "Stage | Match | Venue"
+     }
+    ],
+    "excerpt": "",
+    "note": "The fixture listing (stage, match, venue) does not directly connect teams to stages or venues except through the match itself."
+   },
+   {
+    "question_id": "indirect_classification:a8",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r2",
+      "excerpt": "Pool A | Japan v Samoa | Sky Stadium"
+     },
+     {
+      "segment_id": "S1#t3",
+      "excerpt": "Stage | Match | Venue"
+     }
+    ],
+    "excerpt": "",
+    "note": "As with the prior fixture, the described relationship is realized only via the match, not as a direct tie between team/stage/venue."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "predicate_mapping:is_designed_to_progress_from_an_opening_pool_stage_into_knockout_final:tournament:stage",
+   "indirect_classification:A1",
+   "indirect_classification:A2",
+   "indirect_classification:A3",
+   "indirect_classification:A4",
+   "indirect_classification:A8",
+   "indirect_classification:a7",
+   "indirect_classification:a8"
+  ]
+ }
+}

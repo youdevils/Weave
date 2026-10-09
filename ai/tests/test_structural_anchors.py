@@ -23,6 +23,8 @@ from __future__ import annotations
 
 import types
 
+from django.test import override_settings
+
 from ai.services.evidence_bundle import EvidenceBundle
 from ai.services.evidence_graph import EvidenceGraph
 from ai.services.grounding import grounding_issues, relationship_anchors
@@ -110,6 +112,9 @@ class RelationshipAnchorsUnitTests(AIServiceTestCase):
         self.assertEqual([i.code for i in issues if i.item_id == "A1"], ["unanchored_claim"])
 
 
+# The fake run has no execution to trace to: tracing must be off however the
+# environment running the suite is configured (the dev container sets it).
+@override_settings(AI_TRACE_DIR=None)
 class CorrectionAnchorsPayloadTests(AIServiceTestCase):
     """`correction_anchors` (ai.services.stages.extraction), shared by both
     correction stages: the exact entry a correction payload gets."""
@@ -241,3 +246,44 @@ class TypeFallbackSafetyTests(AIServiceTestCase):
         found = _similar_types(index, ["pool", "group"])
 
         self.assertEqual(found, [])
+
+
+class NoAnchorUnitTests(CorrectionAnchorsPayloadTests):
+    """`no_anchor` (ai.services.stages.extraction): only an assertion whose
+    sole defect is unanchored_claim, between two known entities no segment
+    relates, skips its correction."""
+
+    def state(self):
+        return ReconcileState(graph=graph(
+            entity("E1", "FMG Stadium Waikato", "venue", excerpt="FMG Stadium Waikato"),
+            entity("E2", "New Zealand v Fiji", "match", excerpt="New Zealand v Fiji"),
+            entity("E3", "South Africa v Tonga", "match", excerpt="South Africa v Tonga"),
+        ))
+
+    def check(self, item, *codes):
+        from ai.services.feedback import issue
+        from ai.services.stages.extraction import no_anchor
+
+        return no_anchor(self.fake_run(self.state()), item, [issue(code, "x", item_id=item_id_of(item)) for code in codes])
+
+    def test_a_pair_nothing_connects_is_not_re_asked(self):
+        self.assertTrue(self.check(assertion("A1", "E1", "hosts", "E2", excerpt="FMG Stadium Waikato"), "unanchored_claim"))
+
+    def test_a_pair_a_segment_connects_is_re_asked(self):
+        self.assertFalse(self.check(assertion("A1", "E1", "hosts", "E3", excerpt="FMG Stadium Waikato"), "unanchored_claim"))
+
+    def test_any_other_defect_keeps_the_re_ask(self):
+        item = assertion("A1", "E1", "hosts", "E2", excerpt="FMG Stadium Waikato")
+
+        self.assertFalse(self.check(item, "unanchored_claim", "self_reference"))
+        self.assertFalse(self.check(item, "excerpt_not_in_segment"))
+
+    def test_an_unknown_endpoint_keeps_the_re_ask(self):
+        self.assertFalse(self.check(assertion("A1", "E1", "hosts", "E99", excerpt="FMG Stadium Waikato"), "unanchored_claim"))
+
+    def test_only_assertions_qualify(self):
+        self.assertFalse(self.check(entity("E9", "Nowhere", "venue", excerpt="Nowhere"), "unanchored_claim"))
+
+
+def item_id_of(item):
+    return getattr(item, "aid", None) or getattr(item, "eid", None)

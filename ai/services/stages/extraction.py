@@ -13,13 +13,26 @@ once and frozen. What isn't settled is corrected separately, in the
 `extraction_correction` stage with its own budget, so one defective batch
 never costs another batch its chance:
 
-    invalid claims                re-asked once, then dropped (with a finding)
+    invalid claims                re-asked once, then dropped (with a finding);
+                                  an unanchored assertion no segment could
+                                  anchor is dropped without the re-ask
+                                  (`no_anchor`)
     uncovered relevant segments   re-asked once, then recorded `uncovered`
     dismissed segments that name  re-asked once, then the dismissal stands,
     a target                      flagged for Verification and the findings
 
-Re-asks from every batch are packed together (bounded by size). Dismissals
-are coverage decisions, never claims: they never enter the EvidenceGraph.
+Re-asks from every batch are packed together (bounded by size) into one
+correction WAVE (AI_RECONCILE_EXTRACTION_MAX_CORRECTION_CALLS per wave).
+A segment re-ask is first-time extraction of that segment, so invalid claims
+it produces are new work with their own correction opportunity: they form the
+next wave (a fresh scope of the same budget), which re-asks them once. A wave
+of item re-asks only produces corrections, whose output is not corrected
+again -- so there are at most two waves, every item and segment is re-asked
+at most once, and a second wave starts only while the run can still afford a
+full Verification pass.
+
+Dismissals are coverage decisions, never claims: they never enter the
+EvidenceGraph.
 """
 
 from __future__ import annotations
@@ -39,18 +52,23 @@ from ai.services.semantic.catalogue import build_catalogue
 from ai.services.semantic.index import SemanticModelIndex
 from ai.services.sources import with_ancestors
 from ai.services.stages import prompts
+from ai.services.stages.reconcile_steps import affords_recovery
 from ai.services.tracing import trace_active, trace_anchors
 from ai.services.workflow.engine import Finish, Goto, Stage
 
 _INCLUDE_RELATED = "include_related"
 
 
-def plan_batches(bundle, max_chars) -> list[list[str]]:
+def plan_batches(bundle, max_chars, only=None) -> list[list[str]]:
     """Whole segments, in document order, packed up to `max_chars` of text. A
-    table row always carries its header labels, so rows may span batches."""
+    table row always carries its header labels, so rows may span batches.
+    `only` (readings mode): the prose-eligible segments -- structured content
+    is interpreted by Readings, never extracted (readings.prose_eligible)."""
 
     batches, current, used = [], [], 0
     for segment in bundle.segments():
+        if only is not None and segment.segment_id not in only:
+            continue
         # A batch's payload also carries the heading/table segments its
         # segments sit under (citable context) -- they count too.
         def cost(present):
@@ -117,20 +135,29 @@ def absorb(run, patch: EvidenceGraph, *, origin: str, replace_ids=frozenset()) -
 
     # Deterministic repair: a claim about something never extracted (in the
     # graph, pending, or this patch) cannot mean anything -- dropped, never
-    # re-asked, and logged with what it referred to.
+    # re-asked, and logged with what it referred to. A *missing* endpoint is
+    # not a reference: it is a malformed claim, left to validation
+    # (missing_endpoint) and so to its one correction.
     dangling = []
     while True:
         defined = known_ids | set(rs.pending_items) | {item_id(i) for i in patch.items()}
-        bad = {a.aid: [r for r in (a.subject_eid, a.object_eid) if r not in defined] for a in patch.assertions
-               if a.subject_eid not in defined or a.object_eid not in defined}
-        bad.update({f.fid: [f.subject_id] for f in patch.facts if f.subject_id not in defined})
+
+        def unknown(ref, defined=defined) -> bool:
+            return bool((ref or "").strip()) and ref not in defined
+
+        bad = {a.aid: [r for r in (a.subject_eid, a.object_eid) if unknown(r)] for a in patch.assertions
+               if unknown(a.subject_eid) or unknown(a.object_eid)}
+        bad.update({f.fid: [f.subject_id] for f in patch.facts if unknown(f.subject_id)})
         if not bad:
             break
         for identifier, refs in bad.items():
             dangling.append(identifier)
             log(rs, identifier, origin=origin, outcome="dropped_dependant", reason=f"refers to {', '.join(refs)}, which is not an accepted claim")
         patch = patch.without(bad)
-    rs.notes = [*rs.notes, *(Finding(severity="info", message=f"Ignored evidence claim '{d}': it refers to something that was not extracted.") for d in dangling)]
+    for identifier in dangling:
+        message = f"Ignored evidence claim '{identifier}': it refers to something that was not extracted."
+        rs.notes = [*rs.notes, Finding(severity="info", message=message)]
+        rs.note_refs[message] = identifier
     issues = list(ingress_issues)
     issues += validate_evidence_graph(patch, bundle=run.bundle, intent_text=run.intent.text, known_ids=frozenset(known_ids))
     issues += grounding_issues(patch, bundle=run.bundle, known=rs.graph)
@@ -180,6 +207,8 @@ def record_dismissals(run, dismissals) -> None:
     for dismissal in dismissals:
         if run.bundle.segment(dismissal.segment_id) is None:
             continue
+        if rs.prose_scope is not None and dismissal.segment_id not in rs.prose_scope:
+            continue  # readings mode: structure is covered by its Reading, never dismissed per segment
         entry = rs.dismissals.setdefault(dismissal.segment_id, {"reason": "", "count": 0})
         entry["reason"] = dismissal.reason
         entry["count"] += 1
@@ -189,6 +218,29 @@ def segment_payload(run, segment_ids) -> list[dict]:
     """The segments and the heading/table segments they sit under, all citable."""
 
     return [s.context() for s in with_ancestors(run.bundle, segment_ids)]
+
+
+def unaccounted_reask(names) -> str:
+    """Why a segment that names target entities no claim citing it involves is
+    re-asked -- in the segment's own names only, never a domain example."""
+
+    them = "it" if len(names) == 1 else "them"
+    return (f"It names {', '.join(repr(n) for n in names)}, but no claim extracted from it involves {them}: extract what "
+            f"this segment states about {them} -- with any other entity it names in relation to {them}, under the name it "
+            "uses -- or dismiss it with a specific reason")
+
+
+def cited_payload(run, item) -> dict:
+    """An invalid item's citations as a correction sees them: exactly the
+    segments it cites (`cited_segments`), and -- separately, citable but NOT
+    cited -- the headings/tables they sit under (`context_segments`). Mixing
+    the two once showed a correction an uncited title heading as already
+    cited, contradicting the very issue it was asked to fix."""
+
+    cited = {p.segment_id for p in item.provenance if p.segment_id}
+    shown = segment_payload(run, sorted(cited))
+    return {"cited_segments": [s for s in shown if s["segment_id"] in cited],
+            "context_segments": [s for s in shown if s["segment_id"] not in cited]}
 
 
 def _known_name(rs, eid) -> tuple[str, list[str]] | None:
@@ -229,6 +281,25 @@ def correction_anchors(run, item, issues, *, stage: str) -> dict | None:
     return payload
 
 
+def no_anchor(run, item, issues) -> bool:
+    """An assertion whose only defect is `unanchored_claim` while no segment
+    relates its subject and object -- no direct anchor, no structural pair
+    (ai.services.grounding.relationship_anchors). Its correction could only
+    withdraw it (the correction contract says so), so it is not re-asked: it
+    stays pending and is dropped like any unrecovered item, with its own
+    issue as the reason. An anchored one, or one with any other defect, is
+    re-asked as before."""
+
+    if not hasattr(item, "aid") or not issues or any(i.code != "unanchored_claim" for i in issues):
+        return False
+    rs = run.state.reconcile
+    subject, obj = _known_name(rs, item.subject_eid), _known_name(rs, item.object_eid)
+    if subject is None or obj is None:
+        return False
+    anchors = relationship_anchors([subject[0], *subject[1]], [obj[0], *obj[1]], run.bundle)
+    return not anchors["direct"] and not anchors["structural"]
+
+
 def finish_extraction(run):
     """After the last batch: queue every defect for one bounded round of
     re-asks, or settle."""
@@ -240,9 +311,10 @@ def finish_extraction(run):
     for found in frame_issues:
         rs.pending_frame.setdefault(found.item_id, []).append(found)
 
-    coverage = compute_coverage(run.bundle, rs.graph, rs.frame, state.index, rs.dismissals)
+    coverage = compute_coverage(run.bundle, rs.graph, rs.frame, state.index, rs.dismissals, scope=rs.prose_scope)
     queue = [("frame", i) for i in rs.pending_frame if i not in rs.reasked]
-    queue += [("item", i) for i, (_, issues) in rs.pending_items.items() if issues and i not in rs.reasked]
+    queue += [("item", i) for i, (item, issues) in rs.pending_items.items()
+              if issues and i not in rs.reasked and not no_anchor(run, item, issues)]
     for segment_id, entry in coverage.items():
         if segment_id in rs.reasked or segment_id in rs.unextracted:
             continue
@@ -294,6 +366,7 @@ def settle(run):
     for identifier, (item, issues) in sorted(rs.pending_items.items()):
         detail = issues[0].message if issues else "it refers to a claim that could not be verified"
         notes.append(Finding(severity="info", message=f"Ignored evidence claim '{identifier}': {detail}"))
+        rs.note_refs[notes[-1].message] = identifier
         log(rs, identifier, origin="extraction", outcome="dropped" if issues else "dropped_dependant", reason=detail)
     rs.pending_items = {}
     if rs.pending_frame:
@@ -319,10 +392,11 @@ class ExtractionStage(Stage):
         if state.reconcile is None:
             state.reconcile = ReconcileState()
         rs = state.reconcile
+        rs.intent_text = run.intent.text
         state.index = SemanticModelIndex.load(run.model)
         state.catalogue = build_catalogue(state.index)
         if not rs.batches:
-            rs.batches = plan_batches(run.bundle, settings.AI_EXTRACTION_BATCH_MAX_CHARS) or [[]]
+            rs.batches = plan_batches(run.bundle, settings.AI_EXTRACTION_BATCH_MAX_CHARS, only=rs.prose_scope) or [[]]
         batch = rs.batches[rs.batch_index]
         payload = {
             "stage": self.stage_id,
@@ -374,7 +448,7 @@ class ExtractionCorrectionStage(Stage):
         state = run.state
         rs = state.reconcile
         budget, pack = settings.AI_EXTRACTION_BATCH_MAX_CHARS, []
-        coverage = compute_coverage(run.bundle, rs.graph, rs.frame, state.index, rs.dismissals)
+        coverage = compute_coverage(run.bundle, rs.graph, rs.frame, state.index, rs.dismissals, scope=rs.prose_scope)
         invalid_items, frame_items, segments = [], [], []
         while rs.correction_queue:
             kind, identifier = rs.correction_queue[0]
@@ -383,7 +457,7 @@ class ExtractionCorrectionStage(Stage):
                 entry = {
                     "id": identifier, "item": item.model_dump(mode="json"),
                     "issues": [i.model_dump(mode="json", exclude_none=True) for i in issues],
-                    "cited_segments": segment_payload(run, sorted({p.segment_id for p in item.provenance if p.segment_id})),
+                    **cited_payload(run, item),
                 }
                 anchors = correction_anchors(run, item, issues, stage=self.stage_id)
                 if anchors is not None:
@@ -400,10 +474,13 @@ class ExtractionCorrectionStage(Stage):
             elif kind == "segment" and run.bundle.segment(identifier) is not None:
                 segment = run.bundle.segment(identifier)
                 state_entry = coverage.get(identifier)
-                why = (
-                    f"It mentions {', '.join(repr(n) for n in state_entry.named)}" if state_entry and state_entry.named
-                    else "It mentions a kind of thing the request asks for"
-                )
+                if state_entry and state_entry.unaccounted:
+                    why = unaccounted_reask(state_entry.unaccounted)
+                else:
+                    why = (
+                        f"It mentions {', '.join(repr(n) for n in state_entry.named)}" if state_entry and state_entry.named
+                        else "It mentions a kind of thing the request asks for"
+                    )
                 if state_entry and state_entry.status == DISMISSED:
                     why += f"; it was dismissed as: {state_entry.reason!r}. Extract what it says, or dismiss it again with a specific reason"
                 entry = {"segment": segment.context(), "context_segments": segment_payload(run, segment.ancestor_ids), "why": why}
@@ -434,6 +511,7 @@ class ExtractionCorrectionStage(Stage):
         rs = run.state.reconcile
         replaced = {identifier for kind, identifier in rs.current_pack if kind == "item"}
         frame_ids = {identifier for kind, identifier in rs.current_pack if kind == "frame"}
+        discovery = any(kind == "segment" for kind, _ in rs.current_pack)
 
         if frame_ids:
             frame = rs.frame.model_copy(deep=True)
@@ -457,7 +535,19 @@ class ExtractionCorrectionStage(Stage):
         absorb(run, output.evidence.with_origin("extraction"), origin="extraction_correction", replace_ids=replaced)
         record_dismissals(run, output.dismissed_segments)
         rs.current_pack = []
+        if discovery:
+            # Invalid claims a segment re-ask produced for the first time.
+            queued = {identifier for _, identifier in (*rs.correction_queue, *rs.next_wave)}
+            rs.next_wave += [("item", i) for i, (item, issues) in rs.pending_items.items()
+                             if issues and i not in replaced and i not in rs.reasked and i not in queued
+                             and not no_anchor(run, item, issues)]
 
         if rs.correction_queue and run.allows(self.stage_id):
             return Goto(self.stage_id)
+        if rs.next_wave and affords_recovery(run):
+            # Whatever is left of this wave keeps its fate (dropped / uncovered).
+            rs.correction_queue, rs.next_wave = rs.next_wave, []
+            run.open_scope(self.stage_id)
+            if run.allows(self.stage_id):
+                return Goto(self.stage_id)
         return settle(run)

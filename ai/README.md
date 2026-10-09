@@ -11,13 +11,15 @@ reviews.
 Reconcile:  Intent + evidence files
   [OJ]  sources              files -> addressable segments (headings, text blocks, list items, table rows)
   [AI]  extraction           segment batches -> IntentFrame + EvidenceGraph claims citing segments  (<=4 batches)
-  [AI]  extraction_correction  invalid claims / uncovered or dismissed relevant segments, re-asked once (<=2 calls)
+  [AI]  extraction_correction  invalid claims / uncovered or dismissed relevant segments, re-asked once
+                             (<=2 calls per wave; a second wave for invalid claims the segment re-asks produced;
+                             an unanchored claim no segment could anchor is dropped, not re-asked)
   [OJ]  analysis             ground -> normalise -> map -> identify -> targets/anchors -> ESC -> values -> coverage
                              -> WorkQueue (decision gaps / evidence gaps) -> route   (the convergence hub)
-  [AI]  adjudication         open questions -> pinned option ids, citing segments  (only when needed, <=3 rounds)
-  [AI]    (correction)       invalid answers re-asked once                         (<=2 calls, never a round)
-  [AI]  gap_probe            evidence gaps -> re-extraction of OnyxJar-retrieved local packs (<=2 rounds)
-  [AI]  gap_probe_correction invalid probe claims / missing verdicts, once (<=1 call)
+  [AI]  adjudication         open questions -> pinned option ids, citing segments  (only when needed; progress-driven rounds)
+  [AI]    (correction)       invalid answers re-asked once                         (<=1 call per round, never a round)
+  [AI]  gap_probe            evidence gaps -> re-extraction of OnyxJar-retrieved local packs (progress-driven rounds)
+  [AI]  gap_probe_correction invalid probe claims / missing or contract-breaking verdicts, once (<=1 call per round)
   [OJ]  compile              blocked set -> ChangeSet v3 + ChangeTrace -> TracePolicy -> resolve -> stage
   [AI]  verification         objections, routed to the step that produced the cited decision (<=3 calls)
   [AI]    (correction)       an unroutable objection re-asked once (<=1 call)
@@ -25,11 +27,92 @@ Reconcile:  Intent + evidence files
 
   Every stage returns to analysis; any stage may create work for another, so
   Adjudication, Gap Probe and Verification are revisited until nothing new
-  remains or a class's budget is spent (see Convergence).
+  remains, a class stops making progress, or the run can no longer afford a
+  round beside a full Verification pass (see Convergence).
 Create:     [AI] planning (authors a ChangeSet v3) -> OJ resolve -> commit_proposal
 ```
 
 A small input is typically 2 provider calls (one extraction batch + verification).
+
+### Readings mode (`AI_RECONCILE_EVIDENCE_MODE`, default `readings` since 2026-10-09; `claims` remains available until Phase 6)
+
+`.Documentation/reconcile-architecture-plan.md` is the design; its
+"Architectural invariants" are binding.
+
+```
+  [OJ]  reading_plan   DEM (services/document) -> one Element per table and per heading above one, with its SLOTS
+  [AI]  reading        bounded batches of Elements -> a Reading per element: each slot filled from OnyxJar's options
+                       (plain catalogue keys, validated against the FULL catalogue), with its structural basis;
+                       invalid elements re-asked once per batch (`reading_correction`), then settled as rejected
+  [AI]  extraction     PROSE only (`readings.prose_eligible`), framing the intent as before
+  [OJ]  analysis       Readings (pins applied) expanded over every conforming row -> origin=reading claims with
+                       basis_refs, type/map decisions taken from the Reading (basis `reading`), then the unchanged core
+  ...   adjudication / gap probe (prose packs only) / compile / verification as before
+```
+
+- **DEM** (`services/document/`): tables, columns (`<table>.c<k>`), cells
+  (`<row>.c<k>`), sections, recurring in-cell separators, structural
+  signatures and the one home of layout queries. Structural only: it never
+  imports the catalogue, mapping or the EvidenceGraph
+  (`tests/test_document_model.py`).
+- **Readings** (`reconcile/readings.py`): slots `role` / `split` /
+  `relation` per table, `heading_entity` and optional `section_relation`
+  per heading. A Reading is interpreted once per schema; expansion applies it
+  to every row that passes `structurally_conforms` (DEM) and
+  `reading_conforms` (DEM facts + the exceptions the Reading DECLARED --
+  never a fresh look at the text). Expansion is recomputed by every analysis,
+  so a corrected slot (pin `reading_slot:<slot id>`, from Adjudication or a
+  reviewer's objection to `read:<slot id>`) re-reads every row it governs and
+  bumps the Reading's revision; superseded claims cease to exist.
+- **I2, made precise.** A Reading slot is an AI semantic claim
+  (`read:<slot id>`, with its verbatim structural basis). Every expanded item
+  is a `structural` decision whose inputs are the slot claims it was
+  expanded from; it carries `origin = reading` and `basis_refs` naming EVERY
+  Reading it depends on (a section relation names the Section Reading and the
+  Table Reading). TracePolicy refuses a compiled action resting on a Reading
+  slot that is not decided, or a Reading-derived item whose basis_refs do not
+  cover its inputs. Reading-derived claims are never mapped again (no
+  lexical / hint / predicate questions): their slot already chose the
+  catalogue identity; only legality is checked.
+- **No structured shortcut.** Structured segments reach claims only through a
+  Reading: prose extraction, coverage and probe packs see `prose_eligible`
+  segments only, and ingress refuses any AI claim citing a segment a Reading
+  interprets (`structured_segment`). Only a constrained `not_a_table`
+  (reason + basis) returns a table to prose.
+- **Ownership** is explicit and element-level (`Reading.owns`), projected to
+  source segments by `readings.owned_source_segments`; containment alone
+  never excludes prose.
+
+- **Coverage of structure** (`readings.structured_coverage`): every table
+  column and heading above a table is `read`, `ignored` (a Reading's `none`
+  -- a semantic decision, resting on its slot) or `unread`; tables are never
+  dismissed segment by segment.
+- **Gap triage and states** (`reconcile/triage.py`): every unmet requirement
+  reports exactly one of `undecidable` / `insufficient_evidence` /
+  `not_stated` / `unadjudicated` / `uninvestigated` (in both modes, in
+  `blocked_targets`). In readings mode a requirement is routed by its leads:
+  an unresolved row exception first; a lead into a `none` / undecided /
+  unread element becomes ONE Reading question per slot (a `none` is
+  challenged, never turned into not_stated); prose-only leads go to a prose
+  probe; no lead means `not_stated` with no call.
+- **Review** (`stages/review.py`, prompt `REVIEW`): Verification in readings
+  mode answers "are the causes of the changes sound / are the blocks
+  justified" from a bounded causal dossier -- the Reading decisions, prose
+  claims and answers changes rest on (with sample changes and anomalies),
+  every block with its state and leads, deterministic `disputes`, ignored /
+  unread structure, unread prose -- never the ledger.
+
+Tests: `tests/test_readings.py` (scripted readings-mode workflow on the
+flyer, reaching the reference spec), `tests/test_reading_expansion.py`
+(expansion, causal chain, correction leverage, application safety,
+ownership, the Reading contract, O(schemas) scaling),
+`tests/test_reading_coverage.py`, `tests/test_gap_triage.py`,
+`tests/test_review_dossier.py`, and the Phase 5 gate:
+`tests/test_readings_canonical.py` (every canonical document's spec in a
+scripted readings-mode run; readings vs the REPLAYED claims-mode flyer runs)
+and the opt-in live tier `tests/test_live_gate.py`
+(`ONYXJAR_LIVE_AI_TESTS=1 ONYXJAR_GATE=1 [ONYXJAR_GATE_RUNS=5]`; writes a
+pass-rate report; only a forbidden change fails it, regressions are flagged).
 
 ## Evidence lifecycle
 
@@ -45,8 +128,12 @@ A small input is typically 2 provider calls (one extraction batch + verification
   Extraction call; larger evidence is extracted in batches of whole segments,
   given global ids at ingress and merged deterministically. A valid batch
   advances immediately; only defective items/segments are re-asked, packed
-  together across batches in `extraction_correction` (its own budget), each
-  at most once. Segments beyond the batch budget are recorded uncovered.
+  together across batches in `extraction_correction` (its own budget, per
+  correction wave), each at most once. A segment re-ask is first-time
+  extraction of that segment, so invalid claims it produces get their own
+  second wave; a wave of item re-asks only produces corrections, which are
+  not corrected again (at most two waves). Segments beyond the batch budget
+  are recorded uncovered.
 - **Ingress** (`reconcile/ingress.py`): the one path by which any AI
   response's claims (Extraction, corrections, Gap Probe, Verification
   `missed_evidence`) enter the graph. Provenance: `source_id` is the logical
@@ -70,7 +157,9 @@ A small input is typically 2 provider calls (one extraction batch + verification
   one cited segment (`anchored`) or, with `support: structural`, in
   structurally related cited segments: a heading and an item under it, or the
   intent naming one end alongside the other's kind (`structural`); L3
-  adequacy -- Verification, which sees the ledger's grounding decisions.
+  adequacy -- Verification, which sees every grounding decision that is not
+  plain `anchored` (a claim with structural support is flagged
+  `structural_support` on its own decision).
   Unanchored claims are refused at every entry point (Extraction, Gap Probe,
   Verification) and excluded by the analysis and TracePolicy.
   `support: structural` only changes which citations satisfy L2 -- never how
@@ -82,7 +171,10 @@ A small input is typically 2 provider calls (one extraction batch + verification
   the response and still be `uncovered` (coverage needs an assertion/fact,
   never an entity alone, for a row). Re-showing the model the segment it
   already (wrongly) cited does not fix this reliably. So the correction
-  payload (`ExtractionCorrectionStage`/`GapProbeCorrectionStage`) adds
+  payload (`ExtractionCorrectionStage`/`GapProbeCorrectionStage`) shows an
+  invalid item's `cited_segments` as exactly what it cites, with the
+  headings/tables above them separately as `context_segments` (citable, not
+  cited -- mixing them once showed an uncited title heading as cited), and adds
   `relationship_anchors` (`grounding.relationship_anchors`, via
   `extraction.correction_anchors`): `direct` (one segment stating both
   sides), `structural` (an ancestor/descendant pair, one naming each side --
@@ -92,11 +184,21 @@ A small input is typically 2 provider calls (one extraction batch + verification
   `object_only` -- a hint that no eligible anchor was found for *this* pair,
   not proof no relationship exists. It is strictly a locator: the model
   still proposes the claim and its own citation; grounding remains the sole
-  authority on acceptance.
+  authority on acceptance. When there is neither a `direct` nor a
+  `structural` anchor and `unanchored_claim` is the claim's only defect, the
+  correction could only withdraw it, so it is not re-asked
+  (`extraction.no_anchor`): it is dropped with its own reason, like any
+  unrecovered claim.
 - **Coverage** (`reconcile/coverage.py`). Every segment that names a target
   or anchor (or, for rows/list items, a target type -- in its own text or its
   table's header row) is `claimed` (cited by a
-  grounded claim; a relational table row only by an assertion or fact),
+  grounded claim; a relational table row only by an assertion or fact --
+  *and* every target entity it names is accounted for: an endpoint of an
+  assertion, or the subject of a fact, citing it. A row cited only about
+  something else -- "Pool A | New Zealand v Fiji | Eden Park" claimed as
+  "Pool A ... New Zealand" -- is not claimed for Eden Park; its
+  `unaccounted` names drive the re-ask and the target gap. A name inside a
+  longer extracted name ('Final' in 'Quarter-finals') is not a mention),
   `dismissed` (an AI coverage decision with a reason -- never a claim, never
   in the EvidenceGraph; dismissing a segment that names a target is re-asked
   once, then kept but flagged for Verification and the findings), or
@@ -108,14 +210,25 @@ A small input is typically 2 provider calls (one extraction batch + verification
   headings/tables; the claims already cited there), poses it as a question
   about the entity in catalogue names and descriptions (never keys, never a
   rule to satisfy), and the probe returns ordinary evidence claims (any hints
-  stripped) plus a verdict per requirement. A `found` verdict must name
+  stripped) plus a verdict per requirement. Every claim a `found` verdict
+  names must be one the response emits or one it was shown in
+  `already_extracted`; naming a claim that exists nowhere
+  (`verdict_claim_missing`) breaks the response contract and is re-asked in
+  the round's correction -- only if still broken after it does it count as
+  `found_unsupported`. A `found` verdict must name
   accepted claims relating that entity, and stands only while one of them
   counts toward that requirement (re-checked by every analysis -- a venue
   named beside a stage does not give the stage a match); otherwise it is
   `found_unsupported`, and the requirement may be re-probed ONCE in a later
   round, told why the earlier answer did not count. Rows re-extracted whole
   usually satisfy cascading requirements in the same round. A `not_stated`
-  verdict's coverage is the pack's.
+  verdict's coverage is the pack's -- unless the requirement's own pack has
+  *labelled* evidence (`near_miss.labelled_evidence`: a row with a cell that
+  is the entity, under a header with a column naming the counterpart's kind;
+  or an item in a section headed by that kind, under a heading naming the
+  entity -- layout, never co-occurring words). Then it is
+  `not_stated_contested` (partial coverage) and re-probed ONCE, told which
+  segment and which header/heading; a second `not_stated` stands.
 - **Cardinality.** Requirements count distinct counterparts, never
   statements: two claims stating one relationship ("Eden Park hosts the
   match" / "the match is played at Eden Park") corroborate it -- one
@@ -130,12 +243,25 @@ A small input is typically 2 provider calls (one extraction batch + verification
   undecided (`pending_decision`: not adjudicated / judged undecidable / answer
   refused), plus the cascade down to the root cause (e.g. ground <- fixture
   <- round: the round's competition is not evidenced), for the findings and
-  Verification (which also receives the `open_decisions`).
+  Verification (which also receives the `open_decisions`). The cause is the
+  first node whose own requirement its *decided* claims don't meet -- so a
+  requirement held back by an open decision, ambiguity or conflict is
+  reported as the cause (with its `pending_decision`), never walked past to
+  an unrelated node further down.
 - **Zero results are reviewed.** When nothing is compilable, Verification
   still runs with full objection routing (e.g. `missed_evidence` against an
   uncovered or dismissed segment re-enters the pipeline and can unblock
   targets); only an approval, unroutable/repeated objections or a spent
   budget ends `UNRESOLVED`.
+- **Verification sees each fact once** (`verification.verification_ledger`).
+  A record the payload already carries is left out of the ledger or notes,
+  and only when that other record is present in the same payload. An
+  accepted claim's `ingest:` is its claim decision; a rejected claim's
+  `ingest:` is its `rejected_claims` entry. An `anchored` `ground:` is the
+  claim decision. A shown segment's text appears only in `evidence_segments`.
+  A note restating a claim's fate or a ledger decision is that fate or
+  decision. None of what is left out is a target `route()` can act on
+  (`tests/test_verification_payload.py`).
 
 ## Intent targets are work
 
@@ -155,7 +281,9 @@ framing, mapping or extraction fails.
   and restored by a `frame_error` amendment -- never deleted.
 - **Every target ends in a status** (`Analysis.target_status`, ledgered
   `intent:<id>`, sent to Verification as `intent_targets`): `evidenced`
-  (its items go through ESC as usual), `folded` (the catalogue's own word for
+  (its items go through ESC as usual), `blocked` (evidenced, but every item
+  of it is blocked -- never shown to a reviewer as "evidenced"; each item is
+  its own blocked target), `folded` (the catalogue's own word for
   relationships in general == `include_related`, lexical -- never made into a
   relationship type), `retire`, or a target-level **block**: `unframed`,
   `unmapped` (no catalogue kind -- reported, never fabricated), `undecided`,
@@ -190,7 +318,8 @@ everything from the claims after every stage and derives a **WorkQueue**:
   it is answered, not re-probed.
 - **evidence gaps** -- target gaps (see "Intent targets are work") and
   unsatisfied requirements with no evidence at all,
-  never probed (or one re-probe after an unsupported `found`).
+  never probed (or one re-probe after an unsupported `found` or a contested
+  `not_stated`).
 
 `route()` sends decision gaps to Adjudication first (answers change which
 requirements are truly unsatisfied), then evidence gaps to the Gap Probe,
@@ -203,20 +332,45 @@ Bounds -- every class of work separately, and the run overall:
 
 | Class | Counter | Setting |
 |---|---|---|
-| Extraction batches / corrections | `extraction` / `extraction_correction` | 4 / 2 |
-| Adjudication rounds / corrections | `adjudication` / `adjudication_correction` | 3 / 2 |
-| Gap Probe rounds / corrections | `gap_probe` / `gap_probe_correction` | 2 / 1 |
+| Extraction batches / corrections | `extraction` / `extraction_correction` | 4 / 2 per wave |
+| Adjudication rounds / corrections | `adjudication` / `adjudication_correction` | progress-driven (idle limit 2) / 1 per round |
+| Gap Probe rounds / corrections | `gap_probe` / `gap_probe_correction` | progress-driven (idle limit 2) / 1 per round |
 | Verification reviews / corrections | `verification` / `verification_correction` | 3 / 1 |
 | All provider calls | `AI_WORKFLOW_MAX_PROVIDER_CALLS` | 14 (+1 explanation) |
 | OnyxJar-only steps | `AI_WORKFLOW_MAX_DETERMINISTIC_STEPS` | 40 |
 
-The engine charges a stage's `Correct` re-ask to `<stage>_correction` when
-declared, so a correction never consumes a round. Termination: every route
-needs NEW work (unasked question ids, unprobed requirement ids, unseen
-objection fingerprints -- sets that only grow) and every class is bounded.
+**One correction opportunity per unit of new work.** The engine charges a
+stage's `Correct` re-ask to `<stage>_correction` when declared, so a
+correction never consumes a round, and `scoped_budgets` make a correction
+budget count per scope instead of per run: every Adjudication / Gap Probe
+round opens a fresh correction scope (before its output is evaluated; the
+round itself is never charged to it), and Extraction opens one per
+correction wave. An earlier round's correction can never spend a later
+round's; a correction's own output is not corrected again.
 
-**Exhaustion is deferral, never a default.** A gap whose class budget is
-spent writes no pin: the decision stays undecided (nothing resting on it
+**Progress-driven rounds.** Adjudication and Gap Probe have no round count.
+A class may take another round while (`reconcile_steps.may_run_round`) it
+has not spent `AI_RECONCILE_*_MAX_IDLE_ROUNDS` consecutive rounds without
+progress (a new claimed pin / a new accepted claim) -- work never routed to
+the class before starts a fresh streak -- and while the round still leaves a
+full Verification pass (`affords_recovery`: the review plus the re-ask of an
+unroutable objection while its budget lasts). Every recovery call -- a
+round, a correction, a second extraction wave -- is checked against that
+reserve when it is about to be made, so recovery never spends the calls the
+next review needs, and a round's correction is subject to the total budget
+only at its very edge. So convergence follows the dependency chain as deep as
+the evidence and the total budget allow, instead of an ontology-shaped cap.
+
+Termination: every route needs NEW work (unasked question ids, unprobed
+requirement ids, unseen objection fingerprints -- sets that only grow). The
+universe of question / requirement ids grows only through accepted claims or
+claimed pins, i.e. through productive rounds (or Verification, under its own
+bounds), each costing at least one call of the finite total budget; between
+them it is finite, so idle streaks are reset finitely often, and rounds over
+work already routed are capped by the idle limit.
+
+**Exhaustion is deferral, never a default.** A gap its class may not take
+(idle limit, the Verification reserve, or the total budget) writes no pin: the decision stays undecided (nothing resting on it
 compiles), is ledgered `open:<question>` (`unadjudicated`, basis `budget`),
 listed for Verification as an open decision, and reported as "not
 adjudicated" -- never as "the evidence identifies 0". The only non-claim pin
@@ -266,8 +420,9 @@ And, as before:
 
 - **Every call is self-contained** (built from explicit `WorkflowState` /
   `ReconcileState`; no conversation memory).
-- **Bounded.** Per-class budgets (rounds and corrections separately; see
-  Convergence), `AI_WORKFLOW_MAX_PROVIDER_CALLS` (14) over all stage calls,
+- **Bounded.** Per-class budgets (rounds and corrections separately,
+  corrections per unit of new work, Adjudication / Gap Probe rounds by
+  progress; see Convergence), `AI_WORKFLOW_MAX_PROVIDER_CALLS` (14) over all stage calls,
   the terminal explanation call outside it
   (`AI_TERMINAL_EXPLANATION_MAX_CALLS`, 1), and
   `AI_WORKFLOW_MAX_DETERMINISTIC_STEPS` over OJ-only steps. An item,
@@ -280,6 +435,11 @@ And, as before:
   (corroborated / distinct / superseded / candidate_conflict); an AI may only
   call a candidate conflict contradictory or distinct, never pick a winner; a
   `conflict` is never compiled.
+- **An entity never lives in predicate text.** An assertion with an empty
+  endpoint (a list squeezed into one claim) or relating an entity to itself
+  ("Pool A contains match NZ v Fiji -> Pool A") is invalid
+  (`missing_endpoint` / `self_reference`) and gets its one correction -- it
+  is not dropped as a dangling reference.
 - **Provenance is verified** everywhere (`services/provenance.py`), including
   on every ChangeSet action the resolver sees.
 
@@ -340,6 +500,27 @@ coverage gate, cascading requirements, constraint conflicts, zero-result
 review). The real-provider runs are opt-in and print what to measure:
 `ONYXJAR_LIVE_AI_TESTS=1 python manage.py test ai.tests.test_reconcile_workflow.LiveRugbyTests ai.tests.test_evidence_lifecycle.LiveInternationalFlyerTests`.
 
+Governance contract and reference specs
+(`.Documentation/reconcile-architecture-plan.md`, Phase 0):
+`tests/test_governance_contract.py` runs the deterministic core on IDEAL
+semantic input for the international flyer -- every claim a perfect reader
+would make, citing the real PDF segment -- and asserts the reference outcome
+plus its negative guarantees (QF never compiled through related entities,
+McLean Park never evidenced by appearing, invalid claims rejected,
+cardinality authoritative, cascades reported, structure alone creates
+nothing). `tests/fixtures/references/<doc>.json` are the reference specs for
+the canonical documents (flyer PDF, `rugby_flyer.txt`, the prose-only
+`international_rugby_report.txt`, the depth chain), checked by one evaluator
+(`tests/reference.py`: `evaluate` / `assert_reference`, with negative states
+`undecidable` / `insufficient_evidence` / `not_stated` derived from a
+blocked target's own unmet requirements); `tests/test_reference_specs.py`
+proves each spec reachable from ideal input, pins the canonical documents'
+segment ids (`tests/fixtures/segments/`, regenerate with
+`ONYXJAR_UPDATE_SEGMENT_PINS=1`), and covers fixture capture:
+`python manage.py capture_reconcile_fixture <raw trace dir> <fixture dir>`
+(`tracing.capture_fixture`: provider outputs plus the `request` replay keys
+on; payloads, snapshots and timings dropped).
+
 ## Known limitations / follow-ups
 
 - Investigating a live run: set `AI_TRACE_DIR` (dev only; files on disk,
@@ -351,7 +532,15 @@ review). The real-provider runs are opt-in and print what to measure:
   `tests/test_reconcile_convergence.py`); `tracing.fate_table` lists every
   claim's ingress / grounding / mapping / scope fate. From Git Bash on
   Windows, pass `MSYS_NO_PATHCONV=1` to `docker exec` so `/app/...` paths
-  are not rewritten.
+  are not rewritten. Each provider step also records what it sent
+  (`payload_chars`, `payload_sections`, `system_prompt_chars`,
+  `schema_chars`; usage includes `cached_tokens` when reported). A
+  deterministic step's ledger is written whole for the run's first ledger
+  and at every `compile`, and as a `ledger_delta` in between; `tracing.load`
+  restores every snapshot in full. `tests/test_trace_equivalence.py`
+  replays the captured flyer runs (keyed by the work each call asks for)
+  and checks that an efficiency change decides exactly what the recorded
+  baseline decided.
 - PDF structure comes from PyPDF2 text-run positions: robust for generated
   documents, unmeasured on scanned or unusual layouts (they degrade to text
   blocks). Catalogue slicing and coreference at scale are later work.

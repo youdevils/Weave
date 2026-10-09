@@ -1,0 +1,335 @@
+{
+ "kind": "provider",
+ "run_id": "10390789-977a-4768-8b61-210cd77b08f7",
+ "sequence": 3,
+ "stage": "extraction_correction",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.1",
+  "intent_frame": {
+   "restated_intent": "The user wants to add the venues and stages listed in the flyer to their model, and create any relationships that are directly stated between them based on the available evidence.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venues",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stages",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "add the ... stages"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [],
+   "assertions": [
+    {
+     "aid": "A1",
+     "subject_eid": "E13",
+     "predicate": "played at",
+     "object_eid": "E14",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Final:\nThe two semi-final winners play for the championship at Eden Park, Auckland.",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A2",
+     "subject_eid": "E14",
+     "predicate": "has primary use",
+     "object_eid": "E13",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final",
+       "segment_id": "S1#t2.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A3",
+     "subject_eid": "E15",
+     "predicate": "has primary use",
+     "object_eid": "E11",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches",
+       "segment_id": "S1#t2.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A4",
+     "subject_eid": "E15",
+     "predicate": "has primary use",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches",
+       "segment_id": "S1#t2.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A5",
+     "subject_eid": "E16",
+     "predicate": "has primary use",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Forsyth Barr Stadium | Dunedin, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A6",
+     "subject_eid": "E17",
+     "predicate": "has primary use",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "FMG Stadium Waikato | Hamilton, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A7",
+     "subject_eid": "E18",
+     "predicate": "has primary use",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "McLean Park | Napier, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A8",
+     "subject_eid": "E19",
+     "predicate": "has primary use",
+     "object_eid": "E11",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A9",
+     "subject_eid": "E19",
+     "predicate": "has primary use",
+     "object_eid": "E12",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#12",
+    "reason": "Describes pool standing and qualification rules but does not explicitly state a relationship or property about a venue or stage."
+   },
+   {
+    "segment_id": "S1#t3.r1",
+    "reason": "Example fixture with already extracted venue and stage, does not state new or additional relationships between venue and stage."
+   },
+   {
+    "segment_id": "S1#t3.r2",
+    "reason": "Example fixture with already extracted venue and stage, does not state new or additional relationships between venue and stage."
+   },
+   {
+    "segment_id": "S1#t3.r3",
+    "reason": "Example fixture with already extracted venue and stage, does not state new or additional relationships between venue and stage."
+   },
+   {
+    "segment_id": "S1#t3.r4",
+    "reason": "Example fixture with already extracted venue and stage, does not state new or additional relationships between venue and stage."
+   },
+   {
+    "segment_id": "S1#t4.r1",
+    "reason": "Example fixture with already extracted venue and stage, does not state new or additional relationships between venue and stage."
+   },
+   {
+    "segment_id": "S1#t4.r2",
+    "reason": "Example fixture with already extracted venue and stage, does not state new or additional relationships between venue and stage."
+   },
+   {
+    "segment_id": "S1#23",
+    "reason": "Describes the outcome of the final but does not state a property or relationship involving venues or stages."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": []
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [],
+  "frame": [],
+  "segments": [
+   "S1#10",
+   "S1#12",
+   "S1#t2.r1",
+   "S1#t2.r2",
+   "S1#t2.r3",
+   "S1#t2.r4",
+   "S1#t2.r5",
+   "S1#t2.r6",
+   "S1#t3.r1",
+   "S1#t3.r2",
+   "S1#t3.r3",
+   "S1#t3.r4",
+   "S1#t4.r1",
+   "S1#t4.r2",
+   "S1#23"
+  ]
+ }
+}

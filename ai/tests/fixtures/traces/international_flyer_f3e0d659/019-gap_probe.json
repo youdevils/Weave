@@ -1,0 +1,489 @@
+{
+ "kind": "provider",
+ "run_id": "f3e0d659-f1e3-4723-a9a8-47c158a0d768",
+ "sequence": 19,
+ "stage": "gap_probe",
+ "attempt": 6,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [],
+   "assertions": [
+    {
+     "aid": "A101",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E14",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A102",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E15",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A103",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E16",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A104",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E17",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A105",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E18",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A106",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E19",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A107",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E20",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A108",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E21",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+       "segment_id": "S1#1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    }
+   ],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E14:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r3",
+     "S1#t2.r4",
+     "S1#t2.r5",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [
+     "A101"
+    ],
+    "candidate_eids": [],
+    "note": "New Zealand is explicitly listed as a team of the Pacific International Rugby Championship 2027."
+   },
+   {
+    "requirement_id": "req:E15:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [
+     "A102"
+    ],
+    "candidate_eids": [],
+    "note": "Fiji is explicitly listed as a team of the Pacific International Rugby Championship 2027."
+   },
+   {
+    "requirement_id": "req:E16:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r2"
+    ],
+    "claim_ids": [
+     "A103"
+    ],
+    "candidate_eids": [],
+    "note": "Japan is explicitly listed as a team of the Pacific International Rugby Championship 2027."
+   },
+   {
+    "requirement_id": "req:E17:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r2"
+    ],
+    "claim_ids": [
+     "A104"
+    ],
+    "candidate_eids": [],
+    "note": "Samoa is explicitly listed as a team of the Pacific International Rugby Championship 2027."
+   },
+   {
+    "requirement_id": "req:E18:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r2",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [
+     "A105"
+    ],
+    "candidate_eids": [],
+    "note": "Australia is explicitly listed as a team of the Pacific International Rugby Championship 2027."
+   },
+   {
+    "requirement_id": "req:E19:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r2",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [
+     "A106"
+    ],
+    "candidate_eids": [],
+    "note": "Argentina is explicitly listed as a team of the Pacific International Rugby Championship 2027."
+   },
+   {
+    "requirement_id": "req:E20:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r2",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [
+     "A107"
+    ],
+    "candidate_eids": [],
+    "note": "South Africa is explicitly listed as a team of the Pacific International Rugby Championship 2027."
+   },
+   {
+    "requirement_id": "req:E21:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r2",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [
+     "A108"
+    ],
+    "candidate_eids": [],
+    "note": "Tonga is explicitly listed as a team of the Pacific International Rugby Championship 2027."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "requirements": [
+   "req:E14:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+   "req:E15:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+   "req:E16:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+   "req:E17:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+   "req:E18:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+   "req:E19:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+   "req:E20:802ae184-5eb8-4bd8-94c0-8d8622312641:object",
+   "req:E21:802ae184-5eb8-4bd8-94c0-8d8622312641:object"
+  ]
+ }
+}

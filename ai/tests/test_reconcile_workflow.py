@@ -178,6 +178,57 @@ class ExtractionCorrectionTests(ReconcileWorkflowTestCase):
         self.assertNotIn("attributes", eden.after)
         self.assertTrue(any("Ignored evidence claim 'F2'" in m for m in self.messages(result)), self.messages(result))
 
+    def test_a_self_reference_is_re_asked_and_withdrawn_when_not_corrected(self):
+        # An entity hidden in predicate text ("hosted the opening match") with
+        # the claim pointing back at its own subject.
+        with_loop = self.flyer_extraction()
+        with_loop.evidence.assertions.append(assertion("A9", "E6", "hosted Match 1", "E6", excerpt="Eden Park"))
+        provider = ScriptedProvider([with_loop, extraction(frame()), approve()])
+
+        result = self.run_reconcile(provider)
+
+        self.assertEqual(provider.stages[:2], ["extraction", "extraction_correction"])
+        retry = provider.payloads_for("extraction_correction")[0]
+        [loop] = [i for i in retry["invalid_items"] if i["id"] == "A9"]
+        self.assertEqual(loop["issues"][0]["code"], "self_reference")
+        self.assertIn("withdraw the claim", loop["issues"][0]["message"])
+        # Omitted by the correction = withdrawn: never part of the evidence.
+        ledger = provider.payloads_for("verification")[0]["decision_ledger"]
+        self.assertFalse([d for d in ledger if d["kind"] == "claim" and "A9" in d.get("subject_ids", [])])
+        rejected = provider.payloads_for("verification")[0]["rejected_claims"]
+        self.assertEqual([e["outcome"] for e in rejected if e["id"] == "A9"], ["invalid"])  # its fate, kept
+        self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
+
+    def test_an_unanchored_claim_nothing_relates_is_dropped_without_a_re_ask(self):
+        # Forsyth Barr Stadium and New Zealand: no segment names both, and no
+        # heading/item pair relates them -- a correction could only withdraw it.
+        unrelated = self.flyer_extraction()
+        unrelated.evidence.assertions.append(assertion("A9", "E7", "hosts", "E4", excerpt="Forsyth Barr Stadium | Dunedin | Pool matches"))
+        provider = ScriptedProvider([unrelated, approve()])
+
+        result = self.run_reconcile(provider)
+
+        self.assertEqual(provider.stages, ["extraction", "verification"])
+        [fate] = [e for e in provider.payloads_for("verification")[0]["rejected_claims"] if e["id"] == "A9"]
+        self.assertEqual(fate["outcome"], "dropped")
+        self.assertIn("does not mention both 'Forsyth Barr Stadium' and 'New Zealand'", fate["reason"])
+        self.assertTrue(any(m.startswith("Ignored evidence claim 'A9':") for m in self.messages(result)), self.messages(result))
+        self.assertEqual(result.outcome, OperationOutcome.READY_FOR_REVIEW)
+
+    def test_an_unanchored_claim_a_segment_does_relate_is_still_re_asked(self):
+        # Eden Park and Match 1 are related ("Match 1: ..., played at Eden Park"),
+        # but the claim cites the venue row, which names no match.
+        miscited = self.flyer_extraction()
+        miscited.evidence.assertions.append(assertion("A9", "E6", "hosts", "E3", excerpt="Eden Park | Auckland | Opening match and final"))
+        provider = ScriptedProvider([miscited, extraction(frame()), approve()])
+
+        self.run_reconcile(provider)
+
+        self.assertEqual(provider.stages[:2], ["extraction", "extraction_correction"])
+        [entry] = [i for i in provider.payloads_for("extraction_correction")[0]["invalid_items"] if i["id"] == "A9"]
+        self.assertEqual([i["code"] for i in entry["issues"]], ["unanchored_claim"])
+        self.assertTrue(entry["relationship_anchors"]["direct"])
+
     def test_a_dangling_reference_is_repaired_deterministically(self):
         result_with_dangling = self.flyer_extraction()
         result_with_dangling.evidence.assertions.append(assertion("A9", "E3", "is refereed by", "E99", excerpt="Match 1"))
@@ -187,6 +238,18 @@ class ExtractionCorrectionTests(ReconcileWorkflowTestCase):
 
         self.assertEqual(provider.stages, ["extraction", "verification"])
         self.assertTrue(any("'A9'" in m for m in self.messages(result)))
+
+    def test_a_missing_endpoint_is_re_asked_not_dropped_as_dangling(self):
+        # A list squeezed into one predicate (run 1d854489's A_NEW9).
+        with_list = self.flyer_extraction()
+        with_list.evidence.assertions.append(assertion("A9", "E3", "is played by the listed teams", "", excerpt="Match 1"))
+        provider = ScriptedProvider([with_list, extraction(frame()), approve()])
+
+        self.run_reconcile(provider)
+
+        self.assertEqual(provider.stages[:2], ["extraction", "extraction_correction"])
+        retry = provider.payloads_for("extraction_correction")[0]
+        self.assertEqual([(i["id"], i["issues"][0]["code"]) for i in retry["invalid_items"]], [("A9", "missing_endpoint")])
 
 
 class AdjudicationTests(ReconcileWorkflowTestCase):
@@ -258,7 +321,7 @@ class GapProbeTests(ReconcileWorkflowTestCase):
         recovered = probe(
             entity("X1", "Fiji", "team", excerpt="Match 1: New Zealand v Fiji"),
             assertion("X2", "E3", "is played by", "X1", hint="has_team", excerpt="Match 1: New Zealand v Fiji"),
-            verdicts=[verdict(requirement, "found", segments_reviewed=["S1#2"])],
+            verdicts=[verdict(requirement, "found", claim_ids=["X2"], segments_reviewed=["S1#2"])],
         )
         # The probe's hint is stripped, so OnyxJar asks what its wording means.
         meaning = answers(("predicate_mapping:is_played_by:match:team", "has_team:as_stated", "Match 1: New Zealand v Fiji"))

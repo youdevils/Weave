@@ -241,13 +241,44 @@ class IndirectTests(PipelineTestCase):
             assertion("A1", "E2", "is held at", "E7", excerpt="Pool Stage is held at Forsyth Barr Stadium"),
         ]
 
-    def test_a_material_path_is_asked_about_not_classified_by_onyxjar(self):
+    def test_an_indirect_path_is_not_asked_about_nor_classified_by_onyxjar(self):
         analysis = self.analyse(self.direct_stage_venue())
 
         decision = analysis.ledger.get("map:A1")
         self.assertEqual((decision.outcome, decision.reason), ("indirect", "indirect_unclassified"))
         self.assertEqual(decision.mapping["paths"][0]["via_type"], "match")
-        self.assertIn(q.key("indirect_classification", "A1"), [question.question_id for question in analysis.questions])
+        self.assertEqual(decision.question_key, q.key("indirect_classification", "A1"))  # still a reviewer's target
+        self.assertNotIn(q.key("indirect_classification", "A1"), [question.question_id for question in analysis.questions])
+
+    def test_no_answer_to_an_indirect_path_changes_what_is_decided(self):
+        """Why it is never asked: every possible answer leaves scope,
+        viability, blocked causes and the compiled changes exactly as no
+        answer does. If this fails, the answer has become material -- ask
+        it again (ai.services.reconcile.analysis._questions)."""
+
+        key = q.key("indirect_classification", "A1")
+        index = SemanticModelIndex.load(self.model)
+
+        def decided(pins):
+            analysis = self.analyse(self.direct_stage_venue(), pins=pins)
+            change_set, _ = self.compile(analysis)
+            requirements = {
+                r.requirement_id: (r.evidenced, r.viable_count, list(r.pending_decision), list(r.candidates))
+                for rs in analysis.scope.requirements.values() for r in rs
+            }
+            return {
+                "outcomes": dict(analysis.scope.outcomes),
+                "selected": sorted(analysis.scope.selected_assertions),
+                "viable": sorted(analysis.scope.viable),
+                "requirements": requirements,
+                "blocked": analysis.blocked_targets(index, {}),
+                "questions": sorted(question.question_id for question in analysis.questions),
+                "actions": [a.model_dump(mode="json") for a in change_set.actions],
+            }
+
+        unanswered = decided({})
+        for option in ("refers_to_intermediate", "direct_statement", q.UNDECIDABLE, q.NONE):
+            self.assertEqual(decided({key: self.pin(option)}), unanswered, option)
 
     def test_an_adjudicated_direct_statement_is_no_direct_representation_and_never_compiled(self):
         analysis = self.analyse(self.direct_stage_venue(), pins={q.key("indirect_classification", "A1"): self.pin("direct_statement")})

@@ -1,0 +1,419 @@
+{
+ "kind": "provider",
+ "run_id": "1d854489-db38-4e0f-91f0-948b01eac676",
+ "sequence": 3,
+ "stage": "extraction_correction",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.1",
+  "intent_frame": {
+   "restated_intent": "The user wants to add all venues and stages listed in the flyer to their model, along with any relationships that can be inferred from the provided information.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venues",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stages",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "stages listed in the flyer"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [
+    {
+     "eid": "E20",
+     "name": "Pacific International Rugby Championship",
+     "aliases": [
+      "Pacific International Rugby Championship 2027"
+     ],
+     "type_label": "tournament",
+     "type_hint": "tournament",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "The Pacific International Rugby Championship is a fictional annual men's rugby union tournament bringing\ntogether eight national teams for a six-week competition.",
+       "segment_id": "S1#4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E21",
+     "name": "Pool Stage",
+     "aliases": [],
+     "type_label": "stage",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Pool Stage:\nTwo pools of four teams.",
+       "segment_id": "S1#7",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E22",
+     "name": "Pool A winner v Pool B runner-up",
+     "aliases": [],
+     "type_label": "match",
+     "type_hint": "match",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E23",
+     "name": "Pool B winner v Pool A runner-up",
+     "aliases": [],
+     "type_label": "match",
+     "type_hint": "match",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A1",
+     "subject_eid": "E20",
+     "predicate": "is designed to progress from an opening pool stage into knockout finals",
+     "object_eid": "E21",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "The tournament is designed to progress from an opening\npool stage into knockout finals, with the final played in Auckland.",
+       "segment_id": "S1#4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A2",
+     "subject_eid": "E21",
+     "predicate": "comprises two pools of four teams",
+     "object_eid": "",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Pool Stage:\nTwo pools of four teams.",
+       "segment_id": "S1#7",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A3",
+     "subject_eid": "E21",
+     "predicate": "each team plays three matches against other teams in its pool",
+     "object_eid": "",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Each team plays three matches against the other teams in its pool.",
+       "segment_id": "S1#7",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A4",
+     "subject_eid": "E21",
+     "predicate": "pool matches are played at Forsyth Barr Stadium",
+     "object_eid": "E16",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "converse",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Primary use"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Forsyth Barr Stadium | Dunedin, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A5",
+     "subject_eid": "E21",
+     "predicate": "pool matches are played at FMG Stadium Waikato",
+     "object_eid": "E17",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "converse",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Primary use"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "FMG Stadium Waikato | Hamilton, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A6",
+     "subject_eid": "E21",
+     "predicate": "pool matches are played at McLean Park",
+     "object_eid": "E18",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "converse",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Primary use"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "McLean Park | Napier, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A7",
+     "subject_eid": "E1",
+     "predicate": "is the stage of match New Zealand v Fiji",
+     "object_eid": "E2",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand v Fiji | Eden Park",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Stage | Match | Venue",
+       "segment_id": "S1#t3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A8",
+     "subject_eid": "E1",
+     "predicate": "is the stage of match Japan v Samoa",
+     "object_eid": "E4",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | Japan v Samoa | Sky Stadium",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Stage | Match | Venue",
+       "segment_id": "S1#t3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": [
+    {
+     "fid": "F1",
+     "subject_id": "E20",
+     "label": "number of teams",
+     "value": "eight",
+     "unit": "teams",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "supersedes": null,
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "bringing\ntogether eight national teams for a six-week competition",
+       "segment_id": "S1#4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "fid": "F2",
+     "subject_id": "E20",
+     "label": "duration",
+     "value": "six",
+     "unit": "weeks",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "supersedes": null,
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "six-week competition",
+       "segment_id": "S1#4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ]
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#12",
+    "reason": "This segment describes the points system and how qualification and seeding are determined, but does not state anything new about specific venues or stages beyond what has been extracted."
+   },
+   {
+    "segment_id": "S1#23",
+    "reason": "This segment simply states that the winner of the final is the champion, but does not add new information about venues or stages."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": []
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [],
+  "frame": [],
+  "segments": [
+   "S1#4",
+   "S1#7",
+   "S1#12",
+   "S1#t2.r3",
+   "S1#t2.r4",
+   "S1#t2.r5",
+   "S1#t3.r1",
+   "S1#t3.r2",
+   "S1#t3.r3",
+   "S1#t3.r4",
+   "S1#t4.r1",
+   "S1#t4.r2",
+   "S1#23"
+  ]
+ }
+}

@@ -1,0 +1,2620 @@
+{
+ "10390789": {
+  "blocked": [
+   "Eden Park",
+   "FMG Stadium Waikato",
+   "Final",
+   "Forsyth Barr Stadium",
+   "McLean Park",
+   "Orangetheory Stadium",
+   "Pool A",
+   "Pool B",
+   "Quarter-finals",
+   "Semi-finals",
+   "Sky Stadium"
+  ],
+  "causes": {
+   "Eden Park": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "tournament",
+      "entity": "New Zealand",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_team_2",
+      "state": "uninvestigated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Eden Park",
+      "New Zealand v Fiji",
+      "New Zealand"
+     ]
+    },
+    "dependants": [
+     "Fiji",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"entity\": \"Fiji\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"uninvestigated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"entity\": \"New Zealand\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"uninvestigated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "FMG Stadium Waikato": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "FMG Stadium Waikato",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "FMG Stadium Waikato"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Final": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Final",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Final"
+     ]
+    },
+    "dependants": [
+     "Fiji",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"entity\": \"Fiji\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"uninvestigated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"entity\": \"New Zealand\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"uninvestigated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Forsyth Barr Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Forsyth Barr Stadium",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Forsyth Barr Stadium"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "McLean Park": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "McLean Park",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "McLean Park"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Orangetheory Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Orangetheory Stadium",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Orangetheory Stadium"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool A": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team_2",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool A",
+      "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+     ]
+    },
+    "dependants": [
+     "Fiji",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"entity\": \"Fiji\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"uninvestigated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"entity\": \"New Zealand\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"uninvestigated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool B": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Pool B",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool B"
+     ]
+    },
+    "dependants": [
+     "Fiji",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"entity\": \"Fiji\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"uninvestigated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"entity\": \"New Zealand\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"uninvestigated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Quarter-finals": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Quarter-finals",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Quarter-finals"
+     ]
+    },
+    "dependants": [
+     "Fiji",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"entity\": \"Fiji\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"uninvestigated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"entity\": \"New Zealand\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"uninvestigated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Semi-finals": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Semi-finals",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Semi-finals"
+     ]
+    },
+    "dependants": [
+     "Fiji",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"entity\": \"Fiji\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"uninvestigated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"entity\": \"New Zealand\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"uninvestigated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Sky Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Sky Stadium",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Sky Stadium"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   }
+  },
+  "completeness": "",
+  "created": [],
+  "open_decisions": [],
+  "outcome": "unresolved",
+  "payload_chars": {
+   "adjudication": [
+    15152,
+    3457,
+    1849,
+    2733
+   ],
+   "extraction": [
+    9627
+   ],
+   "extraction_correction": [
+    18224,
+    16056,
+    15886,
+    12648
+   ],
+   "gap_probe": [
+    21598,
+    12989,
+    2889
+   ],
+   "verification": [
+    141517
+   ]
+  },
+  "requested": [
+   "extraction",
+   "extraction_correction",
+   "extraction_correction",
+   "extraction_correction",
+   "extraction_correction",
+   "adjudication",
+   "gap_probe",
+   "adjudication",
+   "gap_probe",
+   "adjudication",
+   "gap_probe",
+   "adjudication",
+   "verification"
+  ],
+  "selected": [],
+  "unaligned": []
+ },
+ "1d854489": {
+  "blocked": [
+   "Eden Park",
+   "FMG Stadium Waikato",
+   "Final",
+   "Forsyth Barr Stadium",
+   "McLean Park",
+   "Orangetheory Stadium",
+   "Pool A",
+   "Pool B",
+   "Pool Stage",
+   "Quarter-finals",
+   "Semi-finals",
+   "Sky Stadium"
+  ],
+  "causes": {
+   "Eden Park": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Eden Park",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Eden Park"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "FMG Stadium Waikato": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "FMG Stadium Waikato",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "FMG Stadium Waikato"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Final": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Final",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Final"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Forsyth Barr Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Forsyth Barr Stadium",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Forsyth Barr Stadium"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "McLean Park": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "McLean Park",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "McLean Park"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Orangetheory Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "Pool A winner v Pool B runner-up",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Orangetheory Stadium",
+      "Pool A winner v Pool B runner-up"
+     ]
+    },
+    "dependants": [
+     "Pacific International Rugby Championship",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pacific International Rugby Championship\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool A": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "Pool A winner v Pool B runner-up",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool A",
+      "Pool A winner v Pool B runner-up"
+     ]
+    },
+    "dependants": [
+     "Pacific International Rugby Championship",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pacific International Rugby Championship\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool B": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "Pool B winner v Pool A runner-up",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool B",
+      "Pool B winner v Pool A runner-up"
+     ]
+    },
+    "dependants": [
+     "Pacific International Rugby Championship",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pacific International Rugby Championship\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool Stage": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Pool Stage",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool Stage"
+     ]
+    },
+    "dependants": [
+     "Pacific International Rugby Championship",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pacific International Rugby Championship\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Quarter-finals": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "tournament",
+      "entity": "Quarter-finals",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_stage",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Quarter-finals"
+     ]
+    },
+    "dependants": [
+     "Pacific International Rugby Championship",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 2, \"found\": 2, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pacific International Rugby Championship\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Semi-finals": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Semi-finals",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Semi-finals"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Sky Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "Pool B winner v Pool A runner-up",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Sky Stadium",
+      "Pool B winner v Pool A runner-up"
+     ]
+    },
+    "dependants": [
+     "Pacific International Rugby Championship",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pacific International Rugby Championship\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   }
+  },
+  "completeness": "",
+  "created": [],
+  "open_decisions": [],
+  "outcome": "unresolved",
+  "payload_chars": {
+   "adjudication": [
+    9751,
+    6117,
+    3277
+   ],
+   "extraction": [
+    9627
+   ],
+   "extraction_correction": [
+    12653,
+    18874,
+    15010,
+    7774
+   ],
+   "gap_probe": [
+    25762,
+    22426
+   ],
+   "gap_probe_correction": [
+    22310,
+    4148
+   ],
+   "verification": [
+    132317
+   ]
+  },
+  "requested": [
+   "extraction",
+   "extraction_correction",
+   "extraction_correction",
+   "extraction_correction",
+   "extraction_correction",
+   "adjudication",
+   "gap_probe",
+   "gap_probe_correction",
+   "adjudication",
+   "gap_probe",
+   "gap_probe_correction",
+   "adjudication",
+   "verification"
+  ],
+  "selected": [],
+  "unaligned": [
+   {
+    "not_in_captured_call": [
+     [
+      "items",
+      "A7"
+     ],
+     [
+      "segments",
+      "S1#10"
+     ],
+     [
+      "segments",
+      "S1#8"
+     ],
+     [
+      "segments",
+      "S1#9"
+     ],
+     [
+      "segments",
+      "S1#t2.r6"
+     ]
+    ],
+    "stage": "extraction_correction"
+   },
+   {
+    "not_in_captured_call": [
+     [
+      "items",
+      "a2"
+     ],
+     [
+      "items",
+      "a3"
+     ]
+    ],
+    "stage": "extraction_correction"
+   },
+   {
+    "not_in_captured_call": [
+     [
+      "requirements",
+      "target:T1"
+     ]
+    ],
+    "stage": "gap_probe"
+   }
+  ]
+ },
+ "286357bd": {
+  "blocked": [
+   "Eden Park",
+   "FMG Stadium Waikato",
+   "Final",
+   "Forsyth Barr Stadium",
+   "McLean Park",
+   "Orangetheory Stadium",
+   "Pool A",
+   "Pool B",
+   "Quarter-finals",
+   "Semi-finals",
+   "Sky Stadium"
+  ],
+  "causes": {
+   "Eden Park": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Eden Park",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Eden Park"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "FMG Stadium Waikato": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "FMG Stadium Waikato",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "FMG Stadium Waikato"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"partial\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Final": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Final",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Final"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Forsyth Barr Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Forsyth Barr Stadium",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Forsyth Barr Stadium"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"partial\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "McLean Park": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "McLean Park",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "McLean Park"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Orangetheory Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Orangetheory Stadium",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Orangetheory Stadium"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"partial\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool A": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Pool A",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool A"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool B": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Pool B",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool B"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Quarter-finals": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Quarter-finals",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Quarter-finals"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Semi-finals": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Semi-finals",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Semi-finals"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Sky Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "stage",
+      "entity": "Japan v Samoa",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Sky Stadium",
+      "Japan v Samoa"
+     ]
+    },
+    "dependants": [
+     "Japan v Samoa"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"stage\", \"coverage\": \"complete\", \"entity\": \"Japan v Samoa\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Japan v Samoa\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   }
+  },
+  "completeness": "",
+  "created": [],
+  "open_decisions": [],
+  "outcome": "unresolved",
+  "payload_chars": {
+   "adjudication": [
+    2633
+   ],
+   "extraction": [
+    9627
+   ],
+   "extraction_correction": [
+    19496,
+    12429,
+    15705,
+    10758
+   ],
+   "gap_probe": [
+    20996
+   ],
+   "gap_probe_correction": [
+    4979
+   ],
+   "verification": [
+    90109
+   ]
+  },
+  "requested": [
+   "extraction",
+   "extraction_correction",
+   "extraction_correction",
+   "extraction_correction",
+   "extraction_correction",
+   "adjudication",
+   "gap_probe",
+   "gap_probe_correction",
+   "verification"
+  ],
+  "selected": [],
+  "unaligned": [
+   {
+    "not_in_captured_call": [
+     [
+      "items",
+      "a3"
+     ],
+     [
+      "items",
+      "a4"
+     ],
+     [
+      "items",
+      "a5"
+     ],
+     [
+      "items",
+      "a6"
+     ],
+     [
+      "items",
+      "a7"
+     ]
+    ],
+    "stage": "extraction_correction"
+   },
+   {
+    "not_in_captured_call": [
+     [
+      "requirements",
+      "req:E11:00000000-0000-0000-0000-000000000010:object"
+     ],
+     [
+      "requirements",
+      "req:E8:00000000-0000-0000-0000-000000000010:object"
+     ],
+     [
+      "requirements",
+      "req:E9:00000000-0000-0000-0000-000000000010:object"
+     ]
+    ],
+    "stage": "gap_probe"
+   }
+  ]
+ },
+ "3f801647": {
+  "blocked": [
+   "Eden Park",
+   "FMG Stadium Waikato",
+   "Final",
+   "Forsyth Barr Stadium",
+   "McLean Park",
+   "Orangetheory Stadium",
+   "Pool A",
+   "Pool B",
+   "Pool Stage",
+   "Quarter-finals",
+   "Semi-finals",
+   "Sky Stadium"
+  ],
+  "causes": {
+   "Eden Park": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "New Zealand v Fiji",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Eden Park",
+      "New Zealand v Fiji"
+     ]
+    },
+    "dependants": [
+     "Japan v Samoa",
+     "New Zealand v Fiji"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"partial\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Japan v Samoa\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"New Zealand v Fiji\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "FMG Stadium Waikato": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "South Africa v Tonga",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "FMG Stadium Waikato",
+      "South Africa v Tonga"
+     ]
+    },
+    "dependants": [
+     "Australia v Argentina",
+     "South Africa v Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Australia v Argentina\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"South Africa v Tonga\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Final": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Final",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Final"
+     ]
+    },
+    "dependants": [
+     "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Forsyth Barr Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "Australia v Argentina",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Forsyth Barr Stadium",
+      "Australia v Argentina"
+     ]
+    },
+    "dependants": [
+     "Australia v Argentina",
+     "South Africa v Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Australia v Argentina\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"South Africa v Tonga\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "McLean Park": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "McLean Park",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "McLean Park"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Orangetheory Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Orangetheory Stadium",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Orangetheory Stadium"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool A": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "tournament",
+      "entity": "Pool A",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_stage",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool A"
+     ]
+    },
+    "dependants": [
+     "Japan v Samoa",
+     "New Zealand v Fiji"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 2, \"found\": 2, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Japan v Samoa\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"New Zealand v Fiji\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool B": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "tournament",
+      "entity": "Pool B",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_stage",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool B"
+     ]
+    },
+    "dependants": [
+     "Australia v Argentina",
+     "South Africa v Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 2, \"found\": 2, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Australia v Argentina\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"South Africa v Tonga\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool Stage": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Pool Stage",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool Stage"
+     ]
+    },
+    "dependants": [
+     "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"partial\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team_2\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Quarter-finals": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "tournament",
+      "entity": "Quarter-finals",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_stage",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Quarter-finals"
+     ]
+    },
+    "dependants": [
+     "Quarter-final | Pool A winner v Pool B runner-up",
+     "Quarter-final | Pool B winner v Pool A runner-up"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 2, \"found\": 2, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Quarter-final | Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Quarter-final | Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"venue\", \"coverage\": \"complete\", \"entity\": \"Quarter-final | Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"venue\", \"coverage\": \"complete\", \"entity\": \"Quarter-final | Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Semi-finals": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Semi-finals",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Semi-finals"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"partial\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Sky Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "Japan v Samoa",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Sky Stadium",
+      "Japan v Samoa"
+     ]
+    },
+    "dependants": [
+     "Japan v Samoa",
+     "New Zealand v Fiji"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Japan v Samoa\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"New Zealand v Fiji\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   }
+  },
+  "completeness": "",
+  "created": [],
+  "open_decisions": [],
+  "outcome": "unresolved",
+  "payload_chars": {
+   "adjudication": [
+    6722,
+    5503
+   ],
+   "extraction": [
+    9627
+   ],
+   "extraction_correction": [
+    14150,
+    7564
+   ],
+   "gap_probe": [
+    19092,
+    23775,
+    8542
+   ],
+   "gap_probe_correction": [
+    24657,
+    18155
+   ],
+   "verification": [
+    120914
+   ]
+  },
+  "requested": [
+   "extraction",
+   "extraction_correction",
+   "extraction_correction",
+   "adjudication",
+   "gap_probe",
+   "gap_probe_correction",
+   "adjudication",
+   "gap_probe",
+   "gap_probe_correction",
+   "gap_probe",
+   "verification"
+  ],
+  "selected": [],
+  "unaligned": [
+   {
+    "not_in_captured_call": [
+     [
+      "requirements",
+      "req:E5:00000000-0000-0000-0000-000000000010:object"
+     ]
+    ],
+    "stage": "gap_probe_correction"
+   },
+   {
+    "not_in_captured_call": [
+     [
+      "requirements",
+      "req:E5:00000000-0000-0000-0000-000000000010:object"
+     ]
+    ],
+    "stage": "gap_probe_correction"
+   }
+  ]
+ },
+ "7f0fcac7": {
+  "blocked": [
+   "Eden Park",
+   "FMG Stadium Waikato",
+   "Final",
+   "Forsyth Barr Stadium",
+   "McLean Park",
+   "Orangetheory Stadium",
+   "Pool A",
+   "Pool B",
+   "Quarter-finals",
+   "Semi-finals",
+   "Sky Stadium"
+  ],
+  "causes": {
+   "Eden Park": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Eden Park",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Eden Park"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "FMG Stadium Waikato": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "South Africa v Tonga",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "FMG Stadium Waikato",
+      "South Africa v Tonga"
+     ]
+    },
+    "dependants": [
+     "South Africa v Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"South Africa v Tonga\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Final": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Final",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Final"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Forsyth Barr Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Forsyth Barr Stadium",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Forsyth Barr Stadium"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "McLean Park": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "McLean Park",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "McLean Park"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Orangetheory Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "Pool A winner v Pool B runner-up",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Orangetheory Stadium",
+      "Pool A winner v Pool B runner-up"
+     ]
+    },
+    "dependants": [
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool A": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Pool A",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool A"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool B": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "tournament",
+      "entity": "Pool B",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_stage",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool B"
+     ]
+    },
+    "dependants": [
+     "South Africa v Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"partial\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"South Africa v Tonga\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Quarter-finals": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "tournament",
+      "entity": "Quarter-finals",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_stage",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Quarter-finals"
+     ]
+    },
+    "dependants": [
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 2, \"found\": 2, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Semi-finals": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Semi-finals",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Semi-finals"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Sky Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "Pool B winner v Pool A runner-up",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Sky Stadium",
+      "Pool B winner v Pool A runner-up"
+     ]
+    },
+    "dependants": [
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   }
+  },
+  "completeness": "",
+  "created": [],
+  "open_decisions": [],
+  "outcome": "unresolved",
+  "payload_chars": {
+   "adjudication": [
+    12777,
+    3502,
+    3185
+   ],
+   "extraction": [
+    9627
+   ],
+   "extraction_correction": [
+    12088,
+    19419,
+    15249
+   ],
+   "gap_probe": [
+    24656,
+    24143
+   ],
+   "gap_probe_correction": [
+    34619,
+    7758
+   ],
+   "verification": [
+    137483
+   ]
+  },
+  "requested": [
+   "extraction",
+   "extraction_correction",
+   "extraction_correction",
+   "extraction_correction",
+   "adjudication",
+   "gap_probe",
+   "gap_probe_correction",
+   "adjudication",
+   "gap_probe",
+   "gap_probe_correction",
+   "adjudication",
+   "verification"
+  ],
+  "selected": [],
+  "unaligned": [
+   {
+    "not_in_captured_call": [
+     [
+      "items",
+      "A5"
+     ]
+    ],
+    "stage": "extraction_correction"
+   },
+   {
+    "not_in_captured_call": [
+     [
+      "requirements",
+      "req:E13:00000000-0000-0000-0000-00000000000c:object"
+     ],
+     [
+      "requirements",
+      "req:E14:00000000-0000-0000-0000-00000000000c:object"
+     ],
+     [
+      "requirements",
+      "req:E2:00000000-0000-0000-0000-00000000000c:subject"
+     ],
+     [
+      "requirements",
+      "req:E2:00000000-0000-0000-0000-00000000000d:object"
+     ],
+     [
+      "requirements",
+      "req:E3:00000000-0000-0000-0000-00000000000c:subject"
+     ],
+     [
+      "requirements",
+      "req:E3:00000000-0000-0000-0000-00000000000d:object"
+     ],
+     [
+      "requirements",
+      "req:E4:00000000-0000-0000-0000-00000000000c:subject"
+     ],
+     [
+      "requirements",
+      "req:E4:00000000-0000-0000-0000-00000000000d:object"
+     ],
+     [
+      "requirements",
+      "req:E5:00000000-0000-0000-0000-00000000000d:object"
+     ],
+     [
+      "requirements",
+      "req:E6:00000000-0000-0000-0000-00000000000d:object"
+     ],
+     [
+      "requirements",
+      "req:E7:00000000-0000-0000-0000-000000000010:object"
+     ],
+     [
+      "requirements",
+      "req:E9:00000000-0000-0000-0000-000000000010:object"
+     ],
+     [
+      "requirements",
+      "target:T1"
+     ],
+     [
+      "requirements",
+      "target:T2"
+     ]
+    ],
+    "stage": "gap_probe_correction"
+   }
+  ]
+ },
+ "f3e0d659": {
+  "blocked": [
+   "Eden Park",
+   "FMG Stadium Waikato",
+   "Final",
+   "Forsyth Barr Stadium",
+   "McLean Park",
+   "Orangetheory Stadium",
+   "Pool Stage",
+   "Quarter-final",
+   "Semi-final",
+   "Sky Stadium"
+  ],
+  "causes": {
+   "Eden Park": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "tournament",
+      "entity": "New Zealand",
+      "evidenced": 1,
+      "minimum": 1,
+      "pending_decision": {
+       "open": 1
+      },
+      "relationship_type_key": "has_team_2",
+      "state": "unadjudicated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Eden Park",
+      "New Zealand v Fiji",
+      "New Zealand"
+     ]
+    },
+    "dependants": [
+     "Argentina",
+     "Australia",
+     "Australia v Argentina",
+     "Fiji",
+     "Japan",
+     "Japan v Samoa",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "Pacific International Rugby Championship 2027",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up",
+     "Samoa",
+     "South Africa",
+     "South Africa v Tonga",
+     "Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"partial\", \"entity\": \"Pacific International Rugby Championship 2027\", \"evidenced\": 8, \"found\": 0, \"minimum\": 2, \"pending_decision\": {\"open\": 8}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Argentina\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Australia\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Fiji\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Japan\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"New Zealand\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Samoa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"South Africa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Tonga\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "FMG Stadium Waikato": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "tournament",
+      "entity": "South Africa",
+      "evidenced": 1,
+      "minimum": 1,
+      "pending_decision": {
+       "open": 1
+      },
+      "relationship_type_key": "has_team_2",
+      "state": "unadjudicated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "FMG Stadium Waikato",
+      "South Africa v Tonga",
+      "South Africa"
+     ]
+    },
+    "dependants": [
+     "Argentina",
+     "Australia",
+     "Australia v Argentina",
+     "Fiji",
+     "Japan",
+     "Japan v Samoa",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "Pacific International Rugby Championship 2027",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up",
+     "Samoa",
+     "South Africa",
+     "South Africa v Tonga",
+     "Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"partial\", \"entity\": \"Pacific International Rugby Championship 2027\", \"evidenced\": 8, \"found\": 0, \"minimum\": 2, \"pending_decision\": {\"open\": 8}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Argentina\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Australia\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Fiji\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Japan\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"New Zealand\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Samoa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"South Africa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Tonga\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Final": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Final",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Final"
+     ]
+    },
+    "dependants": [
+     "Argentina",
+     "Australia",
+     "Australia v Argentina",
+     "Fiji",
+     "Japan",
+     "Japan v Samoa",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "Pacific International Rugby Championship 2027",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up",
+     "Samoa",
+     "South Africa",
+     "South Africa v Tonga",
+     "Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"partial\", \"entity\": \"Pacific International Rugby Championship 2027\", \"evidenced\": 8, \"found\": 0, \"minimum\": 2, \"pending_decision\": {\"open\": 8}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Argentina\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Australia\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Fiji\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Japan\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"New Zealand\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Samoa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"South Africa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Tonga\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Forsyth Barr Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "tournament",
+      "entity": "Australia",
+      "evidenced": 1,
+      "minimum": 1,
+      "pending_decision": {
+       "open": 1
+      },
+      "relationship_type_key": "has_team_2",
+      "state": "unadjudicated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Forsyth Barr Stadium",
+      "Australia v Argentina",
+      "Australia"
+     ]
+    },
+    "dependants": [
+     "Argentina",
+     "Australia",
+     "Australia v Argentina",
+     "Fiji",
+     "Japan",
+     "Japan v Samoa",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "Pacific International Rugby Championship 2027",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up",
+     "Samoa",
+     "South Africa",
+     "South Africa v Tonga",
+     "Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"partial\", \"entity\": \"Pacific International Rugby Championship 2027\", \"evidenced\": 8, \"found\": 0, \"minimum\": 2, \"pending_decision\": {\"open\": 8}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Argentina\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Australia\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Fiji\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Japan\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"New Zealand\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Samoa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"South Africa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Tonga\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "McLean Park": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "McLean Park",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "played_at",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "McLean Park"
+     ]
+    },
+    "dependants": [],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Orangetheory Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "Pool A winner v Pool B runner-up",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Orangetheory Stadium",
+      "Pool A winner v Pool B runner-up"
+     ]
+    },
+    "dependants": [
+     "Argentina",
+     "Australia",
+     "Australia v Argentina",
+     "Fiji",
+     "Japan",
+     "Japan v Samoa",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "Pacific International Rugby Championship 2027",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up",
+     "Samoa",
+     "South Africa",
+     "South Africa v Tonga",
+     "Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"partial\", \"entity\": \"Pacific International Rugby Championship 2027\", \"evidenced\": 8, \"found\": 0, \"minimum\": 2, \"pending_decision\": {\"open\": 8}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Argentina\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Australia\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Fiji\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Japan\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"New Zealand\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Samoa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"South Africa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Tonga\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Pool Stage": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "Pacific International Rugby Championship 2027",
+      "evidenced": 8,
+      "minimum": 2,
+      "pending_decision": {
+       "open": 8
+      },
+      "relationship_type_key": "has_team_2",
+      "state": "unadjudicated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Pool Stage",
+      "Pacific International Rugby Championship 2027"
+     ]
+    },
+    "dependants": [
+     "Argentina",
+     "Australia",
+     "Australia v Argentina",
+     "Fiji",
+     "Japan",
+     "Japan v Samoa",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "Pacific International Rugby Championship 2027",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up",
+     "Samoa",
+     "South Africa",
+     "South Africa v Tonga",
+     "Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 4, \"found\": 4, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"partial\", \"entity\": \"Pacific International Rugby Championship 2027\", \"evidenced\": 8, \"found\": 0, \"minimum\": 2, \"pending_decision\": {\"open\": 8}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Argentina\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Australia\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Fiji\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Japan\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"New Zealand\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Samoa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"South Africa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Tonga\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Quarter-final": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "Pool A winner v Pool B runner-up",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Quarter-final",
+      "Pool A winner v Pool B runner-up"
+     ]
+    },
+    "dependants": [
+     "Argentina",
+     "Australia",
+     "Australia v Argentina",
+     "Fiji",
+     "Japan",
+     "Japan v Samoa",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "Pacific International Rugby Championship 2027",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up",
+     "Samoa",
+     "South Africa",
+     "South Africa v Tonga",
+     "Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"partial\", \"evidenced\": 2, \"found\": 2, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"partial\", \"entity\": \"Pacific International Rugby Championship 2027\", \"evidenced\": 8, \"found\": 0, \"minimum\": 2, \"pending_decision\": {\"open\": 8}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Argentina\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Australia\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Fiji\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Japan\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"New Zealand\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Samoa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"South Africa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Tonga\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Semi-final": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "match",
+      "entity": "Semi-final",
+      "evidenced": 0,
+      "minimum": 1,
+      "pending_decision": {},
+      "relationship_type_key": "has_match",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Semi-final"
+     ]
+    },
+    "dependants": [
+     "Argentina",
+     "Australia",
+     "Australia v Argentina",
+     "Fiji",
+     "Japan",
+     "Japan v Samoa",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "Pacific International Rugby Championship 2027",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up",
+     "Samoa",
+     "South Africa",
+     "South Africa v Tonga",
+     "Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"complete\", \"evidenced\": 0, \"found\": 0, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_match\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"partial\", \"entity\": \"Pacific International Rugby Championship 2027\", \"evidenced\": 8, \"found\": 0, \"minimum\": 2, \"pending_decision\": {\"open\": 8}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Argentina\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Australia\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Fiji\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Japan\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"New Zealand\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Samoa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"South Africa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Tonga\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"evidenced\": 1, \"found\": 1, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"has_stage\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   },
+   "Sky Stadium": {
+    "cascade": {
+     "cause": {
+      "constraint_conflict": 0,
+      "counterpart_type_key": "team",
+      "entity": "Pool B winner v Pool A runner-up",
+      "evidenced": 0,
+      "minimum": 2,
+      "pending_decision": {},
+      "relationship_type_key": "has_team",
+      "state": "not_stated",
+      "unresolved_ambiguity": false
+     },
+     "chain": [
+      "Sky Stadium",
+      "Pool B winner v Pool A runner-up"
+     ]
+    },
+    "dependants": [
+     "Argentina",
+     "Australia",
+     "Australia v Argentina",
+     "Fiji",
+     "Japan",
+     "Japan v Samoa",
+     "New Zealand",
+     "New Zealand v Fiji",
+     "Pacific International Rugby Championship 2027",
+     "Pool A winner v Pool B runner-up",
+     "Pool B winner v Pool A runner-up",
+     "Samoa",
+     "South Africa",
+     "South Africa v Tonga",
+     "Tonga"
+    ],
+    "missing": [
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"match\", \"coverage\": \"\", \"evidenced\": 2, \"found\": 2, \"minimum\": 1, \"pending_decision\": {}, \"relationship_type_key\": \"played_at\", \"state\": \"insufficient_evidence\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool A winner v Pool B runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"complete\", \"entity\": \"Pool B winner v Pool A runner-up\", \"evidenced\": 0, \"found\": 0, \"minimum\": 2, \"pending_decision\": {}, \"relationship_type_key\": \"has_team\", \"state\": \"not_stated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"team\", \"coverage\": \"partial\", \"entity\": \"Pacific International Rugby Championship 2027\", \"evidenced\": 8, \"found\": 0, \"minimum\": 2, \"pending_decision\": {\"open\": 8}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Argentina\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Australia\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Fiji\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Japan\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"New Zealand\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Samoa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"South Africa\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}",
+     "{\"constraint_conflict\": 0, \"counterpart_type_key\": \"tournament\", \"coverage\": \"\", \"entity\": \"Tonga\", \"evidenced\": 1, \"found\": 0, \"minimum\": 1, \"pending_decision\": {\"open\": 1}, \"relationship_type_key\": \"has_team_2\", \"state\": \"unadjudicated\", \"unresolved_ambiguity\": false, \"viable\": 0}"
+    ],
+    "reason": "blocked"
+   }
+  },
+  "completeness": "",
+  "created": [],
+  "open_decisions": [
+   "predicate_mapping:has_team:tournament:team"
+  ],
+  "outcome": "unresolved",
+  "payload_chars": {
+   "adjudication": [
+    6119,
+    5257,
+    4109
+   ],
+   "extraction": [
+    9627
+   ],
+   "extraction_correction": [
+    14691,
+    19918
+   ],
+   "gap_probe": [
+    19680,
+    24452,
+    13509,
+    14058
+   ],
+   "gap_probe_correction": [
+    27153,
+    50942
+   ],
+   "verification": [
+    206044
+   ]
+  },
+  "requested": [
+   "extraction",
+   "extraction_correction",
+   "extraction_correction",
+   "adjudication",
+   "gap_probe",
+   "gap_probe_correction",
+   "adjudication",
+   "gap_probe",
+   "gap_probe_correction",
+   "gap_probe",
+   "adjudication",
+   "gap_probe",
+   "verification"
+  ],
+  "selected": [],
+  "unaligned": [
+   {
+    "not_in_captured_call": [
+     [
+      "requirements",
+      "req:E22:00000000-0000-0000-0000-00000000000c:object"
+     ],
+     [
+      "requirements",
+      "req:E22:00000000-0000-0000-0000-00000000000e:subject"
+     ],
+     [
+      "requirements",
+      "req:E23:00000000-0000-0000-0000-00000000000c:object"
+     ],
+     [
+      "requirements",
+      "req:E23:00000000-0000-0000-0000-00000000000e:subject"
+     ],
+     [
+      "requirements",
+      "req:E24:00000000-0000-0000-0000-00000000000c:object"
+     ],
+     [
+      "requirements",
+      "req:E24:00000000-0000-0000-0000-00000000000e:subject"
+     ],
+     [
+      "requirements",
+      "req:E25:00000000-0000-0000-0000-00000000000c:object"
+     ],
+     [
+      "requirements",
+      "req:E25:00000000-0000-0000-0000-00000000000e:subject"
+     ],
+     [
+      "requirements",
+      "req:E26:00000000-0000-0000-0000-00000000000c:object"
+     ],
+     [
+      "requirements",
+      "req:E27:00000000-0000-0000-0000-00000000000c:object"
+     ],
+     [
+      "requirements",
+      "req:E3:00000000-0000-0000-0000-00000000000c:subject"
+     ],
+     [
+      "requirements",
+      "target:T2"
+     ]
+    ],
+    "stage": "gap_probe_correction"
+   }
+  ]
+ }
+}

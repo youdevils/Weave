@@ -1,0 +1,36 @@
+{
+ "kind": "provider",
+ "run_id": "10390789-977a-4768-8b61-210cd77b08f7",
+ "sequence": 15,
+ "stage": "adjudication",
+ "attempt": 3,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "predicate_mapping:played_at:match:venue",
+    "option_id": "played_at:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#t3",
+      "excerpt": "Stage | Match | Venue"
+     },
+     {
+      "segment_id": "S1#t3.r1",
+      "excerpt": "Pool A | New Zealand v Fiji | Eden Park"
+     }
+    ],
+    "excerpt": "",
+    "note": "The table clearly maps 'New Zealand v Fiji' (the match) to 'Eden Park' (the venue) in a direct and specific manner."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "predicate_mapping:played_at:match:venue"
+  ]
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "kind": "provider",
+ "run_id": "24063e61-e45c-44e2-8dd0-c2fdf31172f7",
+ "sequence": 12,
+ "stage": "verification",
+ "attempt": 1,
+ "decision": "finish",
+ "schema": "VerificationResult",
+ "output": {
+  "schema_version": "1.1",
+  "verdict": "approved",
+  "objections": [],
+  "summary": "The result correctly extracts all venue and stage entities listed in the flyer and does not create unsupported or inferred relationships. The blocked status of intent targets and the absence of new changes are appropriate because the evidence only enumerates the venues and stages but does not explicitly state relationships (such as matches at venues or matches within stages) beyond simple listings, which have been properly modeled. Example fixtures and descriptive passages do not provide further declarative structure for these entities, and no relationships between stages/venues and other objects are explicitly stated in the evidence in a way that meets the evidence-claim contract. No missed evidence or mapping errors are present. Some minor warnings concern evidence mentions not mapped to relationships, but these are not objections since the evidence does not structurally state such relationships. The decision ledger reflects accurate extraction and mapping decisions, and all dismissed and uncovered segments have been addressed appropriately. No correction is required."
+ },
+ "provider_model": "gpt-4.1-2025-04-14"
+}

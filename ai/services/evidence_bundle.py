@@ -20,7 +20,7 @@ from __future__ import annotations
 import re
 import unicodedata
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr
 
 from ai.services.sources import Segment, blocks_from_text, build_segments, render
 
@@ -50,6 +50,17 @@ class EvidenceSource(BaseModel):
 
 class EvidenceBundle(BaseModel):
     sources: list[EvidenceSource] = Field(default_factory=list)
+    _document = PrivateAttr(default=None)
+
+    def document(self):
+        """The bundle's Document Evidence Model (ai.services.document), built
+        once from its segments -- structural only, catalogue-independent."""
+
+        if self._document is None:
+            from ai.services.document.build import build_document
+
+            self._document = build_document(self)
+        return self._document
 
     @classmethod
     def from_assets(cls, assets) -> "EvidenceBundle":

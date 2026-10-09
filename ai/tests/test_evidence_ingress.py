@@ -150,6 +150,57 @@ class ProvenanceIngressTests(IngressTestCase):
 
 class IdentityIngressTests(IngressTestCase):
 
+    def test_a_withdrawn_claims_id_is_never_given_to_a_new_claim(self):
+        # Run 286357bd: six claims were re-asked and withdrawn; a later
+        # response's six new, different claims reused their ids, inherited
+        # "already re-asked", and were dropped without their own correction.
+        self.absorb(self.depot(), entity("E3", "O-1", "order", excerpt="O-1"))
+        self.absorb(assertion("A7", "E3", "is served from", "E1", excerpt="North Depot"))  # unanchored
+        self.assertTrue(self.rs.pending_items["A7"][1])
+        # Re-asked in a correction, which omits it: withdrawn (as ExtractionCorrectionStage does).
+        self.rs.reasked.add("A7")
+        self.rs.pending_items.pop("A7")
+        self.absorb(origin="extraction_correction", replace_ids={"A7"})
+
+        # A later response emits a different claim under the same local id.
+        mapping = self.absorb(assertion("A7", "E3", "ships from", "E1", excerpt="Acme | O-1 | North Depot"), origin="extraction_correction")
+
+        fresh = mapping["A7"]
+        self.assertNotEqual(fresh, "A7")
+        self.assertIsNone(self.rs.graph.assertion("A7"))
+        self.assertNotIn("A7", self.rs.pending_items)
+        claim = self.rs.graph.assertion(fresh) or self.rs.pending_items[fresh][0]
+        self.assertEqual(claim.predicate, "ships from")
+        # Never mistaken for the earlier re-asked item: eligible for its own correction.
+        self.assertNotIn(fresh, self.rs.reasked)
+
+    def test_a_fresh_invalid_claim_under_a_withdrawn_id_gets_its_own_correction(self):
+        self.absorb(self.depot(), entity("E3", "O-1", "order", excerpt="O-1"))
+        self.absorb(assertion("A7", "E3", "is served from", "E1", excerpt="North Depot"))
+        self.rs.reasked.add("A7")
+        self.rs.pending_items.pop("A7")
+        self.absorb(origin="extraction_correction", replace_ids={"A7"})
+
+        # The new claim is invalid too (it cites nothing naming the order).
+        mapping = self.absorb(assertion("A7", "E3", "is supplied by", "E1", excerpt="North Depot"), origin="extraction_correction")
+
+        fresh = mapping["A7"]
+        self.assertTrue(self.rs.pending_items[fresh][1])
+        # The next-wave selection (ExtractionCorrectionStage.evaluate) takes
+        # invalid items not yet re-asked: this one qualifies.
+        eligible = [i for i, (_, issues) in self.rs.pending_items.items() if issues and i not in self.rs.reasked]
+        self.assertEqual(eligible, [fresh])
+
+    def test_a_correction_still_replaces_its_item_under_the_same_id(self):
+        self.absorb(self.depot(), entity("E3", "O-1", "order", excerpt="O-1"))
+        self.absorb(assertion("A7", "E3", "is served from", "E1", excerpt="North Depot"))
+        self.rs.reasked.add("A7")
+
+        self.absorb(assertion("A7", "E3", "ships from", "E1", excerpt="Acme | O-1 | North Depot"),
+                    origin="extraction_correction", replace_ids={"A7"})
+
+        self.assertEqual(self.rs.graph.assertion("A7").predicate, "ships from")
+
     def test_identical_duplicate_definitions_collapse(self):
         self.absorb(self.depot(), self.depot(), *self.order_row())
 
@@ -369,6 +420,20 @@ class CascadeTests(AIServiceTestCase):
         self.assertEqual((own["evidenced"], own["viable"]), (1, 0))
         self.assertEqual(ground["cascade"]["chain"], ["Riverside", "Owls v Lions", "Round 1"])
         self.assertEqual(ground["cascade"]["cause"]["relationship_type_key"], "has_round")
+
+    def test_a_root_held_only_by_an_undecided_mapping_is_the_cause(self):
+        # The root is evidenced, but its wording maps to no relationship
+        # deterministically: the block is that open decision, not missing
+        # evidence -- and never something further down the chain.
+        undecided = assertion("A1", "C", "oversees", "R", support="structural",
+                              spans=[("RIVER LEAGUE 2027", "S1", self.seg("RIVER")), ("Round 1", "S1", self.seg("- Round 1"))])
+        analysis = self.analyse([*self.items(with_root=False), undecided])
+
+        blocked = analysis.blocked_targets(SemanticModelIndex.load(self.model), {})
+        cascade = next(b for b in blocked if b["target"] == "Riverside")["cascade"]
+        self.assertEqual(cascade["chain"], ["Riverside", "Owls v Lions", "Round 1"])
+        self.assertEqual((cascade["cause"]["relationship_type_key"], cascade["cause"]["evidenced"]), ("has_round", 1))
+        self.assertEqual(cascade["cause"]["pending_decision"], {"open": 1})
 
 
 class EveryIngressRejectsUnanchoredClaimsTests(IngressTestCase):

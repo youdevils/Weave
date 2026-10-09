@@ -1,0 +1,16 @@
+{
+ "kind": "provider",
+ "run_id": "10390789-977a-4768-8b61-210cd77b08f7",
+ "sequence": 22,
+ "stage": "verification",
+ "attempt": 1,
+ "decision": "finish",
+ "schema": "VerificationResult",
+ "output": {
+  "schema_version": "1.1",
+  "verdict": "approved",
+  "objections": [],
+  "summary": "The result properly blocked the addition of all venues and stages as requested due to unmet model requirements (mainly missing explicit match relationships for the venues and lacking direct tournament-stage links beyond the two pool stages). Extraction/claim/mapping/coverage adjudications were correct according to the evidence: no segment stated more specific relationships than those mapped, and dismissed segments do not state relationships that should have been extracted. All blockages are explicitly justified by the lack of direct evidence, and no missed-evidence or mapping errors were found. No correction is required."
+ },
+ "provider_model": "gpt-4.1-2025-04-14"
+}

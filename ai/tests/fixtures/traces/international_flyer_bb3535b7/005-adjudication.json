@@ -1,0 +1,47 @@
+{
+ "kind": "provider",
+ "stage": "adjudication",
+ "attempt": 1,
+ "decision": "advance",
+ "output": {
+  "schema_version": "1.1",
+  "answers": [
+   {
+    "question_id": "indirect_classification:A1",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r1",
+      "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final"
+     }
+    ],
+    "excerpt": "\"Opening match and final\" refers to types of matches held at Eden Park, not to direct connections to a stage or the tournament itself. The relationship is via those (unidentified) matches.",
+    "note": "The evidence links the venue to event types via a match, not stating a direct relationship to a stage or structure entity."
+   },
+   {
+    "question_id": "indirect_classification:A2",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r2",
+      "excerpt": "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches"
+     }
+    ],
+    "excerpt": "\"Pool and quarter-final matches\" indicates the venue hosts certain matches without directly connecting to a stage entity.",
+    "note": "Wording refers to events (matches) as intermediates."
+   },
+   {
+    "question_id": "indirect_classification:A6",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r6",
+      "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches"
+     }
+    ],
+    "excerpt": "\"Quarter-final and semi-final matches\" means Orangetheory Stadium is used for matches at those phases, without giving a direct stage-venue link.",
+    "note": "All venues are described as hosts for types of matches, not directly to the competition stage."
+   }
+  ]
+ }
+}

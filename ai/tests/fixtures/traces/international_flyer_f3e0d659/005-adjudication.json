@@ -1,0 +1,84 @@
+{
+ "kind": "provider",
+ "run_id": "f3e0d659-f1e3-4723-a9a8-47c158a0d768",
+ "sequence": 5,
+ "stage": "adjudication",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "indirect_classification:A5",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r1",
+      "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final"
+     }
+    ],
+    "excerpt": "",
+    "note": "The wording 'Opening match and final' indicates the venue is used for some matches (specifically the opening and final), but it does not specify the matches directly; these would be referenced via individual matches in the model."
+   },
+   {
+    "question_id": "indirect_classification:A6",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r2",
+      "excerpt": "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches"
+     }
+    ],
+    "excerpt": "",
+    "note": "The statement indicates the types of matches that take place at the venue, but does not link directly to identified matches; these would need to be modeled through individual matches."
+   },
+   {
+    "question_id": "indirect_classification:A10",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r6",
+      "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches"
+     }
+    ],
+    "excerpt": "",
+    "note": "This describes the venue as hosting certain types of matches, which are intermediate references to matches\u2014not a direct relationship to specific matches."
+   },
+   {
+    "question_id": "indirect_classification:A7",
+    "option_id": "direct_statement",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r3",
+      "excerpt": "Pool B | Australia v Argentina | Forsyth Barr Stadium"
+     }
+    ],
+    "excerpt": "",
+    "note": "This is a directly identified match (Australia v Argentina in Pool B) at a specific venue (Forsyth Barr Stadium), so it is a direct relationship."
+   },
+   {
+    "question_id": "indirect_classification:A8",
+    "option_id": "direct_statement",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r4",
+      "excerpt": "Pool B | South Africa v Tonga | FMG Stadium Waikato"
+     }
+    ],
+    "excerpt": "",
+    "note": "This is also a direct enumeration of a specific match (South Africa v Tonga in Pool B) held at a named venue, so it is a direct relationship."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "indirect_classification:A5",
+   "indirect_classification:A6",
+   "indirect_classification:A10",
+   "indirect_classification:A7",
+   "indirect_classification:A8"
+  ]
+ }
+}

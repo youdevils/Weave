@@ -257,8 +257,9 @@ WEBSITE_CONTACT_FORM_RECIPIENT = os.getenv(
 AI_DEFAULT_OPENAI_MODEL = os.getenv("AI_DEFAULT_OPENAI_MODEL", "gpt-4.1")
 
 # Staged Assisted workflows (ai.services.workflow). Budgets count *logical*
-# provider calls per stage across the whole run (a correction or a
-# review-driven re-plan both consume from the stage's own budget);
+# provider calls per stage across the whole run unless scoped (see the
+# Reconcile notes below; a correction or a review-driven re-plan both consume
+# from the stage's own budget);
 # OpenAIProvider's internal transport retries (AI_MAX_PROVIDER_RETRIES) are
 # not logical calls and never count here.
 AI_CREATE_PLANNING_MAX_CALLS = 3
@@ -270,14 +271,42 @@ AI_CREATE_PLANNING_MAX_CALLS = 3
 # objection). The workflow converges by revisiting stages (a probe's claims
 # may raise new questions, an answer may expose a new evidence gap), so every
 # class of work is bounded separately: corrections never consume rounds.
+# Correction budgets of Extraction, Adjudication and Gap Probe count per unit
+# of new work (a correction wave / a round), never per run, so earlier work
+# can't spend a later round's chance to be corrected. Adjudication and Gap
+# Probe rounds are progress-driven, not counted: they continue while there is
+# new work, until a class has spent MAX_IDLE_ROUNDS consecutive rounds without
+# progress, and only while the run's remaining calls still cover a full
+# Verification pass (ai.services.stages.reconcile_steps).
 AI_RECONCILE_EXTRACTION_MAX_BATCHES = 4
-AI_RECONCILE_EXTRACTION_MAX_CORRECTION_CALLS = 2
-AI_RECONCILE_ADJUDICATION_MAX_ROUNDS = 3
-AI_RECONCILE_ADJUDICATION_MAX_CORRECTION_CALLS = 2
-AI_RECONCILE_GAP_PROBE_MAX_ROUNDS = 2
-AI_RECONCILE_GAP_PROBE_MAX_CORRECTION_CALLS = 1
+AI_RECONCILE_EXTRACTION_MAX_CORRECTION_CALLS = 2  # per correction wave
+AI_RECONCILE_ADJUDICATION_MAX_CORRECTION_CALLS = 1  # per round
+AI_RECONCILE_ADJUDICATION_MAX_IDLE_ROUNDS = 2
+AI_RECONCILE_GAP_PROBE_MAX_CORRECTION_CALLS = 1  # per round
+AI_RECONCILE_GAP_PROBE_MAX_IDLE_ROUNDS = 2
 AI_RECONCILE_VERIFICATION_MAX_CALLS = 3
 AI_RECONCILE_VERIFICATION_MAX_CORRECTION_CALLS = 1
+# Reconcile's evidence architecture (.Documentation/reconcile-architecture-plan.md):
+#   claims   -- the AI extracts per-instance claims from every segment (legacy)
+#   readings -- tables and sections are interpreted ONCE per schema by a
+#               Reading (ai.services.reconcile.readings) and expanded
+#               deterministically; the AI extracts claims from prose only
+# readings is the default since 2026-10-09: the live flyer gate passed the full
+# reference spec in 3/5 readings-mode runs with zero forbidden changes
+# (.ai-traces/gate-2026-10-09-flyer-readings-4). claims stays available
+# (AI_RECONCILE_EVIDENCE_MODE=claims) until Phase 6 retires it.
+AI_RECONCILE_EVIDENCE_MODE = os.getenv("AI_RECONCILE_EVIDENCE_MODE", "readings")
+# Reading: bounded batches of structured elements (AI cost scales with the
+# number of table/section schemas, never rows), one shape re-ask per batch,
+# and how many sample rows of a table a Reading is shown (all when fewer;
+# structural outlier rows are always shown in addition).
+AI_RECONCILE_READING_MAX_BATCHES = 4
+AI_RECONCILE_READING_MAX_CORRECTION_CALLS = 1  # per batch
+AI_READING_BATCH_MAX_CHARS = 12_000
+AI_READING_SAMPLE_ROWS = 8
+# Ranked options offered per Reading slot (a shortlist only: any catalogue key
+# outside it may still be named and is validated against the full catalogue).
+AI_READING_MAX_OPTIONS = 20
 # Hard backstop on logical workflow calls for any one run, whatever the
 # per-stage budgets add up to.
 AI_WORKFLOW_MAX_PROVIDER_CALLS = 14

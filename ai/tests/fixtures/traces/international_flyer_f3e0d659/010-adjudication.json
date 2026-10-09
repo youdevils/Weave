@@ -1,0 +1,78 @@
+{
+ "kind": "provider",
+ "run_id": "f3e0d659-f1e3-4723-a9a8-47c158a0d768",
+ "sequence": 10,
+ "stage": "adjudication",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "predicate_mapping:played_at:match:venue",
+    "option_id": "played_at:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r1",
+      "excerpt": "Pool A | New Zealand v Fiji | Eden Park"
+     },
+     {
+      "segment_id": "S1#t3.r2",
+      "excerpt": "Pool A | Japan v Samoa | Sky Stadium"
+     },
+     {
+      "segment_id": "S1#t3.r3",
+      "excerpt": "Pool B | Australia v Argentina | Forsyth Barr Stadium"
+     },
+     {
+      "segment_id": "S1#t3.r4",
+      "excerpt": "Pool B | South Africa v Tonga | FMG Stadium Waikato"
+     },
+     {
+      "segment_id": "S1#t4.r1",
+      "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium"
+     },
+     {
+      "segment_id": "S1#t4.r2",
+      "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium"
+     }
+    ],
+    "excerpt": "",
+    "note": "Each evidence row clearly expresses that a particular match is played at a specific venue."
+   },
+   {
+    "question_id": "indirect_classification:A19",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r5",
+      "excerpt": "McLean Park | Napier, New Zealand | Pool matches"
+     }
+    ],
+    "excerpt": "",
+    "note": "The entry does not specify a direct relationship between the venue and an event, but rather states the general class of matches (pool matches) played at this venue, implying matches as an intermediate."
+   },
+   {
+    "question_id": "indirect_classification:A20",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r6",
+      "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches"
+     }
+    ],
+    "excerpt": "",
+    "note": "The row indicates types of matches (quarter-final and semi-final) played at this venue, implying the connection is via specific, but unidentified, matches."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "predicate_mapping:played_at:match:venue",
+   "indirect_classification:A19",
+   "indirect_classification:A20"
+  ]
+ }
+}

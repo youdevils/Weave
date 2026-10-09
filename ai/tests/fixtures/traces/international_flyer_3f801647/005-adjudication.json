@@ -1,0 +1,105 @@
+{
+ "kind": "provider",
+ "run_id": "3f801647-15b1-44cc-91da-838be08122dd",
+ "sequence": 5,
+ "stage": "adjudication",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "indirect_classification:A3",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#9",
+      "excerpt": "Quarter-final winners progress to two semi-finals."
+     }
+    ],
+    "excerpt": "Quarter-final winners progress to two semi-finals.",
+    "note": "The wording establishes progression, but does not directly name the matches or tournaments."
+   },
+   {
+    "question_id": "indirect_classification:A4",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#10",
+      "excerpt": "The two semi-final winners play for the championship at Eden Park, Auckland."
+     }
+    ],
+    "excerpt": "The two semi-final winners play for the championship at Eden Park, Auckland.",
+    "note": "This refers to a match (the Final), but the connection is only implied via the match, not direct."
+   },
+   {
+    "question_id": "indirect_classification:A5",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t4.r2",
+      "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium"
+     },
+     {
+      "segment_id": "S1#t2.r2",
+      "excerpt": "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches"
+     }
+    ],
+    "excerpt": "Quarter-final listed as hosting quarter-final matches at Sky Stadium.",
+    "note": "The connection is made via specific matches, not a direct quarter-final to venue relationship."
+   },
+   {
+    "question_id": "indirect_classification:A6",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t4.r1",
+      "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium"
+     },
+     {
+      "segment_id": "S1#t2.r6",
+      "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches"
+     }
+    ],
+    "excerpt": "Quarter-final listed as hosting quarter-final matches at Orangetheory Stadium.",
+    "note": "The connection occurs via listing matches, not directly relating stage to venue."
+   },
+   {
+    "question_id": "indirect_classification:A7",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r6",
+      "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches"
+     }
+    ],
+    "excerpt": "Semi-final matches hosted at Orangetheory Stadium.",
+    "note": "No specific match is identified, only the type of match; connection is indirect."
+   },
+   {
+    "question_id": "indirect_classification:A2",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#10",
+      "excerpt": "The two semi-final winners play for the championship at Eden Park, Auckland."
+     }
+    ],
+    "excerpt": "Final is played at Eden Park.",
+    "note": "Source refers to a match (the Final) at the venue, not a direct stage-venue link."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "indirect_classification:A3",
+   "indirect_classification:A4",
+   "indirect_classification:A5",
+   "indirect_classification:A6",
+   "indirect_classification:A7",
+   "indirect_classification:A2"
+  ]
+ }
+}

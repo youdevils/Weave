@@ -1,0 +1,227 @@
+{
+ "kind": "provider",
+ "run_id": "10390789-977a-4768-8b61-210cd77b08f7",
+ "sequence": 7,
+ "stage": "adjudication",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "indirect_classification:A9",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "",
+    "note": "The table structure associates New Zealand with Pool A in a grouping context, but does not state the exact nature of the tournament or match entity directly. The model should connect these via a suitable intermediate (tournament, stage, etc.)."
+   },
+   {
+    "question_id": "indirect_classification:A10",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "",
+    "note": "Fiji appears under Pool A similarly, so the model must infer an intermediary (like a tournament) rather than a direct relationship."
+   },
+   {
+    "question_id": "indirect_classification:A11",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "",
+    "note": "Japan is grouped in Pool A; the relationship is to an intermediate context (tournament or stage, not direct)."
+   },
+   {
+    "question_id": "indirect_classification:A12",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "",
+    "note": "Samoa is also part of Pool A by listing structure; it points to an intermediate (pool group, not direct entity-to-entity link)."
+   },
+   {
+    "question_id": "indirect_classification:A13",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     }
+    ],
+    "excerpt": "",
+    "note": "Listing of Australia in Pool B implies an intermediate relationship, not a direct one."
+   },
+   {
+    "question_id": "indirect_classification:A14",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     }
+    ],
+    "excerpt": "",
+    "note": "Argentina in Pool B\u2014again, only a group association implied."
+   },
+   {
+    "question_id": "indirect_classification:A15",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     }
+    ],
+    "excerpt": "",
+    "note": "South Africa's listing in Pool B is again an intermediate (pool/tournament context) linkage."
+   },
+   {
+    "question_id": "indirect_classification:A16",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     }
+    ],
+    "excerpt": "",
+    "note": "Tonga is grouped in Pool B via a context intermediate, not a direct link."
+   },
+   {
+    "question_id": "indirect_classification:A20",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#8",
+      "excerpt": "The top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa."
+     }
+    ],
+    "excerpt": "",
+    "note": "The format attaches progression from Pool A to the quarter-finals through an implicit tournament structure, not as a direct relationship."
+   },
+   {
+    "question_id": "indirect_classification:A21",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#8",
+      "excerpt": "The top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa."
+     }
+    ],
+    "excerpt": "",
+    "note": "The same pattern applies for Pool B."
+   },
+   {
+    "question_id": "indirect_classification:A22",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#9",
+      "excerpt": "Quarter-final winners progress to two semi-finals."
+     }
+    ],
+    "excerpt": "",
+    "note": "Semi-finals are reached by winners of quarter-finals, again tied through tournament progression, not direct relationship between entities."
+   },
+   {
+    "question_id": "indirect_classification:a1",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#10",
+      "excerpt": "Final:\nThe two semi-final winners play for the championship at Eden Park, Auckland."
+     }
+    ],
+    "excerpt": "",
+    "note": "The final at Eden Park is achieved by progression through matches, not directly as a venue-entity relationship."
+   },
+   {
+    "question_id": "indirect_classification:a2",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r1",
+      "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final"
+     }
+    ],
+    "excerpt": "",
+    "note": "Eden Park's listed primary use is contextual to specific matches (opening match, final), not a direct relationship to 'Final'."
+   },
+   {
+    "question_id": "indirect_classification:a3",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r2",
+      "excerpt": "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches"
+     }
+    ],
+    "excerpt": "",
+    "note": "Sky Stadium's primary use references specific pools and quarter-finals, not a direct statement."
+   },
+   {
+    "question_id": "indirect_classification:a8",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r6",
+      "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches"
+     }
+    ],
+    "excerpt": "",
+    "note": "Orangetheory Stadium is noted for quarter-final use via context, not a direct formal relationship."
+   },
+   {
+    "question_id": "indirect_classification:a9",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t2.r6",
+      "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches"
+     }
+    ],
+    "excerpt": "",
+    "note": "Similarly, semi-final matches at Orangetheory Stadium indicate use via an intermediary context."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "indirect_classification:A9",
+   "indirect_classification:A10",
+   "indirect_classification:A11",
+   "indirect_classification:A12",
+   "indirect_classification:A13",
+   "indirect_classification:A14",
+   "indirect_classification:A15",
+   "indirect_classification:A16",
+   "indirect_classification:A20",
+   "indirect_classification:A21",
+   "indirect_classification:A22",
+   "indirect_classification:a1",
+   "indirect_classification:a2",
+   "indirect_classification:a3",
+   "indirect_classification:a8",
+   "indirect_classification:a9"
+  ]
+ }
+}

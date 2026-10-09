@@ -10,7 +10,9 @@ Registers the real Assisted operations with ai.services.operations' registry.
                   Probe (evidence gaps), each back through analysis ->
                   compile (deterministic) -> Verification (objections back
                   through analysis) -> commit (ai/README.md, "Convergence";
-                  every class of work separately bounded). Data changes only,
+                  corrections bounded per unit of new work, Adjudication /
+                  Gap Probe rounds progress-driven, the run bounded
+                  overall). Data changes only,
                   compiled by OnyxJar from evidence claims; removal only as
                   retirement on an explicit, confirmed removal claim; intent
                   targets that can be reconciled independently of blocked
@@ -29,6 +31,7 @@ from ai.services.stages.adjudication import AdjudicationStage
 from ai.services.stages.extraction import ExtractionCorrectionStage, ExtractionStage
 from ai.services.stages.gap_probe import GapProbeCorrectionStage, GapProbeStage
 from ai.services.stages.planning import PlanningStage
+from ai.services.stages.reading import ReadingPlanStage, ReadingStage
 from ai.services.stages.reconcile_steps import AnalysisStage, CompileStage
 from ai.services.stages.verification import VerificationStage
 from ai.services.workflow.engine import WorkflowDefinition
@@ -57,8 +60,20 @@ def build_create_workflow() -> WorkflowDefinition:
 
 
 def build_reconcile_workflow() -> WorkflowDefinition:
+    """`AI_RECONCILE_EVIDENCE_MODE` = readings puts the Reading of tables and
+    sections (schema-level, ai.services.reconcile.readings) before the
+    extraction of prose; claims (the default until the Phase 5 gate) runs the
+    legacy per-instance extraction of everything."""
+
+    readings = settings.AI_RECONCILE_EVIDENCE_MODE == "readings"
+    reading_stages = {"reading_plan": ReadingPlanStage(), "reading": ReadingStage()} if readings else {}
+    reading_budgets = {
+        "reading": settings.AI_RECONCILE_READING_MAX_BATCHES,
+        "reading_correction": settings.AI_RECONCILE_READING_MAX_CORRECTION_CALLS,
+    } if readings else {}
     return WorkflowDefinition(
         stages={
+            **reading_stages,
             "extraction": ExtractionStage(),
             "extraction_correction": ExtractionCorrectionStage(),
             "analysis": AnalysisStage(),
@@ -68,16 +83,25 @@ def build_reconcile_workflow() -> WorkflowDefinition:
             "compile": CompileStage(),
             "verification": VerificationStage(),
         },
-        first_stage="extraction",
+        first_stage="reading_plan" if readings else "extraction",
         stage_budgets={
+            **reading_budgets,
             "extraction": settings.AI_RECONCILE_EXTRACTION_MAX_BATCHES,
             "extraction_correction": settings.AI_RECONCILE_EXTRACTION_MAX_CORRECTION_CALLS,
-            "adjudication": settings.AI_RECONCILE_ADJUDICATION_MAX_ROUNDS,
+            # Progress-driven rounds (ai.services.stages.reconcile_steps.route).
+            "adjudication": None,
             "adjudication_correction": settings.AI_RECONCILE_ADJUDICATION_MAX_CORRECTION_CALLS,
-            "gap_probe": settings.AI_RECONCILE_GAP_PROBE_MAX_ROUNDS,
+            "gap_probe": None,
             "gap_probe_correction": settings.AI_RECONCILE_GAP_PROBE_MAX_CORRECTION_CALLS,
             "verification": settings.AI_RECONCILE_VERIFICATION_MAX_CALLS,
             "verification_correction": settings.AI_RECONCILE_VERIFICATION_MAX_CORRECTION_CALLS,
+        },
+        # One correction opportunity per unit of new work, never per run.
+        scoped_budgets={
+            "adjudication_correction": "adjudication",
+            "gap_probe_correction": "gap_probe",
+            "extraction_correction": None,  # per correction wave (ai.services.stages.extraction)
+            **({"reading_correction": None} if readings else {}),  # per Reading batch (ai.services.stages.reading)
         },
         total_budget=settings.AI_WORKFLOW_MAX_PROVIDER_CALLS,
         explanation_budget=settings.AI_TERMINAL_EXPLANATION_MAX_CALLS,

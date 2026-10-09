@@ -1,0 +1,57 @@
+{
+ "kind": "provider",
+ "stage": "verification",
+ "attempt": 1,
+ "decision": "finish",
+ "output": {
+  "schema_version": "1.1",
+  "verdict": "approved_with_findings",
+  "objections": [
+   {
+    "objection_id": "obs-1",
+    "target_kind": "segment",
+    "target_id": "S1#t4.r2",
+    "kind": "missed_evidence",
+    "severity": "minor",
+    "message": "The evidence segment 'Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium' establishes a match-stage-venue relationship for a second quarter-final at Sky Stadium. This specific relationship (match with this description played at this venue) was not extracted or mapped, even though a nearly identical structure was accepted for the other quarter-final tied to Orangetheory Stadium.",
+    "option_id": null,
+    "evidence": {
+     "entities": [],
+     "assertions": [
+      {
+       "aid": "S1#t4.r2",
+       "subject_eid": "Quarter-final",
+       "predicate": "has match played at",
+       "object_eid": "Sky Stadium",
+       "relationship_type_hint": "stage-match-venue",
+       "hint_orientation": "as_stated",
+       "support": "structural",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium",
+         "segment_id": "S1#t4.r2",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      }
+     ],
+     "facts": []
+    },
+    "frame_amendment": null,
+    "readings": [],
+    "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium"
+   }
+  ],
+  "summary": "The extraction and mapping of venues and stages is largely thorough and directly supported by the flyer, with structures and relationships accurately modeled for the majority of evidence. However, one match-stage-venue relationship—'Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium'—was not accounted for, despite being stated equivalently to other accepted instances. This is a minor, not material, omission. All other accepted extractions appropriately reflect the evidence and intent. Approval is recommended with this caveat."
+ }
+}

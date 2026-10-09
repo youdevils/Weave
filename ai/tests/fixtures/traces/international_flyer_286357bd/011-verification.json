@@ -1,0 +1,16 @@
+{
+ "kind": "provider",
+ "run_id": "286357bd-f919-414c-8536-849298c594a7",
+ "sequence": 11,
+ "stage": "verification",
+ "attempt": 1,
+ "decision": "finish",
+ "schema": "VerificationResult",
+ "output": {
+  "schema_version": "1.1",
+  "verdict": "approved",
+  "objections": [],
+  "summary": "The blocked targets (all venues and all stages) reflect that, while these are all named in the evidence and recognized as entities, the evidence does not explicitly state any further relationships involving them (such as direct associations with the tournament) beyond what has already been extracted. Dismissed and flagged segments were correctly excluded: they either do not state a supported relationship between the named entities, or are merely descriptive and redundant for the intent. No evidence segment states a missed claim that should have been extracted relative to the intent. The rejection of specific claims and the handling of mapping and structural relationship requirements are also supported by the segments. The result is thus approved as fully supported and as far as the evidence in the flyer allows in answer to the user request."
+ },
+ "provider_model": "gpt-4.1-2025-04-14"
+}

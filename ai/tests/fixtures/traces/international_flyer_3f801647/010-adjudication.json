@@ -1,0 +1,90 @@
+{
+ "kind": "provider",
+ "run_id": "3f801647-15b1-44cc-91da-838be08122dd",
+ "sequence": 10,
+ "stage": "adjudication",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "predicate_mapping:has_stage:tournament:stage",
+    "option_id": "has_stage:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#1",
+      "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+     },
+     {
+      "segment_id": "S1#4",
+      "excerpt": "The tournament is designed to progress from an opening\npool stage into knockout finals, with the final played in Auckland."
+     }
+    ],
+    "excerpt": "The tournament is designed to progress from an opening pool stage into knockout finals, with the final played in Auckland.",
+    "note": "The evidence states that the tournament has stages such as 'pool stage' and 'final', supporting the relationship."
+   },
+   {
+    "question_id": "predicate_mapping:has_match:stage:match",
+    "option_id": "has_match:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r1",
+      "excerpt": "Pool A | New Zealand v Fiji | Eden Park"
+     },
+     {
+      "segment_id": "S1#t3.r2",
+      "excerpt": "Pool A | Japan v Samoa | Sky Stadium"
+     },
+     {
+      "segment_id": "S1#t3.r3",
+      "excerpt": "Pool B | Australia v Argentina | Forsyth Barr Stadium"
+     },
+     {
+      "segment_id": "S1#t3.r4",
+      "excerpt": "Pool B | South Africa v Tonga | FMG Stadium Waikato"
+     },
+     {
+      "segment_id": "S1#t4.r1",
+      "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium"
+     },
+     {
+      "segment_id": "S1#t4.r2",
+      "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium"
+     }
+    ],
+    "excerpt": "Tables explicitly associate each match with a stage, demonstrating the 'has match' relationship.",
+    "note": "Each row demonstrates a stage containing particular matches."
+   },
+   {
+    "question_id": "predicate_mapping:played_at:match:venue",
+    "option_id": "played_at:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r2",
+      "excerpt": "Pool A | Japan v Samoa | Sky Stadium"
+     },
+     {
+      "segment_id": "S1#t3.r3",
+      "excerpt": "Pool B | Australia v Argentina | Forsyth Barr Stadium"
+     },
+     {
+      "segment_id": "S1#t3.r4",
+      "excerpt": "Pool B | South Africa v Tonga | FMG Stadium Waikato"
+     }
+    ],
+    "excerpt": "Table rows specifically assign matches to venues, supporting this relationship.",
+    "note": "Match-venue assignments are clearly shown in the fixture tables."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "predicate_mapping:has_stage:tournament:stage",
+   "predicate_mapping:has_match:stage:match",
+   "predicate_mapping:played_at:match:venue"
+  ]
+ }
+}

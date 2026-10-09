@@ -1,0 +1,139 @@
+{
+ "kind": "provider",
+ "run_id": "1d854489-db38-4e0f-91f0-948b01eac676",
+ "sequence": 10,
+ "stage": "adjudication",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "predicate_mapping:pool_a_is_part_of_the_pacific_international_rugby_championship:stage:tournament",
+    "option_id": "has_stage:converse",
+    "citations": [
+     {
+      "segment_id": "S1#1",
+      "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+     },
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     }
+    ],
+    "excerpt": "",
+    "note": "The table shows Pool A as a subdivision within the Pacific International Rugby Championship, indicating 'Pool A' is a stage of the tournament."
+   },
+   {
+    "question_id": "predicate_mapping:pool_a_linked_to_quarter_final_involving_pool_a_winner_v_pool_b_runner_up:stage:match",
+    "option_id": "has_match:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#t4.r1",
+      "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium"
+     },
+     {
+      "segment_id": "S1#8",
+      "excerpt": "The top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa."
+     }
+    ],
+    "excerpt": "",
+    "note": "The match \"Pool A winner v Pool B runner-up\" is listed in the Quarter-final stage, making it part of that stage."
+   },
+   {
+    "question_id": "predicate_mapping:pool_b_is_part_of_the_pacific_international_rugby_championship:stage:tournament",
+    "option_id": "has_stage:converse",
+    "citations": [
+     {
+      "segment_id": "S1#1",
+      "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+     },
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     }
+    ],
+    "excerpt": "",
+    "note": "The table shows Pool B as a subdivision within the Pacific International Rugby Championship, indicating 'Pool B' is a stage of the tournament."
+   },
+   {
+    "question_id": "predicate_mapping:pool_b_linked_to_quarter_final_involving_pool_b_winner_v_pool_a_runner_up:stage:match",
+    "option_id": "has_match:as_stated",
+    "citations": [
+     {
+      "segment_id": "S1#t4.r2",
+      "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium"
+     },
+     {
+      "segment_id": "S1#8",
+      "excerpt": "The top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa."
+     }
+    ],
+    "excerpt": "",
+    "note": "The match \"Pool B winner v Pool A runner-up\" is part of the Quarter-final stage, as directly listed in the table."
+   },
+   {
+    "question_id": "indirect_classification:A_NEW2",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r1",
+      "excerpt": "Pool A | New Zealand v Fiji | Eden Park"
+     }
+    ],
+    "excerpt": "",
+    "note": "The source links 'Pool A' to a match, but does not identify the match entity directly\u2014this refers to the concept of a match within the pool, an intermediate entity."
+   },
+   {
+    "question_id": "indirect_classification:A_NEW3",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r2",
+      "excerpt": "Pool A | Japan v Samoa | Sky Stadium"
+     }
+    ],
+    "excerpt": "",
+    "note": "The record describes a match within 'Pool A' but is not a direct assertion\u2014points to an unidentified match entity within the pool."
+   },
+   {
+    "question_id": "indirect_classification:A_NEW6",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r3",
+      "excerpt": "Pool B | Australia v Argentina | Forsyth Barr Stadium"
+     }
+    ],
+    "excerpt": "",
+    "note": "Reference is to a match within 'Pool B', not a direct relationship."
+   },
+   {
+    "question_id": "indirect_classification:A_NEW7",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#t3.r4",
+      "excerpt": "Pool B | South Africa v Tonga | FMG Stadium Waikato"
+     }
+    ],
+    "excerpt": "",
+    "note": "Reference is to a match within 'Pool B', not stating a direct relationship."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "predicate_mapping:pool_a_is_part_of_the_pacific_international_rugby_championship:stage:tournament",
+   "predicate_mapping:pool_a_linked_to_quarter_final_involving_pool_a_winner_v_pool_b_runner_up:stage:match",
+   "predicate_mapping:pool_b_is_part_of_the_pacific_international_rugby_championship:stage:tournament",
+   "predicate_mapping:pool_b_linked_to_quarter_final_involving_pool_b_winner_v_pool_a_runner_up:stage:match",
+   "indirect_classification:A_NEW2",
+   "indirect_classification:A_NEW3",
+   "indirect_classification:A_NEW6",
+   "indirect_classification:A_NEW7"
+  ]
+ }
+}

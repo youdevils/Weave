@@ -34,6 +34,30 @@ def _fake_response(parsed=_Schema(), text="raw", model="gpt-4.1"):
 class OpenAIProviderGenerateStructuredTests(SimpleTestCase):
 
     @patch("ai.services.openai_provider.openai.OpenAI")
+    def test_cached_input_tokens_are_recorded_when_reported(self, mock_openai_cls):
+        response = _fake_response()
+        response.usage.input_tokens_details = MagicMock(cached_tokens=6)
+        mock_openai_cls.return_value.responses.parse.return_value = response
+
+        result = OpenAIProvider().generate_structured(
+            system_prompt="sys", user_payload={}, response_schema=_Schema, config=_config()
+        )
+
+        self.assertEqual(result.usage, {"input_tokens": 10, "output_tokens": 5, "total_tokens": 15, "cached_tokens": 6})
+
+    @patch("ai.services.openai_provider.openai.OpenAI")
+    def test_no_cached_count_is_invented_when_none_is_reported(self, mock_openai_cls):
+        response = _fake_response()
+        response.usage.input_tokens_details = None
+        mock_openai_cls.return_value.responses.parse.return_value = response
+
+        result = OpenAIProvider().generate_structured(
+            system_prompt="sys", user_payload={}, response_schema=_Schema, config=_config()
+        )
+
+        self.assertNotIn("cached_tokens", result.usage)
+
+    @patch("ai.services.openai_provider.openai.OpenAI")
     def test_reads_api_key_from_settings_at_call_time(self, mock_openai_cls):
         mock_client = mock_openai_cls.return_value
         mock_client.responses.parse.return_value = _fake_response()

@@ -18,12 +18,33 @@ Reconcile's deterministic stages (no provider calls):
                      evidence at all)
                   4. otherwise              -> compile
 
-              A gap whose class budget is spent is deferred, never defaulted:
-              no pin is written, its decision stays undecided (nothing resting
-              on it compiles), and it is reported as unadjudicated / unprobed.
-              Termination: every route needs NEW work (unasked question ids,
-              unprobed requirement ids, unseen objections -- sets that only
-              grow), every class is bounded, and the run is bounded overall.
+              Adjudication and Gap Probe rounds are progress-driven, not
+              counted. A class may take another round while (may_run_round):
+                - the round still leaves a full Verification pass
+                  (affords_recovery / verification_pass_cost). Every
+                  recovery call -- a round, a correction of a round or of an
+                  extraction wave -- is granted only on that condition, when
+                  it is about to be made, so recovery never spends the calls
+                  the next review needs (a round's correction is therefore
+                  subject to the total budget only at its very edge);
+                - it has not spent MAX_IDLE_ROUNDS consecutive rounds
+                  without progress (a new claimed pin / a new accepted
+                  claim). Genuinely new work for the class (an id never
+                  routed to it before) starts a fresh streak.
+              A gap the class may not take is deferred, never defaulted: no
+              pin is written, its decision stays undecided (nothing resting
+              on it compiles), and it is reported as unadjudicated /
+              unprobed.
+
+              Termination: every route needs NEW work (unasked question
+              ids, unprobed requirement ids, unseen objections -- sets that
+              only grow). The universe of question / requirement ids grows
+              only through accepted claims or claimed pins, i.e. through
+              productive rounds (or Verification, under its own bounds),
+              each costing at least one call of the finite total budget;
+              between them it is finite, so idle streaks are reset finitely
+              often, and rounds over work already routed are capped by
+              MAX_IDLE_ROUNDS. The run is bounded overall.
 
     compile   the blocked set and partial-outcome policy, compilation into a
               ChangeSet v3 + ChangeTrace, TracePolicy (I2), the mutation
@@ -37,6 +58,8 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+
+from django.conf import settings
 
 from ai.services.artifacts import Finding
 from ai.services.feedback import translate_validation_issues
@@ -87,17 +110,92 @@ def work_queue(analysis) -> WorkQueue:
                      evidence_gaps=list(analysis.probe_requests))
 
 
+# -- progress-driven rounds -------------------------------------------------------------
+
+
+def _idle_limit(stage: str) -> int:
+    return {
+        "adjudication": settings.AI_RECONCILE_ADJUDICATION_MAX_IDLE_ROUNDS,
+        "gap_probe": settings.AI_RECONCILE_GAP_PROBE_MAX_IDLE_ROUNDS,
+    }[stage]
+
+
+def progress(rs, stage: str) -> int:
+    """A monotone count of what a round of the class can add: claimed pins
+    for Adjudication (a refused answer is not progress), accepted claims for
+    the Gap Probe (the graph only grows; retraction is an overlay)."""
+
+    if stage == "adjudication":
+        return sum(1 for pin in rs.pins.values() if pin.basis != "rejected_answer")
+    return len(rs.graph.ids())
+
+
+def verification_pass_cost(run) -> int:
+    """The provider calls one complete Verification pass may need: the review,
+    plus the re-ask of an unroutable objection while its correction budget
+    lasts (commit makes no provider call; explain() is outside the budget).
+    A send-back re-enters analysis, where every recovery round is checked
+    against this again for the next review."""
+
+    budgets = run.definition.stage_budgets
+    correction = (budgets.get("verification_correction") or 0) - run.stage_calls.get("verification_correction", 0)
+    return 1 + max(0, correction)
+
+
+def affords_recovery(run) -> bool:
+    """Whether one more recovery call (a round, or a correction of one) still
+    leaves a full Verification pass. Checked when the call is about to be
+    made, never reserved ahead."""
+
+    return run.remaining_calls() >= 1 + verification_pass_cost(run)
+
+
+def may_run_round(run, stage: str, work_ids) -> bool:
+    """Whether the class may take one more round for this work (see the
+    module docstring). Work never routed to the class starts a fresh idle
+    streak."""
+
+    rs = run.state.reconcile
+    if set(work_ids) - rs.routed_work.get(stage, set()):
+        rs.idle_rounds[stage] = 0
+    return run.allows(stage) and affords_recovery(run) and rs.idle_rounds.get(stage, 0) < _idle_limit(stage)
+
+
+def open_round(rs, stage: str, work_ids) -> None:
+    rs.round_open = (stage, progress(rs, stage))
+    rs.routed_work.setdefault(stage, set()).update(work_ids)
+
+
+def close_round(rs) -> None:
+    """At the analysis after a round (and its correction): progress resets the
+    class's idle streak, none extends it."""
+
+    if rs.round_open is None:
+        return
+    stage, marker = rs.round_open
+    rs.idle_rounds[stage] = 0 if progress(rs, stage) > marker else rs.idle_rounds.get(stage, 0) + 1
+    rs.round_open = None
+
+
+def _question_ids(queue: WorkQueue) -> list[str]:
+    return [question.question_id for question in queue.decision_gaps]
+
+
+def _requirement_ids(queue: WorkQueue) -> list[str]:
+    return [requirement.requirement_id for requirement in queue.evidence_gaps]
+
+
 def route(queue: WorkQueue, run) -> str:
     """The convergence policy (see the module docstring): the next stage for
-    this queue, deferring any gap whose class budget is spent."""
+    this queue, deferring any gap whose class may not take another round."""
 
     if queue.clarification:
         queue.route = "clarification"
-    elif queue.decision_gaps and run.allows("adjudication"):
+    elif queue.decision_gaps and may_run_round(run, "adjudication", _question_ids(queue)):
         queue.route = "adjudication"
     else:
         queue.deferred_decisions = list(queue.decision_gaps)
-        if queue.evidence_gaps and run.allows("gap_probe"):
+        if queue.evidence_gaps and may_run_round(run, "gap_probe", _requirement_ids(queue)):
             queue.route = "gap_probe"
         else:
             queue.deferred_evidence = list(queue.evidence_gaps)
@@ -173,10 +271,18 @@ def blocked_findings(blocked_targets) -> list[Finding]:
         cascade = blocked.get("cascade")
         if cascade and len(cascade["chain"]) > 1:
             cause = cascade["cause"]
-            reasons.append(
-                f"because {' <- '.join(repr(n) for n in cascade['chain'])}: '{cause['entity']}' needs at least {cause['minimum']} "
-                f"'{cause['relationship_type_key']}' -> {cause['counterpart_type_key']}, and the evidence identifies {cause['evidenced']}"
-            )
+            needs = (f"'{cause['entity']}' needs at least {cause['minimum']} '{cause['relationship_type_key']}' -> "
+                     f"{cause['counterpart_type_key']}")
+            if cause.get("pending_decision"):
+                why = (f"the evidence relates it to {cause['evidenced']}, but which model relationship that wording means is "
+                       f"undecided ({_pending_reason(cause['pending_decision'])})")
+            elif cause.get("unresolved_ambiguity"):
+                why = f"which {cause['counterpart_type_key']} the evidence means could not be resolved"
+            elif cause.get("constraint_conflict"):
+                why = f"the evidence relates it to more {cause['counterpart_type_key']}s than the model allows"
+            else:
+                why = f"the evidence identifies {cause['evidenced']}"
+            reasons.append(f"because {' <- '.join(repr(n) for n in cascade['chain'])}: {needs}, and {why}")
         if blocked["reason"] == "clarification":
             reasons.append("the evidence allows more than one candidate")
         detail = "; ".join(reasons) or "a required related entity is not identified by the evidence"
@@ -192,6 +298,7 @@ class AnalysisStage(DeterministicStage):
         state = run.state
         rs = state.reconcile
         state.index = SemanticModelIndex.load(run.model)
+        close_round(rs)
 
         analysis = run_analysis(rs, index=state.index, bundle=run.bundle)
         rs.analysis = analysis
@@ -200,6 +307,10 @@ class AnalysisStage(DeterministicStage):
         rs.work_queue = queue
         if next_stage == "clarification":
             return Finish(OperationOutcome.NEEDS_USER_CLARIFICATION, explanation=analysis.clarification)
+        if next_stage == "adjudication":
+            open_round(rs, next_stage, _question_ids(queue))
+        elif next_stage == "gap_probe":
+            open_round(rs, next_stage, _requirement_ids(queue))
         for question in queue.deferred_decisions:
             # Not a pin and not a claim: the decision stays undecided.
             analysis.ledger.coverage(f"open:{question.question_id}", step=ADJUDICATION, basis="budget",

@@ -1,0 +1,28 @@
+{
+ "kind": "provider",
+ "run_id": "3f801647-15b1-44cc-91da-838be08122dd",
+ "sequence": 13,
+ "stage": "gap_probe_correction",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [],
+   "assertions": [],
+   "facts": []
+  },
+  "verdicts": []
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [
+   "A3001",
+   "A3002",
+   "A3003",
+   "A3004"
+  ],
+  "requirements": []
+ }
+}

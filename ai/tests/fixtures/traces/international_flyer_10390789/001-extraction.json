@@ -1,0 +1,803 @@
+{
+ "kind": "provider",
+ "run_id": "10390789-977a-4768-8b61-210cd77b08f7",
+ "sequence": 1,
+ "stage": "extraction",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.0",
+  "intent_frame": {
+   "restated_intent": "The user wants to add the venues and stages listed in the flyer to their model, and to create any associated relationships based on the information available.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venues",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues ... listed in the flyer"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stages",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "add the ... stages listed in the flyer"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [
+    {
+     "eid": "E1",
+     "name": "Pool A",
+     "aliases": [],
+     "type_label": "Pool",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E2",
+     "name": "New Zealand",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E3",
+     "name": "Fiji",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E4",
+     "name": "Japan",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E5",
+     "name": "Samoa",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E6",
+     "name": "Pool B",
+     "aliases": [],
+     "type_label": "Pool",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E7",
+     "name": "Australia",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E8",
+     "name": "Argentina",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E9",
+     "name": "South Africa",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E10",
+     "name": "Tonga",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": "team",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E11",
+     "name": "Quarter-finals",
+     "aliases": [],
+     "type_label": "Quarter-finals",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Quarter-finals:\nThe top two teams from each pool qualify. Pool A winner plays Pool B runner-up and vice versa.",
+       "segment_id": "S1#8",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E12",
+     "name": "Semi-finals",
+     "aliases": [],
+     "type_label": "Semi-finals",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Semi-finals:\nQuarter-final winners progress to two semi-finals.",
+       "segment_id": "S1#9",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E13",
+     "name": "Final",
+     "aliases": [],
+     "type_label": "Final",
+     "type_hint": "stage",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "- Final:\nThe two semi-final winners play for the championship at Eden Park, Auckland.",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E14",
+     "name": "Eden Park",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final",
+       "segment_id": "S1#t2.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E15",
+     "name": "Sky Stadium",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Sky Stadium | Wellington, New Zealand | Pool and quarter-final matches",
+       "segment_id": "S1#t2.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E16",
+     "name": "Forsyth Barr Stadium",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Forsyth Barr Stadium | Dunedin, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E17",
+     "name": "FMG Stadium Waikato",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "FMG Stadium Waikato | Hamilton, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E18",
+     "name": "McLean Park",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "McLean Park | Napier, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E19",
+     "name": "Orangetheory Stadium",
+     "aliases": [],
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A1",
+     "subject_eid": "E2",
+     "predicate": "is in pool",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A2",
+     "subject_eid": "E3",
+     "predicate": "is in pool",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A3",
+     "subject_eid": "E4",
+     "predicate": "is in pool",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A4",
+     "subject_eid": "E5",
+     "predicate": "is in pool",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A5",
+     "subject_eid": "E7",
+     "predicate": "is in pool",
+     "object_eid": "E6",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A6",
+     "subject_eid": "E8",
+     "predicate": "is in pool",
+     "object_eid": "E6",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A7",
+     "subject_eid": "E9",
+     "predicate": "is in pool",
+     "object_eid": "E6",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A8",
+     "subject_eid": "E10",
+     "predicate": "is in pool",
+     "object_eid": "E6",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#1",
+    "reason": "Heading only; does not itself state anything about venues or stages."
+   },
+   {
+    "segment_id": "S1#3",
+    "reason": "Heading only; does not itself state anything about venues or stages."
+   },
+   {
+    "segment_id": "S1#4",
+    "reason": "General tournament description, mentions stages and venues only as concepts, but doesn't state specific entities beyond what is extracted elsewhere."
+   },
+   {
+    "segment_id": "S1#5",
+    "reason": "Heading only; does not itself state anything about venues or stages."
+   },
+   {
+    "segment_id": "S1#t1",
+    "reason": "Table segment's text is a column header or empty; not itself a statement."
+   },
+   {
+    "segment_id": "S1#6",
+    "reason": "Heading only; does not itself state anything about venues or stages."
+   },
+   {
+    "segment_id": "S1#7",
+    "reason": "Competition format summary, describes structure but does not name venues or unique stages outside what is already extracted."
+   },
+   {
+    "segment_id": "S1#8",
+    "reason": "Competition format summary, describes quarter-finals as a stage, which is extracted elsewhere; does not itself name venues."
+   },
+   {
+    "segment_id": "S1#9",
+    "reason": "Competition format summary, describes semi-finals as a stage, which is extracted elsewhere; does not itself name venues."
+   },
+   {
+    "segment_id": "S1#10",
+    "reason": "Competition format summary, describes final as a stage and Eden Park as its venue, both extracted from other structured segments."
+   },
+   {
+    "segment_id": "S1#11",
+    "reason": "Heading only; does not itself state anything about venues or stages."
+   },
+   {
+    "segment_id": "S1#12",
+    "reason": "Describes rules for pool standings, without stating specific venues or additional stage names."
+   },
+   {
+    "segment_id": "S1#13",
+    "reason": "Describes progression in knockout matches, but does not name additional venues or stages beyond those already extracted."
+   },
+   {
+    "segment_id": "S1#14",
+    "reason": "Heading only; does not itself state anything about venues or stages."
+   },
+   {
+    "segment_id": "S1#15",
+    "reason": "Heading only; does not itself state anything about venues or stages."
+   },
+   {
+    "segment_id": "S1#t2",
+    "reason": "Table header; not itself a statement."
+   },
+   {
+    "segment_id": "S1#t2.r1",
+    "reason": "Venue entity extracted separately."
+   },
+   {
+    "segment_id": "S1#t2.r2",
+    "reason": "Venue entity extracted separately."
+   },
+   {
+    "segment_id": "S1#t2.r3",
+    "reason": "Venue entity extracted separately."
+   },
+   {
+    "segment_id": "S1#t2.r4",
+    "reason": "Venue entity extracted separately."
+   },
+   {
+    "segment_id": "S1#t2.r5",
+    "reason": "Venue entity extracted separately."
+   },
+   {
+    "segment_id": "S1#t2.r6",
+    "reason": "Venue entity extracted separately."
+   },
+   {
+    "segment_id": "S1#t3",
+    "reason": "Table header, not itself a statement."
+   },
+   {
+    "segment_id": "S1#t3.r1",
+    "reason": "Example of fixtures, not supporting new venue or stage entities beyond those already extracted."
+   },
+   {
+    "segment_id": "S1#t3.r2",
+    "reason": "Example of fixtures, not supporting new venue or stage entities beyond those already extracted."
+   },
+   {
+    "segment_id": "S1#t3.r3",
+    "reason": "Example of fixtures, not supporting new venue or stage entities beyond those already extracted."
+   },
+   {
+    "segment_id": "S1#t3.r4",
+    "reason": "Example of fixtures, not supporting new venue or stage entities beyond those already extracted."
+   },
+   {
+    "segment_id": "S1#t4",
+    "reason": "Table header, not itself a statement."
+   },
+   {
+    "segment_id": "S1#t4.r1",
+    "reason": "Example of fixtures, not supporting new venue or stage entities beyond those already extracted."
+   },
+   {
+    "segment_id": "S1#t4.r2",
+    "reason": "Example of fixtures, not supporting new venue or stage entities beyond those already extracted."
+   },
+   {
+    "segment_id": "S1#16",
+    "reason": "Heading only; does not itself state anything about venues or stages."
+   },
+   {
+    "segment_id": "S1#17",
+    "reason": "States number of teams, not venues or stages."
+   },
+   {
+    "segment_id": "S1#18",
+    "reason": "States number of pool matches, not venues or stages."
+   },
+   {
+    "segment_id": "S1#19",
+    "reason": "States pool size, not venues or stages."
+   },
+   {
+    "segment_id": "S1#20",
+    "reason": "States number of quarter-finalists, not venues or stages."
+   },
+   {
+    "segment_id": "S1#21",
+    "reason": "States number of semi-finalists, not venues or stages."
+   },
+   {
+    "segment_id": "S1#22",
+    "reason": "States number of finalists, not venues or stages."
+   },
+   {
+    "segment_id": "S1#23",
+    "reason": "States who the champion is; does not reference venues or stages directly."
+   },
+   {
+    "segment_id": "S1#24",
+    "reason": "Disclaimer; does not state information about venues or stages."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": []
+ },
+ "provider_model": "gpt-4.1-2025-04-14"
+}

@@ -1,0 +1,52 @@
+{
+ "kind": "provider",
+ "run_id": "10390789-977a-4768-8b61-210cd77b08f7",
+ "sequence": 11,
+ "stage": "adjudication",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "predicate_mapping:stage_of:stage:tournament",
+    "option_id": "has_stage:converse",
+    "citations": [
+     {
+      "segment_id": "S1#t1.r1",
+      "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+     },
+     {
+      "segment_id": "S1#t1.r2",
+      "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+     },
+     {
+      "segment_id": "S1#t4.r1",
+      "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium"
+     },
+     {
+      "segment_id": "S1#9",
+      "excerpt": "- Semi-finals:\nQuarter-final winners progress to two semi-finals."
+     },
+     {
+      "segment_id": "S1#10",
+      "excerpt": "- Final:\nThe two semi-final winners play for the championship at Eden Park, Auckland."
+     },
+     {
+      "segment_id": "S1#1",
+      "excerpt": "PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027"
+     }
+    ],
+    "excerpt": "The evidence refers to stages such as 'Pool A', 'Pool B', 'Quarter-final', 'Semi-finals', and 'Final' as parts of 'PACIFIC INTERNATIONAL RUGBY CHAMPIONSHIP 2027', implying that the tournament has these stages.",
+    "note": "The description of pools, quarter-finals, semi-finals, and final as elements within the tournament context supports the 'tournament has stage' relationship."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "predicate_mapping:stage_of:stage:tournament"
+  ]
+ }
+}

@@ -1,0 +1,268 @@
+{
+ "kind": "provider",
+ "run_id": "286357bd-f919-414c-8536-849298c594a7",
+ "sequence": 4,
+ "stage": "extraction_correction",
+ "attempt": 3,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.0",
+  "intent_frame": {
+   "restated_intent": "The user wants to add the venues and stages listed in the flyer and create relevant relationships shown in the evidence.",
+   "targets": [],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [],
+   "assertions": [
+    {
+     "aid": "A7",
+     "subject_eid": "E5",
+     "predicate": "is played at",
+     "object_eid": "E6",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "explicit",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "The two semi-final winners play for the championship at Eden Park, Auckland.",
+       "segment_id": "S1#10",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "a1",
+     "subject_eid": "E12",
+     "predicate": "played at",
+     "object_eid": "E6",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Venue | Location | Primary use",
+       "segment_id": "S1#t2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final",
+       "segment_id": "S1#t2.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "a2",
+     "subject_eid": "E13",
+     "predicate": "played at",
+     "object_eid": "E7",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Stage | Match | Venue",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Japan v Samoa | Sky Stadium",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A9",
+     "subject_eid": "E14",
+     "predicate": "played at",
+     "object_eid": "E8",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Stage | Match | Venue",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Australia v Argentina | Forsyth Barr Stadium",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A10",
+     "subject_eid": "E15",
+     "predicate": "played at",
+     "object_eid": "E9",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Stage | Match | Venue",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "South Africa v Tonga | FMG Stadium Waikato",
+       "segment_id": "S1#t3.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A11",
+     "subject_eid": "E16",
+     "predicate": "played at",
+     "object_eid": "E11",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Stage | Match | Venue",
+       "segment_id": "S1#t4",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A winner v Pool B runner-up | Orangetheory Stadium",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A12",
+     "subject_eid": "E17",
+     "predicate": "played at",
+     "object_eid": "E7",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Stage | Match | Venue",
+       "segment_id": "S1#t4",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B winner v Pool A runner-up | Sky Stadium",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "dismissed_segments": [],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": [
+   {
+    "message": "Corrected evidentiary provenance in all relationship assertions to cite the segments containing both relevant entity names or, for structural claims, the table header and row explicitly naming them together.",
+    "severity": "info"
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [
+   "A7",
+   "a1",
+   "a2",
+   "A9",
+   "A10",
+   "A11",
+   "A12"
+  ],
+  "frame": [],
+  "segments": []
+ }
+}

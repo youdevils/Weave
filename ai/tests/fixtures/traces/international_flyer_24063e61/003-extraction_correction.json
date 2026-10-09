@@ -1,0 +1,225 @@
+{
+ "kind": "provider",
+ "run_id": "24063e61-e45c-44e2-8dd0-c2fdf31172f7",
+ "sequence": 3,
+ "stage": "extraction_correction",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.0",
+  "intent_frame": {
+   "restated_intent": "The user wants to add to the model all the venues and stages listed in the flyer, along with any relationships that the information states should exist among these, such as which venues are used for which stages.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "venue",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "stage",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "stages listed in the flyer"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [],
+   "assertions": [
+    {
+     "aid": "A1",
+     "subject_eid": "E9",
+     "predicate": "Primary use",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Venue | Location | Primary use",
+       "segment_id": "S1#t2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "FMG Stadium Waikato | Hamilton, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A2",
+     "subject_eid": "E10",
+     "predicate": "Primary use",
+     "object_eid": "E1",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Venue | Location | Primary use",
+       "segment_id": "S1#t2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "McLean Park | Napier, New Zealand | Pool matches",
+       "segment_id": "S1#t2.r5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A3",
+     "subject_eid": "E11",
+     "predicate": "Primary use",
+     "object_eid": "E3",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Venue | Location | Primary use",
+       "segment_id": "S1#t2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A4",
+     "subject_eid": "E11",
+     "predicate": "Primary use",
+     "object_eid": "E4",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Venue | Location | Primary use",
+       "segment_id": "S1#t2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium | Christchurch, New Zealand | Quarter-final and semi-final matches",
+       "segment_id": "S1#t2.r6",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#t3.r1",
+    "reason": "Lists a match fixture (New Zealand v Fiji at Eden Park in Pool A), which describes a specific match rather than a new venue or stage, and doesn't provide further venue or stage information beyond what is already modeled."
+   },
+   {
+    "segment_id": "S1#t3.r2",
+    "reason": "Lists a match fixture (Japan v Samoa at Sky Stadium in Pool A), which describes a specific match rather than a new venue or stage, and doesn't provide further venue or stage information beyond what is already modeled."
+   },
+   {
+    "segment_id": "S1#t3.r3",
+    "reason": "Lists a match fixture (Australia v Argentina at Forsyth Barr Stadium in Pool B), which describes a specific match rather than a new venue or stage, and doesn't provide further venue or stage information beyond what is already modeled."
+   },
+   {
+    "segment_id": "S1#t3.r4",
+    "reason": "Lists a match fixture (South Africa v Tonga at FMG Stadium Waikato in Pool B), which describes a specific match rather than a new venue or stage, and doesn't provide further venue or stage information beyond what is already modeled."
+   },
+   {
+    "segment_id": "S1#t4.r1",
+    "reason": "Lists a match fixture (Quarter-final: Pool A winner v Pool B runner-up at Orangetheory Stadium), which does not introduce a new venue or stage beyond what is already modeled, and only links existing stages and venues by an example match."
+   },
+   {
+    "segment_id": "S1#t4.r2",
+    "reason": "Lists a match fixture (Quarter-final: Pool B winner v Pool A runner-up at Sky Stadium), which does not introduce a new venue or stage beyond what is already modeled, and only links existing stages and venues by an example match."
+   },
+   {
+    "segment_id": "S1#23",
+    "reason": "States who is champion/winner (Winner of the final); provides no explicit information about venues or stages beyond what is already modeled."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": [
+   {
+    "message": "Structural relationships were extracted between several venues and stages based on table entries specifying primary usage for Pool matches, Quarter-finals, and Semifinals.",
+    "severity": "info"
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [],
+  "frame": [],
+  "segments": [
+   "S1#t2.r4",
+   "S1#t2.r5",
+   "S1#t2.r6",
+   "S1#t3.r1",
+   "S1#t3.r2",
+   "S1#t3.r3",
+   "S1#t3.r4",
+   "S1#t4.r1",
+   "S1#t4.r2",
+   "S1#23"
+  ]
+ }
+}

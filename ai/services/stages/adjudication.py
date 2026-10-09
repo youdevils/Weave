@@ -14,12 +14,14 @@ its question's options and (unless "undecidable") rests on verbatim text:
 and a data row are two citations), or `excerpt` quotes the intent. A valid
 answer is pinned and honoured by every later recomputation. An invalid one is
 re-asked alone, once, in a correction call (its own budget,
-`adjudication_correction`: a correction never consumes a round); a second
-failure records `rejected_answer` -- not a claim, never re-asked, never a
-basis for anything (ambiguity preserved, nothing forced).
+`adjudication_correction`, counted per round: a correction never consumes a
+round, and an earlier round's correction never spends a later round's); a
+second failure records `rejected_answer` -- not a claim, never re-asked,
+never a basis for anything (ambiguity preserved, nothing forced).
 
 The workflow re-enters this stage whenever a later analysis has new open
-questions (a probe's or a reviewer's claims raise them) and a round is left.
+questions (a probe's or a reviewer's claims raise them) and the class may
+take another round (progress-driven: ai.services.stages.reconcile_steps).
 """
 
 from __future__ import annotations
@@ -33,6 +35,7 @@ from ai.services.reconcile import questions as q
 from ai.services.reconcile.responses import AdjudicationResult
 from ai.services.sources import with_ancestors
 from ai.services.stages import prompts
+from ai.services.stages.reconcile_steps import affords_recovery
 from ai.services.workflow.engine import Correct, Goto, Stage
 
 
@@ -51,6 +54,10 @@ def question_segments(question, analysis) -> list[str]:
 
     graph, found = analysis.graph, []
     for subject in question.subject_ids:
+        if subject in getattr(analysis, "reading_segments", {}):
+            # A Reading question: the table / heading / rows its slot reads.
+            found += [s for s in analysis.reading_segments[subject] if s not in found]
+            continue
         item = graph.entity(subject) or graph.assertion(subject) or graph.fact(subject)
         if item is not None:
             provenance = item.provenance
@@ -72,6 +79,11 @@ def answer_issue(question_id, option_id, options, *, citations=(), excerpt="", b
                      item_id=question_id)
     if option_id in exempt:
         return None
+    # A heading-less table's own segment has no text: quoting it verbatim ("")
+    # is faithful, but supports nothing -- it neither counts nor fails.
+    citations = [c for c in citations
+                 if not (bundle.segment(c.segment_id) is not None and not bundle.segment(c.segment_id).text.strip()
+                         and not (c.excerpt or "").strip())]
     for citation in citations:
         segment = bundle.segment(citation.segment_id)
         if segment is None:
@@ -160,7 +172,7 @@ class AdjudicationStage(Stage):
             else:
                 rs.question_failures.add(found.item_id)
                 retry.append(found)
-        if retry and run.allows(self.stage_id, correction=True):
+        if retry and run.allows(self.stage_id, correction=True) and affords_recovery(run):
             rs.reask_questions = [questions[i.item_id] for i in retry if i.item_id in questions]
             return Correct(retry)
         for found in retry:

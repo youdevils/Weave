@@ -1,0 +1,45 @@
+{
+ "kind": "provider",
+ "run_id": "286357bd-f919-414c-8536-849298c594a7",
+ "sequence": 6,
+ "stage": "adjudication",
+ "attempt": 1,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "indirect_classification:A8",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#10",
+      "excerpt": "The two semi-final winners play for the championship at Eden Park, Auckland."
+     }
+    ],
+    "excerpt": "",
+    "note": "The evidence refers to a match in which two semi-final winners play for the championship, but does not name the match explicitly as 'Final.'"
+   },
+   {
+    "question_id": "indirect_classification:A7",
+    "option_id": "refers_to_intermediate",
+    "citations": [
+     {
+      "segment_id": "S1#10",
+      "excerpt": "The two semi-final winners play for the championship at Eden Park, Auckland."
+     }
+    ],
+    "excerpt": "",
+    "note": "The evidence describes a match between the two semi-final winners for the championship at a specific venue, but does not state a direct relationship between a match named 'Final' and Eden Park."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "indirect_classification:A8",
+   "indirect_classification:A7"
+  ]
+ }
+}

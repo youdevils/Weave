@@ -1,0 +1,22 @@
+{
+  "document": "notes.txt (ai.tests.test_reconcile_resilience.TEXT)",
+  "description": "The generic depth chain site -> region -> country -> bloc -> council, each kind requiring the next (object minimum 1), stated one sentence per link. Intent: add the sites, with everything they need. Every link must compile; nothing beyond the chain may be invented.",
+  "required_objects": [
+    {"id": "site:north_depot", "type": "site", "names": ["North Depot"]},
+    {"id": "region:highland", "type": "region", "names": ["Highland Region"]},
+    {"id": "country:freedonia", "type": "country", "names": ["Freedonia"]},
+    {"id": "bloc:northern", "type": "bloc", "names": ["Northern Bloc", "the Northern Bloc"]},
+    {"id": "council:bloc_council", "type": "council", "names": ["Bloc Council", "the Bloc Council"]}
+  ],
+  "required_relationships": [
+    {"id": "located_in", "type": "located_in", "subject": ["North Depot"], "object": ["Highland Region"]},
+    {"id": "part_of", "type": "part_of", "subject": ["Highland Region"], "object": ["Freedonia"]},
+    {"id": "member_of", "type": "member_of", "subject": ["Freedonia"], "object": ["Northern Bloc", "the Northern Bloc"]},
+    {"id": "governed_by", "type": "governed_by", "subject": ["Northern Bloc", "the Northern Bloc"], "object": ["Bloc Council", "the Bloc Council"]}
+  ],
+  "required_blocked": [],
+  "forbidden_objects": [
+    {"id": "forbidden:invented_sites", "type": "site", "names": ["Sites", "Highland Region", "Freedonia"]}
+  ],
+  "forbidden_relationships": []
+}

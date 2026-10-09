@@ -1,0 +1,209 @@
+{
+ "kind": "provider",
+ "run_id": "10390789-977a-4768-8b61-210cd77b08f7",
+ "sequence": 17,
+ "stage": "gap_probe",
+ "attempt": 3,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.0",
+  "claims": {
+   "entities": [
+    {
+     "eid": "E22",
+     "name": "New Zealand",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "New Zealand v Fiji",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E23",
+     "name": "Fiji",
+     "aliases": [],
+     "type_label": "Team",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "New Zealand v Fiji",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "eid": "E24",
+     "name": "Pool A",
+     "aliases": [],
+     "type_label": "Stage",
+     "type_hint": null,
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand v Fiji | Eden Park",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A200",
+     "subject_eid": "E22",
+     "predicate": "has team",
+     "object_eid": "E21",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Stage | Match | Venue",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand v Fiji | Eden Park",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A201",
+     "subject_eid": "E23",
+     "predicate": "has team",
+     "object_eid": "E21",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Stage | Match | Venue",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand v Fiji | Eden Park",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    },
+    {
+     "aid": "A202",
+     "subject_eid": "E21",
+     "predicate": "stage of",
+     "object_eid": "E24",
+     "relationship_type_hint": null,
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Stage | Match | Venue",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand v Fiji | Eden Park",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "probe"
+    }
+   ],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E21:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [
+     "A200",
+     "A201"
+    ],
+    "candidate_eids": [],
+    "note": "Both 'New Zealand' and 'Fiji' (Team) are implicitly identified as participants in the match 'New Zealand v Fiji' in the table row."
+   },
+   {
+    "requirement_id": "req:E21:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [
+     "A202"
+    ],
+    "candidate_eids": [],
+    "note": "The table row structurally relates the match 'New Zealand v Fiji' as an instance associated with the stage 'Pool A'."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "requirements": [
+   "req:E21:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E21:828f6641-0dad-42cf-90b9-b0f24f9fefec:object"
+  ]
+ }
+}

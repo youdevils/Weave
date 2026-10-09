@@ -1,0 +1,53 @@
+{
+ "kind": "provider",
+ "run_id": "7f0fcac7-37b0-4677-a00b-1509af4506c6",
+ "sequence": 15,
+ "stage": "adjudication",
+ "attempt": 3,
+ "decision": "advance",
+ "schema": "AdjudicationResult",
+ "output": {
+  "schema_version": "1.0",
+  "answers": [
+   {
+    "question_id": "predicate_mapping:is_a_quarter_final_match_played_at_orangetheory_stadium:match:stage",
+    "option_id": "has_match:converse",
+    "citations": [
+     {
+      "segment_id": "S1#t4",
+      "excerpt": "Stage | Match | Venue"
+     },
+     {
+      "segment_id": "S1#t4.r1",
+      "excerpt": "Quarter-final | Pool A winner v Pool B runner-up | Orangetheory Stadium"
+     }
+    ],
+    "excerpt": "The row lists the stage 'Quarter-final', a specific match, and a venue together, which supports that the stage (Quarter-final) has the named match as part of it (has_match, converse of 'is a match of stage').",
+    "note": ""
+   },
+   {
+    "question_id": "predicate_mapping:is_a_quarter_final_match_played_at_sky_stadium:match:stage",
+    "option_id": "has_match:converse",
+    "citations": [
+     {
+      "segment_id": "S1#t4",
+      "excerpt": "Stage | Match | Venue"
+     },
+     {
+      "segment_id": "S1#t4.r2",
+      "excerpt": "Quarter-final | Pool B winner v Pool A runner-up | Sky Stadium"
+     }
+    ],
+    "excerpt": "The evidence shows that 'Quarter-final' (stage) is associated with the match 'Pool B winner v Pool A runner-up' at Sky Stadium, indicating the stage has this match.",
+    "note": ""
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "questions": [
+   "predicate_mapping:is_a_quarter_final_match_played_at_orangetheory_stadium:match:stage",
+   "predicate_mapping:is_a_quarter_final_match_played_at_sky_stadium:match:stage"
+  ]
+ }
+}

@@ -1,0 +1,578 @@
+{
+ "kind": "provider",
+ "run_id": "286357bd-f919-414c-8536-849298c594a7",
+ "sequence": 3,
+ "stage": "extraction_correction",
+ "attempt": 2,
+ "decision": "advance",
+ "schema": "ExtractionResult",
+ "output": {
+  "schema_version": "1.1",
+  "intent_frame": {
+   "restated_intent": "The user wants to add the venues and stages listed in the flyer to their model and create all associated relationships that are directly supported by the information available.",
+   "targets": [
+    {
+     "target_id": "T1",
+     "type_label": "Venue",
+     "type_hint": "venue",
+     "verb": "add",
+     "excerpt": "add the venues"
+    },
+    {
+     "target_id": "T2",
+     "type_label": "Stage",
+     "type_hint": "stage",
+     "verb": "add",
+     "excerpt": "stages listed in the flyer"
+    }
+   ],
+   "anchors": [],
+   "include_related": true,
+   "include_related_excerpt": "create any relationships that should be associated as well based on the information available"
+  },
+  "evidence": {
+   "entities": [
+    {
+     "eid": "E12",
+     "name": "New Zealand v Fiji",
+     "aliases": [],
+     "type_label": "Match",
+     "type_hint": "match",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "New Zealand v Fiji",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E13",
+     "name": "Japan v Samoa",
+     "aliases": [],
+     "type_label": "Match",
+     "type_hint": "match",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Japan v Samoa",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E14",
+     "name": "Australia v Argentina",
+     "aliases": [],
+     "type_label": "Match",
+     "type_hint": "match",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Australia v Argentina",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E15",
+     "name": "South Africa v Tonga",
+     "aliases": [],
+     "type_label": "Match",
+     "type_hint": "match",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "South Africa v Tonga",
+       "segment_id": "S1#t3.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E16",
+     "name": "Pool A winner v Pool B runner-up",
+     "aliases": [],
+     "type_label": "Match",
+     "type_hint": "match",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A winner v Pool B runner-up",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "eid": "E17",
+     "name": "Pool B winner v Pool A runner-up",
+     "aliases": [],
+     "type_label": "Match",
+     "type_hint": "match",
+     "specificity": "specific",
+     "polarity": "present",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B winner v Pool A runner-up",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "assertions": [
+    {
+     "aid": "A1",
+     "subject_eid": "E12",
+     "predicate": "is in stage",
+     "object_eid": "E1",
+     "relationship_type_hint": "has_match",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "New Zealand v Fiji",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A2",
+     "subject_eid": "E13",
+     "predicate": "is in stage",
+     "object_eid": "E1",
+     "relationship_type_hint": "has_match",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Japan v Samoa",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A3",
+     "subject_eid": "E14",
+     "predicate": "is in stage",
+     "object_eid": "E2",
+     "relationship_type_hint": "has_match",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Australia v Argentina",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A4",
+     "subject_eid": "E15",
+     "predicate": "is in stage",
+     "object_eid": "E2",
+     "relationship_type_hint": "has_match",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "South Africa v Tonga",
+       "segment_id": "S1#t3.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A5",
+     "subject_eid": "E16",
+     "predicate": "is in stage",
+     "object_eid": "E3",
+     "relationship_type_hint": "has_match",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final",
+       "segment_id": "S1#t4",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A winner v Pool B runner-up",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A6",
+     "subject_eid": "E17",
+     "predicate": "is in stage",
+     "object_eid": "E3",
+     "relationship_type_hint": "has_match",
+     "hint_orientation": "converse",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Quarter-final",
+       "segment_id": "S1#t4",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B winner v Pool A runner-up",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A7",
+     "subject_eid": "E12",
+     "predicate": "played at",
+     "object_eid": "E6",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Eden Park",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "New Zealand v Fiji",
+       "segment_id": "S1#t3.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A8",
+     "subject_eid": "E13",
+     "predicate": "played at",
+     "object_eid": "E7",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Sky Stadium",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Japan v Samoa",
+       "segment_id": "S1#t3.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A9",
+     "subject_eid": "E14",
+     "predicate": "played at",
+     "object_eid": "E8",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Forsyth Barr Stadium",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Australia v Argentina",
+       "segment_id": "S1#t3.r3",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A10",
+     "subject_eid": "E15",
+     "predicate": "played at",
+     "object_eid": "E9",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "FMG Stadium Waikato",
+       "segment_id": "S1#t3",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "South Africa v Tonga",
+       "segment_id": "S1#t3.r4",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A11",
+     "subject_eid": "E16",
+     "predicate": "played at",
+     "object_eid": "E11",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Orangetheory Stadium",
+       "segment_id": "S1#t4",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A winner v Pool B runner-up",
+       "segment_id": "S1#t4.r1",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A12",
+     "subject_eid": "E17",
+     "predicate": "played at",
+     "object_eid": "E7",
+     "relationship_type_hint": "played_at",
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": null
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Sky Stadium",
+       "segment_id": "S1#t4",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B winner v Pool A runner-up",
+       "segment_id": "S1#t4.r2",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "dismissed_segments": [
+   {
+    "segment_id": "S1#t2.r3",
+    "reason": "This segment states that 'Forsyth Barr Stadium' is used for pool matches, but does not explicitly name any specific pool or match as a distinct entity to be related."
+   },
+   {
+    "segment_id": "S1#t2.r4",
+    "reason": "This segment states that 'FMG Stadium Waikato' is used for pool matches, but does not explicitly name any specific pool or match entity to be related."
+   },
+   {
+    "segment_id": "S1#t2.r5",
+    "reason": "This segment states that 'McLean Park' is used for pool matches, but does not explicitly name any specific pool or match entity to be related."
+   },
+   {
+    "segment_id": "S1#t2.r6",
+    "reason": "This segment states that 'Orangetheory Stadium' is used for quarter-final and semi-final matches, but does not explicitly name any specific quarter-final or semi-final match entity, only referencing the stage."
+   },
+   {
+    "segment_id": "S1#23",
+    "reason": "This segment states that the winner of the final is the champion but does not mention any venues or stages directly relevant to the user's request."
+   }
+  ],
+  "clarification": {
+   "needed": false,
+   "question": ""
+  },
+  "findings": []
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "items": [],
+  "frame": [],
+  "segments": [
+   "S1#t2.r3",
+   "S1#t2.r4",
+   "S1#t2.r5",
+   "S1#t2.r6",
+   "S1#t3.r1",
+   "S1#t3.r2",
+   "S1#t3.r3",
+   "S1#t3.r4",
+   "S1#t4.r1",
+   "S1#t4.r2",
+   "S1#23"
+  ]
+ }
+}

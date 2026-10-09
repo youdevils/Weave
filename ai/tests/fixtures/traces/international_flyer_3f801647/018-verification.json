@@ -1,0 +1,635 @@
+{
+ "kind": "provider",
+ "run_id": "3f801647-15b1-44cc-91da-838be08122dd",
+ "sequence": 18,
+ "stage": "verification",
+ "attempt": 1,
+ "decision": "finish",
+ "schema": "VerificationResult",
+ "output": {
+  "schema_version": "1.1",
+  "verdict": "approved_with_findings",
+  "objections": [
+   {
+    "objection_id": "info1",
+    "target_kind": "segment",
+    "target_id": "S1#t1.r1",
+    "kind": "missed_evidence",
+    "severity": "info",
+    "message": "Segment S1#t1.r1 lists the teams assigned to Pool A. This is legitimate evidence for team-pool relationships but lies outside the scoped frame (venues and stages), so its omission is not material to this verification, but should be flagged for completeness.",
+    "option_id": null,
+    "evidence": {
+     "entities": [
+      {
+       "eid": "E12",
+       "name": "Pool A",
+       "aliases": [],
+       "type_label": "stage",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "eid": "NZ",
+       "name": "New Zealand",
+       "aliases": [],
+       "type_label": "team",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "eid": "FJ",
+       "name": "Fiji",
+       "aliases": [],
+       "type_label": "team",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "eid": "JP",
+       "name": "Japan",
+       "aliases": [],
+       "type_label": "team",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "eid": "SM",
+       "name": "Samoa",
+       "aliases": [],
+       "type_label": "team",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      }
+     ],
+     "assertions": [
+      {
+       "aid": "A_poolA_NZ",
+       "subject_eid": "E12",
+       "predicate": "has team",
+       "object_eid": "NZ",
+       "relationship_type_hint": null,
+       "hint_orientation": "as_stated",
+       "support": "structural",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        },
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "aid": "A_poolA_FJ",
+       "subject_eid": "E12",
+       "predicate": "has team",
+       "object_eid": "FJ",
+       "relationship_type_hint": null,
+       "hint_orientation": "as_stated",
+       "support": "structural",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        },
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "aid": "A_poolA_JP",
+       "subject_eid": "E12",
+       "predicate": "has team",
+       "object_eid": "JP",
+       "relationship_type_hint": null,
+       "hint_orientation": "as_stated",
+       "support": "structural",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        },
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "aid": "A_poolA_SM",
+       "subject_eid": "E12",
+       "predicate": "has team",
+       "object_eid": "SM",
+       "relationship_type_hint": null,
+       "hint_orientation": "as_stated",
+       "support": "structural",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        },
+        {
+         "source_id": "S1",
+         "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+         "segment_id": "S1#t1.r1",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      }
+     ],
+     "facts": []
+    },
+    "frame_amendment": null,
+    "readings": [],
+    "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa"
+   },
+   {
+    "objection_id": "info2",
+    "target_kind": "segment",
+    "target_id": "S1#t1.r2",
+    "kind": "missed_evidence",
+    "severity": "info",
+    "message": "Segment S1#t1.r2 lists the teams for Pool B. As with Pool A, this is outside the current user intent and not a material objection, but should be noted for completeness.",
+    "option_id": null,
+    "evidence": {
+     "entities": [
+      {
+       "eid": "E13",
+       "name": "Pool B",
+       "aliases": [],
+       "type_label": "stage",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "eid": "AU",
+       "name": "Australia",
+       "aliases": [],
+       "type_label": "team",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "eid": "AR",
+       "name": "Argentina",
+       "aliases": [],
+       "type_label": "team",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "eid": "SA",
+       "name": "South Africa",
+       "aliases": [],
+       "type_label": "team",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "eid": "TG",
+       "name": "Tonga",
+       "aliases": [],
+       "type_label": "team",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      }
+     ],
+     "assertions": [
+      {
+       "aid": "A_poolB_AU",
+       "subject_eid": "E13",
+       "predicate": "has team",
+       "object_eid": "AU",
+       "relationship_type_hint": null,
+       "hint_orientation": "as_stated",
+       "support": "structural",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        },
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "aid": "A_poolB_AR",
+       "subject_eid": "E13",
+       "predicate": "has team",
+       "object_eid": "AR",
+       "relationship_type_hint": null,
+       "hint_orientation": "as_stated",
+       "support": "structural",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        },
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "aid": "A_poolB_SA",
+       "subject_eid": "E13",
+       "predicate": "has team",
+       "object_eid": "SA",
+       "relationship_type_hint": null,
+       "hint_orientation": "as_stated",
+       "support": "structural",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        },
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      },
+      {
+       "aid": "A_poolB_TG",
+       "subject_eid": "E13",
+       "predicate": "has team",
+       "object_eid": "TG",
+       "relationship_type_hint": null,
+       "hint_orientation": "as_stated",
+       "support": "structural",
+       "polarity": "present",
+       "qualifiers": {
+        "as_of": null,
+        "valid_from": null,
+        "valid_to": null,
+        "context": null
+       },
+       "modality": "stated",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        },
+        {
+         "source_id": "S1",
+         "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+         "segment_id": "S1#t1.r2",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      }
+     ],
+     "facts": []
+    },
+    "frame_amendment": null,
+    "readings": [],
+    "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga"
+   },
+   {
+    "objection_id": "info3",
+    "target_kind": "segment",
+    "target_id": "S1#t2.r1",
+    "kind": "missed_evidence",
+    "severity": "info",
+    "message": "Venue 'Eden Park' is stated as hosting the opening match and final (S1#t2.r1). The existing model already blocks further extraction as it does not state the specific match or stage relationships, but this is a flag for context awareness.",
+    "option_id": null,
+    "evidence": {
+     "entities": [
+      {
+       "eid": "E5",
+       "name": "Eden Park",
+       "aliases": [],
+       "type_label": "venue",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final",
+         "segment_id": "S1#t2.r1",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      }
+     ],
+     "assertions": [],
+     "facts": []
+    },
+    "frame_amendment": null,
+    "readings": [],
+    "excerpt": "Eden Park | Auckland, New Zealand | Opening match and final"
+   },
+   {
+    "objection_id": "info4",
+    "target_kind": "segment",
+    "target_id": "S1#t2.r3",
+    "kind": "missed_evidence",
+    "severity": "info",
+    "message": "Venue 'Forsyth Barr Stadium' is listed as hosting 'Pool matches' in S1#t2.r3. Matches and their assignments are sufficiently handled by explicit fixture rows elsewhere.",
+    "option_id": null,
+    "evidence": {
+     "entities": [
+      {
+       "eid": "E7",
+       "name": "Forsyth Barr Stadium",
+       "aliases": [],
+       "type_label": "venue",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "Forsyth Barr Stadium | Dunedin, New Zealand | Pool matches",
+         "segment_id": "S1#t2.r3",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      }
+     ],
+     "assertions": [],
+     "facts": []
+    },
+    "frame_amendment": null,
+    "readings": [],
+    "excerpt": "Forsyth Barr Stadium | Dunedin, New Zealand | Pool matches"
+   },
+   {
+    "objection_id": "info5",
+    "target_kind": "segment",
+    "target_id": "S1#t2.r4",
+    "kind": "missed_evidence",
+    "severity": "info",
+    "message": "Venue 'FMG Stadium Waikato' is listed as hosting 'Pool matches' in S1#t2.r4. Explicit match-venue assignments are handled elsewhere, so flag for context only.",
+    "option_id": null,
+    "evidence": {
+     "entities": [
+      {
+       "eid": "E8",
+       "name": "FMG Stadium Waikato",
+       "aliases": [],
+       "type_label": "venue",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "FMG Stadium Waikato | Hamilton, New Zealand | Pool matches",
+         "segment_id": "S1#t2.r4",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      }
+     ],
+     "assertions": [],
+     "facts": []
+    },
+    "frame_amendment": null,
+    "readings": [],
+    "excerpt": "FMG Stadium Waikato | Hamilton, New Zealand | Pool matches"
+   },
+   {
+    "objection_id": "info6",
+    "target_kind": "segment",
+    "target_id": "S1#t2.r5",
+    "kind": "missed_evidence",
+    "severity": "info",
+    "message": "Venue 'McLean Park' is listed as hosting 'Pool matches' in S1#t2.r5. Assignments to specific matches are not included in the frame requirements.",
+    "option_id": null,
+    "evidence": {
+     "entities": [
+      {
+       "eid": "E9",
+       "name": "McLean Park",
+       "aliases": [],
+       "type_label": "venue",
+       "type_hint": null,
+       "specificity": "specific",
+       "polarity": "present",
+       "provenance": [
+        {
+         "source_id": "S1",
+         "excerpt": "McLean Park | Napier, New Zealand | Pool matches",
+         "segment_id": "S1#t2.r5",
+         "locator": null
+        }
+       ],
+       "origin": "verifier"
+      }
+     ],
+     "assertions": [],
+     "facts": []
+    },
+    "frame_amendment": null,
+    "readings": [],
+    "excerpt": "McLean Park | Napier, New Zealand | Pool matches"
+   }
+  ],
+  "summary": "The model correctly blocks the intent targets (venues and stages and their relationships) due to insufficient evidence for fully mapping each as currently required (e.g., not every venue has a directly-evidenced match assignment for this frame). However, several items of team-pool assignment and venue-pool-match generalization are present in the evidence but excluded from the projected result, which is acceptable for the current frame but should be noted for completeness. All missed evidence is non-material for this specific verification, and the model decisions about blocking and relational extraction follow the evidence contract."
+ },
+ "provider_model": "gpt-4.1-2025-04-14"
+}

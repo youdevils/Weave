@@ -24,15 +24,34 @@ optional explanation call. Nothing here branches on operation id.
 
 Budgets (all logical provider calls, never transport retries), one per
 class of work so a stage may be revisited without one class starving another:
-    stage_budgets[stage]  -- the stage's rounds for the whole run
+    stage_budgets[stage]  -- the stage's rounds for the whole run; None = no
+                             per-stage cap (bounded by total_budget and the
+                             workflow's own progress rule)
     stage_budgets["<stage>_correction"]
                           -- when declared, a Correct re-ask of that stage is
                              charged here instead of to its rounds (a
                              correction never consumes a round)
+    scoped_budgets[key]   -- makes `key`'s budget count per SCOPE instead of
+                             per run (see below)
     total_budget          -- hard backstop on all workflow-stage calls
     explanation_budget    -- the terminal explain() call, OUTSIDE total_budget
 so the absolute per-run ceiling is total_budget + explanation_budget, and
 every edge of every stage graph consumes from a finite budget.
+
+Scoped budgets give each unit of new work its own correction opportunity, so
+earlier work can never consume a later round's chance to be corrected:
+    scoped_budgets[key] = "<opener stage>"
+                          -- every round of the opener (a non-correction call
+                             charged to the opener's own key) opens a fresh
+                             scope for `key`
+    scoped_budgets[key] = None
+                          -- the stage opens scopes itself (open_scope); a key
+                             never opened starts with a fresh scope
+A call is charged to exactly one budget key (plus total_budget): an opener
+round to its own key, never to the scope it opens. The opener resets its
+scopes after it is charged and BEFORE its output is evaluated, so the
+correction its evaluation may ask for always finds the allowance unused. A
+correction is charged to its scope and never reopens it.
 """
 
 from __future__ import annotations
@@ -53,7 +72,7 @@ from ai.services.execution import AIExecutionService
 from ai.services.feedback import AIIssue, bounded_issues
 from ai.services.provider import ProviderConfig, ProviderError, ProviderSchemaError
 from ai.services.result_schema import ExecutionStatus, OperationOutcome
-from ai.services.tracing import reconcile_snapshot, trace_active, write_step
+from ai.services.tracing import call_sizes, compact_snapshot, reconcile_snapshot, trace_active, write_step
 
 logger = logging.getLogger("ai.workflow")
 
@@ -150,9 +169,12 @@ class DeterministicStage(ABC):
 class WorkflowDefinition:
     stages: dict[str, Stage]
     first_stage: str
-    stage_budgets: dict[str, int]
+    stage_budgets: dict[str, Optional[int]]
     total_budget: int
     explanation_budget: int
+    # budget key -> the stage whose rounds open its scopes, or None when the
+    # stage opens them itself (WorkflowRun.open_scope). See the module docstring.
+    scoped_budgets: dict[str, Optional[str]] = field(default_factory=dict)
 
 
 class BudgetExhausted(Exception):
@@ -177,6 +199,8 @@ class WorkflowRun:
     should_commit: Optional[Callable[[], bool]] = None
     state: WorkflowState = field(default_factory=WorkflowState)
     stage_calls: dict[str, int] = field(default_factory=dict)
+    # Calls charged to each scoped budget key in its current scope.
+    scope_calls: dict[str, int] = field(default_factory=dict)
     stage_corrections: dict[str, int] = field(default_factory=dict)
     workflow_calls: int = 0
     explanation_calls: int = 0
@@ -188,6 +212,9 @@ class WorkflowRun:
     # e.g. ai.services.stages.extraction.correction_anchors -- with its own
     # eventual <seq>-<stage>.json before the provider has even been called).
     current_sequence: int = 0
+    # The Decision Ledger the last traced deterministic step wrote (or diffed
+    # to) -- what the next one is written as a delta against (tracing only).
+    trace_ledger: Optional[dict] = None
 
     # -- budgets -------------------------------------------------------------
 
@@ -204,10 +231,17 @@ class WorkflowRun:
 
     def allows(self, stage_id: str, correction: bool = False) -> bool:
         key = self.budget_key(stage_id, correction)
-        return (
-            self.stage_calls.get(key, 0) < self.definition.stage_budgets.get(key, 0)
-            and self.workflow_calls < self.definition.total_budget
-        )
+        budget = self.definition.stage_budgets.get(key, 0)
+        used = (self.scope_calls if key in self.definition.scoped_budgets else self.stage_calls).get(key, 0)
+        return (budget is None or used < budget) and self.workflow_calls < self.definition.total_budget
+
+    def open_scope(self, key: str) -> None:
+        """A fresh scope for a stage-opened scoped budget key (scoped_budgets[key] is None)."""
+
+        self.scope_calls[key] = 0
+
+    def remaining_calls(self) -> int:
+        return self.definition.total_budget - self.workflow_calls
 
     @property
     def provider_calls(self) -> int:
@@ -252,6 +286,14 @@ class WorkflowRun:
 
         key = self.budget_key(stage_id, correction)
         self.stage_calls[key] = self.stage_calls.get(key, 0) + 1
+        scoped = self.definition.scoped_budgets
+        if key in scoped:
+            self.scope_calls[key] = self.scope_calls.get(key, 0) + 1
+        # A round of an opener opens fresh scopes for the keys it owns -- after
+        # it is charged (to its own key only) and before its output is evaluated.
+        for owned, opener in scoped.items():
+            if opener == key:
+                self.scope_calls[owned] = 0
         self.workflow_calls += 1
         AIExecutionService.record_context_digest(self.execution, payload)
 
@@ -333,10 +375,13 @@ def run_workflow(run: WorkflowRun) -> Finish:
                 decision=label, started_at=started, sequence=sequence, provider_call=False,
                 issue_codes=_issue_codes(decision.unresolved_issues) if isinstance(decision, Finish) else {},
             )
-            write_step(run.execution.id, sequence, current, {
-                "kind": "deterministic", "run_id": str(run.execution.id), "sequence": sequence, "stage": current,
-                "decision": label, "next": getattr(decision, "stage_id", None), "snapshot": reconcile_snapshot(run.state),
-            })
+            if trace_active():
+                snapshot, run.trace_ledger = compact_snapshot(reconcile_snapshot(run.state), run.trace_ledger,
+                                                              sequence=sequence, full=current == "compile")
+                write_step(run.execution.id, sequence, current, {
+                    "kind": "deterministic", "run_id": str(run.execution.id), "sequence": sequence, "stage": current,
+                    "decision": label, "next": getattr(decision, "stage_id", None), "snapshot": snapshot,
+                })
             logger.info("ai.workflow execution=%s stage=%s deterministic decision=%s", run.execution.id, current, label)
             if trace_active():
                 logger.info("RECONCILE_TRACE run=%s seq=%s stage=%s", run.execution.id, sequence, current)
@@ -358,11 +403,12 @@ def run_workflow(run: WorkflowRun) -> Finish:
         # this same call's eventual <seq>-<stage>.json.
         sequence = run.current_sequence = run.next_sequence()
         payload = stage.build_input(run)
+        system_prompt = stage.system_prompt(run)
         started = timezone.now()
         try:
             result = run.call_provider(
                 stage_id=current,
-                system_prompt=stage.system_prompt(run),
+                system_prompt=system_prompt,
                 payload=payload,
                 response_schema=stage.response_schema,
                 correction=correcting,
@@ -421,6 +467,7 @@ def run_workflow(run: WorkflowRun) -> Finish:
             "issues": [i.model_dump(mode="json") for i in (decision.issues if isinstance(decision, Correct) else [])],
             "provider": result.provider, "provider_model": getattr(result, "provider_model", None), "usage": result.usage,
             "started_at": started, "ended_at": ended,
+            **(call_sizes(system_prompt, payload, stage.response_schema) if trace_active() else {}),
         })
         if trace_active():
             logger.info("RECONCILE_TRACE run=%s seq=%s stage=%s", run.execution.id, sequence, current)

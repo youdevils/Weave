@@ -26,8 +26,6 @@ staticfiles/
 *.sqlite3
 *.sqlite3-journal
 
-# AI Tracing Records
-.ai-traces/
 
 # =========================================================
 # Environment / secrets

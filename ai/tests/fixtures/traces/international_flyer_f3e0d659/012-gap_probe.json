@@ -1,0 +1,631 @@
+{
+ "kind": "provider",
+ "run_id": "f3e0d659-f1e3-4723-a9a8-47c158a0d768",
+ "sequence": 12,
+ "stage": "gap_probe",
+ "attempt": 3,
+ "decision": "advance",
+ "schema": "ProbeResult",
+ "output": {
+  "schema_version": "1.1",
+  "claims": {
+   "entities": [],
+   "assertions": [
+    {
+     "aid": "A27",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E14",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Pool A"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A28",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E15",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Pool A"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A29",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E16",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Pool A"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A30",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E17",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Pool A"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool A | New Zealand | Fiji | Japan | Samoa",
+       "segment_id": "S1#t1.r1",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A31",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E18",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Pool B"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A32",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E19",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Pool B"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A33",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E20",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Pool B"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    },
+    {
+     "aid": "A34",
+     "subject_eid": "E1",
+     "predicate": "has team",
+     "object_eid": "E21",
+     "relationship_type_hint": null,
+     "hint_orientation": "as_stated",
+     "support": "structural",
+     "polarity": "present",
+     "qualifiers": {
+      "as_of": null,
+      "valid_from": null,
+      "valid_to": null,
+      "context": "Pool B"
+     },
+     "modality": "stated",
+     "provenance": [
+      {
+       "source_id": "S1",
+       "excerpt": "Pool B | Australia | Argentina | South Africa | Tonga",
+       "segment_id": "S1#t1.r2",
+       "locator": null
+      },
+      {
+       "source_id": "S1",
+       "excerpt": "Teams",
+       "segment_id": "S1#5",
+       "locator": null
+      }
+     ],
+     "origin": "extraction"
+    }
+   ],
+   "facts": []
+  },
+  "verdicts": [
+   {
+    "requirement_id": "req:E1:802ae184-5eb8-4bd8-94c0-8d8622312641:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#2",
+     "S1#3",
+     "S1#4",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#t1.r2",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r1",
+     "S1#t2.r2",
+     "S1#t2.r3",
+     "S1#t2.r4",
+     "S1#t2.r5",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t3.r3",
+     "S1#t3.r4",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2",
+     "S1#16",
+     "S1#17",
+     "S1#18",
+     "S1#19",
+     "S1#20",
+     "S1#21",
+     "S1#22",
+     "S1#23",
+     "S1#24"
+    ],
+    "claim_ids": [
+     "A27",
+     "A28",
+     "A29",
+     "A30",
+     "A31",
+     "A32",
+     "A33",
+     "A34"
+    ],
+    "candidate_eids": [],
+    "note": "Extracted all teams from Pool A and Pool B table rows under the Teams heading as participating teams of Pacific International Rugby Championship 2027."
+   },
+   {
+    "requirement_id": "req:E2:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#3",
+     "S1#4",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#t1.r2",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t3.r3",
+     "S1#t3.r4",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "The segments do not explicitly relate 'Pool Stage' to any specific match entity. The matches are listed by Pool A and Pool B but are not directly attributed to 'Pool Stage' as an entity."
+   },
+   {
+    "requirement_id": "req:E22:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E14",
+     "E15"
+    ],
+    "note": "The match name 'New Zealand v Fiji' explicitly names the teams involved."
+   },
+   {
+    "requirement_id": "req:E22:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E12"
+    ],
+    "note": "The fixture row attributes 'New Zealand v Fiji' as a match for 'Pool A'."
+   },
+   {
+    "requirement_id": "req:E23:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E16",
+     "E17"
+    ],
+    "note": "The match name 'Japan v Samoa' explicitly names the teams involved."
+   },
+   {
+    "requirement_id": "req:E23:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E12"
+    ],
+    "note": "The fixture row attributes 'Japan v Samoa' as a match for 'Pool A'."
+   },
+   {
+    "requirement_id": "req:E24:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E18",
+     "E19"
+    ],
+    "note": "The match name 'Australia v Argentina' explicitly names the teams involved."
+   },
+   {
+    "requirement_id": "req:E24:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r3"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E13"
+    ],
+    "note": "The fixture row attributes 'Australia v Argentina' as a match for 'Pool B'."
+   },
+   {
+    "requirement_id": "req:E25:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E20",
+     "E21"
+    ],
+    "note": "The match name 'South Africa v Tonga' explicitly names the teams involved."
+   },
+   {
+    "requirement_id": "req:E25:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r4"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E13"
+    ],
+    "note": "The fixture row attributes 'South Africa v Tonga' as a match for 'Pool B'."
+   },
+   {
+    "requirement_id": "req:E26:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "The segment describes 'Pool A winner v Pool B runner-up' but does not identify the actual teams."
+   },
+   {
+    "requirement_id": "req:E26:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E3"
+    ],
+    "note": "The fixture row attributes 'Pool A winner v Pool B runner-up' as a match for 'Quarter-final' stage."
+   },
+   {
+    "requirement_id": "req:E27:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+    "status": "not_stated",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [],
+    "note": "The segment describes 'Pool B winner v Pool A runner-up' but does not identify the actual teams."
+   },
+   {
+    "requirement_id": "req:E27:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E3"
+    ],
+    "note": "The fixture row attributes 'Pool B winner v Pool A runner-up' as a match for 'Quarter-final' stage."
+   },
+   {
+    "requirement_id": "req:E3:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#6",
+     "S1#7",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#13",
+     "S1#14",
+     "S1#t2",
+     "S1#t2.r2",
+     "S1#t2.r6",
+     "S1#15",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E26",
+     "E27"
+    ],
+    "note": "The quarter-final fixture rows name two matches related to the Quarter-final stage."
+   },
+   {
+    "requirement_id": "target:T2",
+    "status": "found",
+    "segments_reviewed": [
+     "S1#1",
+     "S1#5",
+     "S1#t1",
+     "S1#t1.r1",
+     "S1#t1.r2",
+     "S1#6",
+     "S1#8",
+     "S1#9",
+     "S1#10",
+     "S1#11",
+     "S1#12",
+     "S1#15",
+     "S1#t3",
+     "S1#t3.r1",
+     "S1#t3.r2",
+     "S1#t4",
+     "S1#t4.r1",
+     "S1#t4.r2",
+     "S1#16",
+     "S1#23"
+    ],
+    "claim_ids": [],
+    "candidate_eids": [
+     "E2",
+     "E12",
+     "E13",
+     "E3",
+     "E4",
+     "E5"
+    ],
+    "note": "Segments mention 'Pool Stage', 'Pool A', 'Pool B', 'Quarter-final', 'Semi-final', and 'Final'. Each is treated as a Stage."
+   }
+  ]
+ },
+ "provider_model": "gpt-4.1-2025-04-14",
+ "request": {
+  "requirements": [
+   "req:E1:802ae184-5eb8-4bd8-94c0-8d8622312641:subject",
+   "req:E2:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "req:E22:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E22:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E23:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E23:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E24:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E24:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E25:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E25:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E26:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E26:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E27:39b8a3dc-039d-40cc-862e-581ccee85796:subject",
+   "req:E27:828f6641-0dad-42cf-90b9-b0f24f9fefec:object",
+   "req:E3:828f6641-0dad-42cf-90b9-b0f24f9fefec:subject",
+   "target:T2"
+  ]
+ }
+}

@@ -13,9 +13,9 @@ import tempfile
 from pathlib import Path
 from unittest import mock
 
-from django.test import override_settings
+from django.test import SimpleTestCase, override_settings
 
-from ai.services.tracing import load, requirement_table, run_summary, trace_active
+from ai.services.tracing import compact_snapshot, expand_snapshots, load, requirement_table, run_summary, trace_active
 from ai.tests.rugby import INTENT
 from ai.tests.support import ScriptedProvider, answers, approve, assertion, entity, extraction, frame, graph, probe, target, verdict
 from ai.tests.test_reconcile_workflow import ReconcileWorkflowTestCase
@@ -31,7 +31,10 @@ class TraceActiveGateTests(ReconcileWorkflowTestCase):
 
     def test_disabled_by_default(self):
         self.assertIsNone(getattr(self, "_no_ai_trace_dir_set", None))  # sanity: no override active here
-        self.assertFalse(trace_active())
+        # "Default" = no AI_TRACE_DIR configured; the dev container's
+        # .env.dev configures one, so state the default explicitly.
+        with override_settings(AI_TRACE_DIR=None):
+            self.assertFalse(trace_active())
 
     def test_inactive_when_debug_env_is_false_even_with_everything_else_on(self):
         with tempfile.TemporaryDirectory() as tmp, override_settings(AI_TRACE_DIR=tmp, RECONCILE_TRACE_ENABLED=True), \
@@ -202,3 +205,106 @@ class SummaryAndRequirementTableTests(_TracedRunTestCase):
         ]
         self.assertEqual(len(rows), len(by_hand))
         self.assertTrue(all(row["viable"] == (len(row["satisfied_by"]) >= row["minimum"]) for row in rows))
+
+
+class TraceSizeAndCompactionTests(_TracedRunTestCase):
+    """What each call cost to send is recorded with it; the Decision Ledger
+    is written once and then as deltas, and `load()` restores every
+    snapshot exactly."""
+
+    def two_analyses(self):
+        """Analysis -> Adjudication -> analysis -> compile: two analysis
+        snapshots, so the second is written as a delta."""
+
+        self.make_object(self.model, self.venue_type, name="Eden Park", key="eden_park")
+        self.make_object(self.model, self.venue_type, name="Eden Park", key="eden_park_old")
+        return ScriptedProvider([self.flyer_extraction(), answers(("identity:E6", "eden_park", "Eden Park")), approve()])
+
+    def test_a_provider_step_records_what_the_call_sent(self):
+        from ai.services.provider import canonical_payload
+        from ai.services.reconcile.responses import ExtractionResult
+
+        provider = ScriptedProvider([self.flyer_extraction(), approve()])
+        result = self.run_reconcile(provider)
+
+        step = next(s for s in self.files_for(result) if s["kind"] == "provider" and s["stage"] == "extraction")
+        sent = canonical_payload(step["payload"])
+        self.assertEqual(step["payload_chars"], len(sent))
+        self.assertEqual(set(step["payload_sections"]), set(step["payload"]))
+        self.assertEqual(step["payload_sections"]["segments"], len(canonical_payload(step["payload"]["segments"])))
+        # Sections plus their keys and separators make up the whole payload.
+        self.assertLess(sum(step["payload_sections"].values()), step["payload_chars"])
+        self.assertGreater(step["system_prompt_chars"], 0)
+        self.assertEqual(step["schema_chars"], len(canonical_payload(ExtractionResult.model_json_schema())))
+
+    def test_the_ledger_is_written_once_then_as_deltas_and_compile_writes_it_whole(self):
+        result = self.run_reconcile(self.two_analyses())
+
+        on_disk = [json.loads(p.read_text(encoding="utf-8"))
+                   for p in sorted((Path(self.trace_dir.name) / str(result.execution_id)).glob("*.json"))]
+        analyses = [s for s in on_disk if s["kind"] == "deterministic" and s["stage"] == "analysis"]
+        self.assertGreaterEqual(len(analyses), 2)
+        self.assertIn("ledger", analyses[0]["snapshot"])
+        for later in analyses[1:]:
+            self.assertNotIn("ledger", later["snapshot"])
+            self.assertIn("ledger_delta", later["snapshot"])
+        compile_step = next(s for s in on_disk if s["kind"] == "deterministic" and s["stage"] == "compile")
+        self.assertIn("ledger", compile_step["snapshot"])
+
+    def test_load_restores_exactly_the_snapshots_the_run_produced(self):
+        from ai.services.workflow import engine
+
+        produced = []
+        original = engine.reconcile_snapshot
+
+        def capture(state):
+            snapshot = original(state)
+            produced.append(json.loads(json.dumps(snapshot, default=str)))
+            return snapshot
+
+        with mock.patch.object(engine, "reconcile_snapshot", capture):
+            result = self.run_reconcile(self.two_analyses())
+
+        loaded = [s["snapshot"] for s in self.files_for(result) if s["kind"] == "deterministic"]
+        self.assertEqual(len(loaded), len(produced))
+        for restored, expected in zip(loaded, produced):
+            self.assertEqual(restored, expected)
+
+
+class SnapshotCompactionUnitTests(SimpleTestCase):
+
+    @staticmethod
+    def decision(key, outcome="x"):
+        return {"decision_id": key, "outcome": outcome}
+
+    def round_trip(self, *ledgers):
+        written, previous = [], None
+        for sequence, ledger in enumerate(ledgers, 1):
+            snapshot, previous = compact_snapshot({"ledger": ledger, "other": sequence}, previous, sequence=sequence)
+            written.append({"sequence": sequence, "snapshot": json.loads(json.dumps(snapshot))})
+        return written, [s["snapshot"] for s in expand_snapshots(written)]
+
+    def test_added_changed_removed_and_reordered_decisions_round_trip(self):
+        first = [self.decision("a"), self.decision("b"), self.decision("c")]
+        second = [self.decision("d"), self.decision("a", "y"), self.decision("c")]  # d new and first, a changed, b removed
+        third = [self.decision("d"), self.decision("a", "y"), self.decision("c")]  # unchanged
+
+        written, restored = self.round_trip(first, second, third)
+
+        delta = written[1]["snapshot"]["ledger_delta"]
+        self.assertEqual(([d["decision_id"] for d in delta["added"]], [d["decision_id"] for d in delta["changed"]], delta["removed"]),
+                         (["d"], ["a"], ["b"]))
+        self.assertEqual(delta["order"], ["d", "a", "c"])
+        self.assertEqual(written[2]["snapshot"]["ledger_delta"], {"base_sequence": 2, "added": [], "changed": [], "removed": []})
+        self.assertEqual(restored, [{"ledger": first, "other": 1}, {"ledger": second, "other": 2}, {"ledger": third, "other": 3}])
+
+    def test_a_full_step_resets_the_base(self):
+        snapshot, previous = compact_snapshot({"ledger": [self.decision("a")]}, None, sequence=1)
+        snapshot, previous = compact_snapshot({"ledger": [self.decision("b")]}, previous, sequence=2, full=True)
+
+        self.assertEqual(snapshot, {"ledger": [self.decision("b")]})
+        self.assertEqual(previous["sequence"], 2)
+
+    def test_a_delta_without_its_base_is_an_error_not_a_guess(self):
+        with self.assertRaises(ValueError):
+            expand_snapshots([{"sequence": 3, "snapshot": {"ledger_delta": {"base_sequence": 2, "added": [], "changed": [], "removed": []}}}])
