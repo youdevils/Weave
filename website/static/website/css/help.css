@@ -6,6 +6,23 @@
   components; only adds what Help needs on top of them.
 */
 
+:root {
+    /* Docs pages get a wider shell than the marketing site's --ff-container
+       (1140px): more room for a 3-column layout before text gets cramped.
+       --ff-help-sidebar-w / --ff-help-toc-w / --ff-help-gap are shared
+       between the layout grid and the breadcrumb row's desktop indent, so
+       the breadcrumb lines up with the article column instead of the
+       sidebar. */
+    --ff-help-container: 1320px;
+    --ff-help-sidebar-w: 16rem;
+    --ff-help-toc-w: 15rem;
+    --ff-help-gap: 3rem;
+}
+
+.ff-help-wide {
+    --ff-container: var(--ff-help-container);
+}
+
 /* ---- Search -------------------------------------------------------------- */
 
 .ff-help-search {
@@ -70,8 +87,14 @@
 }
 
 .ff-help-result-title {
+    display: inline-block;
     font-size: 1.1rem;
     font-weight: 700;
+    text-decoration: none;
+}
+
+.ff-help-result-title:hover {
+    text-decoration: underline;
 }
 
 .ff-help-result-excerpt {
@@ -82,7 +105,16 @@
 /* ---- Category grid -------------------------------------------------------- */
 
 .ff-help-categories .ff-card {
+    display: block;
     position: relative;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.ff-help-categories .ff-card:hover {
+    border-color: var(--ff-slate);
+    box-shadow: var(--ff-shadow);
 }
 
 .ff-help-categories .ff-card:nth-child(1) .ff-card-facet {
@@ -130,6 +162,19 @@
     padding-top: 1.5rem;
 }
 
+@media (min-width: 861px) {
+    /* Only the article page's breadcrumb row sits above the 3-column grid,
+       so only it (ff-help-wide) gets indented to line up with the article
+       column rather than the sidebar. The category/landing/search pages
+       have no sidebar to align against. */
+    .ff-help-wide.ff-help-breadcrumbs-row {
+        /* padding-left is a longhand, so it replaces (not adds to) the
+           padding-inline gutter from .ff-container — include that gutter
+           explicitly or the row loses its base inset entirely. */
+        padding-left: calc(var(--ff-gutter) + var(--ff-help-sidebar-w) + var(--ff-help-gap));
+    }
+}
+
 .ff-help-breadcrumbs ol {
     display: flex;
     flex-wrap: wrap;
@@ -149,6 +194,11 @@
 
 .ff-help-breadcrumbs a {
     color: var(--ff-text-muted);
+    text-decoration: none;
+}
+
+.ff-help-breadcrumbs a:hover {
+    text-decoration: underline;
 }
 
 .ff-help-breadcrumbs [aria-current="page"] {
@@ -179,6 +229,11 @@
 .ff-help-article-list a {
     font-size: 1.1rem;
     font-weight: 700;
+    text-decoration: none;
+}
+
+.ff-help-article-list a:hover {
+    text-decoration: underline;
 }
 
 .ff-help-article-list p {
@@ -190,8 +245,8 @@
 
 .ff-help-layout {
     display: grid;
-    grid-template-columns: 16rem minmax(0, 1fr) 14rem;
-    gap: 2.5rem;
+    grid-template-columns: var(--ff-help-sidebar-w) minmax(0, 1fr) var(--ff-help-toc-w);
+    gap: var(--ff-help-gap);
     align-items: start;
 }
 
@@ -207,57 +262,100 @@
     cursor: pointer;
 }
 
+.ff-help-panel-label {
+    margin: 0;
+    padding: 0.85rem 1rem 0.5rem;
+    color: var(--ff-text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
 .ff-help-sidebar-body,
 .ff-help-toc-body {
     padding: 0 1rem 1rem;
 }
 
+.ff-help-panel--mobile .ff-help-sidebar-body,
+.ff-help-panel--mobile .ff-help-toc-body {
+    padding-top: 0.25rem;
+}
+
 .ff-help-sidebar-group + .ff-help-sidebar-group {
-    margin-top: 1rem;
+    margin-top: 1.1rem;
 }
 
 .ff-help-sidebar-category {
     display: block;
+    margin-bottom: 0.35rem;
+    color: var(--ff-text-muted);
+    font-size: 0.72rem;
     font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
 }
 
+.ff-help-sidebar-category:hover,
 .ff-help-sidebar-category.is-active {
     color: var(--ff-indigo);
 }
 
 .ff-help-sidebar-body ul {
-    margin: 0.4rem 0 0;
+    margin: 0;
     padding: 0;
     list-style: none;
 }
 
 .ff-help-sidebar-body li a {
     display: block;
-    padding: 0.3rem 0;
+    padding: 0.3rem 0 0.3rem 0.7rem;
+    border-left: 2px solid transparent;
     color: var(--ff-text-muted);
-    font-size: 0.925rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    text-decoration: none;
+}
+
+.ff-help-sidebar-body li a:hover {
+    color: var(--ff-text);
+    border-left-color: var(--ff-border);
 }
 
 .ff-help-sidebar-body li a[aria-current="page"] {
+    border-left-color: var(--ff-indigo);
     color: var(--ff-indigo);
     font-weight: 600;
+    background: var(--ff-mist);
 }
 
 .ff-help-toc-body ul {
     margin: 0;
     padding: 0;
     list-style: none;
+    border-left: 2px solid var(--ff-border);
 }
 
 .ff-help-toc-item a {
     display: block;
-    padding: 0.3rem 0;
+    padding: 0.3rem 0 0.3rem 0.85rem;
+    margin-left: -2px;
+    border-left: 2px solid transparent;
     color: var(--ff-text-muted);
-    font-size: 0.875rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    text-decoration: none;
 }
 
-.ff-help-toc-item--h3 {
-    padding-left: 0.85rem;
+.ff-help-toc-item a:hover {
+    color: var(--ff-text);
+    border-left-color: var(--ff-slate);
+}
+
+.ff-help-toc-item--h3 a {
+    padding-left: 1.6rem;
+    font-size: 0.8rem;
 }
 
 /* The sidebar and TOC each render twice: a plain, always-visible <nav> for
@@ -292,9 +390,9 @@
 /* ---- Article content: tables, code, callouts -------------------------------- */
 
 .ff-help-updated {
-    margin-top: -0.5rem;
+    margin: 0.35rem 0 1.75rem;
     color: var(--ff-text-muted);
-    font-size: 0.9rem;
+    font-size: 0.875rem;
 }
 
 .ff-help-article h2[id],
@@ -385,6 +483,12 @@
     border: 1px solid var(--ff-border);
     border-radius: var(--ff-radius);
     background: var(--ff-surface);
+    text-decoration: none;
+    transition: border-color 0.15s;
+}
+
+.ff-help-prevnext-link:hover {
+    border-color: var(--ff-slate);
 }
 
 .ff-help-prevnext-link--next {
@@ -403,6 +507,7 @@
 .ff-help-prevnext-title {
     display: block;
     margin-top: 0.3rem;
+    color: var(--ff-text);
     font-weight: 700;
 }
 
@@ -419,6 +524,14 @@
     gap: 0.5rem;
 }
 
+.ff-help-related a {
+    text-decoration: none;
+}
+
+.ff-help-related a:hover {
+    text-decoration: underline;
+}
+
 @media (max-width: 720px) {
     .ff-help-prevnext {
         grid-template-columns: 1fr;
@@ -426,5 +539,15 @@
 
     .ff-help-prevnext-link--next {
         text-align: left;
+    }
+}
+
+/* ---- Intermediate widths: keep the 3-column grid from getting cramped ------- */
+
+@media (min-width: 861px) and (max-width: 1080px) {
+    :root {
+        --ff-help-sidebar-w: 13rem;
+        --ff-help-toc-w: 12rem;
+        --ff-help-gap: 2rem;
     }
 }

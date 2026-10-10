@@ -23,6 +23,13 @@ within their category. URLs are category-scoped
 (``/help/<category>/<slug>/``), but ``related:`` entries reference a bare
 slug with no category prefix, so without global uniqueness a reference could
 become ambiguous as the library grows past one category.
+
+The article's ``<h1>`` is the page's only one — it comes from the frontmatter
+``title``, rendered once by the template. Body content should start at
+``##``. As a safety net (not a substitute for that convention), any literal
+``#`` heading written in the body is demoted to ``<h2>`` at render time, so a
+stray title-duplicating heading degrades to an ordinary section heading
+instead of producing a second ``<h1>`` on the page.
 """
 
 import datetime as dt
@@ -41,6 +48,7 @@ CONTENT_DIR = Path(__file__).parent / "help_articles"
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _TAG_RE = re.compile(r"<[^>]+>")
 _WHITESPACE_RE = re.compile(r"\s+")
+_H1_OPEN_RE = re.compile(r"<h1(\s[^>]*)?>")
 
 
 class HelpContentError(Exception):
@@ -305,8 +313,16 @@ def _render_markdown(text):
         extension_configs={"toc": {"toc_depth": "2-3", "permalink": False}},
     )
     rendered_html = md.convert(text)
+    rendered_html = _demote_h1(rendered_html)
+    # toc_depth excludes level-1 headings already, so no further change is
+    # needed here to keep `headings` consistent with the demotion above.
     headings = tuple(_flatten_toc(md.toc_tokens))
     return rendered_html, headings
+
+
+def _demote_h1(rendered_html):
+    rendered_html = _H1_OPEN_RE.sub(r"<h2\1>", rendered_html)
+    return rendered_html.replace("</h1>", "</h2>")
 
 
 def _flatten_toc(tokens):

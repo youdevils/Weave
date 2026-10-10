@@ -24,9 +24,12 @@ library does. Loader behaviour is proven against the fixtures under
    updated: "2026-01-01"             # optional, quoted so YAML keeps it a string
    ---
 
-   Article body in Markdown. `## Headings` (levels 2-3) populate the
-   right-hand table of contents automatically. Tables, fenced code blocks,
-   and `!!! note "Title"` / `!!! warning "Title"` callouts are all
+   Article body in Markdown. Start at `##` — the frontmatter `title` above
+   already renders as the page's only `<h1>`, so don't repeat it as a `#`
+   heading in the body (if you do, it's demoted to `<h2>` automatically, but
+   it's cleaner to just start at `##`). `## Headings` (levels 2-3) populate
+   the right-hand table of contents automatically. Tables, fenced code
+   blocks, and `!!! note "Title"` / `!!! warning "Title"` callouts are all
    supported.
 
    In-body links to other articles must be hardcoded absolute paths

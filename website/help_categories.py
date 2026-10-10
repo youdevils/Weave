@@ -28,24 +28,24 @@ HELP_CATEGORIES = (
         description="The building blocks of a living model: objects, connections and structure.",
     ),
     HelpCategory(
-        slug="working-with-ai-and-change",
-        name="Working with AI and change",
-        description="Use AI assistance and manage change safely as your model evolves.",
+        slug="build-and-maintain-models",
+        name="Build and maintain models",
+        description="Create and maintain the objects, relationships, and definitions that make up your model.",
     ),
     HelpCategory(
-        slug="data-and-publishing",
-        name="Data and publishing",
-        description="Import data, publish your model, and share it with others.",
+        slug="import-and-export",
+        name="Import and export",
+        description="Move structured model data in and out of OnyxJar using templates and exports.",
     ),
     HelpCategory(
-        slug="practical-guides",
-        name="Practical guides",
-        description="Step-by-step guidance for common tasks and workflows.",
+        slug="publish-and-share",
+        name="Publish and share",
+        description="Create and share read-only views of your model, including portable HTML outputs.",
     ),
     HelpCategory(
-        slug="troubleshooting-and-account",
-        name="Troubleshooting and account help",
-        description="Fix common problems and manage your account.",
+        slug="account-and-troubleshooting",
+        name="Account and troubleshooting",
+        description="Find your models and resolve common data or model-constraint issues.",
     ),
 )
 

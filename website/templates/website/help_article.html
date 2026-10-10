@@ -5,11 +5,11 @@
 
 {% block content %}
 
-<div class="ff-container ff-help-breadcrumbs-row">
+<div class="ff-container ff-help-wide ff-help-breadcrumbs-row">
     {% include "website/_help_breadcrumbs.html" %}
 </div>
 
-<div class="ff-container ff-page-body ff-help-layout">
+<div class="ff-container ff-help-wide ff-page-body ff-help-layout">
 
     <div class="ff-help-sidebar-slot">
         {% comment %}
@@ -21,6 +21,7 @@
             independently-toggled copies sidestep that entirely.
         {% endcomment %}
         <nav class="ff-help-panel ff-help-panel--desktop" aria-label="Help categories">
+            <p class="ff-help-panel-label">Browse help</p>
             <div class="ff-help-sidebar-body">
                 {% include "website/_help_sidebar.html" %}
             </div>
@@ -42,6 +43,7 @@
     {% if show_toc %}
         <div class="ff-help-toc-slot">
             <nav class="ff-help-panel ff-help-panel--desktop" aria-label="On this page">
+                <p class="ff-help-panel-label">On this page</p>
                 <div class="ff-help-toc-body">
                     {% include "website/_help_toc.html" %}
                 </div>
@@ -57,7 +59,7 @@
 
 </div>
 
-<div class="ff-container ff-help-after">
+<div class="ff-container ff-help-wide ff-help-after">
     {% include "website/_help_prevnext.html" %}
     {% include "website/_help_related.html" %}
 </div>

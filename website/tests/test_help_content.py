@@ -133,6 +133,33 @@ class RealContentDirectoryTests(SimpleTestCase):
         self.assertEqual(help_content.get_all_articles(include_drafts=True), ())
 
 
+class MarkdownRenderingTests(TempContentTestCase):
+
+    def test_a_stray_h1_in_the_body_is_demoted_to_h2(self):
+        write_article(
+            self.tmp_dir.name,
+            "getting-started",
+            "duplicate-title",
+            {
+                "title": "Duplicate Title",
+                "slug": "duplicate-title",
+                "summary": "Summary.",
+                "category": "getting-started",
+                "nav_order": 1,
+                "status": "published",
+            },
+            body="# Duplicate Title\n\nSome body text.\n\n## A real section\n\nMore text.",
+        )
+
+        article = help_content.get_article("getting-started", "duplicate-title")
+
+        self.assertNotIn("<h1", article.html)
+        self.assertIn('<h2 id="duplicate-title">Duplicate Title</h2>', article.html)
+        # toc_depth already excludes level-1 headings, so the demoted
+        # heading must not show up in the TOC either — only the real section.
+        self.assertEqual([h.text for h in article.headings], ["A real section"])
+
+
 class LoaderValidationTests(TempContentTestCase):
 
     def test_a_missing_required_field_raises_a_clear_error(self):
