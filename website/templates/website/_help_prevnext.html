@@ -1,0 +1,19 @@
+{% comment %}Expects: prev_article, next_article (HelpArticle or None).{% endcomment %}
+{% if prev_article or next_article %}
+    <nav class="ff-help-prevnext" aria-label="More help articles">
+        {% if prev_article %}
+            <a class="ff-help-prevnext-link ff-help-prevnext-link--prev" href="{% url 'website:help_article' prev_article.category_slug prev_article.slug %}">
+                <span class="ff-help-prevnext-label">Previous</span>
+                <span class="ff-help-prevnext-title">{{ prev_article.title }}</span>
+            </a>
+        {% else %}
+            <span></span>
+        {% endif %}
+        {% if next_article %}
+            <a class="ff-help-prevnext-link ff-help-prevnext-link--next" href="{% url 'website:help_article' next_article.category_slug next_article.slug %}">
+                <span class="ff-help-prevnext-label">Next</span>
+                <span class="ff-help-prevnext-title">{{ next_article.title }}</span>
+            </a>
+        {% endif %}
+    </nav>
+{% endif %}

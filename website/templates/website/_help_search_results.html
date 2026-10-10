@@ -1,0 +1,22 @@
+{% comment %}
+    Kept as its own partial so a future JS-enhanced search can swap in just
+    this fragment without touching help_search.html or any other template.
+{% endcomment %}
+{% if not query %}
+    <p class="ff-help-search-prompt">Enter a word or phrase above to search the help articles.</p>
+{% elif results %}
+    <p class="ff-help-results-count">{{ results|length }} result{{ results|length|pluralize }} for &ldquo;{{ query }}&rdquo;</p>
+    <ul class="ff-help-results">
+        {% for result in results %}
+            <li class="ff-help-result">
+                <a class="ff-help-result-title" href="{% url 'website:help_article' result.category_slug result.slug %}">{{ result.title }}</a>
+                <p class="ff-help-result-excerpt">{{ result.excerpt }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p class="ff-empty">
+        No articles matched &ldquo;{{ query }}&rdquo;. Try a different word, or
+        <a href="{% url 'website:help' %}">browse the categories</a>.
+    </p>
+{% endif %}

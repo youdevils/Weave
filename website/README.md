@@ -1,6 +1,6 @@
 # Public website (OnyxJar)
 
-The public OnyxJar site: `/`, `/examples/`, `/privacy/`, `/terms/`, `/contact/`. "OnyxJar" is the public brand.
+The public OnyxJar site: `/`, `/examples/`, `/help/`, `/privacy/`, `/terms/`, `/contact/`. "OnyxJar" is the public brand.
 
 Log-in and sign-up are **stubs in the existing `account` app** (`/login/`, `/signup/`, names `account:login` /
 `account:signup`): real pages that never create users, authenticate, or touch the session. `settings.LOGIN_URL` points at
@@ -37,4 +37,14 @@ The shipped entry uses an illustrative placeholder image and a placeholder URL (
   with Reply-To set to the visitor's address. Nothing is stored in the database.
 - **`WEBSITE_LEGAL_ENTITY` / `WEBSITE_CONTACT_EMAIL`** (env vars): footer and legal pages.
 - **Privacy and Terms** are plain-language drafts limited to facts evident from the code; get them reviewed before launch.
-- Not included: sitemap, robots.txt, analytics, rate-limiting on the contact form.
+- Not included: analytics, rate-limiting on the contact form.
+
+## Help & documentation
+
+`/help/` is a Markdown-with-frontmatter documentation section, structural shell shipped ahead of the
+article library (the real `website/help_articles/` corpus starts empty — see its own `README.md` for
+the authoring format). `help_content.py` loads and validates articles, `help_search.py` is a small
+in-process search, `help_categories.py` holds the six fixed categories, and `help_views.py` /
+`templates/website/help_*.html` render the landing page, category pages, article pages and search.
+`sitemaps.py` feeds `/sitemap.xml`, which `/robots.txt` references; both are new as of this feature.
+The planned initial article list lives in `.Documentation/help-content-inventory.md`.

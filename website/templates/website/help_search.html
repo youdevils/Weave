@@ -1,0 +1,20 @@
+{% extends "website/base.html" %}
+{% load static %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'website/css/help.css' %}">{% endblock %}
+
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+
+{% block content %}
+
+<section class="ff-container ff-page-head" aria-labelledby="help-search-title">
+    <div class="ff-eyebrow">Help &amp; documentation</div>
+    <h1 class="ff-h1 ff-h1--page" id="help-search-title">Search help</h1>
+    {% include "website/_help_search_box.html" %}
+</section>
+
+<div class="ff-container ff-page-body">
+    {% include "website/_help_search_results.html" %}
+</div>
+
+{% endblock %}

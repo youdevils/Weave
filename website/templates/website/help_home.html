@@ -1,0 +1,33 @@
+{% extends "website/base.html" %}
+{% load static %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'website/css/help.css' %}">{% endblock %}
+
+{% block content %}
+
+<section class="ff-container ff-page-head" aria-labelledby="help-title">
+    <div class="ff-eyebrow">Help &amp; documentation</div>
+    <h1 class="ff-h1 ff-h1--page" id="help-title">How can we help?</h1>
+    <p class="ff-lead">
+        Find step-by-step guidance and answers for getting started, building your model,
+        working with AI, publishing, and troubleshooting OnyxJar.
+    </p>
+    {% include "website/_help_search_box.html" %}
+</section>
+
+<div class="ff-container ff-page-body">
+    <div class="ff-grid ff-help-categories">
+        {% for category, articles in categories %}
+            <a class="ff-card" href="{% url 'website:help_category' category.slug %}">
+                <div class="ff-card-facet"></div>
+                <h2>{{ category.name }}</h2>
+                <p>{{ category.description }}</p>
+                {% if not articles %}
+                    <span class="ff-badge ff-badge--soon">Coming soon</span>
+                {% endif %}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

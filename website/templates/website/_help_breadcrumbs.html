@@ -1,0 +1,20 @@
+{% comment %}
+    Expects: category (optional, HelpCategory), article (optional, HelpArticle).
+{% endcomment %}
+<nav class="ff-help-breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+        <li><a href="{% url 'website:help' %}">Help</a></li>
+        {% if category %}
+            <li>
+                {% if article %}
+                    <a href="{% url 'website:help_category' category.slug %}">{{ category.name }}</a>
+                {% else %}
+                    <span aria-current="page">{{ category.name }}</span>
+                {% endif %}
+            </li>
+        {% endif %}
+        {% if article %}
+            <li><span aria-current="page">{{ article.title }}</span></li>
+        {% endif %}
+    </ol>
+</nav>

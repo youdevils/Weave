@@ -34,6 +34,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'onyxjar/brand/css/tokens.css' %}">
     <link rel="stylesheet" href="{% static 'website/css/onyxjar.css' %}">
+    {% block extra_css %}{% endblock %}
 
     {# Lets the stylesheet collapse the mobile menu only when the script that opens it will run. #}
     <script>document.documentElement.classList.add("ff-js");</script>
@@ -51,5 +52,6 @@
     {% include "website/_footer.html" %}
 
     <script type="module" src="{% static 'website/js/site.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -79,6 +79,11 @@ def terms(request):
     )
 
 
+@require_safe
+def robots_txt(request):
+    return render(request, "website/robots.txt", content_type="text/plain")
+
+
 @require_http_methods(["GET", "HEAD", "POST"])
 def contact(request):
     """

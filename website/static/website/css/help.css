@@ -1,0 +1,430 @@
+/*
+  Help & Documentation.
+
+  Builds on top of website/css/onyxjar.css — reuses --ff-* tokens and the
+  existing .ff-card / .ff-grid / .ff-legal / .ff-empty / .ff-form-card
+  components; only adds what Help needs on top of them.
+*/
+
+/* ---- Search -------------------------------------------------------------- */
+
+.ff-help-search {
+    max-width: 34rem;
+    margin-top: 1.75rem;
+}
+
+.ff-help-search-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.ff-help-search-row {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.ff-help-search-row input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.8rem 1rem;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--ff-radius-sm);
+    background: #fff;
+    color: var(--ff-ink);
+    font: inherit;
+}
+
+.ff-help-search-row input:focus {
+    border-color: var(--ff-indigo);
+    outline: 3px solid rgba(31, 27, 67, 0.25);
+    outline-offset: 0;
+}
+
+.ff-help-search-prompt {
+    color: var(--ff-text-muted);
+}
+
+.ff-help-results-count {
+    margin-bottom: 1rem;
+    color: var(--ff-text-muted);
+    font-size: 0.9rem;
+}
+
+.ff-help-results {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 1.25rem;
+}
+
+.ff-help-result {
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--ff-border);
+}
+
+.ff-help-result:last-child {
+    border-bottom: none;
+}
+
+.ff-help-result-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.ff-help-result-excerpt {
+    margin: 0.35rem 0 0;
+    color: var(--ff-text-muted);
+}
+
+/* ---- Category grid -------------------------------------------------------- */
+
+.ff-help-categories .ff-card {
+    position: relative;
+}
+
+.ff-help-categories .ff-card:nth-child(1) .ff-card-facet {
+    background: linear-gradient(135deg, #1f1b43, #191636);
+}
+
+.ff-help-categories .ff-card:nth-child(2) .ff-card-facet {
+    background: linear-gradient(135deg, #59957d, #2f7a5d);
+}
+
+.ff-help-categories .ff-card:nth-child(3) .ff-card-facet {
+    background: linear-gradient(135deg, #5ea9b5, #3694a3);
+}
+
+.ff-help-categories .ff-card:nth-child(4) .ff-card-facet {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+}
+
+.ff-help-categories .ff-card:nth-child(5) .ff-card-facet {
+    background: linear-gradient(135deg, #7a4a7a, #540054);
+}
+
+.ff-help-categories .ff-card:nth-child(6) .ff-card-facet {
+    background: linear-gradient(135deg, #e0b35a, #cd912d);
+}
+
+.ff-badge {
+    display: inline-flex;
+    margin-top: 1rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.ff-badge--soon {
+    background: var(--ff-mist);
+    color: var(--ff-text-muted);
+}
+
+/* ---- Breadcrumbs ------------------------------------------------------------ */
+
+.ff-help-breadcrumbs-row {
+    padding-top: 1.5rem;
+}
+
+.ff-help-breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.875rem;
+    color: var(--ff-text-muted);
+}
+
+.ff-help-breadcrumbs li:not(:last-child)::after {
+    content: "/";
+    margin-left: 0.4rem;
+    color: var(--ff-slate);
+}
+
+.ff-help-breadcrumbs a {
+    color: var(--ff-text-muted);
+}
+
+.ff-help-breadcrumbs [aria-current="page"] {
+    color: var(--ff-text);
+    font-weight: 600;
+}
+
+/* ---- Category article list -------------------------------------------------- */
+
+.ff-help-article-list {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-width: 44rem;
+}
+
+.ff-help-article-list li {
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--ff-border);
+}
+
+.ff-help-article-list li:last-child {
+    border-bottom: none;
+}
+
+.ff-help-article-list a {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.ff-help-article-list p {
+    margin: 0.35rem 0 0;
+    color: var(--ff-text-muted);
+}
+
+/* ---- Article layout: sidebar / content / TOC -------------------------------- */
+
+.ff-help-layout {
+    display: grid;
+    grid-template-columns: 16rem minmax(0, 1fr) 14rem;
+    gap: 2.5rem;
+    align-items: start;
+}
+
+.ff-help-panel {
+    border: 1px solid var(--ff-border);
+    border-radius: var(--ff-radius);
+    background: var(--ff-surface);
+}
+
+.ff-help-panel--mobile summary {
+    padding: 0.85rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ff-help-sidebar-body,
+.ff-help-toc-body {
+    padding: 0 1rem 1rem;
+}
+
+.ff-help-sidebar-group + .ff-help-sidebar-group {
+    margin-top: 1rem;
+}
+
+.ff-help-sidebar-category {
+    display: block;
+    font-weight: 700;
+}
+
+.ff-help-sidebar-category.is-active {
+    color: var(--ff-indigo);
+}
+
+.ff-help-sidebar-body ul {
+    margin: 0.4rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ff-help-sidebar-body li a {
+    display: block;
+    padding: 0.3rem 0;
+    color: var(--ff-text-muted);
+    font-size: 0.925rem;
+}
+
+.ff-help-sidebar-body li a[aria-current="page"] {
+    color: var(--ff-indigo);
+    font-weight: 600;
+}
+
+.ff-help-toc-body ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ff-help-toc-item a {
+    display: block;
+    padding: 0.3rem 0;
+    color: var(--ff-text-muted);
+    font-size: 0.875rem;
+}
+
+.ff-help-toc-item--h3 {
+    padding-left: 0.85rem;
+}
+
+/* The sidebar and TOC each render twice: a plain, always-visible <nav> for
+   desktop, and a native <details> disclosure for mobile. Only one is shown
+   at a time via plain display toggling — this is deliberate, not an
+   oversight: an earlier version tried to force a *closed* <details> to stay
+   visible on desktop via CSS, but Chromium (and other engines) hide a
+   closed <details>'s content through an internal content box that a
+   `display` override on the children does not reliably defeat. Two
+   independent, ordinary elements sidestep that entirely. */
+.ff-help-panel--desktop {
+    display: none;
+}
+
+@media (min-width: 861px) {
+    .ff-help-panel--desktop {
+        display: block;
+    }
+
+    .ff-help-panel--mobile {
+        display: none;
+    }
+}
+
+@media (max-width: 860px) {
+    .ff-help-layout {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+}
+
+/* ---- Article content: tables, code, callouts -------------------------------- */
+
+.ff-help-updated {
+    margin-top: -0.5rem;
+    color: var(--ff-text-muted);
+    font-size: 0.9rem;
+}
+
+.ff-help-article h2[id],
+.ff-help-article h3[id] {
+    scroll-margin-top: calc(var(--ff-header-h) + 1rem);
+}
+
+.ff-help-article table {
+    width: 100%;
+    margin: 1.25rem 0;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.ff-help-article th,
+.ff-help-article td {
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--ff-border);
+    text-align: left;
+}
+
+.ff-help-article th {
+    background: var(--ff-mist);
+    font-weight: 700;
+}
+
+.ff-help-article pre {
+    margin: 1.25rem 0;
+    padding: 1rem 1.25rem;
+    border-radius: var(--ff-radius-sm);
+    background: var(--ff-ink);
+    color: #f1f5f9;
+    overflow-x: auto;
+    font-size: 0.9rem;
+}
+
+.ff-help-article code {
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    background: var(--ff-mist);
+    font-size: 0.9em;
+}
+
+.ff-help-article pre code {
+    padding: 0;
+    background: none;
+}
+
+.ff-help-article .admonition {
+    margin: 1.25rem 0;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--ff-border);
+    border-left-width: 4px;
+    border-radius: var(--ff-radius-sm);
+    background: var(--ff-mist);
+}
+
+.ff-help-article .admonition-title {
+    margin: 0 0 0.4rem;
+    font-weight: 700;
+}
+
+.ff-help-article .admonition.note {
+    border-left-color: var(--onyxjar-info);
+}
+
+.ff-help-article .admonition.warning {
+    border-left-color: var(--onyxjar-warning);
+}
+
+/* ---- Prev/next and related --------------------------------------------------- */
+
+.ff-help-after {
+    display: grid;
+    gap: 2rem;
+    padding-bottom: var(--ff-section-y);
+}
+
+.ff-help-prevnext {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.ff-help-prevnext-link {
+    display: block;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--ff-border);
+    border-radius: var(--ff-radius);
+    background: var(--ff-surface);
+}
+
+.ff-help-prevnext-link--next {
+    text-align: right;
+}
+
+.ff-help-prevnext-label {
+    display: block;
+    color: var(--ff-text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ff-help-prevnext-title {
+    display: block;
+    margin-top: 0.3rem;
+    font-weight: 700;
+}
+
+.ff-help-related {
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--ff-border);
+}
+
+.ff-help-related ul {
+    margin: 0.75rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.5rem;
+}
+
+@media (max-width: 720px) {
+    .ff-help-prevnext {
+        grid-template-columns: 1fr;
+    }
+
+    .ff-help-prevnext-link--next {
+        text-align: left;
+    }
+}

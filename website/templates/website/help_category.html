@@ -1,0 +1,36 @@
+{% extends "website/base.html" %}
+{% load static %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'website/css/help.css' %}">{% endblock %}
+
+{% block content %}
+
+<div class="ff-container ff-help-breadcrumbs-row">
+    {% include "website/_help_breadcrumbs.html" %}
+</div>
+
+<section class="ff-container ff-page-head" aria-labelledby="help-category-title">
+    <div class="ff-eyebrow">Help &amp; documentation</div>
+    <h1 class="ff-h1 ff-h1--page" id="help-category-title">{{ category.name }}</h1>
+    <p class="ff-lead">{{ category.description }}</p>
+</section>
+
+<div class="ff-container ff-page-body">
+    {% if articles %}
+        <ul class="ff-help-article-list">
+            {% for article in articles %}
+                <li>
+                    <a href="{% url 'website:help_article' category.slug article.slug %}">{{ article.title }}</a>
+                    <p>{{ article.summary }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="ff-empty">
+            Articles for {{ category.name }} are coming soon.
+            <a href="{% url 'website:help' %}">Browse other categories</a>.
+        </p>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,11 @@
+{% comment %}Expects: related_articles (tuple of HelpArticle, may be empty).{% endcomment %}
+{% if related_articles %}
+    <aside class="ff-help-related" aria-labelledby="help-related-title">
+        <h2 id="help-related-title">Related articles</h2>
+        <ul>
+            {% for related in related_articles %}
+                <li><a href="{% url 'website:help_article' related.category_slug related.slug %}">{{ related.title }}</a></li>
+            {% endfor %}
+        </ul>
+    </aside>
+{% endif %}

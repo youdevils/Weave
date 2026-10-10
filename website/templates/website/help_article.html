@@ -1,0 +1,65 @@
+{% extends "website/base.html" %}
+{% load static %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'website/css/help.css' %}">{% endblock %}
+
+{% block content %}
+
+<div class="ff-container ff-help-breadcrumbs-row">
+    {% include "website/_help_breadcrumbs.html" %}
+</div>
+
+<div class="ff-container ff-page-body ff-help-layout">
+
+    <div class="ff-help-sidebar-slot">
+        {% comment %}
+            Rendered twice (desktop nav, mobile details) rather than reusing
+            one <details> for both: forcing a closed <details>'s content to
+            stay visible via CSS does not reliably work across browsers,
+            since the collapse is implemented as an internal content box,
+            not a plain overridable display rule on the children. Two plain,
+            independently-toggled copies sidestep that entirely.
+        {% endcomment %}
+        <nav class="ff-help-panel ff-help-panel--desktop" aria-label="Help categories">
+            <div class="ff-help-sidebar-body">
+                {% include "website/_help_sidebar.html" %}
+            </div>
+        </nav>
+        <details class="ff-help-panel ff-help-panel--mobile">
+            <summary>Browse help</summary>
+            <div class="ff-help-sidebar-body">
+                {% include "website/_help_sidebar.html" %}
+            </div>
+        </details>
+    </div>
+
+    <article class="ff-legal ff-help-article">
+        <h1>{{ article.title }}</h1>
+        {% if article.updated %}<p class="ff-help-updated">Last updated {{ article.updated }}</p>{% endif %}
+        {{ article.html|safe }}
+    </article>
+
+    {% if show_toc %}
+        <div class="ff-help-toc-slot">
+            <nav class="ff-help-panel ff-help-panel--desktop" aria-label="On this page">
+                <div class="ff-help-toc-body">
+                    {% include "website/_help_toc.html" %}
+                </div>
+            </nav>
+            <details class="ff-help-panel ff-help-panel--mobile">
+                <summary>On this page</summary>
+                <div class="ff-help-toc-body">
+                    {% include "website/_help_toc.html" %}
+                </div>
+            </details>
+        </div>
+    {% endif %}
+
+</div>
+
+<div class="ff-container ff-help-after">
+    {% include "website/_help_prevnext.html" %}
+    {% include "website/_help_related.html" %}
+</div>
+
+{% endblock %}

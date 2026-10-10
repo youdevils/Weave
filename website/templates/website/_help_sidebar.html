@@ -1,0 +1,28 @@
+{% comment %}
+    Expects: categories (list of (HelpCategory, articles) tuples), and
+    optionally category / article (the current page, for highlighting).
+
+    No outer <nav> here — included twice per article page (once inside a
+    desktop <nav>, once inside a mobile <details>), so the wrapper is the
+    caller's responsibility.
+{% endcomment %}
+{% for cat, cat_articles in categories %}
+    <div class="ff-help-sidebar-group">
+        <a
+            class="ff-help-sidebar-category{% if category and category.slug == cat.slug %} is-active{% endif %}"
+            href="{% url 'website:help_category' cat.slug %}"
+        >{{ cat.name }}</a>
+        {% if cat_articles %}
+            <ul>
+                {% for cat_article in cat_articles %}
+                    <li>
+                        <a
+                            href="{% url 'website:help_article' cat.slug cat_article.slug %}"
+                            {% if article and article.slug == cat_article.slug %}aria-current="page"{% endif %}
+                        >{{ cat_article.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+{% endfor %}

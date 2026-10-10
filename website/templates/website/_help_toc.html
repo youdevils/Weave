@@ -1,0 +1,13 @@
+{% comment %}
+    Expects: article (HelpArticle).
+    No outer <nav> here — included twice per article page (once inside a
+    desktop <nav>, once inside a mobile <details>), so the wrapper is the
+    caller's responsibility.
+{% endcomment %}
+<ul>
+    {% for heading in article.headings %}
+        <li class="ff-help-toc-item ff-help-toc-item--h{{ heading.level }}">
+            <a href="#{{ heading.id }}">{{ heading.text }}</a>
+        </li>
+    {% endfor %}
+</ul>

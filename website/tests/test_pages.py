@@ -7,6 +7,7 @@ from django.urls import resolve, reverse
 PUBLIC_PAGES = {
     "website:home": "/",
     "website:examples": "/examples/",
+    "website:help": "/help/",
     "website:privacy": "/privacy/",
     "website:terms": "/terms/",
     "website:contact": "/contact/",
@@ -50,7 +51,7 @@ class RoutingTests(TestCase):
         self.assertTrue(response["Location"].startswith("/login/?next="))
 
     def test_the_public_site_only_accepts_safe_methods(self):
-        for name in ("website:home", "website:examples", "website:privacy", "website:terms"):
+        for name in ("website:home", "website:examples", "website:help", "website:privacy", "website:terms"):
             self.assertEqual(self.client.post(reverse(name)).status_code, 405, name)
             self.assertEqual(self.client.head(reverse(name)).status_code, 200, name)
 
@@ -189,7 +190,7 @@ class HeaderTests(TestCase):
         self.assertNotIn("is-scrolled", header)
 
     def test_other_pages_render_the_compact_header_directly(self):
-        for name in ("website:examples", "website:privacy", "website:terms", "website:contact", "account:login"):
+        for name in ("website:examples", "website:help", "website:privacy", "website:terms", "website:contact", "account:login"):
             header = self.header(name)
 
             self.assertIn("is-scrolled", header, name)
@@ -198,13 +199,18 @@ class HeaderTests(TestCase):
     def test_the_header_offers_the_agreed_navigation_and_cta(self):
         header = self.header("website:home")
 
-        for label in ("What is OnyxJar?", "How it works", "Examples", "Log in", "Try it free"):
+        for label in ("What is OnyxJar?", "How it works", "Examples", "Help", "Log in", "Try it free"):
             self.assertIn(label, header)
 
         self.assertIn(f'href="{reverse("website:home")}#what"', header)
         self.assertIn(f'href="{reverse("website:home")}#how"', header)
+        self.assertIn(f'href="{reverse("website:help")}"', header)
         self.assertIn(f'href="{reverse("account:login")}"', header)
         self.assertIn(f'href="{reverse("account:signup")}"', header)
+
+    def test_the_help_link_is_marked_current_only_on_help_pages(self):
+        self.assertIn(f'href="{reverse("website:help")}" aria-current="page"', self.header("website:help"))
+        self.assertNotIn('href="' + reverse("website:help") + '" aria-current="page"', self.header("website:home"))
 
     def test_the_mobile_menu_is_present_and_accessible(self):
         header = self.header("website:home")
@@ -240,7 +246,7 @@ class FooterTests(TestCase):
 
         self.assertIn("Build a living model of complex work.", footer)
 
-        for name in ("website:examples", "website:privacy", "website:terms", "website:contact", "account:login", "account:signup"):
+        for name in ("website:examples", "website:help", "website:privacy", "website:terms", "website:contact", "account:login", "account:signup"):
             self.assertIn(f'href="{reverse(name)}"', footer, name)
 
         self.assertRegex(footer, r"&copy; \d{4} OnyxJar\. All rights reserved\.")

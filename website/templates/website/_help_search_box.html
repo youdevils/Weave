@@ -1,0 +1,18 @@
+{% comment %}
+    The Help search form. Always a plain GET submit to website:help_search —
+    no JS is required for search to work.
+{% endcomment %}
+<form class="ff-help-search" method="get" action="{% url 'website:help_search' %}" role="search">
+    <label class="ff-help-search-label" for="help-search-input">Search help &amp; documentation</label>
+    <div class="ff-help-search-row">
+        <input
+            type="search"
+            name="q"
+            id="help-search-input"
+            value="{{ query|default:'' }}"
+            placeholder="Search help articles…"
+            autocomplete="off"
+        >
+        <button type="submit" class="ff-btn ff-btn--primary">Search</button>
+    </div>
+</form>
